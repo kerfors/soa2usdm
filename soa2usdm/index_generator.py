@@ -89,20 +89,17 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
     if not protocol_path.exists():
         return result
     
-    # Source files in protocol root (PDF, SoA PDF, markdown)
-    for pattern, label, css_cls in [
-        (f'{protocol_id}.pdf', 'Protocol', 'link-pdf'),
-        (f'{protocol_id}_soa.pdf', 'SoA PDF', 'link-soa'),
-        (f'{protocol_id}.md', 'Markdown', 'link-md'),
-    ]:
-        f = protocol_path / pattern
-        if f.exists():
-            result['source_files'].append({
-                'filename': f.name,
-                'path': f"{protocol_id}/{f.name}",
-                'label': label,
-                'css_class': css_cls,
-            })
+    # Source files in protocol root. Only the sliced SoA PDF is published; the
+    # full CSP is linked to its source URL (protocol_url) in the row renderer and
+    # the markdown dump is not published, so neither is emitted as a local link.
+    soa_pdf = protocol_path / f'{protocol_id}_soa.pdf'
+    if soa_pdf.exists():
+        result['source_files'].append({
+            'filename': soa_pdf.name,
+            'path': f"{protocol_id}/{soa_pdf.name}",
+            'label': 'SoA PDF',
+            'css_class': 'link-soa',
+        })
     
     # SoA2USDM folder
     try:
@@ -489,6 +486,7 @@ def generate_index_html(collection: str) -> str:
             'conditions': meta.get('conditions', ''),
             'interventions': meta.get('interventions', ''),
             'soa_pages': meta.get('soa_pages', ''),
+            'protocol_url': meta.get('protocol_url', ''),
             **outputs,
         })
     
@@ -501,8 +499,15 @@ def generate_index_html(collection: str) -> str:
         nct = p['nct_id']
         is_ready = p['has_resolved'] or p['has_consolidated']
         
-        # Source files column
+        # Source column: full CSP linked to its source URL (not published here) +
+        # the published sliced SoA PDF.
         source_links = []
+        prot_url = p.get('protocol_url', '')
+        if prot_url:
+            source_links.append(
+                f'<a href="{esc(prot_url)}" class="link-pdf" title="Full protocol at source" '
+                f'target="_blank" rel="noopener">Protocol</a>'
+            )
         for sf in p.get('source_files', []):
             source_links.append(
                 f'<a href="{sf["path"]}" class="{sf["css_class"]}" title="{esc(sf["filename"])}">{sf["label"]}</a>'
