@@ -48,9 +48,12 @@ def load_study_metadata(collection_path: Path) -> dict:
                 headers = [str(h).strip() if h else '' for h in rows[0]]
                 for row in rows[1:]:
                     record = dict(zip(headers, row))
-                    nct_id = record.get('nct_id', '')
-                    if nct_id:
-                        metadata[nct_id] = record
+                    # Non-NCT studies (e.g. CDISC_Pilot) have a blank nct_id;
+                    # fall back to d4k_folder so their metadata is keyed to the
+                    # protocol folder name the generator iterates over.
+                    key = record.get('nct_id') or record.get('d4k_folder', '')
+                    if key:
+                        metadata[key] = record
         
         # Merge 'protocols' sheet (soa_pages, protocol_url)
         if 'protocols' in wb.sheetnames:
