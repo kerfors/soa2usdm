@@ -1,0 +1,2664 @@
+{
+  "schema_name": "soa-tables-consolidated",
+  "schema_version": "1.1",
+  "protocol_id": "NCT03637764",
+  "consolidation_metadata": {
+    "consolidated_at": "2026-02-26T12:27:58.167957+00:00",
+    "consolidator": "soa2usdm.steps.consolidate v1.1",
+    "source_tables": [
+      {
+        "table_id": "table-001",
+        "table_num": 1,
+        "table_type": "main_soa",
+        "table_title": "1.3 SCHEDULE OF ACTIVITIES (SOA)",
+        "table_purpose": "Complete study schedule covering Screening, Treatment (Cycle 1 and Cycle 2+), End of Treatment, Post-Treatment Safety Follow-up, and Survival Follow-up",
+        "track_label": null,
+        "activity_count": 29,
+        "column_count": 10,
+        "annotation_count": 11,
+        "property_hierarchy": [
+          {
+            "hierarchical_level": 1,
+            "property_name": "Epoch",
+            "property_type": "epoch",
+            "property_comment": "Major study phases: Screening, Treatment Phase, End of Treatment (EOT), Post Treatment Follow-up Phase. Label column contains 'Evaluation' (the row label header). Synthesized as 'Epoch'. Distinguishes the 4 major phase groupings across columns."
+          },
+          {
+            "hierarchical_level": 2,
+            "property_name": "Period",
+            "property_type": "cycle",
+            "property_comment": "Sub-phase breakdown: Cycle 1 / Cycle 2 and Beyond under Treatment; Safety follow-up Period / Survival follow-up under Post Treatment. Without this row, Cycle 1 and Cycle 2+ columns would be indistinguishable at epoch level. Classified as cycle because treatment is organised by cycles."
+          },
+          {
+            "hierarchical_level": 3,
+            "property_name": "Timepoint",
+            "property_type": "study_day",
+            "property_comment": "Specific timing within each period: D-28 to D-15, D-14 to D-1 (Screening); D1(±1), D8(±1), D15(±1) (Cycle 1); D1(±2) (Cycle 2+); 30/60/90 days post-last-IMP (follow-up); Every 90 days (survival). This row makes each column unique — removing it would leave Cycle 1's three columns indistinguishable."
+          }
+        ]
+      }
+    ],
+    "match_stats": {
+      "exact": 0,
+      "fuzzy_auto": 0,
+      "fuzzy_cross_parent": 0,
+      "fuzzy_review": 0,
+      "new": 29
+    },
+    "source_activity_count": 29,
+    "unified_activity_count": 29,
+    "compression_percent": 0,
+    "annotation_stats": {
+      "source_annotation_count": 11,
+      "unified_annotation_count": 11,
+      "deduplicated_count": 0,
+      "deduplication_percent": 0,
+      "by_type": {
+        "footnote": 4,
+        "source_note": 7
+      }
+    }
+  },
+  "property_hierarchy": [
+    {
+      "property_id": "prop-001",
+      "property_type": "epoch",
+      "property_name": "Epoch",
+      "hierarchical_level": 1,
+      "property_comment": "Major study phases: Screening, Treatment Phase, End of Treatment (EOT), Post Treatment Follow-up Phase. Label column contains 'Evaluation' (the row label header). Synthesized as 'Epoch'. Distinguishes the 4 major phase groupings across columns."
+    },
+    {
+      "property_id": "prop-002",
+      "property_type": "cycle",
+      "property_name": "Period",
+      "hierarchical_level": 2,
+      "property_comment": "Sub-phase breakdown: Cycle 1 / Cycle 2 and Beyond under Treatment; Safety follow-up Period / Survival follow-up under Post Treatment. Without this row, Cycle 1 and Cycle 2+ columns would be indistinguishable at epoch level. Classified as cycle because treatment is organised by cycles."
+    },
+    {
+      "property_id": "prop-003",
+      "property_type": "study_day",
+      "property_name": "Timepoint",
+      "hierarchical_level": 3,
+      "property_comment": "Specific timing within each period: D-28 to D-15, D-14 to D-1 (Screening); D1(±1), D8(±1), D15(±1) (Cycle 1); D1(±2) (Cycle 2+); 30/60/90 days post-last-IMP (follow-up); Every 90 days (survival). This row makes each column unique — removing it would leave Cycle 1's three columns indistinguishable."
+    }
+  ],
+  "review_queue": [],
+  "unified_activities": [
+    {
+      "xact_id": "xact-001",
+      "activity_name": "Informed consent/ Inclusion and exclusion criteria",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 1,
+      "qualified_key": "::Informed consent/ Inclusion and exclusion criteria",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-001",
+          "row_position": 4
+        }
+      ],
+      "name_variations": [
+        "Informed consent/ Inclusion and exclusion criteria"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-002",
+      "activity_name": "Demography, Medical/Surgical and Disease History",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 2,
+      "qualified_key": "::Demography, Medical/Surgical and Disease History",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-002",
+          "row_position": 5
+        }
+      ],
+      "name_variations": [
+        "Demography, Medical/Surgical and Disease History"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-003",
+      "activity_name": "Physical examination",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 3,
+      "qualified_key": "::Physical examination",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-003",
+          "row_position": 6
+        }
+      ],
+      "name_variations": [
+        "Physical examination"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-004",
+      "activity_name": "Height (at baseline only) /Weight/ ECOG (HCC,SCCHN,EOC) or Karnofsky PS (GBM)",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 4,
+      "qualified_key": "::Height (at baseline only) /Weight/ ECOG (HCC,SCCHN,EOC) or Karnofsky PS (GBM)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-004",
+          "row_position": 7
+        }
+      ],
+      "name_variations": [
+        "Height (at baseline only) /Weight/ ECOG (HCC,SCCHN,EOC) or Karnofsky PS (GBM)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-005",
+      "activity_name": "Vital Signs",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 5,
+      "qualified_key": "::Vital Signs",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-005",
+          "row_position": 8
+        }
+      ],
+      "name_variations": [
+        "Vital Signs"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-006",
+      "activity_name": "Resting O2 saturation for SCCHN",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 6,
+      "qualified_key": "::Resting O2 saturation for SCCHN",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-006",
+          "row_position": 9
+        }
+      ],
+      "name_variations": [
+        "Resting O2 saturation for SCCHN"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-007",
+      "activity_name": "12-Lead ECG",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 7,
+      "qualified_key": "::12-Lead ECG",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-007",
+          "row_position": 10
+        }
+      ],
+      "name_variations": [
+        "12-Lead ECG"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-008",
+      "activity_name": "Laboratory Assessments",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 8,
+      "qualified_key": "::Laboratory Assessments",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-008",
+          "row_position": 11
+        }
+      ],
+      "name_variations": [
+        "Laboratory Assessments"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-009",
+      "activity_name": "Pregnancy test (WOCBP only)",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 9,
+      "qualified_key": "Laboratory Assessments::Pregnancy test (WOCBP only)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-009",
+          "row_position": 12
+        }
+      ],
+      "name_variations": [
+        "Pregnancy test (WOCBP only)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-010",
+      "activity_name": "Blood Chemistry",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 10,
+      "qualified_key": "Laboratory Assessments::Blood Chemistry",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-010",
+          "row_position": 13
+        }
+      ],
+      "name_variations": [
+        "Blood Chemistry"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-011",
+      "activity_name": "Hematology",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 11,
+      "qualified_key": "Laboratory Assessments::Hematology",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-011",
+          "row_position": 14
+        }
+      ],
+      "name_variations": [
+        "Hematology"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-012",
+      "activity_name": "Coagulation(GBM)",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 12,
+      "qualified_key": "Laboratory Assessments::Coagulation(GBM)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-012",
+          "row_position": 15
+        }
+      ],
+      "name_variations": [
+        "Coagulation(GBM)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-013",
+      "activity_name": "Coagulation (for HCC, SCCHN, and EOC)",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 13,
+      "qualified_key": "Laboratory Assessments::Coagulation (for HCC, SCCHN, and EOC)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-013",
+          "row_position": 16
+        }
+      ],
+      "name_variations": [
+        "Coagulation (for HCC, SCCHN, and EOC)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-014",
+      "activity_name": "Blood Typing Interference Test",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 14,
+      "qualified_key": "Laboratory Assessments::Blood Typing Interference Test",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-014",
+          "row_position": 17
+        }
+      ],
+      "name_variations": [
+        "Blood Typing Interference Test"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-015",
+      "activity_name": "Serology HBV and HCV (for HCC only)",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 15,
+      "qualified_key": "Laboratory Assessments::Serology HBV and HCV (for HCC only)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-015",
+          "row_position": 18
+        }
+      ],
+      "name_variations": [
+        "Serology HBV and HCV (for HCC only)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-016",
+      "activity_name": "Urinalysis (at baseline and if required) /urine dipstick",
+      "parent_name": "Laboratory Assessments",
+      "parent_xact_id": "xact-008",
+      "hierarchy_level": 1,
+      "display_order": 16,
+      "qualified_key": "Laboratory Assessments::Urinalysis (at baseline and if required) /urine dipstick",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-016",
+          "row_position": 19
+        }
+      ],
+      "name_variations": [
+        "Urinalysis (at baseline and if required) /urine dipstick"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-017",
+      "activity_name": "Disease Assessment",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 17,
+      "qualified_key": "::Disease Assessment",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-017",
+          "row_position": 20
+        }
+      ],
+      "name_variations": [
+        "Disease Assessment"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-018",
+      "activity_name": "CT/MRI (for HCC, SCCHN, and EOC)",
+      "parent_name": "Disease Assessment",
+      "parent_xact_id": "xact-017",
+      "hierarchy_level": 1,
+      "display_order": 18,
+      "qualified_key": "Disease Assessment::CT/MRI (for HCC, SCCHN, and EOC)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-018",
+          "row_position": 21
+        }
+      ],
+      "name_variations": [
+        "CT/MRI (for HCC, SCCHN, and EOC)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-019",
+      "activity_name": "Brain MRI (for GBM only)",
+      "parent_name": "Disease Assessment",
+      "parent_xact_id": "xact-017",
+      "hierarchy_level": 1,
+      "display_order": 19,
+      "qualified_key": "Disease Assessment::Brain MRI (for GBM only)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-019",
+          "row_position": 22
+        }
+      ],
+      "name_variations": [
+        "Brain MRI (for GBM only)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-020",
+      "activity_name": "AFP (for HCC) / CA125 (for EOC)",
+      "parent_name": "Disease Assessment",
+      "parent_xact_id": "xact-017",
+      "hierarchy_level": 1,
+      "display_order": 20,
+      "qualified_key": "Disease Assessment::AFP (for HCC) / CA125 (for EOC)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-020",
+          "row_position": 23
+        }
+      ],
+      "name_variations": [
+        "AFP (for HCC) / CA125 (for EOC)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-021",
+      "activity_name": "Isatuximab Administration",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 21,
+      "qualified_key": "::Isatuximab Administration",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-021",
+          "row_position": 24
+        }
+      ],
+      "name_variations": [
+        "Isatuximab Administration"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-022",
+      "activity_name": "Atezolizumab Administration",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 22,
+      "qualified_key": "::Atezolizumab Administration",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-022",
+          "row_position": 25
+        }
+      ],
+      "name_variations": [
+        "Atezolizumab Administration"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-023",
+      "activity_name": "AE/SAE Assessment",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 23,
+      "qualified_key": "::AE/SAE Assessment",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-023",
+          "row_position": 26
+        }
+      ],
+      "name_variations": [
+        "AE/SAE Assessment"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-024",
+      "activity_name": "Prior/Concomitant Medication",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 24,
+      "qualified_key": "::Prior/Concomitant Medication",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-024",
+          "row_position": 27
+        }
+      ],
+      "name_variations": [
+        "Prior/Concomitant Medication"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-025",
+      "activity_name": "PK",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 25,
+      "qualified_key": "::PK",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-025",
+          "row_position": 28
+        }
+      ],
+      "name_variations": [
+        "PK"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-026",
+      "activity_name": "ADA",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 26,
+      "qualified_key": "::ADA",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-026",
+          "row_position": 29
+        }
+      ],
+      "name_variations": [
+        "ADA"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-027",
+      "activity_name": "Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 27,
+      "qualified_key": "::Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-027",
+          "row_position": 30
+        }
+      ],
+      "name_variations": [
+        "Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-028",
+      "activity_name": "Subsequent Anticancer Therapy Status",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 28,
+      "qualified_key": "::Subsequent Anticancer Therapy Status",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-028",
+          "row_position": 31
+        }
+      ],
+      "name_variations": [
+        "Subsequent Anticancer Therapy Status"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-029",
+      "activity_name": "Survival Status",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 29,
+      "qualified_key": "::Survival Status",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-001",
+          "table_num": 1,
+          "activity_id": "act-029",
+          "row_position": 32
+        }
+      ],
+      "name_variations": [
+        "Survival Status"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    }
+  ],
+  "timeline_segments": {
+    "main": [
+      {
+        "xcol_id": "xcol-001",
+        "composite_label": "Screening (up to 28 days before Day 1) / D-28 to D-15",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Screening (up to 28 days before Day 1)"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": ""
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "D-28 to D-15"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-002",
+            "column_position": 2
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-002",
+        "composite_label": "Screening (up to 28 days before Day 1) / D-14 to D-1",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Screening (up to 28 days before Day 1)"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": ""
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "D-14 to D-1"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-003",
+            "column_position": 3
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-003",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 (±1)",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "D1 (±1)"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-004",
+            "column_position": 4
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-004",
+        "composite_label": "Treatment Phase / Cycle 1 / D8 (± 1)",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "D8 (± 1)"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-005",
+            "column_position": 5
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-005",
+        "composite_label": "Treatment Phase / Cycle 1 / D15 (±1)",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "D15 (±1)"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-006",
+            "column_position": 6
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-006",
+        "composite_label": "Treatment Phase / Cycle 2 and Beyond / D1 (± 2)",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": "Cycle 2 and Beyond"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "D1 (± 2)"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-007",
+            "column_position": 7
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-007",
+        "composite_label": "End of Treatment (EOT) / 30 (±7) days after last IMPs admin",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "End of Treatment (EOT)"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": ""
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "30 (±7) days after last IMPs admin"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-008",
+            "column_position": 8
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-008",
+        "composite_label": "Post Treatment Follow-up Phase / Safety follow-up Period / At 60 (±7) days after last IMPs admin",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Post Treatment Follow-up Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": "Safety follow-up Period"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "At 60 (±7) days after last IMPs admin"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-009",
+            "column_position": 9
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-009",
+        "composite_label": "Post Treatment Follow-up Phase / Safety follow-up Period / At 90 (±7) days after last IMPs admin",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Post Treatment Follow-up Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": "Safety follow-up Period"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "At 90 (±7) days after last IMPs admin"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-010",
+            "column_position": 10
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-010",
+        "composite_label": "Post Treatment Follow-up Phase / Survival follow-up / Every 90 days (±7) after last safety follow-up",
+        "segment": "main",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Epoch",
+            "value": "Post Treatment Follow-up Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Period",
+            "value": "Survival follow-up"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Timepoint",
+            "value": "Every 90 days (±7) after last safety follow-up"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-001",
+            "table_num": 1,
+            "column_id": "col-011",
+            "column_position": 11
+          }
+        ]
+      }
+    ]
+  },
+  "schedule_matrix": [
+    {
+      "xact_id": "xact-001",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-001",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-002",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-002",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-003",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X (<7days prior to first dose)",
+      "source_values": {
+        "1": "X (<7days prior to first dose)"
+      }
+    },
+    {
+      "xact_id": "xact-003",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-003",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-003",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-003",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-003",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-003",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-004",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-005",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-006",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-006",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-006",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-006",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-006",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-006",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-006",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-007",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-007",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-007",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "As clinically indicated",
+      "source_values": {
+        "1": "As clinically indicated"
+      }
+    },
+    {
+      "xact_id": "xact-009",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X (within 7 days prior to first dose)",
+      "source_values": {
+        "1": "X (within 7 days prior to first dose)"
+      }
+    },
+    {
+      "xact_id": "xact-009",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-009",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-009",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-009",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "X (every 30±7 days until 5 months after last dose of study treatment)",
+      "source_values": {
+        "1": "X (every 30±7 days until 5 months after last dose of study treatment)"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-010",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-011",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-012",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-012",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-012",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-012",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-012",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-012",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-013",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-013",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "As clinically indicated",
+      "source_values": {
+        "1": "As clinically indicated"
+      }
+    },
+    {
+      "xact_id": "xact-014",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-014",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "Cycle 2 Day 1 only",
+      "source_values": {
+        "1": "Cycle 2 Day 1 only"
+      }
+    },
+    {
+      "xact_id": "xact-015",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-015",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "As clinically indicated",
+      "source_values": {
+        "1": "As clinically indicated"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "As clinically indicated",
+      "source_values": {
+        "1": "As clinically indicated"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "As clinically indicated",
+      "source_values": {
+        "1": "As clinically indicated"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-016",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-018",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-018",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-018",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X (Weeks 9, 18, 27, and then every 12 weeks)",
+      "source_values": {
+        "1": "X (Weeks 9, 18, 27, and then every 12 weeks)"
+      }
+    },
+    {
+      "xact_id": "xact-018",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X (if necessary)",
+      "source_values": {
+        "1": "X (if necessary)"
+      }
+    },
+    {
+      "xact_id": "xact-018",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X (until PD is confirmed if no PD documented & confirmed)",
+      "source_values": {
+        "1": "X (until PD is confirmed if no PD documented & confirmed)"
+      }
+    },
+    {
+      "xact_id": "xact-018",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "X (until PD is confirmed if no PD documented & confirmed)",
+      "source_values": {
+        "1": "X (until PD is confirmed if no PD documented & confirmed)"
+      }
+    },
+    {
+      "xact_id": "xact-019",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X (within 14 days prior to first dose)",
+      "source_values": {
+        "1": "X (within 14 days prior to first dose)"
+      }
+    },
+    {
+      "xact_id": "xact-019",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X (Weeks 6, 12, 18, 24, and then every 9 weeks)",
+      "source_values": {
+        "1": "X (Weeks 6, 12, 18, 24, and then every 9 weeks)"
+      }
+    },
+    {
+      "xact_id": "xact-019",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X (if necessary)",
+      "source_values": {
+        "1": "X (if necessary)"
+      }
+    },
+    {
+      "xact_id": "xact-019",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X (until PD is confirmed if no PD documented & confirmed)",
+      "source_values": {
+        "1": "X (until PD is confirmed if no PD documented & confirmed)"
+      }
+    },
+    {
+      "xact_id": "xact-019",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "X (until PD is confirmed if no PD documented & confirmed)",
+      "source_values": {
+        "1": "X (until PD is confirmed if no PD documented & confirmed)"
+      }
+    },
+    {
+      "xact_id": "xact-020",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-020",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X (Weeks 9, 18, 27, and then every 12 weeks)",
+      "source_values": {
+        "1": "X (Weeks 9, 18, 27, and then every 12 weeks)"
+      }
+    },
+    {
+      "xact_id": "xact-020",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X (if necessary)",
+      "source_values": {
+        "1": "X (if necessary)"
+      }
+    },
+    {
+      "xact_id": "xact-020",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X (until PD is confirmed if no PD documented & confirmed)",
+      "source_values": {
+        "1": "X (until PD is confirmed if no PD documented & confirmed)"
+      }
+    },
+    {
+      "xact_id": "xact-020",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "X (until PD is confirmed if no PD documented & confirmed)",
+      "source_values": {
+        "1": "X (until PD is confirmed if no PD documented & confirmed)"
+      }
+    },
+    {
+      "xact_id": "xact-021",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-021",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-021",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-021",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-022",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-022",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X (ongoing related AEs, ongoing SAEs at EOT and new related AE/SAEs)",
+      "source_values": {
+        "1": "X (ongoing related AEs, ongoing SAEs at EOT and new related AE/SAEs)"
+      }
+    },
+    {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X (ongoing related AEs, ongoing SAEs at EOT and new related AE/SAEs)",
+      "source_values": {
+        "1": "X (ongoing related AEs, ongoing SAEs at EOT and new related AE/SAEs)"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "X (within 14 days prior to first dose)",
+      "source_values": {
+        "1": "X (within 14 days prior to first dose)"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "X (within 14 days prior to first dose)",
+      "source_values": {
+        "1": "X (within 14 days prior to first dose)"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "Continuously throughout period",
+      "source_values": {
+        "1": "Continuously throughout period"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X (related to AE/SAEs listed above)",
+      "source_values": {
+        "1": "X (related to AE/SAEs listed above)"
+      }
+    },
+    {
+      "xact_id": "xact-024",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X (related to AE/SAEs listed above)",
+      "source_values": {
+        "1": "X (related to AE/SAEs listed above)"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-025",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-026",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "source_values": {
+        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-001",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-002",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-003",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-004",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-005",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-027",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "See Biomarker Flow Chart",
+      "source_values": {
+        "1": "See Biomarker Flow Chart"
+      }
+    },
+    {
+      "xact_id": "xact-028",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-028",
+      "xcol_id": "xcol-008",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-028",
+      "xcol_id": "xcol-009",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-028",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    },
+    {
+      "xact_id": "xact-029",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
+      }
+    }
+  ],
+  "unified_annotations": [
+    {
+      "xannot_id": "xannot-001",
+      "annotation_type": "footnote",
+      "annotation_text": "A cycle is 21 days",
+      "display_markers": "T1:a",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "a",
+          "annotation_id": "annot-001"
+        }
+      ],
+      "referenced_xacts": [],
+      "referenced_xcols": [
+        "xcol-003",
+        "xcol-004",
+        "xcol-005",
+        "xcol-006"
+      ],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-002",
+      "annotation_type": "footnote",
+      "annotation_text": "Women of child bearing potential must have a negative serum pregnancy test result within 7 days prior to first IMP administration.",
+      "display_markers": "T1:b",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "b",
+          "annotation_id": "annot-002"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-009"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-003",
+      "annotation_type": "footnote",
+      "annotation_text": "evaluation not applicable for Cohort E",
+      "display_markers": "T1:c",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "c",
+          "annotation_id": "annot-003"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-003",
+        "xact-004",
+        "xact-005",
+        "xact-006",
+        "xact-010",
+        "xact-011",
+        "xact-012",
+        "xact-021"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-003",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-003",
+          "xcol_id": "xcol-005"
+        },
+        {
+          "xact_id": "xact-004",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-004",
+          "xcol_id": "xcol-005"
+        },
+        {
+          "xact_id": "xact-005",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-005",
+          "xcol_id": "xcol-005"
+        },
+        {
+          "xact_id": "xact-006",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-006",
+          "xcol_id": "xcol-005"
+        },
+        {
+          "xact_id": "xact-010",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-010",
+          "xcol_id": "xcol-005"
+        },
+        {
+          "xact_id": "xact-011",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-011",
+          "xcol_id": "xcol-005"
+        },
+        {
+          "xact_id": "xact-012",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-012",
+          "xcol_id": "xcol-005"
+        },
+        {
+          "xact_id": "xact-021",
+          "xcol_id": "xcol-004"
+        },
+        {
+          "xact_id": "xact-021",
+          "xcol_id": "xcol-005"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-004",
+      "annotation_type": "footnote",
+      "annotation_text": "Informed Consent: Informed consent may be signed prior to D -28.",
+      "display_markers": "T1:note_ic",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "note_ic",
+          "annotation_id": "annot-004"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-001"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-005",
+      "annotation_type": "source_note",
+      "annotation_text": "Section 8.2.1",
+      "display_markers": "T1:ref_8.2.1",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "ref_8.2.1",
+          "annotation_id": "annot-005"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-003",
+        "xact-004"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-006",
+      "annotation_type": "source_note",
+      "annotation_text": "See Section 8.2.2",
+      "display_markers": "T1:ref_8.2.2",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "ref_8.2.2",
+          "annotation_id": "annot-006"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-005",
+        "xact-006"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-007",
+      "annotation_type": "source_note",
+      "annotation_text": "See Section 8.2.3",
+      "display_markers": "T1:ref_8.2.3",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "ref_8.2.3",
+          "annotation_id": "annot-007"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-007"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-008",
+      "annotation_type": "source_note",
+      "annotation_text": "See Section 10.3 Table 12",
+      "display_markers": "T1:ref_10.3_table12",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "ref_10.3_table12",
+          "annotation_id": "annot-008"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-010"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-009",
+      "annotation_type": "source_note",
+      "annotation_text": "Section 10.3",
+      "display_markers": "T1:ref_10.3",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "ref_10.3",
+          "annotation_id": "annot-009"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-011",
+        "xact-012",
+        "xact-013",
+        "xact-015",
+        "xact-016"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-010",
+      "annotation_type": "source_note",
+      "annotation_text": "Section 10.3. Before each transfusion.",
+      "display_markers": "T1:ref_10.3_bti",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "ref_10.3_bti",
+          "annotation_id": "annot-010"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-014"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-011",
+      "annotation_type": "source_note",
+      "annotation_text": "Section 8.1",
+      "display_markers": "T1:ref_8.1",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "ref_8.1",
+          "annotation_id": "annot-011"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-018",
+        "xact-019",
+        "xact-020"
+      ],
+      "referenced_xcols": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    }
+  ]
+}

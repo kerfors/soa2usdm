@@ -1,0 +1,530 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://data4knowledge.org/schemas/soa-table-extraction.json",
+  "title": "SoA Table Extraction Schema",
+  "description": "Schema for capturing Schedule of Activities tables as they appear in protocol documents. The SoA table is a presentation artifact - a 2D summary of underlying study logic constrained by paper format. This schema captures that presentation faithfully: observable structure plus basic domain interpretation that any clinical trial expert would agree on. Downstream schemas (soa-table-resolved, study-schedule-logic) progressively reconstruct the study logic the table was attempting to express. Key principle: Extract what you see + interpret what's obvious; leave derivation and semantic mapping to downstream layers.",
+  "definitions": {
+    "table_metadata": {
+      "type": "object",
+      "description": "Metadata about a single SoA table as it appears in the source document. One extraction file = one table.",
+      "required": [
+        "table_number",
+        "table_type",
+        "page_start",
+        "page_end"
+      ],
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Sequential table number within the protocol (1, 2, 3...). Establishes ordering when protocol contains multiple SoA tables."
+        },
+        "table_type": {
+          "type": "string",
+          "enum": [
+            "main_soa",
+            "continuation",
+            "domain",
+            "subsidiary",
+            "track",
+            "reference"
+          ],
+          "description": "Classification of table's role in the protocol (v4). 'main_soa'=primary schedule table; 'continuation'=same table split across pages (use with continuation_of); 'domain'=same column structure as main_soa, different activity category (e.g., Lab/Non-lab/PK); 'subsidiary'=different column structure providing finer timing for activity subset; 'track'=separate timeline for different population or study phase (use with track_label); 'reference'=non-activity content (specs, abbreviations, metadata)."
+        },
+        "table_title": {
+          "type": "string",
+          "description": "Table title exactly as written in source document. Captures protocol author's characterization of this table's scope."
+        },
+        "table_purpose": {
+          "type": "string",
+          "description": "Brief description of what this table covers if discernible from title or context. Examples: 'Main treatment schedule', 'Screening procedures only', 'PK sampling timepoints', 'Follow-up visits'. Helps downstream integration understand table scope."
+        },
+        "page_start": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Starting page number in source PDF. Essential for source traceability."
+        },
+        "page_end": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Ending page number in source PDF. Multi-page tables common due to paper constraints."
+        },
+        "continuation_of": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "If this table is a continuation of a previous table (same logical table split across pages), reference the table_number it continues. Omit if this is an independent table."
+        },
+        "track_label": {
+          "type": "string",
+          "description": "Short population/phase identifier for track tables (e.g., 'Responders', 'Non-responders', 'Prediabetes', 'Extension'). Used when table_type is 'track'. Provides display label for consolidated timeline views. Omit for non-track tables."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Extraction notes about table structure, anomalies, or interpretation decisions made during extraction."
+        }
+      }
+    },
+    "schedule_property": {
+      "type": "object",
+      "description": "A schedule property row from the table header area. These rows define the temporal/structural grid: phases, visits, study days, timepoints, etc. The SoA table presentation compresses hierarchical timing into stacked header rows.",
+      "required": [
+        "table_number",
+        "row_position",
+        "property_name",
+        "property_comment"
+      ],
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Which table this property belongs to"
+        },
+        "row_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Physical row position in source/Excel (1-based). Preserves exact table structure."
+        },
+        "property_name": {
+          "type": "string",
+          "description": "Property name CLEAN of annotation markers. Extracted directly from row label column when present. Synthesized through basic domain interpretation when label column is empty but row clearly contains schedule property data (e.g., period headers spanning columns). Synthesis is acceptable basic interpretation - any domain expert would identify the same pattern."
+        },
+        "property_name_source": {
+          "type": "object",
+          "description": "Source attribution: exactly where the property_name came from. Enables audit trail back to source cell.",
+          "required": [
+            "row_position",
+            "column_position",
+            "cell_value"
+          ],
+          "properties": {
+            "row_position": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Row in source where property name was found"
+            },
+            "column_position": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Column in source where property name was found (typically column 1 for row labels)"
+            },
+            "cell_value": {
+              "type": "string",
+              "description": "Exact cell content from source. Empty string if label column was empty and property_name was synthesized."
+            },
+            "synthesized": {
+              "type": "boolean",
+              "description": "true if property_name was created through domain interpretation rather than extracted directly (e.g., label column empty but row clearly contains schedule property data spanning columns). Flags where basic interpretation was applied. Omit or false if property_name came directly from source."
+            }
+          }
+        },
+        "property_type": {
+          "type": "string",
+          "enum": [
+            "epoch",
+            "period", 
+            "cycle",
+            "visit",
+            "study_day",
+            "week",
+            "timepoint",
+            "window",
+            "modality",
+            "condition",
+            "other"
+          ],
+          "description": "Basic domain classification - obvious pattern recognition any clinical trial expert would agree on. NOT USDM/CDISC mapping (that belongs in study-schedule-logic layer). 'epoch'=major study phases (Screening/Treatment/Follow-up); 'period'=sub-phases; 'cycle'=repeating treatment cycles (oncology); 'visit'=named visits; 'study_day'=protocol days; 'week'=week numbers; 'timepoint'=within-visit timing; 'window'=visit windows; 'modality'=visit type (in-person/phone); 'condition'=conditional timing; 'other'=unclear or novel pattern."
+        },
+        "property_comment": {
+          "type": "string",
+          "description": "REQUIRED: Human explanation of what data appears in this row and reasoning behind property_type classification. Examples: 'Visit identifiers (V1, V2, Baseline, EOS)', 'Study days relative to randomization (Day -7 to Day 28)', 'PK sampling timepoints in hours post-dose (0, 0.5, 1, 2, 4, 8h)'. Documents domain interpretation for audit trail. Never leave empty."
+        },
+        "hierarchical_level": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "Position in header hierarchy where 1=topmost header row, incrementing downward. The SoA table presentation stacks timing concepts vertically: Epoch→Visit→Day might be levels 1→2→3; Cycle→Week→Day→Timepoint would be 1→2→3→4. Semantic meaning of each level varies by protocol - captured in property_type. null if this row is not part of hierarchical header structure. No artificial maximum."
+        },
+        "annotation_markers": {
+          "type": "string",
+          "description": "Comma-separated annotation markers (e.g., 'a,b') extracted from the property name cell. Markers are the table's mechanism for encoding logic that doesn't fit the 2D grid."
+        }
+      }
+    },
+    "schedule_grid_value": {
+      "type": "object",
+      "description": "A single cell value from the schedule property (header) area of the table. One entry per physical cell position.",
+      "required": [
+        "table_number",
+        "row_position",
+        "column_position"
+      ],
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "row_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Row position of the schedule property this value belongs to"
+        },
+        "column_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Column position in grid. Column 1 is typically row labels; data columns start at 2+."
+        },
+        "cell_value": {
+          "type": "string",
+          "description": "Cell content CLEAN of annotation markers. The actual schedule value: visit names, day numbers, timepoints, etc. Example: 'V1' not 'V1ᵃ'."
+        },
+        "merged_cell_range": {
+          "type": "string",
+          "description": "If cell is part of merged cells, the range notation (e.g., 'B2:D2'). Merged cells in SoA tables indicate spanning concepts - a phase covering multiple visits, etc."
+        },
+        "is_merged_cell": {
+          "type": "boolean",
+          "description": "true if this cell is part of a merged cell range. Downstream processing uses this to understand spanning relationships."
+        },
+        "annotation_markers": {
+          "type": "string",
+          "description": "Comma-separated annotation markers extracted from this cell (e.g., 'a' from 'V1ᵃ'). Links to annotations array for full footnote text."
+        }
+      }
+    },
+    "activity": {
+      "type": "object",
+      "description": "An activity row from the table body. Activities are procedures, assessments, or organizational headers. The table presentation uses indentation to show grouping relationships.",
+      "required": [
+        "table_number",
+        "row_position",
+        "activity_name",
+        "activity_name_source"
+      ],
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "row_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Physical row position in source (1-based). Combined with indentation_level, enables hierarchy reconstruction."
+        },
+        "activity_name": {
+          "type": "string",
+          "description": "Activity name CLEAN of formatting (no indentation whitespace) and CLEAN of annotation markers. The canonical activity label."
+        },
+        "activity_name_source": {
+          "type": "object",
+          "description": "Source attribution with formatting context. Preserves raw cell content for audit trail and hierarchy interpretation.",
+          "required": [
+            "cell_text",
+            "indentation_level"
+          ],
+          "properties": {
+            "cell_text": {
+              "type": "string",
+              "description": "Exact text from source cell including leading whitespace and annotation markers. Preserves raw content for indentation context and audit."
+            },
+            "indentation_level": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Visual indentation level representing grouping hierarchy. 0=section header/top-level parent, 1=child, 2=grandchild, etc. This is CORE STRUCTURAL INTERPRETATION requiring human judgment - not reliably derivable from whitespace alone due to inconsistent protocol formatting. Essential input for hierarchy reconstruction in resolved layer."
+            },
+            "text_formatting": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bold",
+                  "italic",
+                  "underline",
+                  "strikethrough"
+                ]
+              },
+              "description": "Text formatting attributes. Bold often indicates section headers; formatting provides hierarchy signals."
+            },
+            "font_info": {
+              "type": "object",
+              "properties": {
+                "font_name": {
+                  "type": "string"
+                },
+                "font_size": {
+                  "type": "number"
+                },
+                "font_color": {
+                  "type": "string"
+                }
+              },
+              "description": "Font information if captured. Size/weight differences often indicate hierarchy."
+            }
+          }
+        },
+        "annotation_markers": {
+          "type": "string",
+          "description": "Comma-separated annotation markers extracted from the activity name cell. Activity-level footnotes often encode conditional logic, special instructions, or timing details."
+        }
+      }
+    },
+    "activity_schedule_value": {
+      "type": "object",
+      "description": "A single cell at the intersection of an activity row and schedule column. Contains scheduling indicators: whether/when the activity occurs at that timepoint.",
+      "required": [
+        "table_number",
+        "row_position",
+        "column_position"
+      ],
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "row_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Row position of the activity"
+        },
+        "column_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Column position in schedule grid"
+        },
+        "cell_value": {
+          "type": "string",
+          "description": "Cell content CLEAN of annotation markers. Common values: scheduling markers (X, ✓, •), timing text (Week 4, Day 1-3), frequencies (Daily, PRN), continuation indicators (→, ...), or empty. Example: 'X' not 'Xᵖ'."
+        },
+        "source_range": {
+          "type": "string",
+          "description": "If this cell value was distributed from a merged cell, the original column range (e.g., '7:9' means value applies to columns 7-9). Empty string if not from merge expansion."
+        },
+        "annotation_markers": {
+          "type": "string",
+          "description": "Comma-separated annotation markers extracted from this cell (e.g., 'p' from 'Xᵖ'). Cell-level footnotes often encode conditional requirements, special populations, or timing variations."
+        }
+      }
+    },
+    "annotation": {
+      "type": "object",
+      "description": "A footnote, legend item, or other annotation from the table. Annotations are the table's overflow mechanism - they encode study logic that doesn't fit the 2D grid presentation. Critical for reconstructing actual study logic.",
+      "required": [
+        "annotation_marker",
+        "annotation_type",
+        "annotation_text",
+        "marker_locations"
+      ],
+      "properties": {
+        "annotation_marker": {
+          "type": "string",
+          "description": "The marker symbol as plain character (e.g., 'a', 'b', 'p', '1', '*'), not superscript. Normalized for consistent matching."
+        },
+        "annotation_type": {
+          "type": "string",
+          "enum": [
+            "footnote",
+            "legend",
+            "abbreviation",
+            "source_note",
+            "continuation_note"
+          ],
+          "description": "Classification of annotation. 'footnote'=explanatory notes; 'legend'=symbol definitions; 'abbreviation'=term definitions; 'source_note'=data source attribution; 'continuation_note'=table continuation indicators."
+        },
+        "annotation_text": {
+          "type": "string",
+          "description": "Full text of the annotation exactly as written in source. Contains the study logic that footnotes encode."
+        },
+        "marker_locations": {
+          "type": "array",
+          "description": "All locations where this annotation marker appears in the table. Enables traceability from annotation to the specific cells/elements it qualifies. Essential for reconstructing conditional logic.",
+          "items": {
+            "type": "object",
+            "required": [
+              "table_number",
+              "location_type",
+              "row_position"
+            ],
+            "properties": {
+              "table_number": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Which table contains this marker instance"
+              },
+              "location_type": {
+                "type": "string",
+                "enum": [
+                  "schedule_property",
+                  "activity_name",
+                  "schedule_cell"
+                ],
+                "description": "What type of element the marker appears in. Determines scope of annotation: property-level, activity-level, or specific cell."
+              },
+              "row_position": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Row position where marker appears"
+              },
+              "column_position": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Column position. Required for 'schedule_cell' type to identify exact cell. Omit for 'schedule_property' and 'activity_name' which apply to entire row."
+              }
+            }
+          }
+        }
+      }
+    },
+    "extraction_metadata": {
+      "type": "object",
+      "description": "Provenance and status information about this extraction. Supports audit trail and workflow management.",
+      "required": [
+        "extracted_at",
+        "extractor",
+        "extraction_status"
+      ],
+      "properties": {
+        "extracted_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of extraction"
+        },
+        "extractor": {
+          "type": "string",
+          "description": "Tool, model, or person who performed extraction. E.g., 'Claude-3.5-Sonnet', 'Manual-KL'"
+        },
+        "source_document": {
+          "type": "object",
+          "description": "Source document identification",
+          "properties": {
+            "filename": {
+              "type": "string",
+              "description": "Source PDF filename"
+            },
+            "document_type": {
+              "type": "string",
+              "enum": ["protocol", "amendment", "appendix", "other"],
+              "description": "Type of source document"
+            },
+            "document_version": {
+              "type": "string",
+              "description": "Protocol version if identifiable"
+            },
+            "document_date": {
+              "type": "string",
+              "description": "Protocol date if identifiable"
+            }
+          }
+        },
+        "verification": {
+          "type": "object",
+          "description": "Verification checkpoint information",
+          "properties": {
+            "excel_file": {
+              "type": "string",
+              "description": "Excel verification file if used"
+            },
+            "excel_verified": {
+              "type": "boolean",
+              "description": "Whether extraction was verified against Excel representation"
+            },
+            "verified_by": {
+              "type": "string",
+              "description": "Person who performed verification"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Timestamp of verification"
+            },
+            "verification_notes": {
+              "type": "string",
+              "description": "Notes from verification process including any corrections made"
+            }
+          }
+        },
+        "extraction_status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "verified", 
+            "ready_for_resolution"
+          ],
+          "description": "Workflow status. 'draft'=initial extraction, may have errors; 'verified'=human-verified against source; 'ready_for_resolution'=complete and ready for soa-table-resolved processing."
+        },
+        "extraction_notes": {
+          "type": "string",
+          "description": "General notes about extraction decisions, ambiguities encountered, or issues for downstream attention"
+        }
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "soa-table-extraction",
+      "description": "Schema identifier for pipeline routing"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version. Major version changes indicate breaking changes; minor versions are backward compatible."
+    },
+    "extraction_metadata": {
+      "$ref": "#/definitions/extraction_metadata",
+      "description": "Provenance and status metadata for this extraction"
+    },
+    "table_metadata": {
+      "$ref": "#/definitions/table_metadata",
+      "description": "Metadata about the extracted table. One extraction file = one table from source document."
+    },
+    "schedule_properties": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/schedule_property"
+      },
+      "description": "Schedule property definitions from table header rows. These define the temporal grid structure."
+    },
+    "schedule_grid": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/schedule_grid_value"
+      },
+      "description": "Cell values for schedule properties across columns. The temporal dimension of the table."
+    },
+    "activities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/activity"
+      },
+      "description": "Activity definitions from table body rows. Includes indentation_level for hierarchy reconstruction - parent-child relationships derived in resolved layer."
+    },
+    "activity_schedule": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/activity_schedule_value"
+      },
+      "description": "Scheduling data at activity × timepoint intersections. The core content of the SoA table."
+    },
+    "annotations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/annotation"
+      },
+      "description": "Footnotes, legends, and other annotations with explicit marker_locations. These encode study logic that doesn't fit the 2D table presentation."
+    }
+  },
+  "required": [
+    "schema_name",
+    "schema_version",
+    "extraction_metadata",
+    "table_metadata",
+    "schedule_properties",
+    "schedule_grid",
+    "activities",
+    "activity_schedule",
+    "annotations"
+  ],
+  "additionalProperties": false
+}

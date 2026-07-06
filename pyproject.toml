@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "soa2usdm"
+version = "0.1.0"
+description = "Extract Schedule of Activities (SoA) tables from clinical trial protocols into structured, USDM-ready data."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+notebooks = ["pandas", "requests", "pymupdf", "pymupdf4llm", "openpyxl"]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["soa2usdm"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
