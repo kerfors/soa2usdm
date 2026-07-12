@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.0.2 | Schema: soa-table-extraction v1.0
+> Prompt version 3.0.3 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -55,9 +55,10 @@ Each activity row → one `activity`.
 
 Each footnote / legend / abbreviation → one `annotation`.
 
-- **annotation_type:** explanatory logic or conditions → `footnote`; pure cross-references ("See Section x.y", "Refer to …") → `source_note`; symbol definitions (X = required) → `legend`; term expansions (BP = blood pressure) → `abbreviation`. Capture abbreviation and legend lists — the schema provides for them.
+- **annotation_type:** explanatory logic or conditions → `footnote`; pure cross-references ("See Section x.y", "Refer to …") → `source_note`; symbol definitions (X = required) → `legend`; term expansions (BP = blood pressure) → `abbreviation`. Capture a `legend`/`abbreviation` entry only when that term's marker actually appears in the table (e.g. a legend `X`/`P` used as an in-grid mark → `legend` with `marker_locations` on the cells that use it). Do NOT emit a standalone abbreviation/legend *list* whose terms carry no in-grid marker — every annotation needs ≥1 `marker_location` (§7), so an unreferenced list entry is an orphan and is dropped downstream.
 - **Deduplicate by text.** Emit one `annotation` per distinct note or reference, carrying a `marker_locations` entry for each occurrence. Do NOT emit a separate annotation for every row that cites the same note — a section reference cited by five rows is one annotation with five locations.
 - **marker_locations** — scan the ENTIRE table for every place the marker appears: `schedule_property`, `activity_name`, or `schedule_cell` (include `column_position` for cells). Every annotation MUST have at least one location; an annotation with empty `marker_locations` is an orphan, invisible downstream. If a marker appears only on an activity label, it still needs an `activity_name` entry with that `row_position`.
+- **Markers referenced but not defined (source defect).** If a marker appears on a cell/label but its footnote text is not printed anywhere in the extracted source (e.g. a continuation or variant table with its own numbering that omits some footnotes), transcribe the marker where it appears but do NOT fabricate text. Set `annotation_text` to state plainly that the definition is not printed in the source; if there is an obvious same-assessment equivalent elsewhere (e.g. the Main Study table), you may add it as a clearly-labelled *probable* cross-reference — never asserted as source content. Keeps the marker faithful and the annotation resolvable; flag it in the report.
 - **Header-cell footnotes (per-timepoint).** A marker on a specific header/timepoint cell — "V2ᵃ", "ETVᵇ", "V997ᶜ" — encodes as `annotation_markers` on **that column's `schedule_grid` cell** (the exact column it sits on), with the marker cleaned out of `cell_value`. Do NOT put it on the `schedule_property` row's `annotation_markers` — that scopes it to the whole row, and the footnote loses which visit/encounter it governs. This is what lets the footnote resolve to its specific column rather than collapsing to the property or the table. (A note that genuinely applies to the *whole* header row — e.g. a fasting instruction across all visits — does belong on the `schedule_property`, per the previous bullet.)
 - **Notes / Instructions / Comments column.** A right-hand notes column is NOT a schedule column and is NOT an activity. Each non-empty note becomes a `footnote` annotation. If the source gives the note no marker, synthesise one and link it via `marker_locations` to the row it sits beside (`activity_name` or `schedule_property`). A note attached to a header row (e.g. a fasting instruction spanning the visit row) links to that `schedule_property`. Record synthesised markers in the report.
 
@@ -69,7 +70,7 @@ After writing the JSON, output a short report — plain text, not JSON — for h
 - **Merged-mark decisions:** which activity rows had a mark or text distributed across a span, and the spans.
 - **Synthesised:** any synthesised `property_name` values and any synthesised annotation markers.
 - **Low-confidence calls:** ambiguous `property_type`, subtle hierarchy, subsidiary-vs-reference-vs-track classifications, PDF/markdown text disagreements.
-- **Orphan risk:** any annotation whose `marker_locations` you could not confidently place.
+- **Orphan risk:** any annotation whose `marker_locations` you could not confidently place, or any marker whose definition is not printed in the source (see §6).
 
 Only STOP mid-run if genuinely blocked (illegible PDF, missing pages). Otherwise proceed and flag — the report is the review surface, not a gate.
 
