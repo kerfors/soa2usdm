@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.1.0 | Schema: soa-table-extraction v1.0
+> Prompt version 3.2.0 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -18,7 +18,18 @@ Extract the SoA table(s) from the attached protocol directly to `soa-table-extra
 
 ### 1a. Image-based / scanned tables (no text layer)
 
-First test whether the SoA pages have a text layer (`pdftotext` returns little or nothing → scanned image; a lone small image such as a logo does not make a text-layer table "image-based"). If image-based, render each page and read the grid visually. For dense grids, reconstruct marks by detecting the rule-line geometry (column and row boundaries) and testing each cell for a mark (dark-pixel count), then **validate the detector against direct visual reads on several representative full-width rows** (at least one dense and one sparse) before trusting it. State the image-based method in the report and recommend a spot-check of the resolved grid. Mixed documents occur — the grid may be scanned while the footnote pages carry a real text layer: pull footnote wording from the text layer, read the grid from the image.
+First test whether the SoA pages have a text layer (`pdftotext` returns little or nothing → scanned image; a lone small image such as a logo does not make a text-layer table "image-based"). If image-based, render each page and read the grid visually. For dense grids, reconstruct marks mechanically: detect the rule-line geometry (column and row boundaries) to define each cell rectangle, then flag a cell as marked by **counting near-black pixels** (intensity < ~90) inside it against an absolute **count threshold** — use a count, NOT a dark-pixel *fraction*, since tall row bands dilute the fraction and hide real marks. **Validate the detector cell-for-cell against direct visual reads** on several representative full-width rows (at least one dense and one sparse) before trusting it. State the image-based method in the report and recommend a spot-check of the resolved grid. Mixed documents occur — the grid may be scanned while the footnote pages carry a real text layer: pull footnote wording from the text layer, read the grid from the image.
+
+### 1b. Text-layer tables — mechanical mark verification (bbox)
+
+For a table WITH a text layer, do not eyeball the grid — re-derive the mark matrix mechanically and diff it against your visual read. This bbox mark-check is the verification surface that REPLACES the old PDF→Excel human checkpoint: on NCT03637764 it caught 4 merged-span errors the Excel-verified extraction had missed. The point is to keep a mechanical mark-check, not to skip verification.
+
+- Run `pdftotext -bbox` on the SoA pages to get every token's x/y box. Do NOT use pdfplumber.
+- **Fix column x-centres from the header** day/visit/week labels — one centre per data column. The header anchors the grid; body marks do not define columns.
+- **Bin each mark token to the nearest column centre.** Match marks with `^[Xx][*a-zA-Z0-9]?$` — a footnoted mark tokenises as `X*` / `Xa`, and an `== 'X'` filter silently drops it.
+- **Resolve merged spans from per-row rule-line geometry:** a missing internal vertical boundary between two adjacent column centres means the cell is merged across them — distribute the mark across every covered column (§5), never onto the one the glyph happens to sit under.
+- **De-duplicate repeated rows before counting:** header and `schedule_property` rows (e.g. Fasting / Telephone-visit bands) reprint on every continuation page; count each activity and each mark once.
+- Diff the bbox matrix against your visual read cell-for-cell and report any disagreement in the uncertainty report (§7).
 
 ## 2. Tables — classify before extracting
 
@@ -55,7 +66,7 @@ Each activity row → one `activity`.
 - Column 1 is row labels — EXCLUDE it from `schedule_grid` and `activity_schedule`. Data columns start at position 2.
 - Clean markers out of `cell_value` into `annotation_markers` (`Xᵃ` → `cell_value: "X"`, `annotation_markers: "a"`).
 - A legend-defined in-grid scheduling mark stays as a `cell_value`, not an annotation — e.g. keep `P` in the grid where the legend defines `P = predose`. It is a scheduling indicator like `X`.
-- **Merged marks — distribute, never centre.** A single mark sitting in a cell visually merged across N columns applies to ALL N columns. Emit one `activity_schedule` entry per covered column with the same `cell_value`, and set `source_range` to the span (e.g. `"4:15"`). Do NOT collapse a merged mark onto the one visually-centred column — that fabricates a single-visit schedule and destroys the real span. The same applies to merged text cells such as "See instructions" / "See Section x.y": one entry per covered column, `source_range` set. For merged header cells, record `is_merged_cell` / `merged_cell_range` on each covered position.
+- **Merged marks — distribute, never centre.** A single mark sitting in a cell visually merged across N columns applies to ALL N columns. Emit one `activity_schedule` entry per covered column with the same `cell_value`, and set `source_range` to the span (e.g. `"4:15"`). Do NOT collapse a merged mark onto the one visually-centred column — that fabricates a single-visit schedule and destroys the real span. Confirm every span from the rule-line geometry (§1b text-layer / §1a image), not from where the glyph sits. The same applies to merged text cells such as "See instructions" / "See Section x.y": one entry per covered column, `source_range` set. For merged header cells, record `is_merged_cell` / `merged_cell_range` on each covered position.
 - **Arrows spanning columns.** A horizontal arrow (`↔`, `→`) drawn across N columns denotes a continuous activity over that span — distribute like a merged mark: one `activity_schedule` entry per covered column, `cell_value` the arrow glyph, `source_range` the span. Confirm arrow extents visually — arrows are vector graphics and are invisible to text-coordinate parsers.
 - **Vertically-merged marks.** A single mark centred across two or more *activity rows* applies to every covered row. The schema has no vertical merge, so emit the mark on each covered activity's cell.
 - **Qualified marks.** A mark carrying a parenthetical label ("X (Cycle 5 only)", "X (Day 3-5)"): if the label names a span of the table's own columns, distribute across those columns with `source_range`; if it is a condition not expressible as columns, keep the qualifier literally in `cell_value`.
@@ -80,6 +91,7 @@ After writing the JSON, output a short report — plain text, not JSON — for h
 - **Per table:** `table_type` (and why, when not obvious), column count, activity count.
 - **Merged-mark decisions:** which activity rows had a mark or text distributed across a span, and the spans.
 - **Synthesised:** any synthesised `property_name` values and any synthesised annotation markers.
+- **Mechanical mark-check:** the method used (bbox column-binning for text-layer §1b, rule-line/near-black-pixel detector for image §1a) and any cell where the mechanical matrix disagreed with the visual read.
 - **Low-confidence calls:** ambiguous `property_type`, subtle hierarchy, subsidiary-vs-reference-vs-track classifications, PDF/markdown text disagreements.
 - **Orphan risk:** any annotation whose `marker_locations` you could not confidently place, or any marker whose definition is not printed in the source (see §6).
 

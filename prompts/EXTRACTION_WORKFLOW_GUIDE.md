@@ -1,6 +1,6 @@
 # SoA2USDM — Extraction Workflow Guide
 
-**Version:** 2.2
+**Version:** 2.4
 
 How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) can be run two ways: the **non-interactive single-pass path** (v3.0, below) or the **two-conversation PDF→Excel→JSON path** (Conversations 1–2).
 
@@ -14,6 +14,7 @@ For table type definitions, see [`documents/soa_table_type_definitions.md`](../d
 - **Split screen:** Claude on left, PDF/Excel on right
 - **One table per conversation** for complex protocols (many columns, merged cells)
 - **Pre-extract SoA pages** using `00_download_extract.ipynb` — downloads protocol PDFs, extracts SoA pages, converts full protocol to markdown
+- **Rendering note:** when a table spans ≥10 pages, `pdftoppm` zero-pads the rendered page names (`p-01.png`, not `p-1.png`); it also prints harmless `Bad annotation destination` warnings. Neither affects extraction.
 
 ---
 
@@ -25,7 +26,7 @@ The default for most runs. Use `PDF_TO_JSON_PROMPT.md` (v3.0) in place of Conver
 
 **Say:** "Please read and follow the attached prompt to extract the SoA tables from this protocol to JSON."
 
-The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (table types and why, merged-mark spans, synthesised names/markers, low-confidence calls, orphan-risk annotations). Review that report against the per-table resolved HTML instead of confirming at mid-run gates. Give particular attention to merged single-marks on grid-heavy tables — the one error class post-hoc review must still catch.
+The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (table types and why, merged-mark spans, synthesised names/markers, low-confidence calls, orphan-risk annotations). Review that report against the per-table resolved HTML instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch.
 
 **Prefer the two-conversation flow below when:** you want a human-editable Excel artifact, or a very large/complex table where reviewing an intermediate is worth the extra time.
 
@@ -108,6 +109,41 @@ After all protocols: `IndexGeneratorStep` builds the collection index page.
 
 **Errors are collected, not raised** — partial success matters when one table out of four has issues. Check the batch output for error summaries.
 
+### Headless (no notebook)
+
+The same steps run as a plain script — useful for re-running one protocol without opening the notebook. From the repo root:
+
+```python
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path.cwd()))
+
+from soa2usdm.corrections import ApplyCorrectionsStep
+from soa2usdm.resolve import ResolveStep
+from soa2usdm.visualize_resolved import VisualizeResolvedStep
+from soa2usdm.consolidate import ConsolidateStep
+from soa2usdm.visualize import VisualizeStep
+from soa2usdm.index_generator import IndexGeneratorStep
+from soa2usdm.errors import Errors
+from soa2usdm.analytics import Analytics
+
+COLLECTION = 'usdm_data'
+pid = 'NCT00000000'
+
+errors, analytics = Errors(), Analytics()
+data = {'source': {'protocol_id': pid, 'collection': COLLECTION}}
+for step_cls in (ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep,
+                 ConsolidateStep, VisualizeStep):
+    data[step_cls.step_name] = step_cls(errors, analytics).execute(data)
+
+# Rebuild the collection index after any protocol change
+IndexGeneratorStep(Errors(), Analytics()).execute({'source': {'collection': COLLECTION}})
+
+print(errors.has_errors(), errors.summary())
+```
+
+`ApplyCorrectionsStep` runs first — it applies any `*_corrections.json` sidecar over the raw extraction before resolution (raw is never overwritten).
+
 ---
 
 ## File Structure Per Protocol
@@ -124,3 +160,15 @@ After all protocols: `IndexGeneratorStep` builds the collection index page.
     ├── {NCTID}_consolidated.json
     └── {NCTID}_consolidated.html
 ```
+
+---
+
+## Publishing & commits
+
+Code and data are **two repos that commit separately** — `soa2usdm` (package, schemas, prompts, notebooks) and `soa2usdm-collections` (the derived outputs).
+
+In the **data repo**, `.gitignore` publishes only the sliced SoA PDFs (`{NCTID}_soa.pdf`) and everything under `SoA2USDM/**`. The full protocol PDF (`{NCTID}.pdf`) and the markdown dump (`{NCTID}.md`) stay local — never published.
+
+Per protocol, stage `{NCTID}/SoA2USDM/`, `protocols/index.html`, and `studies_protocols.xlsx`, and **regenerate the index** (`IndexGeneratorStep`) before committing so the published page matches the outputs.
+
+Commit-message style: name the protocol and what changed, e.g. `Re-run NCT… single-pass (supersede Excel-first)`.
