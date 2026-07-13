@@ -25,7 +25,7 @@ def esc(text) -> str:
 def load_study_metadata(collection_path: Path) -> dict:
     """Load metadata from studies_protocols.xlsx if available.
     
-    Returns dict: nct_id -> {brief_title, phase, conditions, interventions, ...}
+    Returns dict: nct_id -> {d4k_folder, study_acronym, study_code, soa_pages, protocol_url, ...}
     """
     xlsx_path = collection_path / "studies_protocols.xlsx"
     if not xlsx_path.exists():
@@ -81,12 +81,12 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
     
     result = {
         'source_files': [],
-        'excel_files': [],
         'extraction_json_files': [],
         'has_resolved': False,
         'resolved_files': [],
         'has_consolidated': False,
         'consolidated_file': None,
+        'report_file': None,
     }
     
     if not protocol_path.exists():
@@ -110,20 +110,8 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
     except FileNotFoundError:
         return result
     
-    # Excel files in extracted/
     extracted_dir = soa_folder / "extracted"
     if extracted_dir.exists():
-        for xlsx in sorted(extracted_dir.glob("*.xlsx")):
-            if xlsx.name.startswith('~$'):
-                continue
-            label = xlsx.name
-            result['excel_files'].append({
-                'filename': xlsx.name,
-                'path': f"{protocol_id}/SoA2USDM/extracted/{xlsx.name}",
-                'label': label,
-                'css_class': 'link-xlsx',
-            })
-        
         # Extraction JSONs in extracted/
         for ejson in sorted(extracted_dir.glob("*_extraction.json")):
             label = ejson.name.replace(f'{protocol_id}_', '').replace('_extraction.json', '').replace('Table_', 'T')
@@ -133,7 +121,13 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 'path': viewer_rel,
                 'label': label,
             })
-    
+        # Uncertainty report (per-protocol; .md preferred, .txt fallback)
+        for ext in ('.md', '.txt'):
+            report = extracted_dir / f"{protocol_id}_uncertainty_report{ext}"
+            if report.exists():
+                result['report_file'] = f"{protocol_id}/SoA2USDM/extracted/{report.name}"
+                break
+
     # Resolved HTMLs + JSONs
     resolved_dir = soa_folder / "resolved"
     if resolved_dir.exists():
@@ -482,12 +476,9 @@ def generate_index_html(collection: str) -> str:
         meta = study_meta.get(pid, {})
         protocols.append({
             'nct_id': pid,
+            'd4k_folder': meta.get('d4k_folder', ''),
             'study_code': meta.get('study_code', ''),
             'study_acronym': meta.get('study_acronym', ''),
-            'brief_title': meta.get('brief_title', ''),
-            'phase': meta.get('phase', ''),
-            'conditions': meta.get('conditions', ''),
-            'interventions': meta.get('interventions', ''),
             'soa_pages': meta.get('soa_pages', ''),
             'protocol_url': meta.get('protocol_url', ''),
             **outputs,
@@ -517,19 +508,11 @@ def generate_index_html(collection: str) -> str:
             )
         source_html = ' '.join(source_links) if source_links else ''
         
-        # Extraction column (Excel)
-        extract_links = []
-        for xf in p.get('excel_files', []):
-            extract_links.append(
-                f'<a href="{xf["path"]}" class="{xf["css_class"]}" title="{esc(xf["filename"])}">{xf["label"]}</a>'
-            )
-        extract_html = ' '.join(extract_links) if extract_links else ''
-        
         # Extraction JSON column
         ext_json_parts = []
         for ef in p.get('extraction_json_files', []):
             ext_json_parts.append(
-                f'<a href="{ef["path"]}" class="link-ext-json" title="Extraction JSON viewer — {esc(ef["filename"])}">{ef["label"]}</a>'
+                f'<a href="{ef["path"]}" class="link-table" title="Extraction JSON viewer — {esc(ef["filename"])}">{ef["label"]}</a>'
             )
         ext_json_html = ' '.join(ext_json_parts)
         
@@ -538,19 +521,21 @@ def generate_index_html(collection: str) -> str:
         if p.get('resolved_files'):
             resolved_parts = []
             for rf in p['resolved_files']:
-                part = f'<a href="{rf["path"]}" class="link-resolved" title="Per-table view — Table {rf["label"]} with IDs and relationships">{rf["label"]}</a>'
-                if rf.get('json_path'):
-                    part += f' <a href="{rf["json_path"]}" class="link-json" title="Resolved Table {rf["label"]} JSON data">json</a>'
+                part = f'<a href="{rf["path"]}" class="link-table" title="Per-table view — Table {rf["label"]} with IDs and relationships">{rf["label"]}</a>'
                 resolved_parts.append(part)
             resolved_html = ' '.join(resolved_parts)
         
         # Consolidated SoA column
         cons_html = ''
         if p['has_consolidated']:
-            cons_html = f'<a href="{p["consolidated_file"]}" class="link-cons" title="Protocol-level SoA — all tables unified">View</a>'
+            cons_html = f'<a href="{p["consolidated_file"]}" class="link-table" title="Protocol-level SoA — all tables unified">View</a>'
             if p.get('consolidated_json'):
                 cons_html += f' <a href="{p["consolidated_json"]}" class="link-json" title="Consolidated JSON data">json</a>'
-        
+
+        report_html = ''
+        if p.get('report_file'):
+            report_html = f'<a href="{p["report_file"]}" class="link-report" title="Extraction uncertainty / review report">report</a>'
+
         # USDM readiness column
         usdm_html = ''
         if p.get('usdm_evaluation'):
@@ -558,28 +543,28 @@ def generate_index_html(collection: str) -> str:
             usdm_html = f'<a href="{p["usdm_evaluation"]}" class="link-usdm" title="USDM Readiness Evaluation">{usdm_label}</a>'
         
         # Study info
-        title = esc(p['brief_title'])[:80] if p['brief_title'] else ''
-        phase = esc(str(p['phase'])) if p['phase'] else ''
-        conditions = esc(str(p['conditions']))[:40] if p['conditions'] else ''
         soa = esc(str(p['soa_pages'])) if p['soa_pages'] else ''
         study_code = esc(str(p['study_code'])) if p['study_code'] else ''
         acronym = esc(str(p['study_acronym'])) if p['study_acronym'] else ''
-        
+        d4k_folder = esc(str(p['d4k_folder'])) if p['d4k_folder'] else ''
+        d4k_cell = (f'<a href="https://github.com/data4knowledge/usdm_data/tree/main/source_data/protocols/{d4k_folder}" target="_blank" rel="noopener">{d4k_folder}</a>'
+                    if d4k_folder else '')
+        nct_cell = (f'<a href="https://clinicaltrials.gov/study/{nct}" target="_blank">{nct}</a>'
+                    if nct.startswith('NCT') else nct)
+
         row_cls = 'ready' if is_ready else 'pending-row'
         
         return f'''<tr class="{row_cls}">
-            <td class="nct"><a href="https://clinicaltrials.gov/study/{nct}" target="_blank">{nct}</a></td>
+            <td class="nct">{nct_cell}</td>
+            <td class="d4k-folder">{d4k_cell}</td>
             <td class="study-code">{study_code}</td>
             <td class="acronym">{acronym}</td>
-            <td class="phase">{phase}</td>
-            <td class="conditions">{conditions}</td>
-            <td class="title">{title}</td>
             <td class="soa-pages">{soa}</td>
             <td class="sources">{source_html}</td>
-            <td class="extraction">{extract_html}</td>
             <td class="viz">{ext_json_html}</td>
             <td class="viz">{resolved_html}</td>
             <td class="viz">{cons_html}</td>
+            <td class="viz">{report_html}</td>
         </tr>'''
     
     ready_rows = ''.join(protocol_row(p) for p in ready)
@@ -607,14 +592,12 @@ def generate_index_html(collection: str) -> str:
         .nct a { color: #1F4788; text-decoration: none; }
         .nct a:hover { text-decoration: underline; }
         .study-code { font-family: monospace; font-size: 10px; color: #555; white-space: nowrap; }
+        .d4k-folder { font-family: monospace; font-size: 10px; color: #777; white-space: nowrap; }
         .acronym { font-weight: 500; color: #444; white-space: nowrap; }
-        .phase { white-space: nowrap; color: #666; }
-        .conditions { color: #555; }
-        .title { color: #444; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
         .soa-pages { white-space: nowrap; color: #888; font-family: monospace; font-size: 10px; }
         .stats { white-space: nowrap; font-family: monospace; font-size: 10px; color: #666; }
         
-        .sources a, .extraction a, .viz a { 
+        .sources a, .viz a {
             display: inline-block; padding: 2px 7px; border-radius: 4px; 
             text-decoration: none; font-size: 10px; margin: 1px 2px; font-weight: 500; 
         }
@@ -625,17 +608,13 @@ def generate_index_html(collection: str) -> str:
         .link-soa:hover { background: #ffe0b2; }
         .link-md { background: #e8eaf6; color: #283593; }
         .link-md:hover { background: #c5cae9; }
-        .link-xlsx { background: #e8f5e9; color: #2e7d32; }
-        .link-xlsx:hover { background: #c8e6c9; }
-        
-        .link-cons { background: #1F4788; color: white; }
-        .link-cons:hover { background: #2E75B6; }
-        .link-resolved { background: #e8f0fe; color: #1F4788; }
-        .link-resolved:hover { background: #d0e2fc; }
+
+        .link-table { background: #e8f0fe; color: #1F4788; }
+        .link-table:hover { background: #d0e2fc; }
         .link-json { background: #f5f5f5; color: #888; font-size: 9px; font-family: monospace; }
         .link-json:hover { background: #e0e0e0; color: #555; }
-        .link-ext-json { background: #f5f5f5; color: #666; font-size: 10px; font-family: monospace; border: 1px solid #ddd; }
-        .link-ext-json:hover { background: #e0e0e0; color: #333; }
+        .link-report { background: #fff8e1; color: #8d6e00; }
+        .link-report:hover { background: #ffecb3; }
         .link-usdm { background: #f3e5f5; color: #6a1b9a; }
         .link-usdm:hover { background: #e1bee7; }
         
@@ -664,7 +643,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th><th>Study Code</th><th>Acronym</th><th>Phase</th><th>Conditions</th><th>Title</th><th>SoA pp</th><th>Source</th><th title="Layer 1 Conv 1 — PDF to verified Excel">Extracted Excel</th><th title="Layer 1 Conv 2 — Excel to extraction JSON, per table">Extracted JSON</th><th title="Layer 2 — IDs, hierarchy, validation for each table">Per-Table Structure</th><th title="Layer 3 — All tables unified with cross-table matching">Protocol SoA</th>
+                <th>NCT ID</th><th>d4k Folder</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Per-protocol extraction uncertainty / review notes">Report</th>
             </tr></thead>
             <tbody>
                 {ready_rows}
