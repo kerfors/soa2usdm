@@ -151,7 +151,6 @@ print(errors.has_errors(), errors.summary())
 ```
 {NCTID}/SoA2USDM/
 ├── extracted/
-│   ├── {NCTID}_SoA_Table_{NN}_verified.xlsx
 │   └── {NCTID}_Table_{NN}_extraction.json
 ├── resolved/
 │   ├── {NCTID}_Table_{NN}_resolved.json
