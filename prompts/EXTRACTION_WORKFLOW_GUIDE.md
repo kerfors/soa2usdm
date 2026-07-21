@@ -1,6 +1,6 @@
 # SoA2USDM — Extraction Workflow Guide
 
-**Version:** 2.4
+**Version:** 2.5
 
 How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) can be run two ways: the **non-interactive single-pass path** (v3.0, below) or the **two-conversation PDF→Excel→JSON path** (Conversations 1–2).
 
@@ -26,7 +26,7 @@ The default for most runs. Use `PDF_TO_JSON_PROMPT.md` (v3.0) in place of Conver
 
 **Say:** "Please read and follow the attached prompt to extract the SoA tables from this protocol to JSON."
 
-The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (table types and why, merged-mark spans, synthesised names/markers, low-confidence calls, orphan-risk annotations). Review that report against the per-table resolved HTML instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch.
+The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (table types and why, merged-mark spans, synthesised names/markers, low-confidence calls, orphan-risk annotations). Review that report against the per-table resolved HTML instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch. For a wide table split into side-by-side column-block tiles (e.g. V10–V19 and a V20–V29 "(continued)" spread), run the mark-check across *all* tiles and take the per-row union — a recurring row usually appears in every tile, so checking only one tile silently drops the others' visits (see `PDF_TO_JSON_PROMPT.md` §5).
 
 **Prefer the two-conversation flow below when:** you want a human-editable Excel artifact, or a very large/complex table where reviewing an intermediate is worth the extra time.
 
