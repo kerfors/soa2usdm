@@ -636,6 +636,7 @@ def generate_index_html(collection: str) -> str:
         <h1>{esc(collection)}</h1>
         <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline</div>
         <div class="meta">{len(all_protocols)} protocols | {len(ready)} processed | {len(pending)} pending | Generated {generated_at}</div>
+        <div style="margin-top:10px"><a href="activities.html" style="display:inline-block;padding:6px 12px;border:1px solid #1F4788;border-radius:6px;color:#1F4788;text-decoration:none;font-size:13px;font-weight:600">&#9636; All extracted activities &mdash; consolidated / source-table inventory &rarr;</a></div>
     </div>
     
     <div class="section">

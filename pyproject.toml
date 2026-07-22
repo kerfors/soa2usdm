@@ -14,6 +14,9 @@ dependencies = []
 notebooks = ["pandas", "requests", "pymupdf", "pymupdf4llm", "openpyxl"]
 test = ["pytest"]
 
+[project.scripts]
+soa2usdm-activities = "soa2usdm.activity_inventory:main"
+
 [tool.setuptools]
 packages = ["soa2usdm"]
 
