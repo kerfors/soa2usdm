@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.3.0 | Schema: soa-table-extraction v1.0
+> Prompt version 3.4.0 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -30,6 +30,14 @@ For a table WITH a text layer, do not eyeball the grid — re-derive the mark ma
 - **Resolve merged spans from per-row rule-line geometry:** a missing internal vertical boundary between two adjacent column centres means the cell is merged across them — distribute the mark across every covered column (§5), never onto the one the glyph happens to sit under.
 - **De-duplicate repeated rows before counting:** header and `schedule_property` rows (e.g. Fasting / Telephone-visit bands) reprint on every continuation page; count each activity and each mark once.
 - Diff the bbox matrix against your visual read cell-for-cell and report any disagreement in the uncertainty report (§7).
+
+### 1c. Glyph-spread text layers — reconstruct words before transcribing
+
+Some PDFs position every glyph as its own token, so the text layer comes back letter-spaced ("S c r e e n i n g", "Haemo globin"). Reconstruct real words BEFORE anything reaches the JSON, and apply the reconstruction to **every** text field — activity labels, header labels, **and `annotation_text`**. Annotation text is the field that gets skipped: it is long, it is never eyeballed against the grid, and the letter-spacing survives into the delivered JSON as intra-word gaps and missing inter-word spaces.
+
+- Detect it: single-character tokens dominate the stream, or the x-gap between glyphs inside a word is close to the gap between words.
+- Rebuild words from the glyph stream, then restore capitalisation and acronym casing from how the protocol spells the term elsewhere — from the source, never from a guess. Cross-check against the full-protocol markdown when it is attached.
+- Re-read the result as running prose before delivering. State in the report (§7) that the source was glyph-spread and which fields were reconstructed.
 
 ## 2. Tables — classify before extracting
 
@@ -83,7 +91,7 @@ Each footnote / legend / abbreviation → one `annotation`.
 - **Markers referenced but not defined (source defect).** If a marker appears on a cell/label but its footnote text is not printed anywhere in the extracted source (e.g. a continuation or variant table with its own numbering that omits some footnotes), transcribe the marker where it appears but do NOT fabricate text. Set `annotation_text` to state plainly that the definition is not printed in the source; if there is an obvious same-assessment equivalent elsewhere (e.g. the Main Study table), you may add it as a clearly-labelled *probable* cross-reference — never asserted as source content. Keeps the marker faithful and the annotation resolvable; flag it in the report.
 - **Redacted / illegible content (source defect).** Where a redaction box or scan defect truncates a note or may hide rows, transcribe the visible portion, append "[remainder redacted in source]" to `annotation_text`, and never fabricate the hidden text. Cross-check the markdown if available. Flag any region that may conceal activity rows in the report.
 - **Header-cell footnotes (per-timepoint).** A marker on a specific header/timepoint cell — "V2ᵃ", "ETVᵇ", "V997ᶜ" — encodes as `annotation_markers` on **that column's `schedule_grid` cell** (the exact column it sits on), with the marker cleaned out of `cell_value`. Do NOT put it on the `schedule_property` row's `annotation_markers` — that scopes it to the whole row, and the footnote loses which visit/encounter it governs. This is what lets the footnote resolve to its specific column rather than collapsing to the property or the table. (A note that genuinely applies to the *whole* header row — e.g. a fasting instruction across all visits — does belong on the `schedule_property`, per the previous bullet.)
-- **Notes / Instructions / Comments column.** A right-hand notes column is NOT a schedule column and is NOT an activity. Each non-empty note becomes a `footnote` annotation. If the source gives the note no marker, synthesise one and link it via `marker_locations` to the row it sits beside (`activity_name` or `schedule_property`). A note attached to a header row (e.g. a fasting instruction spanning the visit row) links to that `schedule_property`. Record synthesised markers in the report. A footnote marker printed on the Notes-column *header* itself (e.g. "Notesᶜ") has no modelled element to attach to — treat it as table-scope: give the annotation one `schedule_property` `marker_location` for traceability and do NOT put the marker on any element's `annotation_markers`.
+- **Notes / Instructions / Comments column.** A right-hand notes column is NOT a schedule column and is NOT an activity. Each non-empty note becomes a `footnote` annotation. **Bound each note's TEXT by the cell's rule-line geometry, not by proximity** — read the column's horizontal rules to fix where one note cell ends and the next begins, then take that cell's full text as exactly one annotation. This mirrors §5 for marks: confirm the span from the rule-line geometry, not from where the glyph sits. Proximity alone splits one note across whichever rows its lines happen to overlap — producing fragments duplicated on neighbouring rows — and merges two short notes that share a band. A note cell spanning several activity rows is ONE annotation with a `marker_location` per covered row, never one annotation per row. If the source gives the note no marker, synthesise one and link it via `marker_locations` to the row it sits beside (`activity_name` or `schedule_property`). A note attached to a header row (e.g. a fasting instruction spanning the visit row) links to that `schedule_property`. Record synthesised markers in the report. A footnote marker printed on the Notes-column *header* itself (e.g. "Notesᶜ") has no modelled element to attach to — treat it as table-scope: give the annotation one `schedule_property` `marker_location` for traceability and do NOT put the marker on any element's `annotation_markers`.
 
 ## 7. Uncertainty report (this replaces the interactive gates)
 
@@ -93,6 +101,7 @@ After writing the JSON, output a short report — plain text, not JSON — for h
 - **Merged-mark decisions:** which activity rows had a mark or text distributed across a span, and the spans.
 - **Synthesised:** any synthesised `property_name` values and any synthesised annotation markers.
 - **Mechanical mark-check:** the method used (bbox column-binning for text-layer §1b, rule-line/near-black-pixel detector for image §1a) and any cell where the mechanical matrix disagreed with the visual read.
+- **Annotation text integrity:** whether the source text layer was glyph-spread and which fields you reconstructed (§1c); any pair of annotations whose text substantially overlaps — one contained in the other, or a long shared run at a note boundary — since that pattern means one note cell was split, not two real notes; and any note you could not bound confidently against its source cell.
 - **Low-confidence calls:** ambiguous `property_type`, subtle hierarchy, subsidiary-vs-reference-vs-track classifications, PDF/markdown text disagreements.
 - **Orphan risk:** any annotation whose `marker_locations` you could not confidently place, or any marker whose definition is not printed in the source (see §6).
 
@@ -105,5 +114,8 @@ One JSON file per table: `{NCTID}_Table_{NN}_extraction.json`. Before delivering
 - `schema_name` = `soa-table-extraction`, `schema_version` = `1.0`, `extraction_status` = `ready_for_resolution`
 - every `property_comment` is meaningful; every `cell_value` is clean (markers extracted)
 - every annotation has ≥ 1 `marker_locations` entry (no orphans)
+- no annotation's text is contained in another's — a containment pair means one note cell was split across rows (§6)
+- each annotation's text is complete against its source cell: it starts at the cell's first word, ends at its last, and carries no letter-spacing or missing inter-word spaces (§1c)
+- `by_type` is not degenerate across > 20 annotations — in particular NOT all `source_note`: a notes / comments column yields `footnote`s (§6). All-`footnote` IS normal.
 - merged marks distributed across their span with `source_range` set
 - `track_label` set for `track` tables only

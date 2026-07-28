@@ -8,6 +8,12 @@ extraction must reproduce the golden output exactly (timestamps scrubbed).
 Runs against a temp copy via a throwaway collection key, so the real golden
 files are never touched. To bank a new protocol: drop its verified extraction
 and golden resolved/consolidated into place; this test discovers it automatically.
+
+On top of the golden diff, every discovered protocol is checked for annotation
+text integrity — adjacent-pair containment and degenerate source_note typing.
+NCT04677179 is the negative control: its notes column fragmented into 77 partial
+annotations, all mis-typed source_note, and the golden output here is the
+re-extraction. NCT03637764 is the positive control (clean from the start).
 """
 import json
 import shutil
@@ -20,7 +26,12 @@ from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 from soa2usdm.corrections import ApplyCorrectionsStep
 from soa2usdm.resolve import ResolveStep
-from soa2usdm.consolidate import ConsolidateStep
+from soa2usdm.consolidate import (
+    ConsolidateStep,
+    find_adjacent_text_overlaps,
+    is_degenerate_annotation_typing,
+    OVERLAP_PAIR_THRESHOLD,
+)
 
 VOLATILE = {"resolved_at", "consolidated_at", "extracted_at"}
 
@@ -100,3 +111,28 @@ def test_consolidated_matches_golden(pipeline_output):
     assert pf.exists(), f"{protocol}: consolidate produced no output"
     assert scrub(json.loads(pf.read_text())) == scrub(json.loads(gf.read_text())), \
         f"{protocol}: consolidated mismatch"
+
+
+def consolidated_annotations(produced):
+    """The unified annotations the pipeline just produced for this protocol."""
+    pf = next((produced / "consolidated").glob("*_consolidated.json"))
+    return json.loads(pf.read_text())["unified_annotations"]
+
+
+def test_annotations_not_fragmented(pipeline_output):
+    """A single notes-column cell split across the rows it overlaps surfaces as
+    consecutive annotations whose text contains one another. Measured over 22
+    protocols: clean ones score 0-1, the fragmented NCT04677179 extraction scored 13."""
+    protocol, produced, _ = pipeline_output
+    pairs = find_adjacent_text_overlaps(consolidated_annotations(produced))
+    assert len(pairs) < OVERLAP_PAIR_THRESHOLD, \
+        f"{protocol}: {len(pairs)} adjacent annotation pairs share contained text: {pairs}"
+
+
+def test_annotation_typing_not_degenerate(pipeline_output):
+    """All-source_note means a notes/comments column was read as cross-references
+    instead of footnotes. All-footnote is normal and must not trip this."""
+    protocol, produced, _ = pipeline_output
+    annotations = consolidated_annotations(produced)
+    assert not is_degenerate_annotation_typing(annotations), \
+        f"{protocol}: all {len(annotations)} annotations typed source_note"

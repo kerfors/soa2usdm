@@ -826,6 +826,62 @@ class ConsolidationValidationResult:
             return "consolidated"
 
 
+# --- Annotation text-integrity gates (warnings only) ----------------------
+# Neither pattern is provably a defect, so both are warnings. They exist because
+# nothing in this validator looked at annotation TEXT, and the NCT04677179
+# fragmentation (one notes-column cell split across the rows it overlapped) got
+# through every structural check.
+SECTION_REF_PATTERN = re.compile(r'\b(section|appendix|attachment)\b', re.I)
+
+# Calibrated over 22 protocols: every clean protocol scores 0-1 adjacent
+# containment pairs; the fragmented NCT04677179 extraction scored 13.
+OVERLAP_MIN_WORDS = 4          # shorter note must have >= this many words
+OVERLAP_SECTION_REF_MAX_WORDS = 10
+OVERLAP_PAIR_THRESHOLD = 3     # warn from this many pairs
+DEGENERATE_TYPE_MIN_ANNOTATIONS = 20
+
+
+def _is_short_section_ref(text: str) -> bool:
+    """A short 'See Section x.y' cross-reference — legitimately repeated."""
+    words = normalize_annotation_text(text).split()
+    return (len(words) <= OVERLAP_SECTION_REF_MAX_WORDS
+            and bool(SECTION_REF_PATTERN.search(text)))
+
+
+def find_adjacent_text_overlaps(annotations: list) -> List[Tuple[str, str]]:
+    """Consecutive annotations where one's normalized text contains the other's.
+
+    That containment is the signature of a single source note cell split across
+    rows, not of two distinct notes. Short section references and notes under
+    OVERLAP_MIN_WORDS words are excluded — both repeat legitimately.
+    """
+    pairs = []
+    for first, second in zip(annotations, annotations[1:]):
+        text_a = first.get("annotation_text", "")
+        text_b = second.get("annotation_text", "")
+        if _is_short_section_ref(text_a) or _is_short_section_ref(text_b):
+            continue
+        norm_a = normalize_annotation_text(text_a)
+        norm_b = normalize_annotation_text(text_b)
+        if min(len(norm_a.split()), len(norm_b.split())) < OVERLAP_MIN_WORDS:
+            continue
+        if norm_a in norm_b or norm_b in norm_a:
+            pairs.append((first.get("xannot_id", "?"), second.get("xannot_id", "?")))
+    return pairs
+
+
+def is_degenerate_annotation_typing(annotations: list) -> bool:
+    """Every annotation typed source_note across a large set.
+
+    All-footnote is normal (a protocol whose notes are all real footnotes);
+    all-source_note is not — it means a notes/comments column was typed as
+    cross-references instead of footnotes.
+    """
+    if len(annotations) <= DEGENERATE_TYPE_MIN_ANNOTATIONS:
+        return False
+    return {a.get("annotation_type") for a in annotations} == {"source_note"}
+
+
 def validate_consolidated(data: dict) -> ConsolidationValidationResult:
     """Validate consolidated output structure and cross-references.
     
@@ -835,6 +891,8 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
     - Cross-references point to existing IDs
     - Schedule matrix references valid activities and columns
     - Annotations reference valid activities and columns
+    - Annotation text integrity (warnings): adjacent-pair containment,
+      degenerate source_note typing
     """
     result = ConsolidationValidationResult()
     
@@ -940,6 +998,24 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
                 f"{xannot_id}: orphaned annotation \u2014 no referenced_xacts, "
                 f"referenced_xcols, or cell_references"
             )
+    
+    # Annotation text integrity (warnings only)
+    annotations = data.get("unified_annotations", [])
+    
+    overlap_pairs = find_adjacent_text_overlaps(annotations)
+    if len(overlap_pairs) >= OVERLAP_PAIR_THRESHOLD:
+        shown = ", ".join(f"{a}/{b}" for a, b in overlap_pairs[:5])
+        more = ", \u2026" if len(overlap_pairs) > 5 else ""
+        result.warnings.append(
+            f"{len(overlap_pairs)} adjacent annotation pairs share contained text "
+            f"({shown}{more}) \u2014 likely one note cell fragmented across rows"
+        )
+    
+    if is_degenerate_annotation_typing(annotations):
+        result.warnings.append(
+            f"all {len(annotations)} annotations typed source_note \u2014 a notes/"
+            f"comments column should yield footnotes (all-footnote is normal)"
+        )
     
     # Validate property_hierarchy completeness against source tables
     consolidated_props = data.get("property_hierarchy", [])

@@ -49,3 +49,10 @@ coverage.xml
 .ruff_cache/
 .pytype/
 .pyre/
+
+# === Scratch / working dirs (never publish) ===
+# device_bash cannot rm on the FUSE mount, so files to remove are moved here
+# (e.g. a stale .git/index.lock); *.tgz is the code-repo tarball used to run
+# the test suite off-device.
+_to_delete/
+*.tgz

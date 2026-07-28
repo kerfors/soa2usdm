@@ -1,0 +1,6 @@
+{
+ "schema_name": "soa-table-corrections",
+ "schema_version": "1.0",
+ "target_extraction": "NCT04677179_Table_03_extraction.json",
+ "corrections": []
+}
