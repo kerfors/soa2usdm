@@ -368,43 +368,41 @@ def find_partial_marker_bindings(data: dict) -> list:
     """Rows an annotation's marker_locations names but whose annotation_markers omit it.
 
     An annotation reaches its activity through the ROW's `annotation_markers` string:
-    resolve builds `referenced_elements.activity_ids` from it, and consolidate falls back
-    to `marker_locations` only when that comes back empty. So the two fields can disagree
-    with nothing failing — an annotation marked on some rows and merely declared on others
+    resolve builds `referenced_elements` from it, and consolidate falls back to
+    `marker_locations` only when that comes back empty. So the two fields can disagree with
+    nothing failing — an annotation marked on some rows and merely declared on others
     silently loses the declared-only rows.
 
-    Only partial disagreement is reported. Measured over 22 protocols: 86 annotations carry
-    no marker string at all (harmless, the fallback covers them) and 7 are partially marked.
+    All four marker-bearing arrays count, `schedule_grid` included: a marker on a header
+    cell binds that column. Rows are compared by position only — the same marker is
+    legitimately recorded as `schedule_property` on the row and `schedule_cell` on a cell
+    of that row, and that pairing is not a disagreement.
+
+    Only partial disagreement is reported. Measured over 22 protocols: no findings — the
+    corpus is consistent. The failure it exists for is a corrected `marker_locations` that
+    was not carried into `annotation_markers`; run against that state it names each row
+    whose binding did not move.
     """
     marked = {}
-    groups = (("schedule_property", data.get("schedule_properties", [])),
-              ("activity_name", data.get("activities", [])),
-              ("schedule_cell", data.get("activity_schedule", [])))
-    for kind, rows in groups:
+    for rows in (data.get("schedule_properties", []), data.get("activities", []),
+                 data.get("activity_schedule", []), data.get("schedule_grid", [])):
         for row in rows:
             for m in (row.get("annotation_markers") or "").split(","):
                 if m.strip():
-                    marked.setdefault(m.strip(), set()).add((kind, row.get("row_position")))
+                    marked.setdefault(m.strip(), set()).add(row.get("row_position"))
 
     findings = []
     for annot in data.get("annotations", []):
         marker = annot.get("annotation_marker", "")
-        declared = {(loc.get("location_type"), loc.get("row_position"))
-                    for loc in annot.get("marker_locations", [])}
+        declared = {loc.get("row_position") for loc in annot.get("marker_locations", [])}
         on_rows = marked.get(marker, set())
-        if not on_rows or on_rows == declared:
+        if not on_rows:
             continue
         lost = declared - on_rows
-        stray = on_rows - declared
         if lost:
             findings.append(
-                f"Annotation '{marker}' is marked on {sorted(on_rows)} but also declares "
-                f"{sorted(lost)} in marker_locations — those rows will not bind"
-            )
-        if stray:
-            findings.append(
-                f"Annotation '{marker}' is marked on {sorted(stray)} but marker_locations "
-                f"does not declare them — binding and provenance disagree"
+                f"Annotation '{marker}' is marked on row(s) {sorted(on_rows)} but also "
+                f"declares row(s) {sorted(lost)} in marker_locations — those will not bind"
             )
     return findings
 
