@@ -840,6 +840,15 @@ OVERLAP_SECTION_REF_MAX_WORDS = 10
 OVERLAP_PAIR_THRESHOLD = 3     # warn from this many pairs
 DEGENERATE_TYPE_MIN_ANNOTATIONS = 20
 
+# The opposite failure to fragmentation: two adjacent note cells read as one
+# annotation. Calibrated over 23 collections — the over-merged NCT04677179
+# extraction scored 145/145/114 chars; the only other non-zero scores are 75
+# (a FOLFOX regimen list) and 52 (an injection-timing list), both legitimate
+# repetition inside a single cell.
+SENTENCE_SPLIT_PATTERN = re.compile(r'(?<=[.;:])\s+')
+DUP_BLOCK_MIN_SENTENCE_CHARS = 15   # ignore fragments this short when splitting
+DUP_BLOCK_THRESHOLD_CHARS = 100     # warn from this much repeated text
+
 
 def _is_short_section_ref(text: str) -> bool:
     """A short 'See Section x.y' cross-reference — legitimately repeated."""
@@ -868,6 +877,37 @@ def find_adjacent_text_overlaps(annotations: list) -> List[Tuple[str, str]]:
         if norm_a in norm_b or norm_b in norm_a:
             pairs.append((first.get("xannot_id", "?"), second.get("xannot_id", "?")))
     return pairs
+
+
+def longest_duplicated_block(text: str) -> int:
+    """Longest run of consecutive sentences that also appears earlier, in characters.
+
+    Two adjacent note cells merged into one annotation usually repeat a shared
+    opening or closing sentence — the source prints near-identical notes on
+    neighbouring rows. A single cell does not repeat a whole block of itself.
+    """
+    parts = [p.strip() for p in SENTENCE_SPLIT_PATTERN.split(text or "")
+             if len(p.strip()) >= DUP_BLOCK_MIN_SENTENCE_CHARS]
+    best = 0
+    for i in range(len(parts)):
+        for j in range(i + 1, len(parts)):
+            run = 0
+            while (j + run < len(parts) and i + run < j
+                   and parts[i + run] == parts[j + run]):
+                run += 1
+            if run:
+                best = max(best, sum(len(p) for p in parts[i:i + run]))
+    return best
+
+
+def find_over_merged_annotations(annotations: list) -> List[Tuple[str, int]]:
+    """Annotations carrying a repeated block big enough to mean two cells were merged."""
+    hits = []
+    for annot in annotations:
+        size = longest_duplicated_block(annot.get("annotation_text", ""))
+        if size >= DUP_BLOCK_THRESHOLD_CHARS:
+            hits.append((annot.get("xannot_id", "?"), size))
+    return hits
 
 
 def find_cross_table_binding_conflicts(data: dict) -> List[Tuple[str, List[str]]]:
@@ -1037,6 +1077,12 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
             f"({shown}{more}) \u2014 likely one note cell fragmented across rows"
         )
     
+    for xannot_id, size in find_over_merged_annotations(annotations):
+        result.warnings.append(
+            f"{xannot_id}: {size} characters of its text repeat within the annotation "
+            f"\u2014 likely two adjacent note cells merged into one (\u00a76)"
+        )
+
     for xannot_id, names in find_cross_table_binding_conflicts(data):
         result.warnings.append(
             f"{xannot_id}: bound to different activities by different tables "

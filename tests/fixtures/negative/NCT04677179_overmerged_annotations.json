@@ -1,0 +1,861 @@
+{
+ "_provenance": "unified_annotations from NCT04677179_consolidated.json as committed in soa2usdm-collections a4e4f74 — the 2026-07-28 extraction, before notes were re-bounded by rule-line geometry. Kept as a negative control: the over-merge detector must fire on it. Trimmed to the annotations; nothing else is needed and the full file is in that repo's history.",
+ "unified_annotations": [
+  {
+   "xannot_id": "xannot-001",
+   "annotation_type": "footnote",
+   "annotation_text": "The purpose of UC remission question should be explained before the participant answers the question. Errors in the response cannot be corrected after the participant saves and confirms the response.",
+   "display_markers": "T1:c1",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-002"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-002",
+   "annotation_type": "footnote",
+   "annotation_text": "Includes relevant surgical history.",
+   "display_markers": "T1:c2",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-004"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-003",
+   "annotation_type": "footnote",
+   "annotation_text": "Indication and history of interest. Includes all UC-specific therapies since date of diagnosis.",
+   "display_markers": "T1:c3",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-007"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-004",
+   "annotation_type": "footnote",
+   "annotation_text": "For AESIs, additional data are collected ( Section 8.3.6).",
+   "display_markers": "T1:c4, T2-3:c1, T4:c2",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    },
+    {
+     "table_num": 2,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    },
+    {
+     "table_num": 3,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    },
+    {
+     "table_num": 4,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-009",
+    "xact-019"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 4
+  },
+  {
+   "xannot_id": "xannot-005",
+   "annotation_type": "footnote",
+   "annotation_text": "Participant should remove shoes.",
+   "display_markers": "T1:c5",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-002"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-006",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting at least 5minutes. The complete physical exam excludes pelvic, rectal, and breast exams, unless clinically indicated, and includes assessment for signs and symptoms of tuberculosis ( TB), including peripheral lymph nodes. See Section 8.2.2.",
+   "display_markers": "T1:c6",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-017"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-007",
+   "annotation_type": "footnote",
+   "annotation_text": "See Section 8.2.2.",
+   "display_markers": "T1:c7, T2-3:c3",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    },
+    {
+     "table_num": 2,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    },
+    {
+     "table_num": 3,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-018"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 3
+  },
+  {
+   "xannot_id": "xannot-008",
+   "annotation_type": "footnote",
+   "annotation_text": "Locally performed.",
+   "display_markers": "T1:c8, T2-4:c4",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    },
+    {
+     "table_num": 2,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    },
+    {
+     "table_num": 3,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    },
+    {
+     "table_num": 4,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-019",
+    "xact-020",
+    "xact-051"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 4
+  },
+  {
+   "xannot_id": "xannot-009",
+   "annotation_type": "footnote",
+   "annotation_text": "Interpreted and reported by radiologist or pulmonologist. Not done at screening if done within 3months before screening and if qualifying radiographs or equivalent imaging study and/ or formal report are available for investigator ’s review. Lateral view may also be taken. Locally performed.",
+   "display_markers": "T1:c9",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-021"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-010",
+   "annotation_type": "footnote",
+   "annotation_text": "Check compliance for stool frequency rectal bleeding nocturnal stools bristol stool scale urgency NRS abdominal pain NRS fatigue NRS, and patient global rating of severity ( PGR-s).",
+   "display_markers": "T1:c10, T2-3:c5",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    },
+    {
+     "table_num": 2,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    },
+    {
+     "table_num": 3,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-024"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 3
+  },
+  {
+   "xannot_id": "xannot-011",
+   "annotation_type": "footnote",
+   "annotation_text": "Adapted for the assessment of ideation and behavior categories only.",
+   "display_markers": "T1:c11",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-029"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-012",
+   "annotation_type": "footnote",
+   "annotation_text": "Required if triggered by the self-harm supplement form per instructions.",
+   "display_markers": "T1:c12",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-031"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-013",
+   "annotation_type": "footnote",
+   "annotation_text": "Fasting samples are preferred, but if participant is nonfasting at time of collection, this is not a protocol deviation.",
+   "display_markers": "T1:c13, T2-3:c6",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c13",
+     "annotation_id": "annot-013"
+    },
+    {
+     "table_num": 2,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    },
+    {
+     "table_num": 3,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-034"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 3
+  },
+  {
+   "xannot_id": "xannot-014",
+   "annotation_type": "footnote",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation.",
+   "display_markers": "T1:c14",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c14",
+     "annotation_id": "annot-014"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-036"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-015",
+   "annotation_type": "footnote",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA, if local laws or regulations require more frequent testing. Optional, perform only for women not of childbearing potential to confirm postmenopausal status.",
+   "display_markers": "T1:c15",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c15",
+     "annotation_id": "annot-015"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-036"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-016",
+   "annotation_type": "footnote",
+   "annotation_text": "Patients who had a tuberculin skin test ( TST) will return from 48 to 72 hours after placement to have the test result read. Samples maybe sent to central or local laboratory based on the type of test. A local laboratory must be qualified by local regulations.",
+   "display_markers": "T1:c16",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c16",
+     "annotation_id": "annot-016"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-039"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-017",
+   "annotation_type": "footnote",
+   "annotation_text": "HCV RNA will be measured to confirm positive hepatitis c virus antibody. Includes testing for HBsAg and anti-HBc.",
+   "display_markers": "T1:c17",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c17",
+     "annotation_id": "annot-017"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-042"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-018",
+   "annotation_type": "footnote",
+   "annotation_text": "Only for participants who are positive for anti‑HBc at screening. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "display_markers": "T1:c18",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c18",
+     "annotation_id": "annot-018"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-044"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-019",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood sample for DNA pharmacogenetics can be obtained any time at or after V2.",
+   "display_markers": "T1:c19, T2-3:c10, T4:c9",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c19",
+     "annotation_id": "annot-019"
+    },
+    {
+     "table_num": 2,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    },
+    {
+     "table_num": 3,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    },
+    {
+     "table_num": 4,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-048",
+    "xact-047",
+    "xact-046"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 4
+  },
+  {
+   "xannot_id": "xannot-020",
+   "annotation_type": "footnote",
+   "annotation_text": "Screening endoscopy must occur≤14 days prior to randomization. At screening, perform only for participants who are eligible for the study by all other study entry criteria. Performed at time of endoscopy. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed.",
+   "display_markers": "T1:c20",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c20",
+     "annotation_id": "annot-020"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-051"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-021",
+   "annotation_type": "footnote",
+   "annotation_text": "Additional local stool testing ( for example, for ova and parasites) is allowed at the investigator ’s discretion. Addition alc. Difficile testing is allowed throughout the study at the investigator ’s discretion.",
+   "display_markers": "T1:c21",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c21",
+     "annotation_id": "annot-021"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-053"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-022",
+   "annotation_type": "footnote",
+   "annotation_text": "No dosing at V3.",
+   "display_markers": "T1:c22",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c22",
+     "annotation_id": "annot-022"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-058"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-023",
+   "annotation_type": "footnote",
+   "annotation_text": "Srs=columbia–suicide severity rating scale; Bs urface antigen; QIDS-SR16=16-item activities; UC=ulcerative colitis; V=visit.",
+   "display_markers": "T1:c23",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c23",
+     "annotation_id": "annot-023"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-059"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-024",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting for at least 5minutes.",
+   "display_markers": "T2-3:c2",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    },
+    {
+     "table_num": 3,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-016"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-025",
+   "annotation_type": "footnote",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA, if local laws or regulations require more frequent testing.",
+   "display_markers": "T2:c7",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-037"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-026",
+   "annotation_type": "footnote",
+   "annotation_text": "Only for participants who are positive for anti‑HBc at screening.",
+   "display_markers": "T2-3:c8",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    },
+    {
+     "table_num": 3,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-044"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-027",
+   "annotation_type": "footnote",
+   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "display_markers": "T2-3:c9",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    },
+    {
+     "table_num": 3,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-045"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-028",
+   "annotation_type": "footnote",
+   "annotation_text": "Performed at time of endoscopy. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed.",
+   "display_markers": "T2-3:c11",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    },
+    {
+     "table_num": 3,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-052"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-029",
+   "annotation_type": "footnote",
+   "annotation_text": "No dosing at V29.",
+   "display_markers": "T2-3:c12",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    },
+    {
+     "table_num": 3,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-059"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-030",
+   "annotation_type": "footnote",
+   "annotation_text": "Acid; ETV =early quick inventory of depressive",
+   "display_markers": "T2-3:c13",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c13",
+     "annotation_id": "annot-013"
+    },
+    {
+     "table_num": 3,
+     "marker": "c13",
+     "annotation_id": "annot-013"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-059"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-031",
+   "annotation_type": "footnote",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA if local laws or regulations require more frequent testing.",
+   "display_markers": "T3:c7, T4:c6",
+   "source_occurrences": [
+    {
+     "table_num": 3,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    },
+    {
+     "table_num": 4,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-037"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-032",
+   "annotation_type": "footnote",
+   "annotation_text": "No fasting in this period",
+   "display_markers": "T4:c1",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-027"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-033",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting for at least 5minutes. V997: Vital signs collection is optional.",
+   "display_markers": "T4:c3",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-051"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-034",
+   "annotation_type": "footnote",
+   "annotation_text": "Fasting is not required for the lipid panel at ETV.",
+   "display_markers": "T4:c5",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-033"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-035",
+   "annotation_type": "footnote",
+   "annotation_text": "Only for participants who are positive for anti‑HBc at screening. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "display_markers": "T4:c7",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-044"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-036",
+   "annotation_type": "footnote",
+   "annotation_text": "No fasting in this period collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "display_markers": "T4:c8",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-045"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-037",
+   "annotation_type": "footnote",
+   "annotation_text": "Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. If not performed at ETV, this will not be considered a protocol deviation. Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed. If not performed at ETV, this will not be considered a protocol deviation.",
+   "display_markers": "T4:c10",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-051"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-038",
+   "annotation_type": "footnote",
+   "annotation_text": "No dosing at ETV, V997, or post-treatment follow-up visits.",
+   "display_markers": "T4:c11",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-037"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-039",
+   "annotation_type": "footnote",
+   "annotation_text": "DNA=deoxyribonucleic acid; ETV =early symptomatology–self report; SoA=schedule of activities;",
+   "display_markers": "T4:c12",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-047"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  }
+ ]
+}

@@ -29,6 +29,7 @@ from soa2usdm.resolve import ResolveStep
 from soa2usdm.consolidate import (
     ConsolidateStep,
     find_adjacent_text_overlaps,
+    find_over_merged_annotations,
     is_degenerate_annotation_typing,
     OVERLAP_PAIR_THRESHOLD,
 )
@@ -127,6 +128,27 @@ def test_annotations_not_fragmented(pipeline_output):
     pairs = find_adjacent_text_overlaps(consolidated_annotations(produced))
     assert len(pairs) < OVERLAP_PAIR_THRESHOLD, \
         f"{protocol}: {len(pairs)} adjacent annotation pairs share contained text: {pairs}"
+
+
+def test_annotations_not_over_merged(pipeline_output):
+    """The opposite of fragmentation: two adjacent note cells read as one annotation.
+    A merged pair repeats a shared sentence block; a single cell does not repeat itself."""
+    protocol, produced, _ = pipeline_output
+    hits = find_over_merged_annotations(consolidated_annotations(produced))
+    assert not hits, f"{protocol}: annotations carry repeated text blocks: {hits}"
+
+
+def test_over_merge_detector_fires_on_known_bad():
+    """Negative control — the detector is worthless if it only ever returns nothing.
+
+    These are NCT04677179's annotations as committed before the notes were re-bounded
+    by rule-line geometry; three of them concatenate two source cells.
+    """
+    path = (Path(__file__).parent / "fixtures" / "negative"
+            / "NCT04677179_overmerged_annotations.json")
+    annotations = json.loads(path.read_text())["unified_annotations"]
+    hits = find_over_merged_annotations(annotations)
+    assert len(hits) == 3, f"expected the 3 known over-merges, got {hits}"
 
 
 def test_annotation_typing_not_degenerate(pipeline_output):
