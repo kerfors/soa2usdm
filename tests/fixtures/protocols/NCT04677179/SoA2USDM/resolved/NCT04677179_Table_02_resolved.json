@@ -2,7 +2,7 @@
   "schema_name": "soa-table-resolved",
   "schema_version": "1.0",
   "resolution_metadata": {
-    "resolved_at": "2026-07-28T10:39:11.973056+00:00",
+    "resolved_at": "2026-07-30T13:57:53.722354+00:00",
     "resolver": "soa2usdm.steps.resolve v1.0",
     "source_extraction": {
       "schema_name": "soa-table-extraction",
@@ -30,7 +30,7 @@
       "document_version": "J1P-MC-KFAH(b)"
     },
     "extraction_status": "ready_for_resolution",
-    "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction."
+    "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction. 2026-07-30 rev2: Comment-column annotations re-bounded by raster rule-line cell geometry (200 dpi horizontal-rule detection per page) instead of y-gap proximity; over-merged notes split at the cell boundary with text preserved verbatim, and each cell re-bound to the row its band overlaps. Marks and structure unchanged."
   },
   "table_metadata": {
     "table_id": "table-002",
@@ -1321,8 +1321,10 @@
       "parent_activity_id": "act-011",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c9_2",
+      "linked_annotation_ids": [
+        "annot-010"
+      ]
     },
     {
       "activity_id": "act-027",
@@ -1340,7 +1342,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c10",
       "linked_annotation_ids": [
-        "annot-010"
+        "annot-011"
       ]
     },
     {
@@ -1415,7 +1417,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c11",
       "linked_annotation_ids": [
-        "annot-011"
+        "annot-012"
       ]
     },
     {
@@ -1487,8 +1489,8 @@
       "has_schedule_data": true,
       "annotation_markers": "c12,c13",
       "linked_annotation_ids": [
-        "annot-012",
-        "annot-013"
+        "annot-013",
+        "annot-014"
       ]
     }
   ],
@@ -3664,7 +3666,7 @@
       "table_id": "table-002",
       "annotation_marker": "c9",
       "annotation_type": "footnote",
-      "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+      "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -3684,6 +3686,29 @@
     },
     {
       "annotation_id": "annot-010",
+      "table_id": "table-002",
+      "annotation_marker": "c9_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-026"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 31
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-011",
       "table_id": "table-002",
       "annotation_marker": "c10",
       "annotation_type": "footnote",
@@ -3706,7 +3731,7 @@
       ]
     },
     {
-      "annotation_id": "annot-011",
+      "annotation_id": "annot-012",
       "table_id": "table-002",
       "annotation_marker": "c11",
       "annotation_type": "footnote",
@@ -3729,7 +3754,7 @@
       ]
     },
     {
-      "annotation_id": "annot-012",
+      "annotation_id": "annot-013",
       "table_id": "table-002",
       "annotation_marker": "c12",
       "annotation_type": "footnote",
@@ -3752,7 +3777,7 @@
       ]
     },
     {
-      "annotation_id": "annot-013",
+      "annotation_id": "annot-014",
       "table_id": "table-002",
       "annotation_marker": "c13",
       "annotation_type": "footnote",

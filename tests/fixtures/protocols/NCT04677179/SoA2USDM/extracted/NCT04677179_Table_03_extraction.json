@@ -10,7 +10,7 @@
    "document_version": "J1P-MC-KFAH(b)"
   },
   "extraction_status": "ready_for_resolution",
-  "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction."
+  "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction. 2026-07-30 rev2: Comment-column annotations re-bounded by raster rule-line cell geometry (200 dpi horizontal-rule detection per page) instead of y-gap proximity; over-merged notes split at the cell boundary with text preserved verbatim, and each cell re-bound to the row its band overlaps. Marks and structure unchanged."
  },
  "table_metadata": {
   "table_number": 3,
@@ -591,8 +591,7 @@
    "activity_name_source": {
     "cell_text": "Concomitant medications",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -611,8 +610,7 @@
    "activity_name_source": {
     "cell_text": "Review modified Mayo score(MMS)",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -639,8 +637,7 @@
    "activity_name_source": {
     "cell_text": "Weight",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -707,8 +704,7 @@
    "activity_name_source": {
     "cell_text": "Diary return",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -762,8 +758,7 @@
    "activity_name_source": {
     "cell_text": "Clinical chemistry",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -782,8 +777,7 @@
    "activity_name_source": {
     "cell_text": "Urinalysis",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -802,8 +796,7 @@
    "activity_name_source": {
     "cell_text": "CCI",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -833,7 +826,7 @@
     "cell_text": "CCI",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c9_2"
   },
   {
    "table_number": 3,
@@ -842,8 +835,7 @@
    "activity_name_source": {
     "cell_text": "Flow cytometry panel",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -871,8 +863,7 @@
    "activity_name_source": {
     "cell_text": "Endoscopy",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 3,
@@ -2290,12 +2281,24 @@
   {
    "annotation_marker": "c9",
    "annotation_type": "footnote",
-   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
    "marker_locations": [
     {
      "table_number": 3,
      "location_type": "activity_name",
      "row_position": 30
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c9_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "marker_locations": [
+    {
+     "table_number": 3,
+     "location_type": "activity_name",
+     "row_position": 31
     }
    ]
   },

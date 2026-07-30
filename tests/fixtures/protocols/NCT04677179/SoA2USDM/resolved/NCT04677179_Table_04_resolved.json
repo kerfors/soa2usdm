@@ -2,7 +2,7 @@
   "schema_name": "soa-table-resolved",
   "schema_version": "1.0",
   "resolution_metadata": {
-    "resolved_at": "2026-07-28T10:39:11.983030+00:00",
+    "resolved_at": "2026-07-30T13:57:53.732787+00:00",
     "resolver": "soa2usdm.steps.resolve v1.0",
     "source_extraction": {
       "schema_name": "soa-table-extraction",
@@ -30,7 +30,7 @@
       "document_version": "J1P-MC-KFAH(b)"
     },
     "extraction_status": "ready_for_resolution",
-    "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction."
+    "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction. 2026-07-30 rev2: Comment-column annotations re-bounded by raster rule-line cell geometry (200 dpi horizontal-rule detection per page) instead of y-gap proximity; over-merged notes split at the cell boundary with text preserved verbatim, and each cell re-bound to the row its band overlaps. Marks and structure unchanged. 2026-07-30 rev3: Table 4's first body page (doc p.43 / printed 42) had never been extracted; its 14 activity rows and 26 ETV/V997/V801/V802 marks were read from the page and inserted ahead of the existing rows, which shifted by 14. The three notes that had been bound to surviving rows for want of their own (AESIs, vital signs, locally performed) now bind correctly, and the dropped \"See Section 8.2.2.\" cross-reference is restored as c3_2."
   },
   "table_metadata": {
     "table_id": "table-004",
@@ -42,9 +42,9 @@
     "page_end": 46,
     "track_label": "Early Termination / Unscheduled / Post-Treatment",
     "column_count": 4,
-    "row_count": 24,
+    "row_count": 38,
     "header_row_count": 5,
-    "activity_row_count": 19,
+    "activity_row_count": 33,
     "notes": "Document page numbers of full protocol PDF."
   },
   "schedule_properties": [
@@ -141,8 +141,10 @@
       "hierarchical_level": null,
       "parent_property_id": null,
       "child_property_ids": [],
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c1",
+      "linked_annotation_ids": [
+        "annot-001"
+      ]
     }
   ],
   "schedule_columns": [
@@ -240,28 +242,9 @@
       "activity_id": "act-001",
       "table_id": "table-004",
       "row_position": 6,
-      "activity_name": "QIDS-SR16",
+      "activity_name": "Concomitant medications",
       "activity_name_source": {
-        "cell_text": "QIDS -SR16",
-        "indentation_level": 1
-      },
-      "hierarchy_level": 1,
-      "is_section_header": false,
-      "parent_activity_id": null,
-      "child_activity_ids": [],
-      "has_schedule_data": true,
-      "annotation_markers": "c1",
-      "linked_annotation_ids": [
-        "annot-001"
-      ]
-    },
-    {
-      "activity_id": "act-002",
-      "table_id": "table-004",
-      "row_position": 7,
-      "activity_name": "Physician’s Global Assessment (PGA)",
-      "activity_name_source": {
-        "cell_text": "Physician’s Global Assessment (PGA)) Physician’s Global Assess ment(P G A)",
+        "cell_text": "Concomitant medications",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
@@ -273,12 +256,31 @@
       "linked_annotation_ids": []
     },
     {
+      "activity_id": "act-002",
+      "table_id": "table-004",
+      "row_position": 7,
+      "activity_name": "Adverse events",
+      "activity_name_source": {
+        "cell_text": "Adverse events",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": null,
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c2",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
+    },
+    {
       "activity_id": "act-003",
       "table_id": "table-004",
       "row_position": 8,
-      "activity_name": "Hematology",
+      "activity_name": "Review modified Mayo score (MMS)",
       "activity_name_source": {
-        "cell_text": "Hematologytology",
+        "cell_text": "Review modified Mayo score (MMS)",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
@@ -293,28 +295,9 @@
       "activity_id": "act-004",
       "table_id": "table-004",
       "row_position": 9,
-      "activity_name": "Clinical chemistry",
+      "activity_name": "Tobacco use",
       "activity_name_source": {
-        "cell_text": "Clinical chemistry",
-        "indentation_level": 1
-      },
-      "hierarchy_level": 1,
-      "is_section_header": false,
-      "parent_activity_id": null,
-      "child_activity_ids": [],
-      "has_schedule_data": true,
-      "annotation_markers": "c5",
-      "linked_annotation_ids": [
-        "annot-005"
-      ]
-    },
-    {
-      "activity_id": "act-005",
-      "table_id": "table-004",
-      "row_position": 10,
-      "activity_name": "Lipid panel",
-      "activity_name_source": {
-        "cell_text": "Lipid panel",
+        "cell_text": "Tobacco use",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
@@ -326,17 +309,40 @@
       "linked_annotation_ids": []
     },
     {
+      "activity_id": "act-005",
+      "table_id": "table-004",
+      "row_position": 10,
+      "activity_name": "Physical Evaluation",
+      "activity_name_source": {
+        "cell_text": "Physical Evaluation",
+        "indentation_level": 0
+      },
+      "hierarchy_level": 0,
+      "is_section_header": true,
+      "parent_activity_id": null,
+      "child_activity_ids": [
+        "act-006",
+        "act-007",
+        "act-008",
+        "act-009",
+        "act-010"
+      ],
+      "has_schedule_data": false,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
       "activity_id": "act-006",
       "table_id": "table-004",
       "row_position": 11,
-      "activity_name": "Urinalysis",
+      "activity_name": "Weight",
       "activity_name_source": {
-        "cell_text": "Urinalysis",
+        "cell_text": "Weight",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": null,
+      "parent_activity_id": "act-005",
       "child_activity_ids": [],
       "has_schedule_data": true,
       "annotation_markers": "",
@@ -346,83 +352,44 @@
       "activity_id": "act-007",
       "table_id": "table-004",
       "row_position": 12,
-      "activity_name": "Urine pregnancy (local)",
+      "activity_name": "Vital signs",
       "activity_name_source": {
-        "cell_text": "Urine pregnancy (local)",
+        "cell_text": "Vital signs",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": null,
+      "parent_activity_id": "act-005",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c6,c11",
+      "annotation_markers": "c3",
       "linked_annotation_ids": [
-        "annot-006",
-        "annot-011"
+        "annot-003"
       ]
     },
     {
       "activity_id": "act-008",
       "table_id": "table-004",
       "row_position": 13,
-      "activity_name": "CCI",
+      "activity_name": "Symptom-directed physical examination, including assessment for signs and symptoms of tuberculosis (TB), including peripheral lymph nodes",
       "activity_name_source": {
-        "cell_text": "CCI",
+        "cell_text": "Symptom-directed physical examination,including assessment for signs and symptoms of tuberculosis (TB), including peripheral lymph nodes",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": null,
+      "parent_activity_id": "act-005",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c2",
+      "annotation_markers": "c3_2",
       "linked_annotation_ids": [
-        "annot-002"
+        "annot-004"
       ]
     },
     {
       "activity_id": "act-009",
       "table_id": "table-004",
       "row_position": 14,
-      "activity_name": "HBV DNA",
-      "activity_name_source": {
-        "cell_text": "HBV DNA",
-        "indentation_level": 1
-      },
-      "hierarchy_level": 1,
-      "is_section_header": false,
-      "parent_activity_id": null,
-      "child_activity_ids": [],
-      "has_schedule_data": true,
-      "annotation_markers": "c7",
-      "linked_annotation_ids": [
-        "annot-007"
-      ]
-    },
-    {
-      "activity_id": "act-010",
-      "table_id": "table-004",
-      "row_position": 15,
-      "activity_name": "Pharmacokinetic (PK) samples",
-      "activity_name_source": {
-        "cell_text": "Pharmacokinetic (PK) samples",
-        "indentation_level": 1
-      },
-      "hierarchy_level": 1,
-      "is_section_header": false,
-      "parent_activity_id": null,
-      "child_activity_ids": [],
-      "has_schedule_data": true,
-      "annotation_markers": "c8",
-      "linked_annotation_ids": [
-        "annot-008"
-      ]
-    },
-    {
-      "activity_id": "act-011",
-      "table_id": "table-004",
-      "row_position": 16,
       "activity_name": "CCI",
       "activity_name_source": {
         "cell_text": "CCI",
@@ -430,9 +397,62 @@
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": null,
+      "parent_activity_id": "act-005",
       "child_activity_ids": [],
       "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-010",
+      "table_id": "table-004",
+      "row_position": 15,
+      "activity_name": "12-lead electrocardiogram (ECG)",
+      "activity_name_source": {
+        "cell_text": "12-leadelectrocardiogram (ECG)",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-005",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c4",
+      "linked_annotation_ids": [
+        "annot-005"
+      ]
+    },
+    {
+      "activity_id": "act-011",
+      "table_id": "table-004",
+      "row_position": 16,
+      "activity_name": "Patient Diary (Electronic)",
+      "activity_name_source": {
+        "cell_text": "Patient Diary (Electronic)",
+        "indentation_level": 0
+      },
+      "hierarchy_level": 0,
+      "is_section_header": true,
+      "parent_activity_id": null,
+      "child_activity_ids": [
+        "act-012",
+        "act-013",
+        "act-014",
+        "act-015",
+        "act-016",
+        "act-017",
+        "act-018",
+        "act-019",
+        "act-020",
+        "act-021",
+        "act-022",
+        "act-023",
+        "act-024",
+        "act-025",
+        "act-026",
+        "act-027"
+      ],
+      "has_schedule_data": false,
       "annotation_markers": "",
       "linked_annotation_ids": []
     },
@@ -440,34 +460,31 @@
       "activity_id": "act-012",
       "table_id": "table-004",
       "row_position": 17,
-      "activity_name": "Flow cytometry panel",
+      "activity_name": "Diary return",
       "activity_name_source": {
-        "cell_text": "Flow cytometry panel",
+        "cell_text": "Diary return",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": null,
+      "parent_activity_id": "act-011",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c9,c12",
-      "linked_annotation_ids": [
-        "annot-009",
-        "annot-012"
-      ]
+      "annotation_markers": "",
+      "linked_annotation_ids": []
     },
     {
       "activity_id": "act-013",
       "table_id": "table-004",
       "row_position": 18,
-      "activity_name": "CCI",
+      "activity_name": "Inflammatory Bowel Disease Questionnaire (IBDQ)",
       "activity_name_source": {
-        "cell_text": "CCI",
+        "cell_text": "Inflammatory Bowel Disease Questionnaire (IBDQ)",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": null,
+      "parent_activity_id": "act-011",
       "child_activity_ids": [],
       "has_schedule_data": true,
       "annotation_markers": "",
@@ -477,21 +494,16 @@
       "activity_id": "act-014",
       "table_id": "table-004",
       "row_position": 19,
-      "activity_name": "Endoscopic Procedure",
+      "activity_name": "Patient Global Impression of Change (PGI-C)",
       "activity_name_source": {
-        "cell_text": "Endoscopic Procedure",
-        "indentation_level": 0
+        "cell_text": "Patient Global Impression of Change (PGI-C)",
+        "indentation_level": 1
       },
-      "hierarchy_level": 0,
-      "is_section_header": true,
-      "parent_activity_id": null,
-      "child_activity_ids": [
-        "act-015",
-        "act-016",
-        "act-017",
-        "act-018"
-      ],
-      "has_schedule_data": false,
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
       "annotation_markers": "",
       "linked_annotation_ids": []
     },
@@ -499,35 +511,31 @@
       "activity_id": "act-015",
       "table_id": "table-004",
       "row_position": 20,
-      "activity_name": "Endoscopy",
+      "activity_name": "QIDS-SR16",
       "activity_name_source": {
-        "cell_text": "Endoscopy",
+        "cell_text": "QIDS -SR16",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": "act-014",
+      "parent_activity_id": "act-011",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c3,c4,c10",
-      "linked_annotation_ids": [
-        "annot-003",
-        "annot-004",
-        "annot-010"
-      ]
+      "annotation_markers": "",
+      "linked_annotation_ids": []
     },
     {
       "activity_id": "act-016",
       "table_id": "table-004",
       "row_position": 21,
-      "activity_name": "Colon biopsy sample collection",
+      "activity_name": "Physician’s Global Assessment (PGA)",
       "activity_name_source": {
-        "cell_text": "Colon biopsy sample collection",
+        "cell_text": "Physician’s Global Assessment (PGA)) Physician’s Global Assess ment(P G A)",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": "act-014",
+      "parent_activity_id": "act-011",
       "child_activity_ids": [],
       "has_schedule_data": true,
       "annotation_markers": "",
@@ -537,14 +545,14 @@
       "activity_id": "act-017",
       "table_id": "table-004",
       "row_position": 22,
-      "activity_name": "CCI",
+      "activity_name": "Hematology",
       "activity_name_source": {
-        "cell_text": "CCI",
+        "cell_text": "Hematologytology",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": "act-014",
+      "parent_activity_id": "act-011",
       "child_activity_ids": [],
       "has_schedule_data": true,
       "annotation_markers": "",
@@ -554,14 +562,14 @@
       "activity_id": "act-018",
       "table_id": "table-004",
       "row_position": 23,
-      "activity_name": "CCI (redacted)",
+      "activity_name": "Clinical chemistry",
       "activity_name_source": {
-        "cell_text": "CCI (redacted)",
+        "cell_text": "Clinical chemistry",
         "indentation_level": 1
       },
       "hierarchy_level": 1,
       "is_section_header": false,
-      "parent_activity_id": "act-014",
+      "parent_activity_id": "act-011",
       "child_activity_ids": [],
       "has_schedule_data": true,
       "annotation_markers": "",
@@ -571,6 +579,267 @@
       "activity_id": "act-019",
       "table_id": "table-004",
       "row_position": 24,
+      "activity_name": "Lipid panel",
+      "activity_name_source": {
+        "cell_text": "Lipid panel",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c5",
+      "linked_annotation_ids": [
+        "annot-006"
+      ]
+    },
+    {
+      "activity_id": "act-020",
+      "table_id": "table-004",
+      "row_position": 25,
+      "activity_name": "Urinalysis",
+      "activity_name_source": {
+        "cell_text": "Urinalysis",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-021",
+      "table_id": "table-004",
+      "row_position": 26,
+      "activity_name": "Urine pregnancy (local)",
+      "activity_name_source": {
+        "cell_text": "Urine pregnancy (local)",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c6,c11",
+      "linked_annotation_ids": [
+        "annot-007",
+        "annot-008"
+      ]
+    },
+    {
+      "activity_id": "act-022",
+      "table_id": "table-004",
+      "row_position": 27,
+      "activity_name": "CCI",
+      "activity_name_source": {
+        "cell_text": "CCI",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-023",
+      "table_id": "table-004",
+      "row_position": 28,
+      "activity_name": "HBV DNA",
+      "activity_name_source": {
+        "cell_text": "HBV DNA",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c7",
+      "linked_annotation_ids": [
+        "annot-009"
+      ]
+    },
+    {
+      "activity_id": "act-024",
+      "table_id": "table-004",
+      "row_position": 29,
+      "activity_name": "Pharmacokinetic (PK) samples",
+      "activity_name_source": {
+        "cell_text": "Pharmacokinetic (PK) samples",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c7_2",
+      "linked_annotation_ids": [
+        "annot-010"
+      ]
+    },
+    {
+      "activity_id": "act-025",
+      "table_id": "table-004",
+      "row_position": 30,
+      "activity_name": "CCI",
+      "activity_name_source": {
+        "cell_text": "CCI",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c8_2",
+      "linked_annotation_ids": [
+        "annot-011"
+      ]
+    },
+    {
+      "activity_id": "act-026",
+      "table_id": "table-004",
+      "row_position": 31,
+      "activity_name": "Flow cytometry panel",
+      "activity_name_source": {
+        "cell_text": "Flow cytometry panel",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c9,c12",
+      "linked_annotation_ids": [
+        "annot-012",
+        "annot-013"
+      ]
+    },
+    {
+      "activity_id": "act-027",
+      "table_id": "table-004",
+      "row_position": 32,
+      "activity_name": "CCI",
+      "activity_name_source": {
+        "cell_text": "CCI",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-011",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-028",
+      "table_id": "table-004",
+      "row_position": 33,
+      "activity_name": "Endoscopic Procedure",
+      "activity_name_source": {
+        "cell_text": "Endoscopic Procedure",
+        "indentation_level": 0
+      },
+      "hierarchy_level": 0,
+      "is_section_header": true,
+      "parent_activity_id": null,
+      "child_activity_ids": [
+        "act-029",
+        "act-030",
+        "act-031",
+        "act-032"
+      ],
+      "has_schedule_data": false,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-029",
+      "table_id": "table-004",
+      "row_position": 34,
+      "activity_name": "Endoscopy",
+      "activity_name_source": {
+        "cell_text": "Endoscopy",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-028",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c10",
+      "linked_annotation_ids": [
+        "annot-014"
+      ]
+    },
+    {
+      "activity_id": "act-030",
+      "table_id": "table-004",
+      "row_position": 35,
+      "activity_name": "Colon biopsy sample collection",
+      "activity_name_source": {
+        "cell_text": "Colon biopsy sample collection",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-028",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c10_2",
+      "linked_annotation_ids": [
+        "annot-015"
+      ]
+    },
+    {
+      "activity_id": "act-031",
+      "table_id": "table-004",
+      "row_position": 36,
+      "activity_name": "CCI",
+      "activity_name_source": {
+        "cell_text": "CCI",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-028",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-032",
+      "table_id": "table-004",
+      "row_position": 37,
+      "activity_name": "CCI (redacted)",
+      "activity_name_source": {
+        "cell_text": "CCI (redacted)",
+        "indentation_level": 1
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-028",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-033",
+      "table_id": "table-004",
+      "row_position": 38,
       "activity_name": "Randomization and Dosing",
       "activity_name_source": {
         "cell_text": "Randomization and Dosing",
@@ -598,6 +867,39 @@
       "linked_annotation_ids": []
     },
     {
+      "activity_id": "act-001",
+      "column_id": "col-003",
+      "row_position": 6,
+      "column_position": 3,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-001",
+      "column_id": "col-004",
+      "row_position": 6,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-001",
+      "column_id": "col-005",
+      "row_position": 6,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
       "activity_id": "act-002",
       "column_id": "col-002",
       "row_position": 7,
@@ -609,6 +911,39 @@
       "linked_annotation_ids": []
     },
     {
+      "activity_id": "act-002",
+      "column_id": "col-003",
+      "row_position": 7,
+      "column_position": 3,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "column_id": "col-004",
+      "row_position": 7,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "column_id": "col-005",
+      "row_position": 7,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
       "activity_id": "act-003",
       "column_id": "col-002",
       "row_position": 8,
@@ -620,64 +955,9 @@
       "linked_annotation_ids": []
     },
     {
-      "activity_id": "act-003",
-      "column_id": "col-004",
-      "row_position": 8,
-      "column_position": 4,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
-      "activity_id": "act-003",
-      "column_id": "col-005",
-      "row_position": 8,
-      "column_position": 5,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
       "activity_id": "act-004",
       "column_id": "col-002",
       "row_position": 9,
-      "column_position": 2,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
-      "activity_id": "act-004",
-      "column_id": "col-004",
-      "row_position": 9,
-      "column_position": 4,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
-      "activity_id": "act-004",
-      "column_id": "col-005",
-      "row_position": 9,
-      "column_position": 5,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
-      "activity_id": "act-005",
-      "column_id": "col-002",
-      "row_position": 10,
       "column_position": 2,
       "cell_value": "X",
       "cell_value_type": "marker",
@@ -701,17 +981,6 @@
       "column_id": "col-004",
       "row_position": 11,
       "column_position": 4,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
-      "activity_id": "act-006",
-      "column_id": "col-005",
-      "row_position": 11,
-      "column_position": 5,
       "cell_value": "X",
       "cell_value_type": "marker",
       "source_range": "",
@@ -723,6 +992,17 @@
       "column_id": "col-002",
       "row_position": 12,
       "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-007",
+      "column_id": "col-003",
+      "row_position": 12,
+      "column_position": 3,
       "cell_value": "X",
       "cell_value_type": "marker",
       "source_range": "",
@@ -763,10 +1043,43 @@
       "linked_annotation_ids": []
     },
     {
+      "activity_id": "act-008",
+      "column_id": "col-004",
+      "row_position": 13,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-005",
+      "row_position": 13,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
       "activity_id": "act-009",
       "column_id": "col-002",
       "row_position": 14,
       "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-004",
+      "row_position": 14,
+      "column_position": 4,
       "cell_value": "X",
       "cell_value_type": "marker",
       "source_range": "",
@@ -796,39 +1109,6 @@
       "linked_annotation_ids": []
     },
     {
-      "activity_id": "act-010",
-      "column_id": "col-004",
-      "row_position": 15,
-      "column_position": 4,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
-      "activity_id": "act-011",
-      "column_id": "col-002",
-      "row_position": 16,
-      "column_position": 2,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
-      "activity_id": "act-011",
-      "column_id": "col-004",
-      "row_position": 16,
-      "column_position": 4,
-      "cell_value": "X",
-      "cell_value_type": "marker",
-      "source_range": "",
-      "annotation_markers": "",
-      "linked_annotation_ids": []
-    },
-    {
       "activity_id": "act-012",
       "column_id": "col-002",
       "row_position": 17,
@@ -843,6 +1123,17 @@
       "activity_id": "act-013",
       "column_id": "col-002",
       "row_position": 18,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-014",
+      "column_id": "col-002",
+      "row_position": 19,
       "column_position": 2,
       "cell_value": "X",
       "cell_value_type": "marker",
@@ -884,9 +1175,273 @@
       "linked_annotation_ids": []
     },
     {
+      "activity_id": "act-017",
+      "column_id": "col-004",
+      "row_position": 22,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-017",
+      "column_id": "col-005",
+      "row_position": 22,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
       "activity_id": "act-018",
       "column_id": "col-002",
       "row_position": 23,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-018",
+      "column_id": "col-004",
+      "row_position": 23,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-018",
+      "column_id": "col-005",
+      "row_position": 23,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-019",
+      "column_id": "col-002",
+      "row_position": 24,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-020",
+      "column_id": "col-002",
+      "row_position": 25,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-020",
+      "column_id": "col-004",
+      "row_position": 25,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-020",
+      "column_id": "col-005",
+      "row_position": 25,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-021",
+      "column_id": "col-002",
+      "row_position": 26,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-021",
+      "column_id": "col-004",
+      "row_position": 26,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-021",
+      "column_id": "col-005",
+      "row_position": 26,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-022",
+      "column_id": "col-002",
+      "row_position": 27,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-023",
+      "column_id": "col-002",
+      "row_position": 28,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-023",
+      "column_id": "col-005",
+      "row_position": 28,
+      "column_position": 5,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-024",
+      "column_id": "col-002",
+      "row_position": 29,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-024",
+      "column_id": "col-004",
+      "row_position": 29,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-025",
+      "column_id": "col-002",
+      "row_position": 30,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-025",
+      "column_id": "col-004",
+      "row_position": 30,
+      "column_position": 4,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-026",
+      "column_id": "col-002",
+      "row_position": 31,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-027",
+      "column_id": "col-002",
+      "row_position": 32,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-029",
+      "column_id": "col-002",
+      "row_position": 34,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-030",
+      "column_id": "col-002",
+      "row_position": 35,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-031",
+      "column_id": "col-002",
+      "row_position": 36,
+      "column_position": 2,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-032",
+      "column_id": "col-002",
+      "row_position": 37,
       "column_position": 2,
       "cell_value": "X",
       "cell_value_type": "marker",
@@ -902,20 +1457,20 @@
       "annotation_marker": "c1",
       "annotation_type": "footnote",
       "annotation_text": "No fasting in this period",
-      "annotation_scope": "activity",
+      "annotation_scope": "column",
       "referenced_elements": {
-        "property_ids": [],
-        "column_ids": [],
-        "activity_ids": [
-          "act-001"
+        "property_ids": [
+          "prop-005"
         ],
+        "column_ids": [],
+        "activity_ids": [],
         "cell_references": []
       },
       "marker_locations": [
         {
           "table_number": 4,
-          "location_type": "activity_name",
-          "row_position": 6
+          "location_type": "schedule_property",
+          "row_position": 5
         }
       ]
     },
@@ -925,6 +1480,52 @@
       "annotation_marker": "c2",
       "annotation_type": "footnote",
       "annotation_text": "For AESIs, additional data are collected ( Section 8.3.6).",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-002"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 7
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-003",
+      "table_id": "table-004",
+      "annotation_marker": "c3",
+      "annotation_type": "footnote",
+      "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting for at least 5minutes. V997: Vital signs collection is optional.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-007"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 12
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-004",
+      "table_id": "table-004",
+      "annotation_marker": "c3_2",
+      "annotation_type": "footnote",
+      "annotation_text": "See Section 8.2.2.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -943,126 +1544,11 @@
       ]
     },
     {
-      "annotation_id": "annot-003",
-      "table_id": "table-004",
-      "annotation_marker": "c3",
-      "annotation_type": "footnote",
-      "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting for at least 5minutes. V997: Vital signs collection is optional.",
-      "annotation_scope": "activity",
-      "referenced_elements": {
-        "property_ids": [],
-        "column_ids": [],
-        "activity_ids": [
-          "act-015"
-        ],
-        "cell_references": []
-      },
-      "marker_locations": [
-        {
-          "table_number": 4,
-          "location_type": "activity_name",
-          "row_position": 20
-        }
-      ]
-    },
-    {
-      "annotation_id": "annot-004",
+      "annotation_id": "annot-005",
       "table_id": "table-004",
       "annotation_marker": "c4",
       "annotation_type": "footnote",
       "annotation_text": "Locally performed.",
-      "annotation_scope": "activity",
-      "referenced_elements": {
-        "property_ids": [],
-        "column_ids": [],
-        "activity_ids": [
-          "act-015"
-        ],
-        "cell_references": []
-      },
-      "marker_locations": [
-        {
-          "table_number": 4,
-          "location_type": "activity_name",
-          "row_position": 20
-        }
-      ]
-    },
-    {
-      "annotation_id": "annot-005",
-      "table_id": "table-004",
-      "annotation_marker": "c5",
-      "annotation_type": "footnote",
-      "annotation_text": "Fasting is not required for the lipid panel at ETV.",
-      "annotation_scope": "activity",
-      "referenced_elements": {
-        "property_ids": [],
-        "column_ids": [],
-        "activity_ids": [
-          "act-004"
-        ],
-        "cell_references": []
-      },
-      "marker_locations": [
-        {
-          "table_number": 4,
-          "location_type": "activity_name",
-          "row_position": 9
-        }
-      ]
-    },
-    {
-      "annotation_id": "annot-006",
-      "table_id": "table-004",
-      "annotation_marker": "c6",
-      "annotation_type": "footnote",
-      "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA if local laws or regulations require more frequent testing.",
-      "annotation_scope": "activity",
-      "referenced_elements": {
-        "property_ids": [],
-        "column_ids": [],
-        "activity_ids": [
-          "act-007"
-        ],
-        "cell_references": []
-      },
-      "marker_locations": [
-        {
-          "table_number": 4,
-          "location_type": "activity_name",
-          "row_position": 12
-        }
-      ]
-    },
-    {
-      "annotation_id": "annot-007",
-      "table_id": "table-004",
-      "annotation_marker": "c7",
-      "annotation_type": "footnote",
-      "annotation_text": "Only for participants who are positive for anti‑HBc at screening. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
-      "annotation_scope": "activity",
-      "referenced_elements": {
-        "property_ids": [],
-        "column_ids": [],
-        "activity_ids": [
-          "act-009"
-        ],
-        "cell_references": []
-      },
-      "marker_locations": [
-        {
-          "table_number": 4,
-          "location_type": "activity_name",
-          "row_position": 14
-        }
-      ]
-    },
-    {
-      "annotation_id": "annot-008",
-      "table_id": "table-004",
-      "annotation_marker": "c8",
-      "annotation_type": "footnote",
-      "annotation_text": "No fasting in this period collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -1081,17 +1567,17 @@
       ]
     },
     {
-      "annotation_id": "annot-009",
+      "annotation_id": "annot-006",
       "table_id": "table-004",
-      "annotation_marker": "c9",
+      "annotation_marker": "c5",
       "annotation_type": "footnote",
-      "annotation_text": "Blood sample for DNA pharmacogenetics can be obtained any time at or after V2.",
+      "annotation_text": "Fasting is not required for the lipid panel at ETV.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-012"
+          "act-019"
         ],
         "cell_references": []
       },
@@ -1099,35 +1585,12 @@
         {
           "table_number": 4,
           "location_type": "activity_name",
-          "row_position": 17
+          "row_position": 24
         }
       ]
     },
     {
-      "annotation_id": "annot-010",
-      "table_id": "table-004",
-      "annotation_marker": "c10",
-      "annotation_type": "footnote",
-      "annotation_text": "Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. If not performed at ETV, this will not be considered a protocol deviation. Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed. If not performed at ETV, this will not be considered a protocol deviation.",
-      "annotation_scope": "activity",
-      "referenced_elements": {
-        "property_ids": [],
-        "column_ids": [],
-        "activity_ids": [
-          "act-015"
-        ],
-        "cell_references": []
-      },
-      "marker_locations": [
-        {
-          "table_number": 4,
-          "location_type": "activity_name",
-          "row_position": 20
-        }
-      ]
-    },
-    {
-      "annotation_id": "annot-011",
+      "annotation_id": "annot-007",
       "table_id": "table-004",
       "annotation_marker": "c11",
       "annotation_type": "footnote",
@@ -1137,7 +1600,7 @@
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-007"
+          "act-021"
         ],
         "cell_references": []
       },
@@ -1145,7 +1608,99 @@
         {
           "table_number": 4,
           "location_type": "activity_name",
-          "row_position": 12
+          "row_position": 26
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-008",
+      "table_id": "table-004",
+      "annotation_marker": "c6",
+      "annotation_type": "footnote",
+      "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA if local laws or regulations require more frequent testing.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-021"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 26
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-009",
+      "table_id": "table-004",
+      "annotation_marker": "c7",
+      "annotation_type": "footnote",
+      "annotation_text": "Only for participants who are positive for anti‑HBc at screening.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-023"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 28
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-010",
+      "table_id": "table-004",
+      "annotation_marker": "c7_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-024"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 29
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-011",
+      "table_id": "table-004",
+      "annotation_marker": "c8_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-025"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 30
         }
       ]
     },
@@ -1160,7 +1715,7 @@
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-012"
+          "act-026"
         ],
         "cell_references": []
       },
@@ -1168,7 +1723,76 @@
         {
           "table_number": 4,
           "location_type": "activity_name",
-          "row_position": 17
+          "row_position": 31
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-013",
+      "table_id": "table-004",
+      "annotation_marker": "c9",
+      "annotation_type": "footnote",
+      "annotation_text": "Blood sample for DNA pharmacogenetics can be obtained any time at or after V2.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-026"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 31
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-014",
+      "table_id": "table-004",
+      "annotation_marker": "c10",
+      "annotation_type": "footnote",
+      "annotation_text": "Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. If not performed at ETV, this will not be considered a protocol deviation.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-029"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 34
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-015",
+      "table_id": "table-004",
+      "annotation_marker": "c10_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed. If not performed at ETV, this will not be considered a protocol deviation.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-030"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 4,
+          "location_type": "activity_name",
+          "row_position": 35
         }
       ]
     }

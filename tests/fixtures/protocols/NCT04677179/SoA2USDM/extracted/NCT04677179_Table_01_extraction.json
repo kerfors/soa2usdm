@@ -10,7 +10,7 @@
    "document_version": "J1P-MC-KFAH(b)"
   },
   "extraction_status": "ready_for_resolution",
-  "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction."
+  "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction. 2026-07-30 rev2: Comment-column annotations re-bounded by raster rule-line cell geometry (200 dpi horizontal-rule detection per page) instead of y-gap proximity; over-merged notes split at the cell boundary with text preserved verbatim, and each cell re-bound to the row its band overlaps. Marks and structure unchanged."
  },
  "table_metadata": {
   "table_number": 1,
@@ -308,8 +308,7 @@
    "activity_name_source": {
     "cell_text": "Informed consent",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -319,7 +318,7 @@
     "cell_text": "Site staff explains, participant reports remission/normal stool frequency",
     "indentation_level": 1
    },
-   "annotation_markers": "c1,c5"
+   "annotation_markers": "c1"
   },
   {
    "table_number": 1,
@@ -328,8 +327,7 @@
    "activity_name_source": {
     "cell_text": "Inclusion and exclusion criteria, review",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -338,8 +336,7 @@
    "activity_name_source": {
     "cell_text": "Demographics",
     "indentation_level": 1
-   },
-   "annotation_markers": "c2"
+   }
   },
   {
    "table_number": 1,
@@ -349,7 +346,7 @@
     "cell_text": "Preexisting conditions and medical history",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c2"
   },
   {
    "table_number": 1,
@@ -359,7 +356,7 @@
     "cell_text": "Prespecified medical history",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c3"
   },
   {
    "table_number": 1,
@@ -369,7 +366,7 @@
     "cell_text": "Prior treatments for indication",
     "indentation_level": 1
    },
-   "annotation_markers": "c3"
+   "annotation_markers": "c3_2"
   },
   {
    "table_number": 1,
@@ -378,8 +375,7 @@
    "activity_name_source": {
     "cell_text": "Concomitant medications",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -398,8 +394,7 @@
    "activity_name_source": {
     "cell_text": "Review modified Mayo score (MMS)",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -436,7 +431,7 @@
     "cell_text": "Height",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c5"
   },
   {
    "table_number": 1,
@@ -445,8 +440,7 @@
    "activity_name_source": {
     "cell_text": "Weight",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -456,7 +450,7 @@
     "cell_text": "Vital signs",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c6"
   },
   {
    "table_number": 1,
@@ -466,7 +460,7 @@
     "cell_text": "Physical examination",
     "indentation_level": 1
    },
-   "annotation_markers": "c6"
+   "annotation_markers": "c6_2"
   },
   {
    "table_number": 1,
@@ -485,8 +479,7 @@
    "activity_name_source": {
     "cell_text": "CCI",
     "indentation_level": 1
-   },
-   "annotation_markers": "c8"
+   }
   },
   {
    "table_number": 1,
@@ -496,7 +489,7 @@
     "cell_text": "12-lead electrocardiogram (ECG)",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c8"
   },
   {
    "table_number": 1,
@@ -524,8 +517,7 @@
    "activity_name_source": {
     "cell_text": "Patient diary dispensed",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -571,8 +563,7 @@
    "activity_name_source": {
     "cell_text": "Physician’s Global Assessment (PGA)",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -591,8 +582,7 @@
    "activity_name_source": {
     "cell_text": "Self-Harm Supplement Form",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -620,8 +610,7 @@
    "activity_name_source": {
     "cell_text": "Clinical chemistry",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -640,8 +629,7 @@
    "activity_name_source": {
     "cell_text": "Urinalysis",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -651,7 +639,7 @@
     "cell_text": "Serum pregnancy",
     "indentation_level": 1
    },
-   "annotation_markers": "c14,c15"
+   "annotation_markers": "c14"
   },
   {
    "table_number": 1,
@@ -661,7 +649,7 @@
     "cell_text": "Urine pregnancy (local)",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c15"
   },
   {
    "table_number": 1,
@@ -671,7 +659,7 @@
     "cell_text": "Follicle-stimulating hormone (FSH)",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c15_2"
   },
   {
    "table_number": 1,
@@ -680,8 +668,7 @@
    "activity_name_source": {
     "cell_text": "CCI",
     "indentation_level": 1
-   },
-   "annotation_markers": "c16"
+   }
   },
   {
    "table_number": 1,
@@ -691,7 +678,7 @@
     "cell_text": "Tuberculosis (TB) test",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c16"
   },
   {
    "table_number": 1,
@@ -700,8 +687,7 @@
    "activity_name_source": {
     "cell_text": "Human immunodeficiency virus (HIV) screening tests",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -721,7 +707,7 @@
     "cell_text": "Hepatitis B virus (HBV) screening tests",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c17_2"
   },
   {
    "table_number": 1,
@@ -741,7 +727,7 @@
     "cell_text": "Pharmacokinetic (PK) samples",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c18_2"
   },
   {
    "table_number": 1,
@@ -751,7 +737,7 @@
     "cell_text": "CCI",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c18_3"
   },
   {
    "table_number": 1,
@@ -760,8 +746,7 @@
    "activity_name_source": {
     "cell_text": "Flow cytometry panel",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -780,8 +765,7 @@
    "activity_name_source": {
     "cell_text": "CCI",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -810,7 +794,7 @@
     "cell_text": "Colon biopsy sample collection",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c20_2"
   },
   {
    "table_number": 1,
@@ -830,7 +814,7 @@
     "cell_text": "C. difficile testing",
     "indentation_level": 1
    },
-   "annotation_markers": ""
+   "annotation_markers": "c21_2"
   },
   {
    "table_number": 1,
@@ -839,8 +823,7 @@
    "activity_name_source": {
     "cell_text": "CCI",
     "indentation_level": 1
-   },
-   "annotation_markers": ""
+   }
   },
   {
    "table_number": 1,
@@ -867,8 +850,7 @@
    "activity_name_source": {
     "cell_text": "Randomization",
     "indentation_level": 1
-   },
-   "annotation_markers": "c22"
+   }
   },
   {
    "table_number": 1,
@@ -878,7 +860,7 @@
     "cell_text": "Dosing",
     "indentation_level": 1
    },
-   "annotation_markers": "c23"
+   "annotation_markers": "c22,c23"
   }
  ],
  "activity_schedule": [
@@ -1852,14 +1834,26 @@
     {
      "table_number": 1,
      "location_type": "activity_name",
-     "row_position": 9
+     "row_position": 10
     }
    ]
   },
   {
    "annotation_marker": "c3",
    "annotation_type": "footnote",
-   "annotation_text": "Indication and history of interest. Includes all UC-specific therapies since date of diagnosis.",
+   "annotation_text": "Indication and history of interest.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 11
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c3_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Includes all UC-specific therapies since date of diagnosis.",
    "marker_locations": [
     {
      "table_number": 1,
@@ -1888,14 +1882,26 @@
     {
      "table_number": 1,
      "location_type": "activity_name",
-     "row_position": 7
+     "row_position": 19
     }
    ]
   },
   {
    "annotation_marker": "c6",
    "annotation_type": "footnote",
-   "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting at least 5minutes. The complete physical exam excludes pelvic, rectal, and breast exams, unless clinically indicated, and includes assessment for signs and symptoms of tuberculosis ( TB), including peripheral lymph nodes. See Section 8.2.2.",
+   "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting at least 5minutes.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 21
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c6_2",
+   "annotation_type": "footnote",
+   "annotation_text": "The complete physical exam excludes pelvic, rectal, and breast exams, unless clinically indicated, and includes assessment for signs and symptoms of tuberculosis ( TB), including peripheral lymph nodes. See Section 8.2.2.",
    "marker_locations": [
     {
      "table_number": 1,
@@ -1924,7 +1930,7 @@
     {
      "table_number": 1,
      "location_type": "activity_name",
-     "row_position": 24
+     "row_position": 25
     }
    ]
   },
@@ -2003,12 +2009,24 @@
   {
    "annotation_marker": "c15",
    "annotation_type": "footnote",
-   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA, if local laws or regulations require more frequent testing. Optional, perform only for women not of childbearing potential to confirm postmenopausal status.",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA, if local laws or regulations require more frequent testing.",
    "marker_locations": [
     {
      "table_number": 1,
      "location_type": "activity_name",
-     "row_position": 41
+     "row_position": 42
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c15_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Optional, perform only for women not of childbearing potential to confirm postmenopausal status.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 43
     }
    ]
   },
@@ -2020,14 +2038,14 @@
     {
      "table_number": 1,
      "location_type": "activity_name",
-     "row_position": 44
+     "row_position": 45
     }
    ]
   },
   {
    "annotation_marker": "c17",
    "annotation_type": "footnote",
-   "annotation_text": "HCV RNA will be measured to confirm positive hepatitis c virus antibody. Includes testing for HBsAg and anti-HBc.",
+   "annotation_text": "HCV RNA will be measured to confirm positive hepatitis c virus antibody.",
    "marker_locations": [
     {
      "table_number": 1,
@@ -2037,14 +2055,50 @@
    ]
   },
   {
+   "annotation_marker": "c17_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Includes testing for HBsAg and anti-HBc.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 48
+    }
+   ]
+  },
+  {
    "annotation_marker": "c18",
    "annotation_type": "footnote",
-   "annotation_text": "Only for participants who are positive for anti‑HBc at screening. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "annotation_text": "Only for participants who are positive for anti‑HBc at screening.",
    "marker_locations": [
     {
      "table_number": 1,
      "location_type": "activity_name",
      "row_position": 49
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c18_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 50
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c18_3",
+   "annotation_type": "footnote",
+   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 51
     }
    ]
   },
@@ -2063,7 +2117,7 @@
   {
    "annotation_marker": "c20",
    "annotation_type": "footnote",
-   "annotation_text": "Screening endoscopy must occur≤14 days prior to randomization. At screening, perform only for participants who are eligible for the study by all other study entry criteria. Performed at time of endoscopy. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed.",
+   "annotation_text": "Screening endoscopy must occur≤14 days prior to randomization. At screening, perform only for participants who are eligible for the study by all other study entry criteria.",
    "marker_locations": [
     {
      "table_number": 1,
@@ -2073,14 +2127,38 @@
    ]
   },
   {
+   "annotation_marker": "c20_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Performed at time of endoscopy. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 57
+    }
+   ]
+  },
+  {
    "annotation_marker": "c21",
    "annotation_type": "footnote",
-   "annotation_text": "Additional local stool testing ( for example, for ova and parasites) is allowed at the investigator ’s discretion. Addition alc. Difficile testing is allowed throughout the study at the investigator ’s discretion.",
+   "annotation_text": "Additional local stool testing ( for example, for ova and parasites) is allowed at the investigator ’s discretion.",
    "marker_locations": [
     {
      "table_number": 1,
      "location_type": "activity_name",
      "row_position": 58
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c21_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Addition alc. Difficile testing is allowed throughout the study at the investigator ’s discretion.",
+   "marker_locations": [
+    {
+     "table_number": 1,
+     "location_type": "activity_name",
+     "row_position": 59
     }
    ]
   },
@@ -2092,7 +2170,7 @@
     {
      "table_number": 1,
      "location_type": "activity_name",
-     "row_position": 63
+     "row_position": 64
     }
    ]
   },

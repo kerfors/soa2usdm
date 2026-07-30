@@ -2,7 +2,7 @@
   "schema_name": "soa-table-resolved",
   "schema_version": "1.0",
   "resolution_metadata": {
-    "resolved_at": "2026-07-28T10:39:11.967145+00:00",
+    "resolved_at": "2026-07-30T13:57:53.716776+00:00",
     "resolver": "soa2usdm.steps.resolve v1.0",
     "source_extraction": {
       "schema_name": "soa-table-extraction",
@@ -30,7 +30,7 @@
       "document_version": "J1P-MC-KFAH(b)"
     },
     "extraction_status": "ready_for_resolution",
-    "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction."
+    "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction. 2026-07-30 rev2: Comment-column annotations re-bounded by raster rule-line cell geometry (200 dpi horizontal-rule detection per page) instead of y-gap proximity; over-merged notes split at the cell boundary with text preserved verbatim, and each cell re-bound to the row its band overlaps. Marks and structure unchanged."
   },
   "table_metadata": {
     "table_id": "table-001",
@@ -479,10 +479,9 @@
       "parent_activity_id": null,
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c1,c5",
+      "annotation_markers": "c1",
       "linked_annotation_ids": [
-        "annot-001",
-        "annot-005"
+        "annot-001"
       ]
     },
     {
@@ -516,10 +515,8 @@
       "parent_activity_id": null,
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c2",
-      "linked_annotation_ids": [
-        "annot-002"
-      ]
+      "annotation_markers": "",
+      "linked_annotation_ids": []
     },
     {
       "activity_id": "act-005",
@@ -535,8 +532,10 @@
       "parent_activity_id": null,
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c2",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
     },
     {
       "activity_id": "act-006",
@@ -552,8 +551,10 @@
       "parent_activity_id": null,
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c3",
+      "linked_annotation_ids": [
+        "annot-003"
+      ]
     },
     {
       "activity_id": "act-007",
@@ -569,9 +570,9 @@
       "parent_activity_id": null,
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c3",
+      "annotation_markers": "c3_2",
       "linked_annotation_ids": [
-        "annot-003"
+        "annot-004"
       ]
     },
     {
@@ -607,7 +608,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c4",
       "linked_annotation_ids": [
-        "annot-004"
+        "annot-005"
       ]
     },
     {
@@ -701,8 +702,10 @@
       "parent_activity_id": "act-013",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c5",
+      "linked_annotation_ids": [
+        "annot-006"
+      ]
     },
     {
       "activity_id": "act-015",
@@ -735,8 +738,10 @@
       "parent_activity_id": "act-013",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c6",
+      "linked_annotation_ids": [
+        "annot-007"
+      ]
     },
     {
       "activity_id": "act-017",
@@ -752,9 +757,9 @@
       "parent_activity_id": "act-013",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c6",
+      "annotation_markers": "c6_2",
       "linked_annotation_ids": [
-        "annot-006"
+        "annot-008"
       ]
     },
     {
@@ -773,7 +778,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c7",
       "linked_annotation_ids": [
-        "annot-007"
+        "annot-009"
       ]
     },
     {
@@ -790,10 +795,8 @@
       "parent_activity_id": "act-013",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c8",
-      "linked_annotation_ids": [
-        "annot-008"
-      ]
+      "annotation_markers": "",
+      "linked_annotation_ids": []
     },
     {
       "activity_id": "act-020",
@@ -809,8 +812,10 @@
       "parent_activity_id": "act-013",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c8",
+      "linked_annotation_ids": [
+        "annot-010"
+      ]
     },
     {
       "activity_id": "act-021",
@@ -828,7 +833,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c9",
       "linked_annotation_ids": [
-        "annot-009"
+        "annot-011"
       ]
     },
     {
@@ -909,7 +914,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c10",
       "linked_annotation_ids": [
-        "annot-010"
+        "annot-012"
       ]
     },
     {
@@ -996,7 +1001,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c11",
       "linked_annotation_ids": [
-        "annot-011"
+        "annot-013"
       ]
     },
     {
@@ -1032,7 +1037,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c12",
       "linked_annotation_ids": [
-        "annot-012"
+        "annot-014"
       ]
     },
     {
@@ -1085,7 +1090,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c13",
       "linked_annotation_ids": [
-        "annot-013"
+        "annot-015"
       ]
     },
     {
@@ -1119,10 +1124,9 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c14,c15",
+      "annotation_markers": "c14",
       "linked_annotation_ids": [
-        "annot-014",
-        "annot-015"
+        "annot-016"
       ]
     },
     {
@@ -1139,8 +1143,10 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c15",
+      "linked_annotation_ids": [
+        "annot-017"
+      ]
     },
     {
       "activity_id": "act-038",
@@ -1156,8 +1162,10 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c15_2",
+      "linked_annotation_ids": [
+        "annot-018"
+      ]
     },
     {
       "activity_id": "act-039",
@@ -1173,10 +1181,8 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c16",
-      "linked_annotation_ids": [
-        "annot-016"
-      ]
+      "annotation_markers": "",
+      "linked_annotation_ids": []
     },
     {
       "activity_id": "act-040",
@@ -1192,8 +1198,10 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c16",
+      "linked_annotation_ids": [
+        "annot-019"
+      ]
     },
     {
       "activity_id": "act-041",
@@ -1228,7 +1236,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c17",
       "linked_annotation_ids": [
-        "annot-017"
+        "annot-020"
       ]
     },
     {
@@ -1245,8 +1253,10 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c17_2",
+      "linked_annotation_ids": [
+        "annot-021"
+      ]
     },
     {
       "activity_id": "act-044",
@@ -1264,7 +1274,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c18",
       "linked_annotation_ids": [
-        "annot-018"
+        "annot-022"
       ]
     },
     {
@@ -1281,8 +1291,10 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c18_2",
+      "linked_annotation_ids": [
+        "annot-023"
+      ]
     },
     {
       "activity_id": "act-046",
@@ -1298,8 +1310,10 @@
       "parent_activity_id": "act-022",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c18_3",
+      "linked_annotation_ids": [
+        "annot-024"
+      ]
     },
     {
       "activity_id": "act-047",
@@ -1334,7 +1348,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c19",
       "linked_annotation_ids": [
-        "annot-019"
+        "annot-025"
       ]
     },
     {
@@ -1394,7 +1408,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c20",
       "linked_annotation_ids": [
-        "annot-020"
+        "annot-026"
       ]
     },
     {
@@ -1411,8 +1425,10 @@
       "parent_activity_id": "act-050",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c20_2",
+      "linked_annotation_ids": [
+        "annot-027"
+      ]
     },
     {
       "activity_id": "act-053",
@@ -1430,7 +1446,7 @@
       "has_schedule_data": true,
       "annotation_markers": "c21",
       "linked_annotation_ids": [
-        "annot-021"
+        "annot-028"
       ]
     },
     {
@@ -1447,8 +1463,10 @@
       "parent_activity_id": "act-050",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "",
-      "linked_annotation_ids": []
+      "annotation_markers": "c21_2",
+      "linked_annotation_ids": [
+        "annot-029"
+      ]
     },
     {
       "activity_id": "act-055",
@@ -1518,10 +1536,8 @@
       "parent_activity_id": "act-057",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c22",
-      "linked_annotation_ids": [
-        "annot-022"
-      ]
+      "annotation_markers": "",
+      "linked_annotation_ids": []
     },
     {
       "activity_id": "act-059",
@@ -1537,9 +1553,10 @@
       "parent_activity_id": "act-057",
       "child_activity_ids": [],
       "has_schedule_data": true,
-      "annotation_markers": "c23",
+      "annotation_markers": "c22,c23",
       "linked_annotation_ids": [
-        "annot-023"
+        "annot-030",
+        "annot-031"
       ]
     }
   ],
@@ -3318,7 +3335,7 @@
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-004"
+          "act-005"
         ],
         "cell_references": []
       },
@@ -3326,7 +3343,7 @@
         {
           "table_number": 1,
           "location_type": "activity_name",
-          "row_position": 9
+          "row_position": 10
         }
       ]
     },
@@ -3335,7 +3352,30 @@
       "table_id": "table-001",
       "annotation_marker": "c3",
       "annotation_type": "footnote",
-      "annotation_text": "Indication and history of interest. Includes all UC-specific therapies since date of diagnosis.",
+      "annotation_text": "Indication and history of interest.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-006"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 11
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-004",
+      "table_id": "table-001",
+      "annotation_marker": "c3_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Includes all UC-specific therapies since date of diagnosis.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -3354,7 +3394,7 @@
       ]
     },
     {
-      "annotation_id": "annot-004",
+      "annotation_id": "annot-005",
       "table_id": "table-001",
       "annotation_marker": "c4",
       "annotation_type": "footnote",
@@ -3377,7 +3417,7 @@
       ]
     },
     {
-      "annotation_id": "annot-005",
+      "annotation_id": "annot-006",
       "table_id": "table-001",
       "annotation_marker": "c5",
       "annotation_type": "footnote",
@@ -3387,7 +3427,7 @@
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-002"
+          "act-014"
         ],
         "cell_references": []
       },
@@ -3395,16 +3435,39 @@
         {
           "table_number": 1,
           "location_type": "activity_name",
-          "row_position": 7
+          "row_position": 19
         }
       ]
     },
     {
-      "annotation_id": "annot-006",
+      "annotation_id": "annot-007",
       "table_id": "table-001",
       "annotation_marker": "c6",
       "annotation_type": "footnote",
-      "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting at least 5minutes. The complete physical exam excludes pelvic, rectal, and breast exams, unless clinically indicated, and includes assessment for signs and symptoms of tuberculosis ( TB), including peripheral lymph nodes. See Section 8.2.2.",
+      "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting at least 5minutes.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-016"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 21
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-008",
+      "table_id": "table-001",
+      "annotation_marker": "c6_2",
+      "annotation_type": "footnote",
+      "annotation_text": "The complete physical exam excludes pelvic, rectal, and breast exams, unless clinically indicated, and includes assessment for signs and symptoms of tuberculosis ( TB), including peripheral lymph nodes. See Section 8.2.2.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -3423,7 +3486,7 @@
       ]
     },
     {
-      "annotation_id": "annot-007",
+      "annotation_id": "annot-009",
       "table_id": "table-001",
       "annotation_marker": "c7",
       "annotation_type": "footnote",
@@ -3446,7 +3509,7 @@
       ]
     },
     {
-      "annotation_id": "annot-008",
+      "annotation_id": "annot-010",
       "table_id": "table-001",
       "annotation_marker": "c8",
       "annotation_type": "footnote",
@@ -3456,7 +3519,7 @@
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-019"
+          "act-020"
         ],
         "cell_references": []
       },
@@ -3464,12 +3527,12 @@
         {
           "table_number": 1,
           "location_type": "activity_name",
-          "row_position": 24
+          "row_position": 25
         }
       ]
     },
     {
-      "annotation_id": "annot-009",
+      "annotation_id": "annot-011",
       "table_id": "table-001",
       "annotation_marker": "c9",
       "annotation_type": "footnote",
@@ -3492,7 +3555,7 @@
       ]
     },
     {
-      "annotation_id": "annot-010",
+      "annotation_id": "annot-012",
       "table_id": "table-001",
       "annotation_marker": "c10",
       "annotation_type": "footnote",
@@ -3515,7 +3578,7 @@
       ]
     },
     {
-      "annotation_id": "annot-011",
+      "annotation_id": "annot-013",
       "table_id": "table-001",
       "annotation_marker": "c11",
       "annotation_type": "footnote",
@@ -3538,7 +3601,7 @@
       ]
     },
     {
-      "annotation_id": "annot-012",
+      "annotation_id": "annot-014",
       "table_id": "table-001",
       "annotation_marker": "c12",
       "annotation_type": "footnote",
@@ -3561,7 +3624,7 @@
       ]
     },
     {
-      "annotation_id": "annot-013",
+      "annotation_id": "annot-015",
       "table_id": "table-001",
       "annotation_marker": "c13",
       "annotation_type": "footnote",
@@ -3584,7 +3647,7 @@
       ]
     },
     {
-      "annotation_id": "annot-014",
+      "annotation_id": "annot-016",
       "table_id": "table-001",
       "annotation_marker": "c14",
       "annotation_type": "footnote",
@@ -3607,17 +3670,17 @@
       ]
     },
     {
-      "annotation_id": "annot-015",
+      "annotation_id": "annot-017",
       "table_id": "table-001",
       "annotation_marker": "c15",
       "annotation_type": "footnote",
-      "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA, if local laws or regulations require more frequent testing. Optional, perform only for women not of childbearing potential to confirm postmenopausal status.",
+      "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA, if local laws or regulations require more frequent testing.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-036"
+          "act-037"
         ],
         "cell_references": []
       },
@@ -3625,12 +3688,35 @@
         {
           "table_number": 1,
           "location_type": "activity_name",
-          "row_position": 41
+          "row_position": 42
         }
       ]
     },
     {
-      "annotation_id": "annot-016",
+      "annotation_id": "annot-018",
+      "table_id": "table-001",
+      "annotation_marker": "c15_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Optional, perform only for women not of childbearing potential to confirm postmenopausal status.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-038"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 43
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-019",
       "table_id": "table-001",
       "annotation_marker": "c16",
       "annotation_type": "footnote",
@@ -3640,7 +3726,7 @@
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-039"
+          "act-040"
         ],
         "cell_references": []
       },
@@ -3648,16 +3734,16 @@
         {
           "table_number": 1,
           "location_type": "activity_name",
-          "row_position": 44
+          "row_position": 45
         }
       ]
     },
     {
-      "annotation_id": "annot-017",
+      "annotation_id": "annot-020",
       "table_id": "table-001",
       "annotation_marker": "c17",
       "annotation_type": "footnote",
-      "annotation_text": "HCV RNA will be measured to confirm positive hepatitis c virus antibody. Includes testing for HBsAg and anti-HBc.",
+      "annotation_text": "HCV RNA will be measured to confirm positive hepatitis c virus antibody.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -3676,11 +3762,34 @@
       ]
     },
     {
-      "annotation_id": "annot-018",
+      "annotation_id": "annot-021",
+      "table_id": "table-001",
+      "annotation_marker": "c17_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Includes testing for HBsAg and anti-HBc.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-043"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 48
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-022",
       "table_id": "table-001",
       "annotation_marker": "c18",
       "annotation_type": "footnote",
-      "annotation_text": "Only for participants who are positive for anti‑HBc at screening. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+      "annotation_text": "Only for participants who are positive for anti‑HBc at screening.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -3699,7 +3808,53 @@
       ]
     },
     {
-      "annotation_id": "annot-019",
+      "annotation_id": "annot-023",
+      "table_id": "table-001",
+      "annotation_marker": "c18_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-045"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 50
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-024",
+      "table_id": "table-001",
+      "annotation_marker": "c18_3",
+      "annotation_type": "footnote",
+      "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-046"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 51
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-025",
       "table_id": "table-001",
       "annotation_marker": "c19",
       "annotation_type": "footnote",
@@ -3722,11 +3877,11 @@
       ]
     },
     {
-      "annotation_id": "annot-020",
+      "annotation_id": "annot-026",
       "table_id": "table-001",
       "annotation_marker": "c20",
       "annotation_type": "footnote",
-      "annotation_text": "Screening endoscopy must occur≤14 days prior to randomization. At screening, perform only for participants who are eligible for the study by all other study entry criteria. Performed at time of endoscopy. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed.",
+      "annotation_text": "Screening endoscopy must occur≤14 days prior to randomization. At screening, perform only for participants who are eligible for the study by all other study entry criteria.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -3745,11 +3900,34 @@
       ]
     },
     {
-      "annotation_id": "annot-021",
+      "annotation_id": "annot-027",
+      "table_id": "table-001",
+      "annotation_marker": "c20_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Performed at time of endoscopy. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-052"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 57
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-028",
       "table_id": "table-001",
       "annotation_marker": "c21",
       "annotation_type": "footnote",
-      "annotation_text": "Additional local stool testing ( for example, for ova and parasites) is allowed at the investigator ’s discretion. Addition alc. Difficile testing is allowed throughout the study at the investigator ’s discretion.",
+      "annotation_text": "Additional local stool testing ( for example, for ova and parasites) is allowed at the investigator ’s discretion.",
       "annotation_scope": "activity",
       "referenced_elements": {
         "property_ids": [],
@@ -3768,7 +3946,30 @@
       ]
     },
     {
-      "annotation_id": "annot-022",
+      "annotation_id": "annot-029",
+      "table_id": "table-001",
+      "annotation_marker": "c21_2",
+      "annotation_type": "footnote",
+      "annotation_text": "Addition alc. Difficile testing is allowed throughout the study at the investigator ’s discretion.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-054"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 1,
+          "location_type": "activity_name",
+          "row_position": 59
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-030",
       "table_id": "table-001",
       "annotation_marker": "c22",
       "annotation_type": "footnote",
@@ -3778,7 +3979,7 @@
         "property_ids": [],
         "column_ids": [],
         "activity_ids": [
-          "act-058"
+          "act-059"
         ],
         "cell_references": []
       },
@@ -3786,12 +3987,12 @@
         {
           "table_number": 1,
           "location_type": "activity_name",
-          "row_position": 63
+          "row_position": 64
         }
       ]
     },
     {
-      "annotation_id": "annot-023",
+      "annotation_id": "annot-031",
       "table_id": "table-001",
       "annotation_marker": "c23",
       "annotation_type": "footnote",
