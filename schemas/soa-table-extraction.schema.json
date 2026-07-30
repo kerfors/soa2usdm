@@ -212,6 +212,11 @@
           "minimum": 1,
           "description": "Physical row position in source (1-based). Combined with indentation_level, enables hierarchy reconstruction."
         },
+        "source_page": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Document page this row was read from, in the same numbering as table_metadata.page_start/page_end. Makes page coverage checkable: every page in the declared range should contribute rows, and a page contributing none usually means it was skipped during extraction. For a tiled table where the same row prints on several pages, record the page it was first read from."
+        },
         "activity_name": {
           "type": "string",
           "description": "Activity name CLEAN of formatting (no indentation whitespace) and CLEAN of annotation markers. The canonical activity label."
