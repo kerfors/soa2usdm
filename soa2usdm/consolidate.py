@@ -870,6 +870,32 @@ def find_adjacent_text_overlaps(annotations: list) -> List[Tuple[str, str]]:
     return pairs
 
 
+def find_cross_table_binding_conflicts(data: dict) -> List[Tuple[str, List[str]]]:
+    """One note text that different tables bind to different activities.
+
+    A unified annotation merges identical text across tables. If the tables disagree
+    about which activity it qualifies, either a binding is wrong or the row it belongs
+    to is missing from one of the tables — a page dropped during extraction shows up
+    this way, since its notes survive in the Comment column and land on whatever row
+    is left. `referenced_xacts` is deduplicated, so a note every table binds to one row
+    yields at most one activity per table; more than that means the note genuinely
+    qualifies several activities (a legend or a multi-row note) and is not a conflict.
+
+    Measured over 22 protocols: 4 conflicts, all worth a look. The same measure run
+    against NCT04677179 before its Table 4 page was restored named the two notes that
+    fingerprint the loss (AESIs and "Locally performed.").
+    """
+    activity_name = {a.get("xact_id"): a.get("activity_name")
+                     for a in data.get("unified_activities", [])}
+    conflicts = []
+    for annot in data.get("unified_annotations", []):
+        tables = {o.get("table_num") for o in annot.get("source_occurrences", [])}
+        names = {activity_name.get(x, x) for x in annot.get("referenced_xacts", [])}
+        if len(tables) > 1 and 1 < len(names) <= len(tables):
+            conflicts.append((annot.get("xannot_id", "?"), sorted(str(n) for n in names)))
+    return conflicts
+
+
 def is_degenerate_annotation_typing(annotations: list) -> bool:
     """Every annotation typed source_note across a large set.
 
@@ -1011,6 +1037,13 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
             f"({shown}{more}) \u2014 likely one note cell fragmented across rows"
         )
     
+    for xannot_id, names in find_cross_table_binding_conflicts(data):
+        result.warnings.append(
+            f"{xannot_id}: bound to different activities by different tables "
+            f"({', '.join(names)}) \u2014 a wrong binding, or the row it belongs to is "
+            f"missing from one of the tables"
+        )
+
     if is_degenerate_annotation_typing(annotations):
         result.warnings.append(
             f"all {len(annotations)} annotations typed source_note \u2014 a notes/"
