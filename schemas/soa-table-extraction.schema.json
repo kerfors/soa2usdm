@@ -117,6 +117,14 @@
             }
           }
         },
+        "structure_method": {
+          "type": "string",
+          "enum": [
+            "inferred_from_layout",
+            "assumed"
+          ],
+          "description": "How property_type and hierarchical_level were determined, recorded ONLY when other than the default (printed header labels make them explicit). 'inferred_from_layout'=derived from spanning/merge geometry or row order rather than printed labels; 'assumed'=no structural evidence, a working assumption documented in property_comment. Absent = printed labels."
+        },
         "property_type": {
           "type": "string",
           "enum": [
@@ -190,6 +198,14 @@
         "annotation_markers": {
           "type": "string",
           "description": "Comma-separated annotation markers extracted from this cell (e.g., 'a' from 'V1ᵃ'). Links to annotations array for full footnote text."
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "raster_pixel_detection",
+            "visual_read"
+          ],
+          "description": "How this cell value (and any merged_cell_range extent) was read, recorded ONLY when other than the default (pdftotext -bbox coordinate read of the text layer). 'raster_pixel_detection'=cell content or span detected from rendered-page pixels (dark-pixel counts, rule-line bands); 'visual_read'=read by eye from the rendered page. Absent = bbox text layer."
         }
       }
     },
@@ -265,6 +281,23 @@
                 }
               },
               "description": "Font information if captured. Size/weight differences often indicate hierarchy."
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "glyph_reconstruction",
+                "visual_transcription"
+              ],
+              "description": "How activity_name was read, recorded ONLY when other than the default (direct text-layer read). 'glyph_reconstruction'=name rebuilt from a one-glyph-per-token text layer by word re-segmentation; 'visual_transcription'=read by eye from the rendered page. Absent = text-layer read."
+            },
+            "indentation_method": {
+              "type": "string",
+              "enum": [
+                "font_signal",
+                "visual_estimate",
+                "assumed_flat"
+              ],
+              "description": "How indentation_level was determined, recorded ONLY when other than the default (leading whitespace in the text layer). 'font_signal'=derived from bold/size hierarchy cues; 'visual_estimate'=judged from the rendered page geometry; 'assumed_flat'=no hierarchy evidence, all rows treated as level 0 (the flat-table convention). Absent = whitespace."
             }
           }
         },
@@ -308,6 +341,14 @@
         "annotation_markers": {
           "type": "string",
           "description": "Comma-separated annotation markers extracted from this cell (e.g., 'p' from 'Xᵖ'). Cell-level footnotes often encode conditional requirements, special populations, or timing variations."
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "raster_pixel_detection",
+            "visual_read"
+          ],
+          "description": "How this cell value (and any source_range extent) was read, recorded ONLY when other than the default (pdftotext -bbox coordinate read of the text layer). 'raster_pixel_detection'=mark detected from rendered-page pixels (dark-pixel counts in a row-band x column-band rectangle); 'visual_read'=read by eye from the rendered page. Absent = bbox text layer."
         }
       }
     },
@@ -340,6 +381,29 @@
           "type": "string",
           "description": "Full text of the annotation exactly as written in source. Contains the study logic that footnotes encode."
         },
+        "annotation_text_source": {
+          "type": "object",
+          "description": "Method provenance for annotation_text, recorded ONLY when the text was arrived at by other than the default method (reading a text-layer cell bounded by its rule lines). Absent = default. Method, not confidence: each value names a re-derivable procedure checkable against the PDF.",
+          "required": [
+            "method"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": [
+                "deglyph_reconstruction",
+                "proximity_bounded",
+                "raster_band_cells",
+                "visual_transcription"
+              ],
+              "description": "'deglyph_reconstruction'=text rebuilt from a one-glyph-per-token text layer by word re-segmentation; 'proximity_bounded'=cell extent estimated from vertical gaps, no cell geometry available (known failure source - verify against page); 'raster_band_cells'=cell boundaries recovered from rendered-page rule lines; 'visual_transcription'=read by eye from the rendered page (no usable text layer)."
+            },
+            "note": {
+              "type": "string",
+              "description": "Optional short specifics (e.g., which page render, which segmentation dictionary)."
+            }
+          }
+        },
         "marker_locations": {
           "type": "array",
           "description": "All locations where this annotation marker appears in the table. Enables traceability from annotation to the specific cells/elements it qualifies. Essential for reconstructing conditional logic.",
@@ -361,9 +425,10 @@
                 "enum": [
                   "schedule_property",
                   "activity_name",
-                  "schedule_cell"
+                  "schedule_cell",
+                  "unresolved"
                 ],
-                "description": "What type of element the marker appears in. Determines scope of annotation: property-level, activity-level, or specific cell."
+                "description": "What type of element the marker appears in. Determines scope of annotation: property-level, activity-level, or specific cell. 'unresolved'=the marker's printed position is recorded (row_position stays: position is evidence) but no scope claim is made - an allowed answer; never invent a target to satisfy the schema."
               },
               "row_position": {
                 "type": "integer",
@@ -374,6 +439,15 @@
                 "type": "integer",
                 "minimum": 1,
                 "description": "Column position. Required for 'schedule_cell' type to identify exact cell. Omit for 'schedule_property' and 'activity_name' which apply to entire row."
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "synthesized",
+                  "text_match",
+                  "proximity"
+                ],
+                "description": "How this scope was determined, recorded ONLY when other than the default (marker printed at the location). 'synthesized'=location invented per convention (e.g., a general table note anchored to a property row for traceability); 'text_match'=bound by word overlap between note and row text; 'proximity'=bound by nearest-row geometry without a printed marker. Absent = printed."
               }
             }
           }

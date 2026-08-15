@@ -349,6 +349,7 @@ class ValidationResult:
     annotations_valid: bool = True
     warnings: list = field(default_factory=list)
     errors: list = field(default_factory=list)
+    method_provenance: list = field(default_factory=list)
     
     @property
     def is_valid(self) -> bool:
@@ -394,7 +395,10 @@ def find_partial_marker_bindings(data: dict) -> list:
     findings = []
     for annot in data.get("annotations", []):
         marker = annot.get("annotation_marker", "")
-        declared = {loc.get("row_position") for loc in annot.get("marker_locations", [])}
+        # An 'unresolved' location records where the marker was printed without
+        # claiming scope — it binds nothing, so it cannot be a lost binding.
+        declared = {loc.get("row_position") for loc in annot.get("marker_locations", [])
+                    if loc.get("location_type") != "unresolved"}
         on_rows = marked.get(marker, set())
         if not on_rows:
             continue
@@ -497,6 +501,52 @@ def validate_extraction(data: dict) -> ValidationResult:
             result.annotations_valid = False
 
     result.warnings.extend(find_partial_marker_bindings(data))
+
+    # Method provenance (exception-based): summarize every recorded non-default
+    # method so downstream reports state HOW each interpreted value was arrived
+    # at, at extraction time. Warn only where the method is the known failure
+    # source — extent or scope guessed without cell geometry.
+    provenance: dict = {}
+
+    def _count(key: str):
+        provenance[key] = provenance.get(key, 0) + 1
+
+    for annot in data["annotations"]:
+        marker = annot.get("annotation_marker", "")
+        src = annot.get("annotation_text_source")
+        if src and src.get("method"):
+            _count(f"annotation_text:{src['method']}")
+            if src["method"] == "proximity_bounded":
+                result.warnings.append(
+                    f"Annotation '{marker}' text is proximity-bounded — no cell "
+                    f"geometry was available; verify its extent against the page"
+                )
+        for loc in annot.get("marker_locations", []):
+            if loc.get("method"):
+                _count(f"marker_location:{loc['method']}")
+                if loc["method"] == "proximity":
+                    result.warnings.append(
+                        f"Annotation '{marker}' scope was bound by proximity — "
+                        f"verify the target row against the page"
+                    )
+            if loc.get("location_type") == "unresolved":
+                _count("marker_location:unresolved")
+    for act in data["activities"]:
+        src = act.get("activity_name_source") or {}
+        if src.get("method"):
+            _count(f"activity_name:{src['method']}")
+        if src.get("indentation_method"):
+            _count(f"indentation_level:{src['indentation_method']}")
+    for prop in data["schedule_properties"]:
+        if prop.get("structure_method"):
+            _count(f"property_structure:{prop['structure_method']}")
+    for cell in data["activity_schedule"]:
+        if cell.get("method"):
+            _count(f"schedule_cell:{cell['method']}")
+    for cell in data["schedule_grid"]:
+        if cell.get("method"):
+            _count(f"grid_cell:{cell['method']}")
+    result.method_provenance = [f"{k}: {n}" for k, n in sorted(provenance.items())]
 
     return result
 
@@ -718,7 +768,11 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
             "hierarchy_valid": validation.hierarchy_valid,
             "annotations_valid": validation.annotations_valid,
             "validation_warnings": validation.warnings,
-            "validation_errors": validation.errors
+            "validation_errors": validation.errors,
+            # Exception-based: present only when the extraction records
+            # non-default methods, so existing resolved files do not churn.
+            **({"method_provenance": validation.method_provenance}
+               if validation.method_provenance else {})
         },
         "resolution_status": validation.status,
         "ready_for_integration": validation.is_valid,

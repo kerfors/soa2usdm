@@ -30,7 +30,7 @@ from soa2usdm import config
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 from soa2usdm.corrections import ApplyCorrectionsStep
-from soa2usdm.resolve import ResolveStep, find_partial_marker_bindings
+from soa2usdm.resolve import ResolveStep, find_partial_marker_bindings, validate_extraction
 from soa2usdm.consolidate import (
     ConsolidateStep,
     find_adjacent_text_overlaps,
@@ -228,3 +228,38 @@ def test_partial_binding_detector_fires_on_desynced_row():
     assert len(findings) == 1 and "'c1'" in findings[0] \
         and str(moved_to) in findings[0], \
         f"expected the declared-only row {moved_to} to be named, got {findings}"
+
+
+def test_method_provenance_summary_warnings_and_unresolved():
+    """Method provenance is exception-based: an extraction recording nothing
+    reports nothing; a recorded deviation appears in method_provenance; only the
+    geometry-less methods (proximity) warn; an 'unresolved' marker location is an
+    allowed answer — counted, not warned, and never a lost binding."""
+    path = (Path(__file__).parent / "fixtures" / "protocols" / "NCT04677179"
+            / "SoA2USDM" / "extracted" / "NCT04677179_Table_01_extraction.json")
+    data = json.loads(path.read_text())
+
+    baseline = validate_extraction(data)
+    assert baseline.method_provenance == [], "banked extraction records no deviations"
+    baseline_warnings = len(baseline.warnings)
+
+    # A deviation with a sound method: recorded, no warning.
+    data["annotations"][0]["annotation_text_source"] = {"method": "deglyph_reconstruction"}
+    # The known failure source: recorded AND warned.
+    data["annotations"][1]["annotation_text_source"] = {"method": "proximity_bounded"}
+    # An honest non-answer: position kept as evidence, no scope claim.
+    data["annotations"][2]["marker_locations"].append(
+        {"table_number": 1, "location_type": "unresolved", "row_position": 40})
+
+    result = validate_extraction(data)
+    assert result.method_provenance == [
+        "annotation_text:deglyph_reconstruction: 1",
+        "annotation_text:proximity_bounded: 1",
+        "marker_location:unresolved: 1",
+    ], result.method_provenance
+    new_warnings = [w for w in result.warnings if "proximity-bounded" in w]
+    assert len(new_warnings) == 1, "exactly the proximity-bounded note warns"
+    assert len(result.warnings) == baseline_warnings + 1, \
+        "unresolved and sound methods add no warnings"
+    assert not find_partial_marker_bindings(data), \
+        "an unresolved location must not read as a lost binding"

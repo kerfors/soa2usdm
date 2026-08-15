@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.5.0 | Schema: soa-table-extraction v1.0
+> Prompt version 3.6.0 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -69,6 +69,30 @@ per page.
   boundaries from the notes column or another text column and apply them across the row.
 - Sanity-check the recovered bands against a rendered crop of the same page before trusting them.
 
+### 1e. Method provenance — record HOW, exception-based
+
+Every interpreted value has a default method; when you arrive at a value any other way, record the
+method in the schema's provenance fields. Absent = default — most extractions record nothing here.
+Record **method, not confidence**: a method names a re-derivable procedure that can be checked against
+the PDF; a confidence number cannot.
+
+- `annotation_text_source.method` — note text not read from a rule-line-bounded text-layer cell:
+  `deglyph_reconstruction` (§1c), `raster_band_cells` (§1d), `proximity_bounded` (only when rules are
+  genuinely unrecoverable — the validator flags these for page verification), `visual_transcription` (§1a).
+- `marker_locations[].method` — a scope not established by a printed marker: `synthesized` (§6
+  conventions), `text_match` (bound by word overlap), `proximity` (nearest row; validator-flagged).
+- `activity_name_source.method` (`glyph_reconstruction` / `visual_transcription`) and
+  `activity_name_source.indentation_method` (`font_signal` / `visual_estimate` / `assumed_flat`).
+- `activity_schedule` / `schedule_grid` cell `method` — `raster_pixel_detection` (§1a) / `visual_read`.
+- `schedule_property.structure_method` — `inferred_from_layout` / `assumed`, when
+  `property_type`/`hierarchical_level` do not come from printed header labels.
+
+**`unresolved` is an allowed answer.** When a marker's target cannot be determined, keep the location
+with `row_position` where the marker is printed — position is evidence — and set
+`location_type: "unresolved"`. Never invent a scope, a target, or a location to satisfy the schema:
+an honest `unresolved` is data; a guessed target is a defect that surfaces weeks later. If you catch
+yourself about to guess, record the method or mark it unresolved instead.
+
 ## 2. Tables — classify before extracting
 
 Assign `table_type` to every table per `soa_table_type_definitions.md`. Apply the discriminators explicitly:
@@ -80,6 +104,8 @@ Assign `table_type` to every table per `soa_table_type_definitions.md`. Apply th
 
 Note on the PK-sampling ambiguity: a table that breaks a single main-SoA activity (e.g. "PK sampling") into per-sample timing rows satisfies the `subsidiary` definition even though its rows read "Sample n". Classify by function (finer timing for an existing activity), and record the call in the report.
 
+For any `table_type` that is not obvious from the discriminators alone, record the reasoning in `table_metadata.notes` as well as the report — the classification is an interpretation, and `notes` is where its provenance lives in the data.
+
 ## 3. Schedule properties (header rows)
 
 Each header row → one `schedule_property`.
@@ -88,6 +114,7 @@ Each header row → one `schedule_property`.
 - **hierarchical_level** counted from the top (topmost row = 1, downward). Assign a level to every header row that helps distinguish one column from another — if removing the row would make two columns indistinguishable, it needs a level. Use `null` only for purely presentational qualifier rows that do not participate in telling columns apart.
 - **property_comment** is REQUIRED — state what the row contains and the reasoning for its `property_type`.
 - If the label cell is empty but the row clearly carries schedule data spanning columns, synthesise `property_name` and set `property_name_source.synthesized: true`. Synthesised names are fine; document them in the report.
+- When `property_type` or `hierarchical_level` come from layout geometry or working assumption rather than printed header labels, set `structure_method` (`inferred_from_layout` / `assumed`) — see §1e.
 - A population / eligibility qualifier band (e.g. "Patients who have PD …" spanning only some columns) → `property_type: condition`; give it `hierarchical_level: null` when it does not by itself distinguish one column from another.
 
 ## 4. Activities (table body)
@@ -101,7 +128,7 @@ Each activity row → one `activity`.
   26 marks with it, and nothing downstream noticed for weeks because the table still looked internally
   consistent. If a page in the range genuinely has no activity rows (a footnote or abbreviation page),
   say so in the report.
-- **indentation_level** from visual indentation / shading / bold: section header = 0, child = 1, grandchild = 2, …
+- **indentation_level** from visual indentation / shading / bold: section header = 0, child = 1, grandchild = 2, … When the level does not come from text-layer whitespace, set `activity_name_source.indentation_method` (`font_signal` / `visual_estimate` / `assumed_flat` for flat tables) — see §1e.
 - `activity_name` is CLEAN (no leading whitespace, no annotation markers); `activity_name_source.cell_text` is RAW (preserve whitespace and markers).
 - Do NOT create activity rows for non-activities: repeated column-label bands (e.g. a "Procedure" header repeated on each page), or instruction-overflow rows that only carry footnote text. These are not procedures performed on subjects.
 - Organizational / section-header rows (indentation_level 0 that group child activities) carry NO scheduling marks. Exception: a *flat* table where every row is a level-0 activity that itself carries marks — there are no grouping headers to keep mark-free.
@@ -129,7 +156,7 @@ Each footnote / legend / abbreviation → one `annotation`.
 - **Markers referenced but not defined (source defect).** If a marker appears on a cell/label but its footnote text is not printed anywhere in the extracted source (e.g. a continuation or variant table with its own numbering that omits some footnotes), transcribe the marker where it appears but do NOT fabricate text. Set `annotation_text` to state plainly that the definition is not printed in the source; if there is an obvious same-assessment equivalent elsewhere (e.g. the Main Study table), you may add it as a clearly-labelled *probable* cross-reference — never asserted as source content. Keeps the marker faithful and the annotation resolvable; flag it in the report.
 - **Redacted / illegible content (source defect).** Where a redaction box or scan defect truncates a note or may hide rows, transcribe the visible portion, append "[remainder redacted in source]" to `annotation_text`, and never fabricate the hidden text. Cross-check the markdown if available. Flag any region that may conceal activity rows in the report.
 - **Header-cell footnotes (per-timepoint).** A marker on a specific header/timepoint cell — "V2ᵃ", "ETVᵇ", "V997ᶜ" — encodes as `annotation_markers` on **that column's `schedule_grid` cell** (the exact column it sits on), with the marker cleaned out of `cell_value`. Do NOT put it on the `schedule_property` row's `annotation_markers` — that scopes it to the whole row, and the footnote loses which visit/encounter it governs. This is what lets the footnote resolve to its specific column rather than collapsing to the property or the table. (A note that genuinely applies to the *whole* header row — e.g. a fasting instruction across all visits — does belong on the `schedule_property`, per the previous bullet.)
-- **Notes / Instructions / Comments column.** A right-hand notes column is NOT a schedule column and is NOT an activity. Each non-empty note becomes a `footnote` annotation. **Bound each note's TEXT by the cell's rule-line geometry, not by proximity** — read the column's horizontal rules to fix where one note cell ends and the next begins, then take that cell's full text as exactly one annotation. When the page has no vector rule lines, recover them from the raster (§1d); do NOT fall back to vertical-gap proximity, which fails in both directions — it splits one note across the rows its lines overlap AND merges adjacent notes whose gap happens to be small. This mirrors §5 for marks: confirm the span from the rule-line geometry, not from where the glyph sits. Proximity alone splits one note across whichever rows its lines happen to overlap — producing fragments duplicated on neighbouring rows — and merges two short notes that share a band. A note cell spanning several activity rows is ONE annotation with a `marker_location` per covered row, never one annotation per row. If the source gives the note no marker, synthesise one and link it via `marker_locations` to the row it sits beside (`activity_name` or `schedule_property`). A note attached to a header row (e.g. a fasting instruction spanning the visit row) links to that `schedule_property`. Record synthesised markers in the report. A footnote marker printed on the Notes-column *header* itself (e.g. "Notesᶜ") has no modelled element to attach to — treat it as table-scope: give the annotation one `schedule_property` `marker_location` for traceability and do NOT put the marker on any element's `annotation_markers`.
+- **Notes / Instructions / Comments column.** A right-hand notes column is NOT a schedule column and is NOT an activity. Each non-empty note becomes a `footnote` annotation. **Bound each note's TEXT by the cell's rule-line geometry, not by proximity** — read the column's horizontal rules to fix where one note cell ends and the next begins, then take that cell's full text as exactly one annotation. When the page has no vector rule lines, recover them from the raster (§1d); do NOT fall back to vertical-gap proximity, which fails in both directions — it splits one note across the rows its lines overlap AND merges adjacent notes whose gap happens to be small. In the rare case where rules are genuinely unrecoverable and proximity is all there is, record it: `annotation_text_source: {"method": "proximity_bounded"}` on each such note, so the validator flags them for page verification instead of the guess passing silently (§1e). This mirrors §5 for marks: confirm the span from the rule-line geometry, not from where the glyph sits. Proximity alone splits one note across whichever rows its lines happen to overlap — producing fragments duplicated on neighbouring rows — and merges two short notes that share a band. A note cell spanning several activity rows is ONE annotation with a `marker_location` per covered row, never one annotation per row. If the source gives the note no marker, synthesise one and link it via `marker_locations` to the row it sits beside (`activity_name` or `schedule_property`), with `method: "synthesized"` on the location; a binding established by word overlap rather than position gets `method: "text_match"`; a target you cannot determine gets `location_type: "unresolved"` rather than a guess (§1e). A note attached to a header row (e.g. a fasting instruction spanning the visit row) links to that `schedule_property`. Record synthesised markers in the report. A footnote marker printed on the Notes-column *header* itself (e.g. "Notesᶜ") has no modelled element to attach to — treat it as table-scope: give the annotation one `schedule_property` `marker_location` with `method: "synthesized"` for traceability and do NOT put the marker on any element's `annotation_markers`.
 
 ## 7. Uncertainty report (this replaces the interactive gates)
 
@@ -142,6 +169,7 @@ After writing the JSON, output a short report — plain text, not JSON — for h
 - **Annotation text integrity:** whether the source text layer was glyph-spread and which fields you reconstructed (§1c); any pair of annotations whose text substantially overlaps — one contained in the other, or a long shared run at a note boundary — since that pattern means one note cell was split, not two real notes; and any note you could not bound confidently against its source cell.
 - **Low-confidence calls:** ambiguous `property_type`, subtle hierarchy, subsidiary-vs-reference-vs-track classifications, PDF/markdown text disagreements.
 - **Orphan risk:** any annotation whose `marker_locations` you could not confidently place, or any marker whose definition is not printed in the source (see §6).
+- **Method provenance:** every non-default method recorded (§1e) and every `unresolved` marker location — one line each, so the report and the data agree about what was interpreted rather than read.
 
 Only STOP mid-run if genuinely blocked (illegible PDF, missing pages). Otherwise proceed and flag — the report is the review surface, not a gate.
 
@@ -159,3 +187,4 @@ One JSON file per table: `{NCTID}_Table_{NN}_extraction.json`. Before delivering
 - every marker in an annotation's `marker_locations` also appears in that row's `annotation_markers` (§6)
 - merged marks distributed across their span with `source_range` set
 - `track_label` set for `track` tables only
+- `method` provenance fields recorded wherever a non-default method was used (§1e) — and no guessed targets: an undeterminable scope is `location_type: "unresolved"`, never an invented one
