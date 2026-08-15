@@ -45,6 +45,8 @@ def _collect(collection: str):
         meta = study_meta.get(pid, {})
         d4k = meta.get("d4k_folder", "") or ""
         sponsor, ta = _sponsor_ta(d4k)
+        if meta.get("therapeutic_area"):
+            ta = str(meta["therapeutic_area"]).strip()
         try:
             resolved_dir = config.get_resolved_dir(pid, collection)
         except FileNotFoundError:
@@ -88,6 +90,8 @@ def _collect(collection: str):
         meta = study_meta.get(pid, {})
         d4k = meta.get("d4k_folder", "") or ""
         sponsor, ta = _sponsor_ta(d4k)
+        if meta.get("therapeutic_area"):
+            ta = str(meta["therapeutic_area"]).strip()
         try:
             consolidated_dir = config.get_consolidated_dir(pid, collection)
         except FileNotFoundError:
