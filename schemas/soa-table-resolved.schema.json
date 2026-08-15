@@ -61,8 +61,11 @@
           "description": "If this table continues another, the table_id it continues. Resolved from table_number reference in extraction."
         },
         "track_label": {
-          "type": "string",
-          "description": "Short population/phase identifier for track tables. Preserved from extraction."
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Short population/phase identifier for track tables. Preserved from extraction. null for non-track tables."
         },
         "column_count": {
           "type": "integer",
@@ -165,9 +168,12 @@
           "description": "Human explanation of this property. Validated non-empty during resolution."
         },
         "hierarchical_level": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "minimum": 1,
-          "description": "Position in header hierarchy. Validated during resolution - must be assigned for all properties."
+          "description": "Position in header hierarchy. null for qualifier rows (modality/condition) that sit outside the hierarchical header structure, matching the extraction schema."
         },
         "parent_property_id": {
           "type": ["string", "null"],

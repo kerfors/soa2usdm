@@ -217,8 +217,11 @@
           "description": "Table purpose description"
         },
         "track_label": {
-          "type": "string",
-          "description": "Population/phase track label for track tables"
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Population/phase track label for track tables. null for non-track tables."
         },
         "activity_count": {
           "type": "integer",
@@ -252,9 +255,12 @@
           "description": "Property ID from source table"
         },
         "hierarchical_level": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "minimum": 1,
-          "description": "Level in header hierarchy (1 = topmost)"
+          "description": "Level in header hierarchy (1 = topmost). null for qualifier properties (modality/condition) outside the hierarchical structure."
         },
         "property_name": {
           "type": "string",
@@ -465,9 +471,12 @@
       ],
       "properties": {
         "level": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "minimum": 1,
-          "description": "Hierarchical level"
+          "description": "Hierarchical level. null for qualifier property values."
         },
         "property_type": {
           "type": "string",
