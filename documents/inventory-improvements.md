@@ -1,6 +1,6 @@
-# Backlog — activity inventory improvements
+# Backlog — inventory and annotation improvements
 
-Two improvements to the activity inventory (`soa2usdm/activity_inventory.py` → `activities.html` / `activities.json`), motivated by working with the usdm_data corpus. Both are additive — no schema break, no change to the extraction layer.
+Four improvements motivated by working with the usdm_data corpus: two to the activity inventory (`soa2usdm/activity_inventory.py` → `activities.html` / `activities.json`), two to the annotation layer. All are additive — no schema break; raw extraction stays immutable, fixes flow through the corrections sidecar as usual.
 
 ## 1 — Carry linked footnote text into the activity inventory
 
@@ -22,6 +22,26 @@ Two improvements to the activity inventory (`soa2usdm/activity_inventory.py` →
 
 **Size.** Small.
 
+## 3 — Resolve "See Section X" footnote cross-references
+
+**Motivation.** Footnotes frequently defer their content to the protocol body ("See Section 8.2.2") — the annotation records the pointer but not what it points to, so the actual constraint stays invisible to anyone working from the extraction outputs. The deferred content is often substantive: in NCT04677179 the body behind such references specifies who performs and interprets an assessment and how a multi-component score is calculated — details stated nowhere in the SoA itself. The full protocol markdown already sits next to the extraction outputs in the collection, so this is a join, not new source material.
+
+**Sketch.** Post-resolve, pure-Python step (no LLM): detect `See Section N(.N…)` patterns in `annotation_text`, locate the section heading in the protocol markdown, attach the section's text (bounded — to the next same-level heading, with a length cap) as `referenced_section: {number, title, text}` on the annotation, with page provenance where recoverable.
+
+**Acceptance.** The "See Section 8.2.2" annotations on NCT04677179 carry §8.2.2's text; a footnote citing a section the markdown does not contain flags `[UNRESOLVED]` rather than guessing. Raw extraction files untouched.
+
+**Size.** Small–medium. Independent of items 1–2; composes with item 1 (resolved sections could surface in the inventory detail later).
+
+## 4 — `legend` annotation type + binding-smell detectors
+
+**Motivation.** Some SoA-table footnotes are abbreviation legends, not activity qualifiers, and the extractor currently binds them to activity rows like any other footnote — NCT04677179 has three, OCR-garbled ("Srs=columbia–suicide severity rating scale; Bs urface antigen; …"). Separately, two suspected marker misbinds exist in the same protocol (a footnote bound to an unrelated activity row; a footnote bound to a section-header row). Legends pollute any downstream use of footnote text (item 1); misbinds corrupt the row↔footnote join itself.
+
+**Sketch.** Two detectors in the existing detector-set style, with negative controls: (i) legend pattern (`X=Y; Z=…` density) → `annotation_type: legend`; (ii) footnote bound to an `is_section_header` row → warning (measure the base rate across the corpus before treating it as an error). Fixes flow through the corrections sidecar; raw stays immutable.
+
+**Acceptance.** The three NCT04677179 legend annotations are typed `legend`; the header-bound footnote is flagged; no false-positive legend typing across the 22-protocol corpus.
+
+**Size.** Small. Feeds item 1 (harvest quality).
+
 ---
 
-2026-08-15. Evidence: `collections/usdm_data/protocols/activities.json` and the per-protocol `*_resolved.json` annotation arrays.
+2026-08-15. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, and the NCT04677179 protocol markdown.
