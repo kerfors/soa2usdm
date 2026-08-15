@@ -223,6 +223,7 @@ td.tbl{color:var(--muted)}td.tbl b{color:var(--fg);font-family:ui-monospace,Menl
 tr.open .chev{transform:rotate(90deg)}
 .nT{font-size:10.5px;padding:1px 7px;border:1px solid #cfe0fc;background:#e8f0fe;color:var(--pri);border-radius:20px;white-space:nowrap}
 .nT.one{color:var(--muted);border-color:#e0e0e0;background:#f5f5f5}
+.fnb{font-size:10.5px;padding:1px 7px;border:1px solid #c8e6c9;background:#e8f5e9;color:#1b5e20;border-radius:20px;white-space:nowrap;margin-left:6px}
 .mt{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px;text-transform:uppercase;margin-left:6px}
 .mt.fuzzy_auto{color:#8d6e00;background:#fff8e1;border:1px solid #ffe0a3}
 .mt.fuzzy_review{color:#c62828;background:#fce4ec;border:1px solid #f8bbd0}
@@ -297,7 +298,7 @@ function conRow(r,i){
  const canExp=r.table_count>1||(r.variants||[]).length>1||(r.annotations||[]).length>0;
  return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
   `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
-  `<td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${sec}${(r.variants||[]).length>1?'<span class="flag">'+r.variants.length+' wordings</span>':''}${(r.annotations||[]).length?'<span class="flag">'+r.annotations.length+' fn</span>':''}</td>`+
+  `<td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${sec}${(r.variants||[]).length>1?'<span class="flag">'+r.variants.length+' wordings</span>':''}${(r.annotations||[]).length?'<span class="fnb">'+r.annotations.length+' annotation'+(r.annotations.length>1?'s':'')+'</span>':''}</td>`+
   `<td>${eh(r.parent_name)}</td><td>${nT}</td><td>${mt||'<span class="rp">—</span>'}</td></tr>`;
 }
 function detailRow(r){
