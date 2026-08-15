@@ -357,6 +357,10 @@
           "type": "boolean",
           "description": "True if this is a grouping header without schedule data"
         },
+        "is_redacted": {
+          "type": "boolean",
+          "description": "True if any source row's activity name is a redaction placeholder ('CCI'). Carried up from the resolved layer; exception-based - present only when true."
+        },
         "source_refs": {
           "type": "array",
           "items": {

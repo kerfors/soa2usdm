@@ -2,7 +2,7 @@
   "schema_name": "soa-table-resolved",
   "schema_version": "1.0",
   "resolution_metadata": {
-    "resolved_at": "2026-07-30T13:57:53.722354+00:00",
+    "resolved_at": "2026-08-15T19:28:35.277504+00:00",
     "resolver": "soa2usdm.steps.resolve v1.0",
     "source_extraction": {
       "schema_name": "soa-table-extraction",
@@ -997,6 +997,7 @@
         "cell_text": "CCI",
         "indentation_level": 1
       },
+      "is_redacted": true,
       "hierarchy_level": 1,
       "is_section_header": false,
       "parent_activity_id": "act-005",
@@ -1261,6 +1262,7 @@
         "cell_text": "CCI",
         "indentation_level": 1
       },
+      "is_redacted": true,
       "hierarchy_level": 1,
       "is_section_header": false,
       "parent_activity_id": "act-011",
@@ -1316,6 +1318,7 @@
         "cell_text": "CCI",
         "indentation_level": 1
       },
+      "is_redacted": true,
       "hierarchy_level": 1,
       "is_section_header": false,
       "parent_activity_id": "act-011",
@@ -1354,6 +1357,7 @@
         "cell_text": "CCI",
         "indentation_level": 1
       },
+      "is_redacted": true,
       "hierarchy_level": 1,
       "is_section_header": false,
       "parent_activity_id": "act-011",
@@ -1429,6 +1433,7 @@
         "cell_text": "CCI",
         "indentation_level": 1
       },
+      "is_redacted": true,
       "hierarchy_level": 1,
       "is_section_header": false,
       "parent_activity_id": "act-029",
@@ -1446,6 +1451,7 @@
         "cell_text": "CCI (redacted)",
         "indentation_level": 1
       },
+      "is_redacted": true,
       "hierarchy_level": 1,
       "is_section_header": false,
       "parent_activity_id": "act-029",
@@ -3780,7 +3786,11 @@
       "annotation_id": "annot-014",
       "table_id": "table-002",
       "annotation_marker": "c13",
-      "annotation_type": "footnote",
+      "annotation_type": "legend",
+      "annotation_type_source": {
+        "method": "legend_pattern",
+        "extracted_type": "footnote"
+      },
       "annotation_text": "Acid; ETV =early quick inventory of depressive",
       "annotation_scope": "activity",
       "referenced_elements": {

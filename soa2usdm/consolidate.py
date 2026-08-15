@@ -124,6 +124,7 @@ class UnifiedActivity:
     name_variations: list = field(default_factory=list)
     match_status: str = "new"
     match_confidence: float = 1.0
+    is_redacted: bool = False
 
     def add_source(self, table_id: str, table_num: int, activity_id: str, 
                    row_position: int, activity_name: str):
@@ -161,6 +162,9 @@ class UnifiedActivity:
             'display_order': self.display_order,
             'qualified_key': self.qualified_key,
             'is_section_header': self.is_section_header,
+            # Exception-based in the output: present only when true, so the
+            # 19 protocols without redactions do not churn.
+            **({'is_redacted': True} if self.is_redacted else {}),
             'source_refs': self.source_refs,
             'name_variations': self.name_variations,
             'match_status': self.match_status,
@@ -257,7 +261,8 @@ class ActivityConsolidator:
                     parent_name=parent_name,
                     qualified_key=qual_key,
                     is_section_header=act.get('is_section_header', False),
-                    hierarchy_level=act.get('hierarchy_level', 0)
+                    hierarchy_level=act.get('hierarchy_level', 0),
+                    is_redacted=act.get('is_redacted', False)
                 )
                 ua.add_source(table_id, table_num, act['activity_id'], 
                               act['row_position'], act_name)
@@ -270,6 +275,8 @@ class ActivityConsolidator:
                 if matched_ua:
                     matched_ua.add_source(table_id, table_num, act['activity_id'],
                                           act['row_position'], act_name)
+                    matched_ua.is_redacted = (matched_ua.is_redacted
+                                              or act.get('is_redacted', False))
                     matched_ua.match_status = status
                     matched_ua.match_confidence = min(matched_ua.match_confidence, confidence)
                     self.match_stats[status] += 1
@@ -291,7 +298,8 @@ class ActivityConsolidator:
                         parent_name=parent_name,
                         qualified_key=qual_key,
                         is_section_header=act.get('is_section_header', False),
-                        hierarchy_level=act.get('hierarchy_level', 0)
+                        hierarchy_level=act.get('hierarchy_level', 0),
+                        is_redacted=act.get('is_redacted', False)
                     )
                     ua.add_source(table_id, table_num, act['activity_id'],
                                   act['row_position'], act_name)
@@ -960,6 +968,33 @@ def find_cross_table_binding_conflicts(data: dict) -> List[Tuple[str, List[str]]
     return conflicts
 
 
+def find_header_bound_annotations(data: dict) -> List[Tuple[str, List[str]]]:
+    """Annotations bound to a section-header row.
+
+    A section header groups activities; it is never itself performed, so a
+    footnote bound to one is either a deliberate group-scope note or a marker
+    misbind (the printed position landed on the header row). The two cannot be
+    told apart structurally — which is why this warns instead of erroring.
+
+    Measured over 22 protocols (2026-08-15): 5 bindings across 4 protocols
+    (NCT03283098, NCT04557384, NCT04573309 ×2, NCT04730349), and on reading,
+    every one is a deliberate group-scope note — e.g. NCT03283098's Pre-HD
+    timing qualifier says "applying to all laboratory assessments" outright.
+    Base rate 5/~750 unified annotations, zero known misbinds: a smell worth
+    surfacing per protocol, not an error class.
+    """
+    headers = {ua.get("xact_id"): ua.get("activity_name")
+               for ua in data.get("unified_activities", [])
+               if ua.get("is_section_header")}
+    findings = []
+    for annot in data.get("unified_annotations", []):
+        bound = [headers[x] for x in annot.get("referenced_xacts", [])
+                 if x in headers]
+        if bound:
+            findings.append((annot.get("xannot_id", "?"), bound))
+    return findings
+
+
 def is_degenerate_annotation_typing(annotations: list) -> bool:
     """Every annotation typed source_note across a large set.
 
@@ -1120,6 +1155,13 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
             f"{xannot_id}: bound to different activities by different tables "
             f"({', '.join(names)}) \u2014 a wrong binding, or the row it belongs to is "
             f"missing from one of the tables"
+        )
+
+    for xannot_id, names in find_header_bound_annotations(data):
+        result.warnings.append(
+            f"{xannot_id}: bound to section-header row(s) "
+            f"({', '.join(names)}) — a group-scope note, or a marker "
+            f"misbind onto the header; verify the intended scope"
         )
 
     if is_degenerate_annotation_typing(annotations):

@@ -88,6 +88,7 @@ def _collect(collection: str):
                     "parent_name": (par or {}).get("activity_name", "") if par else "",
                     "hierarchy_level": a.get("hierarchy_level", 0),
                     "is_section_header": a.get("is_section_header", False),
+                    "is_redacted": a.get("is_redacted", False),
                     "has_schedule_data": a.get("has_schedule_data"),
                     "annotation_markers": a.get("annotation_markers", "") or "",
                     "annotations": row_anns,
@@ -136,6 +137,7 @@ def _collect(collection: str):
                     "parent_name": ua.get("parent_name", ""),
                     "hierarchy_level": ua.get("hierarchy_level", 0),
                     "is_section_header": ua.get("is_section_header", False),
+                    "is_redacted": ua.get("is_redacted", False),
                     "match_status": ua.get("match_status", ""),
                     "table_count": len(occ),
                     "tables": sorted({o["table_number"] for o in occ}),
@@ -159,6 +161,7 @@ def generate_activity_inventory(collection: str):
         "folded": len(src) - len(cons),
         "multi_table_activities": sum(1 for c in cons if c["table_count"] > 1),
         "activities_with_wording_variants": sum(1 for c in cons if len(c["variants"]) > 1),
+        "redacted_activities": sum(1 for c in cons if c["is_redacted"]),
     }
     sp_counts = {}
     prot_sponsor = {r["protocol_id"]: r["sponsor"] for r in src}
@@ -179,7 +182,8 @@ def generate_activity_inventory(collection: str):
            "__PROT__": counts["protocols"], "__CON__": counts["consolidated_activities"],
            "__SRC__": counts["source_table_rows"], "__FOLD__": counts["folded"],
            "__MT__": counts["multi_table_activities"],
-           "__WV__": counts["activities_with_wording_variants"]}
+           "__WV__": counts["activities_with_wording_variants"],
+           "__RED__": counts["redacted_activities"]}
     for k, v in rep.items():
         html = html.replace(k, str(v))
     return html, payload
@@ -230,6 +234,7 @@ tr.open .chev{transform:rotate(90deg)}
 .mt.fuzzy_cross_parent{color:#6a1b9a;background:#f3e5f5;border:1px solid #e1bee7}
 .flag{font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-left:6px;background:#fafafa}
 .flag.nod{color:#aaa}
+.flag.red{color:#c62828;border-color:#f8bbd0;background:#fce4ec}
 .detail td{background:#fbfcfe;padding:8px 12px 10px 30px}
 .detail .var{color:#555;font-size:11.5px;margin-bottom:6px}.detail .var b{color:var(--secfg)}
 .detail .fn{color:#555;font-size:11.5px;margin:4px 0}.detail .fn b{color:var(--pri);font-family:ui-monospace,Menlo,monospace;margin-right:4px}
@@ -243,7 +248,7 @@ footer{padding:16px 22px;color:var(--muted);font-size:11.5px;border-top:1px soli
 <div class="back"><a href="index.html">&larr; __COLLECTION__ collection index</a></div>
 <h1>Schedule-of-Activities — Activities inventory</h1>
 <div class="sub"><b>Consolidated</b> = one row per distinct activity per study (source-table rows folded in as provenance; intra-protocol, mostly exact). <b>Source-table</b> = every activity exactly as it sits in each SoA table. No cross-protocol clustering. Built from the <code>consolidated/</code> and <code>resolved/</code> pipeline layers.</div>
-<div class="stats"><span><b>__PROT__</b> protocols</span><span><b>__CON__</b> consolidated activities</span><span><b>__SRC__</b> source-table rows</span><span><b>__FOLD__</b> folded</span><span><b>__MT__</b> span &gt;1 table</span><span><b>__WV__</b> folded across differing wording</span></div>
+<div class="stats"><span><b>__PROT__</b> protocols</span><span><b>__CON__</b> consolidated activities</span><span><b>__SRC__</b> source-table rows</span><span><b>__FOLD__</b> folded</span><span><b>__MT__</b> span &gt;1 table</span><span><b>__WV__</b> folded across differing wording</span><span><b>__RED__</b> redacted (CCI)</span></div>
 </header>
 <div class="controls">
 <div class="seg"><button id="mCon" class="on">Consolidated (per study)</button><button id="mSrc">Source-table (every row)</button></div>
@@ -252,6 +257,7 @@ footer{padding:16px 22px;color:var(--muted);font-size:11.5px;border-top:1px soli
 <select id="protof"><option value="">all protocols</option>__PROPTS__</select>
 <label class="chk"><input type="checkbox" id="hidesec"> hide section headers</label>
 <label class="chk"><input type="checkbox" id="onlydata"> only with marks</label>
+<label class="chk"><input type="checkbox" id="hidered"> hide redacted</label>
 <span id="count"></span>
 </div>
 <div class="wrap"><table><thead id="thead"></thead><tbody id="tb"></tbody></table></div>
@@ -260,7 +266,7 @@ footer{padding:16px 22px;color:var(--muted);font-size:11.5px;border-top:1px soli
 const D=__DATA__;
 let MODE='con', sortk='__default__', asc=true;
 const q=document.getElementById('q'),sponsorf=document.getElementById('sponsorf'),protof=document.getElementById('protof'),
- hidesec=document.getElementById('hidesec'),onlydata=document.getElementById('onlydata'),tb=document.getElementById('tb'),
+ hidesec=document.getElementById('hidesec'),onlydata=document.getElementById('onlydata'),hidered=document.getElementById('hidered'),tb=document.getElementById('tb'),
  thead=document.getElementById('thead'),cnt=document.getElementById('count'),mCon=document.getElementById('mCon'),mSrc=document.getElementById('mSrc');
 function eh(s){return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 const HEAD={con:[['protocol_id','Protocol'],['sponsor','Sponsor'],['activity_name','Activity (consolidated)'],['parent_name','Parent'],['table_count','Tables'],['match_status','Fold']],
@@ -280,9 +286,10 @@ function cmp(a,b){
  return String(x||'').toLowerCase().localeCompare(String(y||'').toLowerCase());
 }
 function passes(r){
- const term=q.value.trim().toLowerCase(),sp=sponsorf.value,pr=protof.value,hs=hidesec.checked,od=onlydata.checked;
+ const term=q.value.trim().toLowerCase(),sp=sponsorf.value,pr=protof.value,hs=hidesec.checked,od=onlydata.checked,hr=hidered.checked;
  if(sp&&r.sponsor!==sp)return false; if(pr&&r.protocol_id!==pr)return false;
  if(hs&&r.is_section_header)return false;
+ if(hr&&r.is_redacted)return false;
  if(od){ if(MODE==='con'){if(!r.any_marks)return false;} else if(r.has_schedule_data!==true)return false; }
  if(term){let h;
   if(MODE==='con')h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+(r.variants||[]).join(' ')+' '+(r.occurrences||[]).map(o=>o.table_title).join(' ')+' '+(r.annotations||[]).map(a=>a.text).join(' ')).toLowerCase();
@@ -294,7 +301,7 @@ function conRow(r,i){
  const ind=r.hierarchy_level?('padding-left:'+(r.hierarchy_level*16)+'px'):'';
  const nT=`<span class="nT ${r.table_count>1?'':'one'}">×${r.table_count}${r.table_count>1?' · '+r.tables.map(t=>'T'+t).join(','):''}</span>`;
  const mt=(['fuzzy_auto','fuzzy_review','fuzzy_cross_parent'].includes(r.match_status))?`<span class="mt ${r.match_status}">${r.match_status.replace('fuzzy_','')}</span>`:'';
- const sec=r.is_section_header?'<span class="flag">section</span>':'';
+ const sec=(r.is_section_header?'<span class="flag">section</span>':'')+(r.is_redacted?'<span class="flag red">redacted</span>':'');
  const canExp=r.table_count>1||(r.variants||[]).length>1||(r.annotations||[]).length>0;
  return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
   `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
@@ -313,7 +320,7 @@ function srcDetailRow(r){
 }
 function srcRow(r,i){
  const ind=r.hierarchy_level?('padding-left:'+(r.hierarchy_level*16)+'px'):'';
- const flags=(r.is_section_header?'<span class="flag">section</span>':'')+(r.has_schedule_data===false?'<span class="flag nod">no marks</span>':'');
+ const flags=(r.is_section_header?'<span class="flag">section</span>':'')+(r.is_redacted?'<span class="flag red">redacted</span>':'')+(r.has_schedule_data===false?'<span class="flag nod">no marks</span>':'');
  const canExp=(r.annotations||[]).length>0;
  return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
   `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
@@ -348,7 +355,7 @@ function render(){
 }
 function setMode(m){MODE=m;sortk='__default__';asc=true;mCon.classList.toggle('on',m==='con');mSrc.classList.toggle('on',m==='src');setHead();render();}
 mCon.onclick=()=>setMode('con');mSrc.onclick=()=>setMode('src');
-q.oninput=render;[sponsorf,protof,hidesec,onlydata].forEach(e=>e.onchange=render);
+q.oninput=render;[sponsorf,protof,hidesec,onlydata,hidered].forEach(e=>e.onchange=render);
 setHead();render();
 </script></body></html>'''
 

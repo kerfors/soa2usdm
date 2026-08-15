@@ -87,6 +87,8 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
         'has_consolidated': False,
         'consolidated_file': None,
         'report_file': None,
+        'redacted': 0,
+        'activities': 0,
     }
     
     if not protocol_path.exists():
@@ -174,6 +176,13 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                     result['compression'] = meta.get('compression_percent', 0)
                     result['columns'] = sum(
                         len(cols) for cols in data.get('timeline_segments', {}).values()
+                    )
+                    # Redaction count: a data-quality signal for anyone
+                    # selecting protocols (public documents black-bar some
+                    # rows; is_redacted is exception-based in the JSON).
+                    result['redacted'] = sum(
+                        1 for ua in data.get('unified_activities', [])
+                        if ua.get('is_redacted')
                     )
                 except Exception:
                     pass
@@ -532,6 +541,12 @@ def generate_index_html(collection: str) -> str:
             if p.get('consolidated_json'):
                 cons_html += f' <a href="{p["consolidated_json"]}" class="link-json" title="Consolidated JSON data">json</a>'
 
+        # Redacted rows column: shown only where the protocol has any, as
+        # "n / total" of unified activities (e.g. NCT04677179: 6 / 60).
+        red_html = ''
+        if p.get('redacted'):
+            red_html = f'<span title="{p["redacted"]} of {p["activities"]} unified activity rows are CCI-redacted in the public protocol">{p["redacted"]} / {p["activities"]}</span>'
+
         report_html = ''
         if p.get('report_file'):
             report_html = f'<a href="{p["report_file"]}" class="link-report" title="Extraction uncertainty / review report">report</a>'
@@ -564,6 +579,7 @@ def generate_index_html(collection: str) -> str:
             <td class="viz">{ext_json_html}</td>
             <td class="viz">{resolved_html}</td>
             <td class="viz">{cons_html}</td>
+            <td class="stats">{red_html}</td>
             <td class="viz">{report_html}</td>
         </tr>'''
     
@@ -644,7 +660,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th><th>d4k Folder</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Per-protocol extraction uncertainty / review notes">Report</th>
+                <th>NCT ID</th><th>d4k Folder</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Per-protocol extraction uncertainty / review notes">Report</th>
             </tr></thead>
             <tbody>
                 {ready_rows}

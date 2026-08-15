@@ -30,11 +30,19 @@ from soa2usdm import config
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 from soa2usdm.corrections import ApplyCorrectionsStep
-from soa2usdm.resolve import ResolveStep, find_partial_marker_bindings, validate_extraction
+from soa2usdm.resolve import (
+    ResolveStep,
+    find_partial_marker_bindings,
+    is_legend_annotation,
+    is_redacted_activity_name,
+    resolve_extraction,
+    validate_extraction,
+)
 from soa2usdm.consolidate import (
     ConsolidateStep,
     find_adjacent_text_overlaps,
     find_cross_table_binding_conflicts,
+    find_header_bound_annotations,
     find_over_merged_annotations,
     is_degenerate_annotation_typing,
     OVERLAP_PAIR_THRESHOLD,
@@ -263,3 +271,185 @@ def test_method_provenance_summary_warnings_and_unresolved():
         "unresolved and sound methods add no warnings"
     assert not find_partial_marker_bindings(data), \
         "an unresolved location must not read as a lost binding"
+
+
+# ---------------------------------------------------------------------------
+# Legend typing (inventory-improvements item 4, detector i)
+# ---------------------------------------------------------------------------
+
+# The only annotations resolve may retype legend, per protocol, as
+# (resolved filename suffix, annotation_id). Calibrated over the 22-protocol
+# corpus (752 resolved annotations): the pattern matches 8 — these 4 fragments
+# mistyped footnote, plus 4 legend lists already typed abbreviation, which the
+# guard leaves untouched. Everything else must keep its extracted type.
+EXPECTED_LEGEND_RETYPES = {
+    "NCT04677179": {
+        ("Table_01", "annot-031"),
+        ("Table_02", "annot-014"),
+        ("Table_03", "annot-014"),
+        ("Table_04", "annot-012"),
+    },
+}
+
+
+def test_legend_retypes_exactly_the_known_fragments(pipeline_output):
+    """Corpus-wide zero-false-positive gate: every annotation carrying an
+    annotation_type_source is one of NCT04677179's four OCR-clipped
+    abbreviation-legend fragments, retyped footnote -> legend; no other
+    protocol has any retype."""
+    protocol, produced, _ = pipeline_output
+    found = set()
+    for rf in sorted((produced / "resolved").glob("*_resolved.json")):
+        data = json.loads(rf.read_text())
+        table = rf.name.replace(f"{protocol}_", "").replace("_resolved.json", "")
+        for annot in data["annotations"]:
+            src = annot.get("annotation_type_source")
+            if src:
+                assert annot["annotation_type"] == "legend"
+                assert src == {"method": "legend_pattern",
+                               "extracted_type": "footnote"}, src
+                found.add((table, annot["annotation_id"]))
+    assert found == EXPECTED_LEGEND_RETYPES.get(protocol, set()), \
+        f"{protocol}: unexpected legend retypes {found}"
+
+
+def test_legend_pattern_on_real_corpus_texts():
+    """The rule against the corpus texts that define its boundary — all quoted
+    verbatim from resolved files. Positives include the hardest case: the
+    OCR-clipped T2/T3 fragment whose single '=' survives only in its
+    '; ETV =' spine. Negatives are the real footnotes nearest the boundary:
+    a single symbol key, a timing anchor, a formula, a <= comparison."""
+    # Must match — NCT04677179's legend fragments (T4 c12, T2/T3 c13):
+    assert is_legend_annotation(
+        "DNA=deoxyribonucleic acid; ETV =early symptomatology–self report; "
+        "SoA=schedule of activities;")
+    assert is_legend_annotation("Acid; ETV =early quick inventory of depressive")
+    # Must NOT match — CDISC_Pilot single symbol key (annot-002):
+    assert not is_legend_annotation(
+        "Xa = Performed at this visit if patient is an insulin-dependent diabetic.")
+    # Must NOT match — NCT03421379 annot-021, a timing anchor:
+    assert not is_legend_annotation(
+        "-5 mins = stop insulin infusion. Sampling times are relative to the "
+        "time of study treatment administration (0 min). Predose time point "
+        "will be between insulin infusion stop and study treatment.")
+    # Must NOT match — NCT03283098 annot-004, a correction formula:
+    assert not is_legend_annotation(
+        "Serum samples for albumin and calcium for screening and routine "
+        "monitoring of predialysis cCa. When albumin is less than 4.0 g/dL, "
+        "the calcium level will be corrected according to the formula: cCa "
+        "(mg/dL) = total Ca (mg/dL) + (4 – albumin (g/dL))*0.8. Corrected "
+        "calcium results will inform dosing/dose withholding at the next "
+        "hemodialysis treatment.")
+    # Must NOT match — NCT04557384 annot-010, a <= comparison:
+    assert not is_legend_annotation(
+        "During study treatment, perform <=3 days prior to treatment.")
+
+
+def test_legend_retype_preserves_already_definitional_types():
+    """An annotation the extractor already typed abbreviation matches the
+    pattern but must NOT be retyped — the guard only lifts footnote and
+    source_note. Verified directly on the banked extraction by injecting the
+    real NCT05324124 abbreviation list."""
+    path = (Path(__file__).parent / "fixtures" / "protocols" / "NCT04677179"
+            / "SoA2USDM" / "extracted" / "NCT04677179_Table_01_extraction.json")
+    data = json.loads(path.read_text())
+    abbrev = "Abbreviations: CRU = clinical research unit; ECG = electrocardiogram;"
+    assert is_legend_annotation(abbrev), "the guard, not the pattern, must skip it"
+    data["annotations"].append({
+        "annotation_marker": "zz", "annotation_type": "abbreviation",
+        "annotation_text": abbrev, "marker_locations": []})
+    resolved = resolve_extraction(data, path.name)
+    kept = next(a for a in resolved["annotations"]
+                if a["annotation_marker"] == "zz")
+    assert kept["annotation_type"] == "abbreviation"
+    assert "annotation_type_source" not in kept
+
+
+# ---------------------------------------------------------------------------
+# Redaction flag (inventory-improvements item 2)
+# ---------------------------------------------------------------------------
+
+# Consolidated-level redaction counts, measured 2026-08-15 and pinned:
+# the corpus' full population of CCI rows. Any other protocol reporting a
+# redaction is a false positive.
+EXPECTED_REDACTED_UNIFIED = {
+    "NCT04677179": 6,   # of 60 unified activities
+    "NCT05176314": 2,
+    "NCT05324124": 1,
+}
+
+
+def test_redaction_counts_match_the_corpus_population(pipeline_output):
+    protocol, produced, _ = pipeline_output
+    cons = json.loads(
+        next((produced / "consolidated").glob("*_consolidated.json")).read_text())
+    redacted = [ua for ua in cons["unified_activities"] if ua.get("is_redacted")]
+    assert len(redacted) == EXPECTED_REDACTED_UNIFIED.get(protocol, 0), \
+        f"{protocol}: {[ua['activity_name'] for ua in redacted]}"
+    # Both directions: every flagged name is a placeholder, and every
+    # placeholder name is flagged.
+    for ua in cons["unified_activities"]:
+        names_redacted = all(is_redacted_activity_name(n)
+                             for n in ua.get("name_variations", [ua["activity_name"]]))
+        assert bool(ua.get("is_redacted")) == names_redacted or not names_redacted, \
+            f"{protocol} {ua['xact_id']}: flag/name disagreement"
+        if names_redacted:
+            assert ua.get("is_redacted") is True, \
+                f"{protocol} {ua['xact_id']}: placeholder name not flagged"
+
+
+def test_redacted_name_pattern_boundaries():
+    """The placeholder pattern, exact by design: 'CCI' alone or with a
+    parenthetical qualifier. A name merely containing the letters must not
+    flag — fail fast on pattern creep."""
+    assert is_redacted_activity_name("CCI")
+    assert is_redacted_activity_name("CCI (redacted)")
+    assert is_redacted_activity_name("  CCI  ")
+    assert not is_redacted_activity_name("CCI score")
+    assert not is_redacted_activity_name("Colonoscopy")
+    assert not is_redacted_activity_name("ECG")
+    assert not is_redacted_activity_name("")
+
+
+# ---------------------------------------------------------------------------
+# Header-bound annotations (inventory-improvements item 4, detector ii)
+# ---------------------------------------------------------------------------
+
+# Corpus base rate, measured 2026-08-15 and pinned: 5 header-bound annotations
+# across 4 protocols, each reading as a deliberate group-scope note (e.g.
+# NCT03283098's Pre-HD qualifier says "applying to all laboratory assessments"
+# outright). This is why the detector warns instead of erroring. A count
+# moving here means a binding changed — look before repinning.
+EXPECTED_HEADER_BOUND = {
+    "NCT03283098": 1,
+    "NCT04557384": 1,
+    "NCT04573309": 2,
+    "NCT04730349": 1,
+}
+
+
+def test_header_bound_annotations_match_base_rate(pipeline_output):
+    protocol, produced, _ = pipeline_output
+    cons = json.loads(
+        next((produced / "consolidated").glob("*_consolidated.json")).read_text())
+    findings = find_header_bound_annotations(cons)
+    assert len(findings) == EXPECTED_HEADER_BOUND.get(protocol, 0), \
+        f"{protocol}: {findings}"
+
+
+def test_header_bound_detector_fires_on_header_binding():
+    """Negative control — the banked NCT04677179 consolidated output has no
+    header-bound annotation, so the misbind this detector exists for is
+    reconstructed on it explicitly: mark an activity that carries a bound
+    annotation as a section header, and the detector must name the pair."""
+    path = (Path(__file__).parent / "fixtures" / "protocols" / "NCT04677179"
+            / "SoA2USDM" / "consolidated" / "NCT04677179_consolidated.json")
+    data = json.loads(path.read_text())
+    assert not find_header_bound_annotations(data), \
+        "banked consolidated output must be clean"
+    annot = next(a for a in data["unified_annotations"] if a["referenced_xacts"])
+    target = annot["referenced_xacts"][0]
+    ua = next(a for a in data["unified_activities"] if a["xact_id"] == target)
+    ua["is_section_header"] = True
+    findings = find_header_bound_annotations(data)
+    assert findings == [(annot["xannot_id"], [ua["activity_name"]])], findings

@@ -12,6 +12,7 @@ All transformations are algorithmic - no interpretation required:
 """
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -88,6 +89,54 @@ def distribute_merged_cell_values(schedule_grid: list[dict]) -> list[dict]:
                     cell["cell_value"] = anchor_value
     
     return schedule_grid
+
+
+# =============================================================================
+# Derived Classification — legend typing, redaction
+# =============================================================================
+
+# An abbreviation legend is a run of TOKEN=definition segments separated by
+# semicolons ("UC=ulcerative colitis; V=visit."). One well-formed definition
+# segment plus at least one further segment also counts: an OCR-clipped legend
+# fragment keeps its "; ETV =…" spine even when the neighbouring segments lost
+# their '='. Calibrated over the 22-protocol corpus (752 resolved annotations):
+# the rule matches exactly 8 — the 4 legend lists already typed abbreviation
+# and the 4 NCT04677179 legend fragments mistyped footnote — and no qualifying
+# note. Single "X = explanation" symbol keys (CDISC_Pilot) deliberately do NOT
+# match: without semicolon structure they are indistinguishable from a
+# one-symbol qualifying note, and the extractor already types the clear ones.
+LEGEND_SEGMENT_PATTERN = re.compile(r'^\s*[A-Za-z][A-Za-z0-9()+/–\-. ]{0,30}=')
+LEGEND_MIN_DEFINITIONS = 2
+
+
+def is_legend_annotation(text: str) -> bool:
+    """True when annotation text is an abbreviation legend (X=Y; Z=… density).
+
+    Legends are definitional, not qualifiers: binding one to the activity row
+    its marker happened to sit near pollutes every downstream use of footnote
+    text. Detection is at resolve so the extraction file stays untouched and
+    the retype is reproducible.
+    """
+    segments = text.split(";")
+    definitions = sum(1 for s in segments if LEGEND_SEGMENT_PATTERN.match(s))
+    if definitions >= LEGEND_MIN_DEFINITIONS:
+        return True
+    return definitions == 1 and len(segments) >= 2
+
+
+# Public protocol documents black-bar some SoA rows; the extractor records the
+# printed replacement text — "CCI" (Company Confidential Information), with an
+# occasional qualifier like "CCI (redacted)" — verbatim. The name is a
+# redaction artifact, not an activity name, so it gets a first-class flag
+# instead of leaving every consumer to string-match. Corpus measure
+# (2026-08-15): NCT04677179 24 resolved rows / 6 unified activities,
+# NCT05176314 2, NCT05324124 1; no legitimate activity name matches.
+REDACTED_NAME_PATTERN = re.compile(r'CCI(\s*\(.*\))?')
+
+
+def is_redacted_activity_name(name: str) -> bool:
+    """True when an activity name is a redaction placeholder ('CCI' + optional qualifier)."""
+    return bool(REDACTED_NAME_PATTERN.fullmatch(name.strip()))
 
 
 # =============================================================================
@@ -314,11 +363,24 @@ def build_annotation_crossrefs(
         else:
             scope = "column"
         
+        # Legend retype: an abbreviation legend mistyped footnote/source_note
+        # becomes legend here; the extracted type is preserved in
+        # annotation_type_source (*_source idiom — exception-based, method not
+        # confidence). Types already definitional are left alone.
+        extracted_type = annot["annotation_type"]
+        annotation_type = extracted_type
+        if (extracted_type not in ("legend", "abbreviation")
+                and is_legend_annotation(annot["annotation_text"])):
+            annotation_type = "legend"
+
         resolved_annotations.append({
             "annotation_id": annot_id,
             "table_id": table_id,
             "annotation_marker": marker,
-            "annotation_type": annot["annotation_type"],
+            "annotation_type": annotation_type,
+            **({"annotation_type_source": {"method": "legend_pattern",
+                                           "extracted_type": extracted_type}}
+               if annotation_type != extracted_type else {}),
             "annotation_text": annot["annotation_text"],
             "annotation_scope": scope,
             "referenced_elements": referenced,
@@ -700,6 +762,10 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
             "row_position": act["row_position"],
             "activity_name": act["activity_name"],
             "activity_name_source": source,
+            # Exception-based: present only on redacted rows, so the 19
+            # protocols without redactions do not churn.
+            **({"is_redacted": True}
+               if is_redacted_activity_name(act["activity_name"]) else {}),
             "hierarchy_level": hier["hierarchy_level"],
             "is_section_header": is_section_header,
             "parent_activity_id": hier["parent_activity_id"],

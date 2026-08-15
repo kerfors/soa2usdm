@@ -343,6 +343,10 @@
           "type": "boolean",
           "description": "true if this activity is a grouping header (typically indentation_level 0, bold, no schedule data). Derived from indentation + formatting + schedule data presence."
         },
+        "is_redacted": {
+          "type": "boolean",
+          "description": "true if the activity name is a redaction placeholder printed in the public protocol ('CCI', optionally qualified). Derived at resolve by exact-pattern match; exception-based - present only when true. The verbatim placeholder stays in activity_name."
+        },
         "parent_activity_id": {
           "type": ["string", "null"],
           "pattern": "^act-[0-9]{3}$",
@@ -473,7 +477,22 @@
             "source_note",
             "continuation_note"
           ],
-          "description": "Annotation classification. Preserved from extraction."
+          "description": "Annotation classification. Preserved from extraction unless retyped at resolve (see annotation_type_source)."
+        },
+        "annotation_type_source": {
+          "type": "object",
+          "description": "Present only when resolve overrode the extracted annotation_type (*_source idiom, exception-based). 'legend_pattern' = the text matched the abbreviation-legend density rule (X=Y; Z=...) and was retyped legend.",
+          "required": ["method", "extracted_type"],
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": ["legend_pattern"]
+            },
+            "extracted_type": {
+              "type": "string",
+              "description": "The annotation_type as recorded in the extraction file."
+            }
+          }
         },
         "annotation_text": {
           "type": "string",
