@@ -41,6 +41,7 @@ def _collect(collection: str):
 
     source_rows = []
     resolved_lookup = {}
+    ann_lookup = {}
     for pid in config.list_protocols(collection):
         meta = study_meta.get(pid, {})
         d4k = meta.get("d4k_folder", "") or ""
@@ -58,6 +59,7 @@ def _collect(collection: str):
             tm = d.get("table_metadata", {})
             tid = tm.get("table_id")
             by_id = {a["activity_id"]: a for a in d.get("activities", [])}
+            ann_by_id = {an["annotation_id"]: an for an in d.get("annotations", [])}
             for a in d.get("activities", []):
                 resolved_lookup[(pid, tid, a["activity_id"])] = {
                     "table_number": tm.get("table_number"),
@@ -68,6 +70,11 @@ def _collect(collection: str):
                     "verbatim_name": a.get("activity_name", ""),
                     "has_schedule_data": a.get("has_schedule_data"),
                 }
+                row_anns = [{"marker": ann_by_id[aid]["annotation_marker"],
+                             "table_number": tm.get("table_number"),
+                             "text": ann_by_id[aid]["annotation_text"]}
+                            for aid in a.get("linked_annotation_ids", [])]
+                ann_lookup[(pid, tid, a["activity_id"])] = row_anns
                 par = by_id.get(a.get("parent_activity_id"))
                 source_rows.append({
                     "protocol_id": pid, "sponsor": sponsor, "d4k_folder": d4k,
@@ -83,6 +90,7 @@ def _collect(collection: str):
                     "is_section_header": a.get("is_section_header", False),
                     "has_schedule_data": a.get("has_schedule_data"),
                     "annotation_markers": a.get("annotation_markers", "") or "",
+                    "annotations": row_anns,
                 })
 
     consolidated_rows = []
@@ -111,6 +119,16 @@ def _collect(collection: str):
                 for o in occ:
                     if o["verbatim_name"] and o["verbatim_name"] not in variants:
                         variants.append(o["verbatim_name"])
+                anns = []
+                for sr in ua.get("source_refs", []):
+                    anns.extend(ann_lookup.get((pid, sr.get("table_id"), sr.get("activity_id")), []))
+                anns.sort(key=lambda x: x["table_number"] or 0)
+                annotations = []
+                seen_texts = set()
+                for an in anns:
+                    if an["text"] not in seen_texts:
+                        seen_texts.add(an["text"])
+                        annotations.append(an)
                 consolidated_rows.append({
                     "protocol_id": pid, "sponsor": sponsor, "d4k_folder": d4k,
                     "therapeutic_area": ta, "xact_id": ua.get("xact_id"),
@@ -123,6 +141,7 @@ def _collect(collection: str):
                     "tables": sorted({o["table_number"] for o in occ}),
                     "any_marks": any(o["has_schedule_data"] is True for o in occ),
                     "variants": variants, "occurrences": occ,
+                    "annotations": annotations,
                 })
 
     return consolidated_rows, source_rows
@@ -212,6 +231,7 @@ tr.open .chev{transform:rotate(90deg)}
 .flag.nod{color:#aaa}
 .detail td{background:#fbfcfe;padding:8px 12px 10px 30px}
 .detail .var{color:#555;font-size:11.5px;margin-bottom:6px}.detail .var b{color:var(--secfg)}
+.detail .fn{color:#555;font-size:11.5px;margin:4px 0}.detail .fn b{color:var(--pri);font-family:ui-monospace,Menlo,monospace;margin-right:4px}
 .otab{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:2px;background:transparent}
 .otab th{position:static;background:transparent;border-bottom:1px solid var(--line);padding:4px 8px;font-size:9.5px;color:#888}
 .otab td{border-bottom:1px solid #eee;padding:4px 8px}
@@ -263,8 +283,8 @@ function passes(r){
  if(hs&&r.is_section_header)return false;
  if(od){ if(MODE==='con'){if(!r.any_marks)return false;} else if(r.has_schedule_data!==true)return false; }
  if(term){let h;
-  if(MODE==='con')h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+(r.variants||[]).join(' ')+' '+(r.occurrences||[]).map(o=>o.table_title).join(' ')).toLowerCase();
-  else h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+r.table_title).toLowerCase();
+  if(MODE==='con')h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+(r.variants||[]).join(' ')+' '+(r.occurrences||[]).map(o=>o.table_title).join(' ')+' '+(r.annotations||[]).map(a=>a.text).join(' ')).toLowerCase();
+  else h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+r.table_title+' '+(r.annotations||[]).map(a=>a.text).join(' ')).toLowerCase();
   if(!h.includes(term))return false;}
  return true;
 }
@@ -273,7 +293,7 @@ function conRow(r,i){
  const nT=`<span class="nT ${r.table_count>1?'':'one'}">×${r.table_count}${r.table_count>1?' · '+r.tables.map(t=>'T'+t).join(','):''}</span>`;
  const mt=(['fuzzy_auto','fuzzy_review','fuzzy_cross_parent'].includes(r.match_status))?`<span class="mt ${r.match_status}">${r.match_status.replace('fuzzy_','')}</span>`:'';
  const sec=r.is_section_header?'<span class="flag">section</span>':'';
- const canExp=r.table_count>1||(r.variants||[]).length>1;
+ const canExp=r.table_count>1||(r.variants||[]).length>1||(r.annotations||[]).length>0;
  return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
   `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
   `<td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${sec}${(r.variants||[]).length>1?'<span class="flag">'+r.variants.length+' wordings</span>':''}</td>`+
@@ -282,12 +302,18 @@ function conRow(r,i){
 function detailRow(r){
  const vars=(r.variants||[]).length>1?`<div class="var">wording variants folded: <b>${r.variants.map(eh).join('</b> · <b>')}</b></div>`:'';
  const orows=(r.occurrences||[]).map(o=>`<tr><td class="tbl"><b>T${eh(o.table_number)}</b>${o.track_label?' · '+eh(o.track_label):''} <span class="tt" style="display:inline" title="${eh(o.table_title)}">${eh(o.table_title)}</span></td><td class="rp">${eh(o.row_position)}</td><td>${eh(o.verbatim_name)}</td><td class="rp">${o.has_schedule_data===false?'no marks':(o.has_schedule_data===true?'✓':'')}</td></tr>`).join('');
- return `<tr class="detail"><td colspan="6">${vars}<table class="otab"><thead><tr><th>Source table</th><th>Row</th><th>As extracted (verbatim)</th><th>Marks</th></tr></thead><tbody>${orows}</tbody></table></td></tr>`;
+ const fns=(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="rp">T${eh(a.table_number)}</span> ${eh(a.text)}</div>`).join('');
+ return `<tr class="detail"><td colspan="6">${vars}<table class="otab"><thead><tr><th>Source table</th><th>Row</th><th>As extracted (verbatim)</th><th>Marks</th></tr></thead><tbody>${orows}</tbody></table>${fns}</td></tr>`;
 }
-function srcRow(r){
+function srcDetailRow(r){
+ const fns=(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b> ${eh(a.text)}</div>`).join('');
+ return `<tr class="detail"><td colspan="7">${fns}</td></tr>`;
+}
+function srcRow(r,i){
  const ind=r.hierarchy_level?('padding-left:'+(r.hierarchy_level*16)+'px'):'';
  const flags=(r.is_section_header?'<span class="flag">section</span>':'')+(r.has_schedule_data===false?'<span class="flag nod">no marks</span>':'');
- return `<tr class="r ${r.is_section_header?'sec':''}"><td class="pid">${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
+ const canExp=(r.annotations||[]).length>0;
+ return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
   `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
   `<td class="tbl"><b>T${eh(r.table_number)}</b>${r.track_label?' · '+eh(r.track_label):''}<span class="tt" title="${eh(r.table_title)}">${eh(r.table_title)}</span></td>`+
   `<td class="rp">${eh(r.row_position)}</td><td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${flags}</td>`+
@@ -297,16 +323,15 @@ function render(){
  const arr=(MODE==='con'?D.consolidated:D.source).filter(passes);
  arr.sort((a,b)=>{const c=cmp(a,b);return asc?c:-c;});
  let html='';
- if(MODE==='con'){arr.forEach((r,i)=>{html+=conRow(r,i);});window.__arr=arr;}
- else{arr.forEach(r=>{html+=srcRow(r);});}
+ if(MODE==='con'){arr.forEach((r,i)=>{html+=conRow(r,i);});}
+ else{arr.forEach((r,i)=>{html+=srcRow(r,i);});}
+ window.__arr=arr;
  tb.innerHTML=html;
- if(MODE==='con'){
-  tb.querySelectorAll('tr.exp').forEach(tr=>tr.onclick=()=>{
-   const i=+tr.dataset.i; const nx=tr.nextElementSibling;
-   if(nx&&nx.classList.contains('detail')){nx.remove();tr.classList.remove('open');}
-   else{tr.classList.add('open');tr.insertAdjacentHTML('afterend',detailRow(window.__arr[i]));}
-  });
- }
+ tb.querySelectorAll('tr.exp').forEach(tr=>tr.onclick=()=>{
+  const i=+tr.dataset.i; const nx=tr.nextElementSibling;
+  if(nx&&nx.classList.contains('detail')){nx.remove();tr.classList.remove('open');}
+  else{tr.classList.add('open');tr.insertAdjacentHTML('afterend',MODE==='con'?detailRow(window.__arr[i]):srcDetailRow(window.__arr[i]));}
+ });
  cnt.textContent=`${arr.length} of ${MODE==='con'?D.consolidated.length:D.source.length} ${MODE==='con'?'activities':'rows'}`;
 }
 function setMode(m){MODE=m;sortk='__default__';asc=true;mCon.classList.toggle('on',m==='con');mSrc.classList.toggle('on',m==='src');setHead();render();}
