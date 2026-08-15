@@ -594,6 +594,7 @@ class UnifiedAnnotation:
     source_occurrences: list = field(default_factory=list)
     referenced_xacts: list = field(default_factory=list)
     referenced_xcols: list = field(default_factory=list)
+    referenced_props: list = field(default_factory=list)
     cell_references: list = field(default_factory=list)
 
     def add_occurrence(self, table_num: int, marker: str, annot_id: str):
@@ -637,6 +638,7 @@ class UnifiedAnnotation:
             'source_occurrences': self.source_occurrences,
             'referenced_xacts': self.referenced_xacts,
             'referenced_xcols': self.referenced_xcols,
+            'referenced_props': self.referenced_props,
             'cell_references': self.cell_references,
             'occurrence_count': len(self.source_occurrences)
         }
@@ -660,14 +662,16 @@ class AnnotationConsolidator:
         self,
         tables: Dict[int, dict],
         act_to_xact: Dict[Tuple[int, str], str],
-        col_to_xcol: Dict[Tuple[int, str], str]
+        col_to_xcol: Dict[Tuple[int, str], str],
+        prop_to_xprop: Dict[Tuple[int, str], str]
     ):
         """Process annotations from all tables.
-        
+
         Args:
             tables: Dict of table_num -> resolved table data
             act_to_xact: Mapping (table_num, activity_id) -> xact_id
             col_to_xcol: Mapping (table_num, column_id) -> xcol_id
+            prop_to_xprop: Mapping (table_num, property_id) -> unified property_id
         """
         for table_num, table in sorted(tables.items()):
             annotations = table.get('annotations', [])
@@ -691,7 +695,7 @@ class AnnotationConsolidator:
 
             for annot in annotations:
                 self.source_annotation_count += 1
-                self._process_annotation(annot, table_num, act_to_xact, col_to_xcol, prop_to_cols, row_to_act)
+                self._process_annotation(annot, table_num, act_to_xact, col_to_xcol, prop_to_cols, row_to_act, prop_to_xprop)
 
     def _process_annotation(
         self,
@@ -700,7 +704,8 @@ class AnnotationConsolidator:
         act_to_xact: Dict[Tuple[int, str], str],
         col_to_xcol: Dict[Tuple[int, str], str],
         prop_to_cols: Dict[str, List[str]],
-        row_to_act: Dict[int, str]
+        row_to_act: Dict[int, str],
+        prop_to_xprop: Dict[Tuple[int, str], str]
     ):
         """Process a single annotation."""
         text = annot.get('annotation_text', '')
@@ -718,12 +723,27 @@ class AnnotationConsolidator:
             if xact and xact not in xacts:
                 xacts.append(xact)
         
-        # Fallback: if no activity_ids resolved, use marker_locations
+        # Property references: a schedule_property location scopes the annotation
+        # to that property row, not to whatever activity shares its row number.
+        xprops = []
+        for prop_id in refs.get('property_ids', []):
+            xprop = prop_to_xprop.get((table_num, prop_id))
+            if xprop and xprop not in xprops:
+                xprops.append(xprop)
+
+        # Fallback: if no activity_ids resolved, use marker_locations.
         # This catches instruction-style annotations where markers were placed
         # in a separate column (not on activity rows), so the resolver couldn't
         # map them to activity_ids — but marker_locations preserves row_position.
+        # Only activity_name and schedule_cell locations may bind an activity:
+        # a schedule_property (or synthesized table-scope) location merely shares
+        # a row NUMBER with whatever activity sits at that position in each
+        # table. Binding through it asserted 52 property/table-scope notes
+        # against unrelated activities across 10 protocols.
         if not xacts:
             for loc in annot.get('marker_locations', []):
+                if loc.get('location_type') not in ('activity_name', 'schedule_cell'):
+                    continue
                 rp = loc.get('row_position')
                 if rp is not None and rp in row_to_act:
                     act_id = row_to_act[rp]
@@ -762,6 +782,9 @@ class AnnotationConsolidator:
             for xcol in xcols:
                 if xcol not in ua.referenced_xcols:
                     ua.referenced_xcols.append(xcol)
+            for xprop in xprops:
+                if xprop not in ua.referenced_props:
+                    ua.referenced_props.append(xprop)
             for cell_ref in cell_refs:
                 if cell_ref not in ua.cell_references:
                     ua.cell_references.append(cell_ref)
@@ -774,6 +797,7 @@ class AnnotationConsolidator:
                 normalized_text=normalized,
                 referenced_xacts=xacts,
                 referenced_xcols=xcols,
+                referenced_props=xprops,
                 cell_references=cell_refs
             )
             ua.add_occurrence(table_num, marker, annot_id)
@@ -1028,6 +1052,7 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
     
     # Validate unified_annotations
     xannot_pattern = re.compile(r'^xannot-\d{3}$')
+    valid_prop_ids = {p.get("property_id") for p in data.get("property_hierarchy", [])}
     for ua in data.get("unified_annotations", []):
         xannot_id = ua.get("xannot_id", "")
         if not xannot_pattern.match(xannot_id):
@@ -1043,7 +1068,13 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
             if ref_xcol not in valid_xcol_ids:
                 result.errors.append(f"{xannot_id} references unknown xcol_id: {ref_xcol}")
                 result.references_valid = False
-        
+
+        for ref_prop in ua.get("referenced_props", []):
+            if ref_prop not in valid_prop_ids:
+                result.errors.append(f"{xannot_id} references unknown property_id: {ref_prop}")
+                result.references_valid = False
+
+
         for cell_ref in ua.get("cell_references", []):
             if cell_ref.get("xact_id") not in valid_xact_ids:
                 result.errors.append(f"{xannot_id} cell_ref has unknown xact_id")
@@ -1057,12 +1088,13 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
         has_refs = (
             ua.get("referenced_xacts")
             or ua.get("referenced_xcols")
+            or ua.get("referenced_props")
             or ua.get("cell_references")
         )
         if not has_refs:
             result.warnings.append(
                 f"{xannot_id}: orphaned annotation \u2014 no referenced_xacts, "
-                f"referenced_xcols, or cell_references"
+                f"referenced_xcols, referenced_props, or cell_references"
             )
     
     # Annotation text integrity (warnings only)
@@ -1139,6 +1171,31 @@ def build_cross_table_mappings(
             col_to_xcol[(sc['table_num'], sc['column_id'])] = ucol.xcol_id
 
     return act_to_xact, col_to_xcol
+
+
+def build_prop_to_xprop(
+    tables: Dict[int, dict],
+    property_info: Dict[Union[int, str], 'PropertyInfo']
+) -> Dict[Tuple[int, str], str]:
+    """Build mapping from (table_num, property_id) to the unified property_id.
+
+    Inverts ColumnConsolidator.property_info: a table property joins the unified
+    hierarchy through its hierarchical level, or its type+name qualifier key,
+    exactly as _extract_column_properties files it. Properties no column value
+    references never enter property_info and are left unmapped.
+    """
+    mapping: Dict[Tuple[int, str], str] = {}
+    for table_num, table in tables.items():
+        for p in table.get('schedule_properties', []):
+            level = p.get('hierarchical_level')
+            if level is not None:
+                prop_key: Union[int, str] = level
+            else:
+                prop_key = f"q_{p.get('property_type', 'other')}_{p.get('property_name', '')}"
+            info = property_info.get(prop_key)
+            if info:
+                mapping[(table_num, p.get('property_id', ''))] = info.property_id
+    return mapping
 
 
 # =============================================================================
@@ -1261,7 +1318,8 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
 
     # Annotation consolidation
     annot_consolidator = AnnotationConsolidator()
-    annot_consolidator.process_tables(tables, act_to_xact, col_to_xcol)
+    prop_to_xprop = build_prop_to_xprop(tables, col_consolidator.property_info)
+    annot_consolidator.process_tables(tables, act_to_xact, col_to_xcol, prop_to_xprop)
 
     # Calculate stats
     total_src = sum(

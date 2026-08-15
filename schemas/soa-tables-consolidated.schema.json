@@ -594,6 +594,13 @@
           },
           "description": "Unified column IDs this annotation references"
         },
+        "referenced_props": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Unified property IDs (from property_hierarchy) this annotation references, populated from schedule_property marker locations. Optional: absent in files consolidated before this field existed."
+        },
         "cell_references": {
           "type": "array",
           "items": {

@@ -487,6 +487,10 @@ def gen_annotations_component(data: dict) -> str:
             if not label:
                 label = col.get('composite_label', '')[:20]
             col_lookup[xcol_id] = label
+
+    # Property lookup for displaying referenced_props by name
+    prop_lookup = {p.get('property_id', ''): p.get('property_name', '')
+                   for p in data.get('property_hierarchy', [])}
     
     sections = []
     type_order = ['footnote', 'abbreviation', 'legend', 'source_note', 'continuation_note']
@@ -516,17 +520,18 @@ def gen_annotations_component(data: dict) -> str:
             # Determine scope and build references display
             ref_xacts = ua.get('referenced_xacts', [])
             ref_xcols = ua.get('referenced_xcols', [])
+            ref_props = ua.get('referenced_props', [])
             cell_refs = ua.get('cell_references', [])
-            
+
             scope_parts = []
-            
+
             if ref_xacts:
                 act_names = [act_lookup.get(xact, xact) for xact in ref_xacts[:3]]
                 act_display = ' | '.join(act_names)
                 if len(ref_xacts) > 3:
                     act_display += f' (+{len(ref_xacts) - 3})'
                 scope_parts.append(f'<span class="scope-acts" title="Activities">{esc(act_display)}</span>')
-            
+
             if ref_xcols and not ref_xacts:
                 # Property-level: show column labels (timeline scope)
                 col_labels = [col_lookup.get(xcol, xcol) for xcol in ref_xcols[:5]]
@@ -534,7 +539,11 @@ def gen_annotations_component(data: dict) -> str:
                 if len(ref_xcols) > 5:
                     col_display += f' (+{len(ref_xcols) - 5})'
                 scope_parts.append(f'<span class="scope-cols" title="Timeline columns: {len(ref_xcols)} total">{esc(col_display)}</span>')
-            
+
+            if ref_props:
+                prop_names = [prop_lookup.get(p, p) or p for p in ref_props]
+                scope_parts.append(f'<span class="scope-props" title="Schedule properties">{esc(" | ".join(prop_names))}</span>')
+
             if cell_refs:
                 scope_parts.append(f'<span class="scope-cells" title="Specific cells">{len(cell_refs)} cells</span>')
             
@@ -1029,6 +1038,7 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
         
         .scope-acts {{ color: {COLORS['activities']}; }}
         .scope-cols {{ color: #17a2b8; font-style: italic; }}
+        .scope-props {{ color: #7030A0; font-style: italic; }}
         .scope-cells {{ color: #538135; }}
         .scope-table {{ color: #999; font-style: italic; }}
         

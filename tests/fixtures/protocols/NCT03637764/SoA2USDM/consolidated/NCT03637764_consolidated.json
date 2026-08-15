@@ -3,7 +3,7 @@
   "schema_version": "1.1",
   "protocol_id": "NCT03637764",
   "consolidation_metadata": {
-    "consolidated_at": "2026-02-26T12:27:58.167957+00:00",
+    "consolidated_at": "2026-08-15T08:29:42.272041+00:00",
     "consolidator": "soa2usdm.steps.consolidate v1.1",
     "source_tables": [
       {
@@ -2387,6 +2387,9 @@
         "xcol-005",
         "xcol-006"
       ],
+      "referenced_props": [
+        "prop-001"
+      ],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2406,6 +2409,7 @@
         "xact-009"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2432,6 +2436,7 @@
         "xact-021"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [
         {
           "xact_id": "xact-003",
@@ -2516,6 +2521,7 @@
         "xact-001"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2536,6 +2542,7 @@
         "xact-004"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2556,6 +2563,7 @@
         "xact-006"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2575,6 +2583,7 @@
         "xact-007"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2594,6 +2603,7 @@
         "xact-010"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2617,6 +2627,7 @@
         "xact-016"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2636,6 +2647,7 @@
         "xact-014"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2657,6 +2669,7 @@
         "xact-020"
       ],
       "referenced_xcols": [],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     }
