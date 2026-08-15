@@ -8,6 +8,10 @@ Steps:
     visualize           Consolidated HTML generation (VisualizeStep)
     visualize_resolved  Per-table resolved HTML, debugging (VisualizeResolvedStep)
     index_generator     Collection index page (IndexGeneratorStep)
+
+Checks against the source pages (need poppler + numpy):
+    page_grid           Rule-line cell geometry, vector and raster alike
+    row_audit           Extracted rows vs the rows the pages print (RowAuditStep)
 """
 
 from . import config
@@ -20,6 +24,7 @@ from .consolidate import ConsolidateStep
 from .visualize import VisualizeStep
 from .visualize_resolved import VisualizeResolvedStep
 from .index_generator import IndexGeneratorStep
+from .row_audit import RowAuditStep
 
 __version__ = "0.1.0"
 
@@ -35,4 +40,5 @@ __all__ = [
     "VisualizeStep",
     "VisualizeResolvedStep",
     "IndexGeneratorStep",
+    "RowAuditStep",
 ]

@@ -1,0 +1,644 @@
+{
+ "schema_name": "soa-table-extraction",
+ "schema_version": "1.0",
+ "extraction_metadata": {
+  "extracted_at": "2026-07-06T21:02:41+00:00",
+  "extractor": "Claude Opus 4.8 (Cowork; single-pass coordinate + image-page reconstruction, human-reviewed draft)",
+  "source_document": {
+   "filename": "NCT04677179_soa.pdf",
+   "document_type": "protocol",
+   "document_version": "J1P-MC-KFAH(b)"
+  },
+  "extraction_status": "ready_for_resolution",
+  "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction."
+ },
+ "table_metadata": {
+  "table_number": 4,
+  "table_type": "track",
+  "table_title": "Schedule of Activities for Early Termination, Unscheduled Visits, and Post-Treatment Follow-Up Period",
+  "table_purpose": "Early Termination (ETV), Unscheduled (V997), Post-Treatment follow-up (V801, V802).",
+  "page_start": 43,
+  "page_end": 46,
+  "notes": "Document page numbers of full protocol PDF.",
+  "track_label": "Early Termination / Unscheduled / Post-Treatment"
+ },
+ "schedule_properties": [
+  {
+   "table_number": 4,
+   "row_position": 1,
+   "property_name": "Visit number",
+   "property_name_source": {
+    "row_position": 1,
+    "column_position": 1,
+    "cell_value": "Visit number"
+   },
+   "property_type": "visit",
+   "property_comment": "Visit number across ETV-V802.",
+   "hierarchical_level": 1
+  },
+  {
+   "table_number": 4,
+   "row_position": 2,
+   "property_name": "Weeks from randomization",
+   "property_name_source": {
+    "row_position": 2,
+    "column_position": 1,
+    "cell_value": "Weeks from randomization"
+   },
+   "property_type": "week",
+   "property_comment": "Weeks from randomization across ETV-V802.",
+   "hierarchical_level": 2
+  },
+  {
+   "table_number": 4,
+   "row_position": 3,
+   "property_name": "Study day",
+   "property_name_source": {
+    "row_position": 3,
+    "column_position": 1,
+    "cell_value": "Study day"
+   },
+   "property_type": "study_day",
+   "property_comment": "Study day across ETV-V802.",
+   "hierarchical_level": 3
+  },
+  {
+   "table_number": 4,
+   "row_position": 4,
+   "property_name": "Visit interval tolerance (days)",
+   "property_name_source": {
+    "row_position": 4,
+    "column_position": 1,
+    "cell_value": "Visit interval tolerance (days)"
+   },
+   "property_type": "window",
+   "property_comment": "Visit interval tolerance (days) across ETV-V802.",
+   "hierarchical_level": 4
+  },
+  {
+   "table_number": 4,
+   "row_position": 5,
+   "property_name": "Fasting visit",
+   "property_name_source": {
+    "row_position": 5,
+    "column_position": 1,
+    "cell_value": "Fasting visit"
+   },
+   "property_type": "condition",
+   "property_comment": "Marks fasting visits (X).",
+   "hierarchical_level": null
+  }
+ ],
+ "schedule_grid": [
+  {
+   "table_number": 4,
+   "row_position": 1,
+   "column_position": 2,
+   "cell_value": "ETV"
+  },
+  {
+   "table_number": 4,
+   "row_position": 1,
+   "column_position": 3,
+   "cell_value": "V997"
+  },
+  {
+   "table_number": 4,
+   "row_position": 1,
+   "column_position": 4,
+   "cell_value": "V801"
+  },
+  {
+   "table_number": 4,
+   "row_position": 1,
+   "column_position": 5,
+   "cell_value": "V802"
+  },
+  {
+   "table_number": 4,
+   "row_position": 2,
+   "column_position": 4,
+   "cell_value": "58 or ETV + 8 weeks after last dose"
+  },
+  {
+   "table_number": 4,
+   "row_position": 2,
+   "column_position": 5,
+   "cell_value": "66 or ETV + 16 weeks after last dose"
+  },
+  {
+   "table_number": 4,
+   "row_position": 4,
+   "column_position": 4,
+   "cell_value": "±7"
+  },
+  {
+   "table_number": 4,
+   "row_position": 4,
+   "column_position": 5,
+   "cell_value": "±7"
+  }
+ ],
+ "activities": [
+  {
+   "table_number": 4,
+   "row_position": 6,
+   "activity_name": "QIDS-SR16",
+   "activity_name_source": {
+    "cell_text": "QIDS -SR16",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c1"
+  },
+  {
+   "table_number": 4,
+   "row_position": 7,
+   "activity_name": "Physician’s Global Assessment (PGA)",
+   "activity_name_source": {
+    "cell_text": "Physician’s Global Assessment (PGA)) Physician’s Global Assess ment(P G A)",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 4,
+   "row_position": 8,
+   "activity_name": "Hematology",
+   "activity_name_source": {
+    "cell_text": "Hematologytology",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 4,
+   "row_position": 9,
+   "activity_name": "Clinical chemistry",
+   "activity_name_source": {
+    "cell_text": "Clinical chemistry",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c5"
+  },
+  {
+   "table_number": 4,
+   "row_position": 10,
+   "activity_name": "Lipid panel",
+   "activity_name_source": {
+    "cell_text": "Lipid panel",
+    "indentation_level": 1
+   },
+   "annotation_markers": ""
+  },
+  {
+   "table_number": 4,
+   "row_position": 11,
+   "activity_name": "Urinalysis",
+   "activity_name_source": {
+    "cell_text": "Urinalysis",
+    "indentation_level": 1
+   },
+   "annotation_markers": ""
+  },
+  {
+   "table_number": 4,
+   "row_position": 12,
+   "activity_name": "Urine pregnancy (local)",
+   "activity_name_source": {
+    "cell_text": "Urine pregnancy (local)",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c6,c11"
+  },
+  {
+   "table_number": 4,
+   "row_position": 13,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c2"
+  },
+  {
+   "table_number": 4,
+   "row_position": 14,
+   "activity_name": "HBV DNA",
+   "activity_name_source": {
+    "cell_text": "HBV DNA",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c7"
+  },
+  {
+   "table_number": 4,
+   "row_position": 15,
+   "activity_name": "Pharmacokinetic (PK) samples",
+   "activity_name_source": {
+    "cell_text": "Pharmacokinetic (PK) samples",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c8"
+  },
+  {
+   "table_number": 4,
+   "row_position": 16,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   },
+   "annotation_markers": ""
+  },
+  {
+   "table_number": 4,
+   "row_position": 17,
+   "activity_name": "Flow cytometry panel",
+   "activity_name_source": {
+    "cell_text": "Flow cytometry panel",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c9,c12"
+  },
+  {
+   "table_number": 4,
+   "row_position": 18,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   },
+   "annotation_markers": ""
+  },
+  {
+   "table_number": 4,
+   "row_position": 19,
+   "activity_name": "Endoscopic Procedure",
+   "activity_name_source": {
+    "cell_text": "Endoscopic Procedure",
+    "indentation_level": 0
+   }
+  },
+  {
+   "table_number": 4,
+   "row_position": 20,
+   "activity_name": "Endoscopy",
+   "activity_name_source": {
+    "cell_text": "Endoscopy",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c3,c4,c10"
+  },
+  {
+   "table_number": 4,
+   "row_position": 21,
+   "activity_name": "Colon biopsy sample collection",
+   "activity_name_source": {
+    "cell_text": "Colon biopsy sample collection",
+    "indentation_level": 1
+   },
+   "annotation_markers": ""
+  },
+  {
+   "table_number": 4,
+   "row_position": 22,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 4,
+   "row_position": 23,
+   "activity_name": "CCI (redacted)",
+   "activity_name_source": {
+    "cell_text": "CCI (redacted)",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 4,
+   "row_position": 24,
+   "activity_name": "Randomization and Dosing",
+   "activity_name_source": {
+    "cell_text": "Randomization and Dosing",
+    "indentation_level": 0
+   }
+  }
+ ],
+ "activity_schedule": [
+  {
+   "table_number": 4,
+   "row_position": 6,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 7,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 8,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 8,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 8,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 9,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 9,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 9,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 10,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 11,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 11,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 11,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 12,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 12,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 12,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 13,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 14,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 14,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 15,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 15,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 16,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 16,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 17,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 18,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 20,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 21,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 22,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 4,
+   "row_position": 23,
+   "column_position": 2,
+   "cell_value": "X"
+  }
+ ],
+ "annotations": [
+  {
+   "annotation_marker": "c1",
+   "annotation_type": "footnote",
+   "annotation_text": "No fasting in this period",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 6
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c2",
+   "annotation_type": "footnote",
+   "annotation_text": "For AESIs, additional data are collected ( Section 8.3.6).",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 13
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c3",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting for at least 5minutes. V997: Vital signs collection is optional.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 20
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c4",
+   "annotation_type": "footnote",
+   "annotation_text": "Locally performed.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 20
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c5",
+   "annotation_type": "footnote",
+   "annotation_text": "Fasting is not required for the lipid panel at ETV.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 9
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c6",
+   "annotation_type": "footnote",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA if local laws or regulations require more frequent testing.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 12
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c7",
+   "annotation_type": "footnote",
+   "annotation_text": "Only for participants who are positive for anti‑HBc at screening. Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 14
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c8",
+   "annotation_type": "footnote",
+   "annotation_text": "No fasting in this period collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 15
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c9",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood sample for DNA pharmacogenetics can be obtained any time at or after V2.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 17
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c10",
+   "annotation_type": "footnote",
+   "annotation_text": "Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. If not performed at ETV, this will not be considered a protocol deviation. Recommended at ETV based on judgment of the investigator and after discussion with the sponsor ’s medical monitor. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed. If not performed at ETV, this will not be considered a protocol deviation.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 20
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c11",
+   "annotation_type": "footnote",
+   "annotation_text": "No dosing at ETV, V997, or post-treatment follow-up visits.",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 12
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c12",
+   "annotation_type": "footnote",
+   "annotation_text": "DNA=deoxyribonucleic acid; ETV =early symptomatology–self report; SoA=schedule of activities;",
+   "marker_locations": [
+    {
+     "table_number": 4,
+     "location_type": "activity_name",
+     "row_position": 17
+    }
+   ]
+  }
+ ]
+}

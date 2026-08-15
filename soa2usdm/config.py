@@ -132,6 +132,16 @@ def find_resolved_files(protocol_id: str, collection: str) -> list[Path]:
     return sorted(resolved_dir.glob("*_resolved.json"))
 
 
+def find_soa_pdf(protocol_id: str, collection: str) -> Path | None:
+    """Find the SoA page extract PDF for a protocol (`{protocol_id}_soa.pdf`)."""
+    try:
+        protocol_path = get_protocol_path(protocol_id, collection)
+    except FileNotFoundError:
+        return None
+    pdf = protocol_path / f"{protocol_id}_soa.pdf"
+    return pdf if pdf.exists() else None
+
+
 def find_consolidated_file(protocol_id: str, collection: str) -> Path | None:
     """Find the consolidated JSON file for a protocol."""
     try:

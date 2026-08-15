@@ -12,10 +12,14 @@ dependencies = []
 
 [project.optional-dependencies]
 notebooks = ["pandas", "requests", "pymupdf", "pymupdf4llm", "openpyxl"]
+# Page geometry (soa2usdm.page_grid, soa2usdm.row_audit) also needs poppler
+# on PATH: pdftoppm, pdftotext, pdfinfo.
+bands = ["numpy"]
 test = ["pytest"]
 
 [project.scripts]
 soa2usdm-activities = "soa2usdm.activity_inventory:main"
+soa2usdm-row-audit = "soa2usdm.row_audit:main"
 
 [tool.setuptools]
 packages = ["soa2usdm"]

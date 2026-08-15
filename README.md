@@ -72,7 +72,9 @@ soa2usdm/
 │   ├── consolidate.py               # ConsolidateStep (Layer 3)
 │   ├── visualize.py                 # Consolidated HTML
 │   ├── visualize_resolved.py        # Per-table HTML (debugging)
-│   └── index_generator.py           # Collection index page
+│   ├── index_generator.py           # Collection index page
+│   ├── page_grid.py                 # Rule-line cell geometry (vector + raster)
+│   └── row_audit.py                 # RowAuditStep — extracted rows vs the pages
 │
 ├── notebooks/
 │   ├── 00_download_extract.ipynb    # Download PDFs, extract SoA pages, scaffold folders
@@ -80,6 +82,7 @@ soa2usdm/
 │
 ├── tests/
 │   ├── test_pipeline_regression.py  # Golden-output regression over discovered protocols
+│   ├── test_page_geometry.py        # Cell geometry + row audit, incl. negative controls
 │   └── fixtures/protocols/          # In-repo golden data (JSON only) — tests run standalone
 │
 └── pyproject.toml
@@ -92,6 +95,9 @@ Attach the prompt file + your data to a new Claude conversation. See [`prompts/E
 
 **Layers 2–3 — Resolution, Consolidation & Visualization (Python):**
 The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to run across a protocol collection — set `COLLECTION` in the config cell and execute.
+
+**Checking extractions against the source pages (Python):**
+`soa2usdm-row-audit --collection <name>` compares every extracted activity row against the rows its SoA pages actually print, and writes `row_audit.json` to the collection root. Needs poppler (`pdftoppm`, `pdftotext`, `pdfinfo`) and the `bands` extra: `pip install -e '.[bands]'`.
 
 ## Key Design Decisions
 

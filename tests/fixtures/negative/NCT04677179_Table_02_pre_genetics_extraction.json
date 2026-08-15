@@ -1,0 +1,2168 @@
+{
+ "schema_name": "soa-table-extraction",
+ "schema_version": "1.0",
+ "extraction_metadata": {
+  "extracted_at": "2026-07-06T21:02:41+00:00",
+  "extractor": "Claude Opus 4.8 (Cowork; single-pass coordinate + image-page reconstruction, human-reviewed draft)",
+  "source_document": {
+   "filename": "NCT04677179_soa.pdf",
+   "document_type": "protocol",
+   "document_version": "J1P-MC-KFAH(b)"
+  },
+  "extraction_status": "ready_for_resolution",
+  "extraction_notes": "Option B: annotations regenerated from PDF de-glyph (Cowork, auto-finalized); structural + mark layers preserved from prior verified extraction. 2026-07-30 rev2: Comment-column annotations re-bounded by raster rule-line cell geometry (200 dpi horizontal-rule detection per page) instead of y-gap proximity; over-merged notes split at the cell boundary with text preserved verbatim, and each cell re-bound to the row its band overlaps. Marks and structure unchanged."
+ },
+ "table_metadata": {
+  "table_number": 2,
+  "table_type": "track",
+  "table_title": "Schedule of Activities for the Maintenance Treatment Period",
+  "table_purpose": "Maintenance period (responders at Week 12), Visits V10-V29.",
+  "page_start": 24,
+  "page_end": 32,
+  "notes": "Document page numbers of full protocol PDF.",
+  "track_label": "Maintenance (responders)"
+ },
+ "schedule_properties": [
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "property_name": "Visit number",
+   "property_name_source": {
+    "row_position": 1,
+    "column_position": 1,
+    "cell_value": "Visit number"
+   },
+   "property_type": "visit",
+   "property_comment": "Visit number across V10-V29.",
+   "hierarchical_level": 1
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "property_name": "Weeks from randomization",
+   "property_name_source": {
+    "row_position": 2,
+    "column_position": 1,
+    "cell_value": "Weeks from randomization"
+   },
+   "property_type": "week",
+   "property_comment": "Weeks from randomization across V10-V29.",
+   "hierarchical_level": 2
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "property_name": "Study day",
+   "property_name_source": {
+    "row_position": 3,
+    "column_position": 1,
+    "cell_value": "Study day"
+   },
+   "property_type": "study_day",
+   "property_comment": "Study day across V10-V29.",
+   "hierarchical_level": 3
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "property_name": "Visit interval tolerance (days)",
+   "property_name_source": {
+    "row_position": 4,
+    "column_position": 1,
+    "cell_value": "Visit interval tolerance (days)"
+   },
+   "property_type": "window",
+   "property_comment": "Visit interval tolerance (days) across V10-V29.",
+   "hierarchical_level": 4
+  },
+  {
+   "table_number": 2,
+   "row_position": 5,
+   "property_name": "Fasting visit",
+   "property_name_source": {
+    "row_position": 5,
+    "column_position": 1,
+    "cell_value": "Fasting visit"
+   },
+   "property_type": "condition",
+   "property_comment": "Marks fasting visits (X).",
+   "hierarchical_level": null
+  }
+ ],
+ "schedule_grid": [
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 2,
+   "cell_value": "V10"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 3,
+   "cell_value": "V11"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 4,
+   "cell_value": "V12"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 5,
+   "cell_value": "V13"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 6,
+   "cell_value": "V14"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 7,
+   "cell_value": "V15"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 8,
+   "cell_value": "V16"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 9,
+   "cell_value": "V17"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 10,
+   "cell_value": "V18"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 11,
+   "cell_value": "V19"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 12,
+   "cell_value": "V20"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 13,
+   "cell_value": "V21"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 14,
+   "cell_value": "V22"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 15,
+   "cell_value": "V23"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 16,
+   "cell_value": "V24"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 17,
+   "cell_value": "V25"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 18,
+   "cell_value": "V26"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 19,
+   "cell_value": "V27"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 20,
+   "cell_value": "V28"
+  },
+  {
+   "table_number": 2,
+   "row_position": 1,
+   "column_position": 21,
+   "cell_value": "V29"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 2,
+   "cell_value": "14"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 3,
+   "cell_value": "16"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 4,
+   "cell_value": "18"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 5,
+   "cell_value": "20"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 6,
+   "cell_value": "22"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 7,
+   "cell_value": "24"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 8,
+   "cell_value": "26"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 9,
+   "cell_value": "28"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 10,
+   "cell_value": "30"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 11,
+   "cell_value": "32"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 12,
+   "cell_value": "34"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 13,
+   "cell_value": "36"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 14,
+   "cell_value": "38"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 15,
+   "cell_value": "40"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 16,
+   "cell_value": "42"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 17,
+   "cell_value": "44"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 18,
+   "cell_value": "46"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 19,
+   "cell_value": "48"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 20,
+   "cell_value": "50"
+  },
+  {
+   "table_number": 2,
+   "row_position": 2,
+   "column_position": 21,
+   "cell_value": "52"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 2,
+   "cell_value": "99"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 3,
+   "cell_value": "113"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 4,
+   "cell_value": "127"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 5,
+   "cell_value": "141"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 6,
+   "cell_value": "155"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 7,
+   "cell_value": "169"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 8,
+   "cell_value": "183"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 9,
+   "cell_value": "197"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 10,
+   "cell_value": "211"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 11,
+   "cell_value": "225"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 12,
+   "cell_value": "239"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 13,
+   "cell_value": "253"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 14,
+   "cell_value": "267"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 15,
+   "cell_value": "281"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 16,
+   "cell_value": "295"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 17,
+   "cell_value": "309"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 18,
+   "cell_value": "323"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 19,
+   "cell_value": "337"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 20,
+   "cell_value": "351"
+  },
+  {
+   "table_number": 2,
+   "row_position": 3,
+   "column_position": 21,
+   "cell_value": "365"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 2,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 3,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 4,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 5,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 6,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 7,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 8,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 9,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 10,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 11,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 12,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 13,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 14,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 15,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 16,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 17,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 18,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 19,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 20,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 4,
+   "column_position": 21,
+   "cell_value": "±3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 5,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 5,
+   "column_position": 17,
+   "cell_value": "X"
+  }
+ ],
+ "activities": [
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "activity_name": "Concomitant medications",
+   "activity_name_source": {
+    "cell_text": "Concomitant medications",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "activity_name": "Adverse events",
+   "activity_name_source": {
+    "cell_text": "Adverse events",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c1"
+  },
+  {
+   "table_number": 2,
+   "row_position": 8,
+   "activity_name": "Review modified Mayo score (MMS)",
+   "activity_name_source": {
+    "cell_text": "Review modified Mayo score(MMS)",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 9,
+   "activity_name": "Tobacco use",
+   "activity_name_source": {
+    "cell_text": "Tobacco use",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 10,
+   "activity_name": "Physical Evaluation",
+   "activity_name_source": {
+    "cell_text": "Physical Evaluation",
+    "indentation_level": 0
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 11,
+   "activity_name": "Weight",
+   "activity_name_source": {
+    "cell_text": "Weight",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "activity_name": "Vital signs",
+   "activity_name_source": {
+    "cell_text": "Vital signs",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c2"
+  },
+  {
+   "table_number": 2,
+   "row_position": 13,
+   "activity_name": "Symptom-directed physical examination, including assessment for signs and symptoms of tuberculosis (TB), including peripheral lymph nodes",
+   "activity_name_source": {
+    "cell_text": "Symptom-directed physical examination, including assessment for signs and symptoms of tuberculosis (TB), including peripheral lymph nodeserculosis (TB), including peripherallymph nodes",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c3"
+  },
+  {
+   "table_number": 2,
+   "row_position": 14,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 15,
+   "activity_name": "12-lead electrocardiogram (ECG)",
+   "activity_name_source": {
+    "cell_text": "12-lead electrocardiogram (ECG)",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c4"
+  },
+  {
+   "table_number": 2,
+   "row_position": 16,
+   "activity_name": "Patient Diary (Electronic)",
+   "activity_name_source": {
+    "cell_text": "Patient Diary (Electronic)",
+    "indentation_level": 0
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "activity_name": "Diary compliance check",
+   "activity_name_source": {
+    "cell_text": "Diary compliance check",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c5"
+  },
+  {
+   "table_number": 2,
+   "row_position": 18,
+   "activity_name": "Diary return",
+   "activity_name_source": {
+    "cell_text": "Diary return",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 19,
+   "activity_name": "Inflammatory Bowel Disease Questionnaire (IBDQ)",
+   "activity_name_source": {
+    "cell_text": "Inflammatory Bowel Disease Questionnaire (IBDQ)",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 20,
+   "activity_name": "Patient Global Impression of Change (PGI-C)",
+   "activity_name_source": {
+    "cell_text": "Patient Global Impression of Change (PGI-C)",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 21,
+   "activity_name": "QIDS-SR16",
+   "activity_name_source": {
+    "cell_text": "QIDS-SR16 Clinician-Administered",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 22,
+   "activity_name": "Physician’s Global Assessment (PGA)",
+   "activity_name_source": {
+    "cell_text": "Questionnaires Physician’s Global Assessment (PGA)",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "activity_name": "Hematology",
+   "activity_name_source": {
+    "cell_text": "Hematology",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "activity_name": "Clinical chemistry",
+   "activity_name_source": {
+    "cell_text": "Clinical chemistry",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 25,
+   "activity_name": "Lipid panel",
+   "activity_name_source": {
+    "cell_text": "Lipid panel",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c6"
+  },
+  {
+   "table_number": 2,
+   "row_position": 26,
+   "activity_name": "Urinalysis",
+   "activity_name_source": {
+    "cell_text": "Urinalysis",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "activity_name": "Urine pregnancy (local)",
+   "activity_name_source": {
+    "cell_text": "Urine pregnancy (local)",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c7"
+  },
+  {
+   "table_number": 2,
+   "row_position": 28,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 29,
+   "activity_name": "HBV DNA",
+   "activity_name_source": {
+    "cell_text": "HBV DNA",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c8"
+  },
+  {
+   "table_number": 2,
+   "row_position": 30,
+   "activity_name": "Pharmacokinetic (PK) samples",
+   "activity_name_source": {
+    "cell_text": "Pharmacokinetic (PK) samples",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c9"
+  },
+  {
+   "table_number": 2,
+   "row_position": 31,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c9_2"
+  },
+  {
+   "table_number": 2,
+   "row_position": 32,
+   "activity_name": "Flow cytometry panel",
+   "activity_name_source": {
+    "cell_text": "Flow cytometry panel",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c10"
+  },
+  {
+   "table_number": 2,
+   "row_position": 33,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 34,
+   "activity_name": "Endoscopic Procedure",
+   "activity_name_source": {
+    "cell_text": "Endoscopic Procedure",
+    "indentation_level": 0
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 35,
+   "activity_name": "Endoscopy",
+   "activity_name_source": {
+    "cell_text": "Endoscopy",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 36,
+   "activity_name": "Colon biopsy sample collection",
+   "activity_name_source": {
+    "cell_text": "Colon biopsy sample collection",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c11"
+  },
+  {
+   "table_number": 2,
+   "row_position": 37,
+   "activity_name": "CCI",
+   "activity_name_source": {
+    "cell_text": "CCI",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 38,
+   "activity_name": "CCI (redacted)",
+   "activity_name_source": {
+    "cell_text": "CCI (redacted)",
+    "indentation_level": 1
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 39,
+   "activity_name": "Randomization and Dosing",
+   "activity_name_source": {
+    "cell_text": "Randomization and Dosing",
+    "indentation_level": 0
+   }
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "activity_name": "Dosing",
+   "activity_name_source": {
+    "cell_text": "Dosing",
+    "indentation_level": 1
+   },
+   "annotation_markers": "c12,c13"
+  }
+ ],
+ "activity_schedule": [
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 12,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 14,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 16,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 18,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 20,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 12,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 14,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 16,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 18,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 20,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 8,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 9,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 11,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 12,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 14,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 16,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 18,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 20,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 13,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 13,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 14,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 14,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 15,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 6,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 8,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 10,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 12,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 14,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 16,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 18,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 20,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 17,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 18,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 19,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 19,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 20,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 20,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 21,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 22,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 23,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 24,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 25,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 25,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 26,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 26,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 26,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 26,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 27,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 28,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 29,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 29,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 29,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 30,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 30,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 30,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 31,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 31,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 32,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 32,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 33,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 33,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 35,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 36,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 37,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 37,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 38,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 38,
+   "column_position": 21,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 6,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 8,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 10,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 12,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 13,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 14,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 15,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 16,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 17,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 18,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 19,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 40,
+   "column_position": 20,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 6,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 8,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 10,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 6,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 6,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 8,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 10,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 7,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 2,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 3,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 4,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 5,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 6,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 8,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 9,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 10,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 12,
+   "column_position": 11,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 9,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 11,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 13,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 15,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 14,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 21,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 28,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 31,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 33,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 37,
+   "column_position": 7,
+   "cell_value": "X"
+  },
+  {
+   "table_number": 2,
+   "row_position": 38,
+   "column_position": 7,
+   "cell_value": "X"
+  }
+ ],
+ "annotations": [
+  {
+   "annotation_marker": "c1",
+   "annotation_type": "footnote",
+   "annotation_text": "For AESIs, additional data are collected ( Section 8.3.6).",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 7
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c2",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood pressure, body temperature, and pulse rate. Vital signs should be measured after participant has been sitting for at least 5minutes.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 12
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c3",
+   "annotation_type": "footnote",
+   "annotation_text": "See Section 8.2.2.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 13
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c4",
+   "annotation_type": "footnote",
+   "annotation_text": "Locally performed.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 15
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c5",
+   "annotation_type": "footnote",
+   "annotation_text": "Check compliance for stool frequency rectal bleeding nocturnal stools bristol stool scale urgency NRS abdominal pain NRS fatigue NRS, and patient global rating of severity ( PGR-s).",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 17
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c6",
+   "annotation_type": "footnote",
+   "annotation_text": "Fasting samples are preferred, but if participant is nonfasting at time of collection, this is not a protocol deviation.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 25
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c7",
+   "annotation_type": "footnote",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation. At dosing visits which have pregnancy testing, the pregnancy test result must be confirmed to be negative prior to dosing. Pregnancy testing maybe performed more frequently than designated on the SoA, if local laws or regulations require more frequent testing.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 27
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c8",
+   "annotation_type": "footnote",
+   "annotation_text": "Only for participants who are positive for anti‑HBc at screening.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 29
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c9",
+   "annotation_type": "footnote",
+   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 30
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c9_2",
+   "annotation_type": "footnote",
+   "annotation_text": "Collect samples before dosing, if dosing is scheduled. Collect additional samples at specified times relative to onset of hypersensitivity events.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 31
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c10",
+   "annotation_type": "footnote",
+   "annotation_text": "Blood sample for DNA pharmacogenetics can be obtained any time at or after V2.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 32
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c11",
+   "annotation_type": "footnote",
+   "annotation_text": "Performed at time of endoscopy. Instructions for collection are provided in the lab manual. Flexible sigmoidoscopy is recommended, except for protocol-specified reasons when a colonoscopy should be performed.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 36
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c12",
+   "annotation_type": "footnote",
+   "annotation_text": "No dosing at V29.",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 40
+    }
+   ]
+  },
+  {
+   "annotation_marker": "c13",
+   "annotation_type": "footnote",
+   "annotation_text": "Acid; ETV =early quick inventory of depressive",
+   "marker_locations": [
+    {
+     "table_number": 2,
+     "location_type": "activity_name",
+     "row_position": 40
+    }
+   ]
+  }
+ ]
+}

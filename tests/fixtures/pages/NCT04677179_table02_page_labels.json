@@ -1,0 +1,1476 @@
+{
+ "protocol_id": "NCT04677179",
+ "table_number": 2,
+ "pdf_pages": [
+  8,
+  16
+ ],
+ "doc_pages": [
+  24,
+  32
+ ],
+ "source": "soa2usdm.row_audit.read_page over the real PDF, verbatim",
+ "note": "What Table 2's pages print in their label columns, including the 'Genetics sample' row on PDF page 15 (doc page 31) that three extractions of this protocol dropped.",
+ "pages": [
+  {
+   "page": 8,
+   "caption": "confidentialprotocolj1pmckfahb132scheduleofactivitiesforthemaintenancetreatmentperiodtable2scheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 94.3,
+     "y1": 106.9,
+     "texts": [
+      "Ta ble 2. Sc he d ule of A ctivities for t he Mai",
+      "nte na nc",
+      "e Treat"
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 106.9,
+     "y1": 187.6,
+     "texts": [
+      "This schedule appliesto study participantsFor procedures at an E T V , seeE T Vin TablFor procedures at an unscheduled visit, seeVisits 10through 28 are eligibleto be condapprovalis provided bythe sponsor and accon-site study visit occurring.",
+      "who aree 4.V997iucted reordingt",
+      "res po nTablemotely (tothe pr"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 187.6,
+     "y1": 200.9,
+     "texts": [
+      "Visit n u m ber",
+      "V1 0",
+      "V11"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 200.9,
+     "y1": 214.9,
+     "texts": [
+      "Week s fro m rando mization",
+      "14",
+      "16"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 214.9,
+     "y1": 229.0,
+     "texts": [
+      "Study day",
+      "99",
+      "113"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 229.0,
+     "y1": 242.6,
+     "texts": [
+      "Visitintervaltolerance ( days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 242.6,
+     "y1": 256.7,
+     "texts": [
+      "Fasti ng visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 256.7,
+     "y1": 270.7,
+     "texts": [
+      "Conco mitant medications",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 270.7,
+     "y1": 297.4,
+     "texts": [
+      "Adverse events",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 297.4,
+     "y1": 324.4,
+     "texts": [
+      "Tobacco use",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 324.4,
+     "y1": 338.4,
+     "texts": [
+      "P hysical Eval uatio n",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 338.4,
+     "y1": 352.1,
+     "texts": [
+      "Weight",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 352.1,
+     "y1": 405.0,
+     "texts": [
+      "Vital signs",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 13,
+     "y0": 405.0,
+     "y1": 470.9,
+     "texts": [
+      "Sympto m -directed physical exa mination,includingassess ment for signs andsympto ms oftuberculosis ( T B),includingperipherally mph nodes",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 14,
+     "y0": 470.9,
+     "y1": 497.9,
+     "texts": [
+      "C CI",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 15,
+     "y0": 497.9,
+     "y1": 525.2,
+     "texts": [
+      "12-leadelectrocardiogra m (E C G )",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 16,
+     "y0": 525.2,
+     "y1": 538.9,
+     "texts": [
+      "Patie nt Diary ( Electro nic)",
+      "",
+      ""
+     ]
+    }
+   ]
+  },
+  {
+   "page": 9,
+   "caption": "confidentialprotocolj1pmckfahbtable2scheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanetvseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.0,
+     "y1": 85.3,
+     "texts": [
+      "Table 2. Schedule of Activities for the",
+      "Maintenance",
+      ""
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.2,
+     "texts": [
+      "This schedule applies to study participantsFor procedures at an ETV, see ETV in TableFor procedures at an unscheduled visit, seeVisits 10 through 28 are eligible to beapproval is provided by the sponsor andon-site study visit occurring.",
+      "who are4.V997 inconductedaccording",
+      "respondersTableremotelyto the"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.2,
+     "y1": 178.9,
+     "texts": [
+      "Visit number",
+      "V10",
+      "V11"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 178.9,
+     "y1": 193.0,
+     "texts": [
+      "Weeks from randomization",
+      "14",
+      "16"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.0,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "99",
+      "113"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visit interval tolerance (days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.4,
+     "texts": [
+      "Fasting visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.4,
+     "y1": 367.9,
+     "texts": [
+      "Diary compliance check",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 367.9,
+     "y1": 394.9,
+     "texts": [
+      "Patient-Reported Outcomes(Electronic)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 394.9,
+     "y1": 421.6,
+     "texts": [
+      "Inflammatory Bowel DiseaseQuestionnaire (IBDQ)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 421.6,
+     "y1": 448.2,
+     "texts": [
+      "Patient Global Impression of Change(PGI-C)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 448.2,
+     "y1": 462.2,
+     "texts": [
+      "QIDS-SR16",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 462.2,
+     "y1": 489.2,
+     "texts": [
+      "Laboratory Tests and SampleCollections",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 13,
+     "y0": 489.2,
+     "y1": 502.9,
+     "texts": [
+      "Hematology",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 14,
+     "y0": 502.9,
+     "y1": 516.6,
+     "texts": [
+      "Clinical chemistry",
+      "",
+      "X"
+     ]
+    }
+   ]
+  },
+  {
+   "page": 10,
+   "caption": "confidentialprotocolj1pmckfahbtable2scheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanetvseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.4,
+     "y1": 85.3,
+     "texts": [
+      "Ta ble 2. Sc he d ule of A ctivities for t he Mai",
+      "nte na nc",
+      "e Treat"
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.6,
+     "texts": [
+      "This schedule appliesto study participantsFor procedures at an E T V , seeE T Vin TablFor procedures at an unscheduled visit, seeVisits 10through 28 are eligibleto be condapprovalis provided bythe sponsor and accon-site study visit occurring.",
+      "who aree 4.V997iucted reordingt",
+      "res po nTablemotely (tothe pr"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.6,
+     "y1": 179.3,
+     "texts": [
+      "Visit n u m ber",
+      "V1 0",
+      "V11"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 179.3,
+     "y1": 193.3,
+     "texts": [
+      "Week s fro m rando mization",
+      "14",
+      "16"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.3,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "99",
+      "113"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visitintervaltolerance ( days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.7,
+     "texts": [
+      "Fasti ng visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.7,
+     "y1": 287.3,
+     "texts": [
+      "Lipid panel",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 287.3,
+     "y1": 301.3,
+     "texts": [
+      "Ur inalysis",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 301.3,
+     "y1": 431.6,
+     "texts": [
+      "Ur ine pregnancy (local)",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 431.6,
+     "y1": 458.3,
+     "texts": [
+      "C CI",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 458.3,
+     "y1": 485.3,
+     "texts": [
+      "HB V D N A",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 485.3,
+     "y1": 538.2,
+     "texts": [
+      "Phar macokinetic ( P K) sa mples",
+      "",
+      ""
+     ]
+    }
+   ]
+  },
+  {
+   "page": 11,
+   "caption": "confidentialprotocolj1pmckfahbtable2scheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanetvseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.4,
+     "y1": 85.3,
+     "texts": [
+      "Ta ble 2. Sc he d ule of A ctivities for t he Mai",
+      "nte na nc",
+      "e Treat"
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.6,
+     "texts": [
+      "This schedule appliesto study participantsFor procedures at an E T V , seeE T Vin TablFor procedures at an unscheduled visit, seeVisits 10through 28 are eligibleto be condapprovalis provided bythe sponsor and accon-site study visit occurring.",
+      "who aree 4.V997iucted reordingt",
+      "res po nTablemotely (tothe pr"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.6,
+     "y1": 179.3,
+     "texts": [
+      "Visit n u m ber",
+      "V1 0",
+      "V11"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 179.3,
+     "y1": 193.3,
+     "texts": [
+      "Week s fro m rando mization",
+      "14",
+      "16"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.3,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "99",
+      "113"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visitintervaltolerance ( days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.7,
+     "texts": [
+      "Fasti ng visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.7,
+     "y1": 287.3,
+     "texts": [
+      "C CI",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 287.3,
+     "y1": 301.3,
+     "texts": [
+      "Flo w cyto metry panel",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 301.3,
+     "y1": 341.3,
+     "texts": [
+      "G enetics sa mple",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 341.3,
+     "y1": 354.6,
+     "texts": [
+      "C CI",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 354.6,
+     "y1": 381.6,
+     "texts": [
+      "E n dosco pic Proce d ure",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 381.6,
+     "y1": 395.3,
+     "texts": [
+      "Stool Sa m ples",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 13,
+     "y0": 395.3,
+     "y1": 409.3,
+     "texts": [
+      "C CI",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 14,
+     "y0": 409.3,
+     "y1": 423.4,
+     "texts": [
+      "",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 15,
+     "y0": 423.4,
+     "y1": 437.4,
+     "texts": [
+      "Ra n do mizatio n a n d Dosi ng",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 16,
+     "y0": 437.4,
+     "y1": 451.1,
+     "texts": [
+      "Dosing",
+      "X",
+      "X"
+     ]
+    }
+   ]
+  },
+  {
+   "page": 12,
+   "caption": "confidentialprotocolj1pmckfahbtable2continuedscheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanearlyterminationvisitseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.4,
+     "y1": 85.3,
+     "texts": [
+      "Ta ble 2 (co nti n ue d). Sc he d ule of activities",
+      "for t h",
+      "e Mai nte"
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.6,
+     "texts": [
+      "This schedule appliesto study participantsFor procedures at an earlyter mination visit,For procedures at an unscheduled visit, seeVisits 10through 28 are eligibleto be condis provided bythe sponsor and accordingtoccurring.",
+      "who aresee E TV997icted reothe pr",
+      "res po nVin Tan Tablemotely (teferences"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.6,
+     "y1": 179.3,
+     "texts": [
+      "Visit n u m ber",
+      "V20",
+      "V21"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 179.3,
+     "y1": 193.3,
+     "texts": [
+      "Week s fro m rando mization",
+      "34",
+      "36"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.3,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "239",
+      "253"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visitintervaltolerance ( days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.7,
+     "texts": [
+      "Fasti ng visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.7,
+     "y1": 248.4,
+     "texts": [
+      "Conco mitant medications",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 248.4,
+     "y1": 275.4,
+     "texts": [
+      "Adverse events",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 275.4,
+     "y1": 289.4,
+     "texts": [
+      "Revie w modified Mayo score ( M M S)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 289.4,
+     "y1": 316.1,
+     "texts": [
+      "Tobacco use",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 316.1,
+     "y1": 330.1,
+     "texts": [
+      "Physical Evaluation",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 330.1,
+     "y1": 344.2,
+     "texts": [
+      "Weight",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 13,
+     "y0": 344.2,
+     "y1": 396.7,
+     "texts": [
+      "Vital signs",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 14,
+     "y0": 396.7,
+     "y1": 462.6,
+     "texts": [
+      "Sympto m -directed physical exa mination,includingassess ment for signs andsympto ms oftuberculosis ( T B),including peripherally mph nodes",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 15,
+     "y0": 462.6,
+     "y1": 502.9,
+     "texts": [
+      "C CI",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 16,
+     "y0": 502.9,
+     "y1": 530.3,
+     "texts": [
+      "12-leadelectrocardiogra m (E C G )",
+      "",
+      ""
+     ]
+    }
+   ]
+  },
+  {
+   "page": 13,
+   "caption": "confidentialprotocolj1pmckfahbtable2continuedscheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanearlyterminationvisitseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.0,
+     "y1": 85.3,
+     "texts": [
+      "Table 2 (continued). Schedule of activities",
+      "for the",
+      ""
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.2,
+     "texts": [
+      "This schedule applies to study participantsFor procedures at an early termination visit,For procedures at an unscheduled visit, seeVisits 10 through 28 are eligible to beis provided by the sponsor and according tooccurring.",
+      "who aresee ETVV997 inconductedthe",
+      "respondersinTableremotelypreferences"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.2,
+     "y1": 178.9,
+     "texts": [
+      "Visit number",
+      "V20",
+      "V21"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 178.9,
+     "y1": 193.0,
+     "texts": [
+      "Weeks from randomization",
+      "34",
+      "36"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.0,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "239",
+      "253"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visit interval tolerance (days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.4,
+     "texts": [
+      "Fasting visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.4,
+     "y1": 248.0,
+     "texts": [
+      "Patient Diary (Electronic)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 248.0,
+     "y1": 369.0,
+     "texts": [
+      "Diary compliance check",
+      "X",
+      "X"
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 369.0,
+     "y1": 382.7,
+     "texts": [
+      "Diary return",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 382.7,
+     "y1": 409.3,
+     "texts": [
+      "Patient-Reported Outcomes(Electronic)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 409.3,
+     "y1": 436.3,
+     "texts": [
+      "Inflammatory Bowel DiseaseQuestionnaire (IBDQ)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 436.3,
+     "y1": 463.3,
+     "texts": [
+      "Patient Global Impression of Change(PGI-C)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 13,
+     "y0": 463.3,
+     "y1": 477.0,
+     "texts": [
+      "QIDS-SR16",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 14,
+     "y0": 477.0,
+     "y1": 503.6,
+     "texts": [
+      "Clinician-AdministeredQuestionnaires (Paper)",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 15,
+     "y0": 503.6,
+     "y1": 517.7,
+     "texts": [
+      "Physician’s Global Assessment (PGA)",
+      "",
+      ""
+     ]
+    }
+   ]
+  },
+  {
+   "page": 14,
+   "caption": "confidentialprotocolj1pmckfahbtable2continuedscheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanearlyterminationvisitseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.4,
+     "y1": 85.3,
+     "texts": [
+      "Ta ble 2 (co nti n ue d). Sc he d ule of activities",
+      "for t h",
+      "e Mai nte"
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.6,
+     "texts": [
+      "This schedule appliesto study participantsFor procedures at an earlyter mination visit,For procedures at an unscheduled visit, seeVisits 10through 28 are eligibleto be condis provided bythe sponsor and accordingtoccurring.",
+      "who aresee E TV997icted reothe pr",
+      "res po nVin Tan Tablemotely (teferences"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.6,
+     "y1": 179.3,
+     "texts": [
+      "Visit n u m ber",
+      "V20",
+      "V21"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 179.3,
+     "y1": 193.3,
+     "texts": [
+      "Week s fro m rando mization",
+      "34",
+      "36"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.3,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "239",
+      "253"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visitintervaltolerance ( days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.7,
+     "texts": [
+      "Fasti ng visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.7,
+     "y1": 261.4,
+     "texts": [
+      "La boratory Tests a n d Sa m pleCollectio ns",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 261.4,
+     "y1": 275.4,
+     "texts": [
+      "He matology",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 275.4,
+     "y1": 289.4,
+     "texts": [
+      "Clinical che mistry",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 289.4,
+     "y1": 328.7,
+     "texts": [
+      "Lipid panel",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 328.7,
+     "y1": 342.7,
+     "texts": [
+      "Ur inalysis",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 342.7,
+     "y1": 460.4,
+     "texts": [
+      "Ur ine pregnancy (local)",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 13,
+     "y0": 460.4,
+     "y1": 487.1,
+     "texts": [
+      "C CI",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 14,
+     "y0": 487.1,
+     "y1": 514.1,
+     "texts": [
+      "HB V D N A",
+      "",
+      "X"
+     ]
+    }
+   ]
+  },
+  {
+   "page": 15,
+   "caption": "confidentialprotocolj1pmckfahbtable2continuedscheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanearlyterminationvisitseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.4,
+     "y1": 85.3,
+     "texts": [
+      "Ta ble 2 (co nti n ue d). Sc he d ule of activities",
+      "for t h",
+      "e Mai nte"
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.6,
+     "texts": [
+      "This schedule appliesto study participantsFor procedures at an earlyter mination visit,For procedures at an unscheduled visit, seeVisits 10through 28 are eligibleto be condis provided bythe sponsor and accordingtoccurring.",
+      "who aresee E TV997icted reothe pr",
+      "res po nVin Tan Tablemotely (teferences"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.6,
+     "y1": 179.3,
+     "texts": [
+      "Visit n u m ber",
+      "V20",
+      "V21"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 179.3,
+     "y1": 193.3,
+     "texts": [
+      "Week s fro m rando mization",
+      "34",
+      "36"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.3,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "239",
+      "253"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visitintervaltolerance ( days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.7,
+     "texts": [
+      "Fasti ng visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.7,
+     "y1": 287.3,
+     "texts": [
+      "Phar macokinetic ( P K) sa mples",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 287.3,
+     "y1": 340.2,
+     "texts": [
+      "C CI",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 9,
+     "y0": 340.2,
+     "y1": 354.2,
+     "texts": [
+      "Flo w cyto metry panel",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 10,
+     "y0": 354.2,
+     "y1": 380.5,
+     "texts": [
+      "G enetics sa mple",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 11,
+     "y0": 380.5,
+     "y1": 394.6,
+     "texts": [
+      "C CI",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 12,
+     "y0": 394.6,
+     "y1": 408.6,
+     "texts": [
+      "E n dosco pic Proce d ure",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 13,
+     "y0": 408.6,
+     "y1": 422.3,
+     "texts": [
+      "Endoscopy",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 14,
+     "y0": 422.3,
+     "y1": 488.2,
+     "texts": [
+      "Colon biopsy sa mple collection",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 15,
+     "y0": 488.2,
+     "y1": 502.2,
+     "texts": [
+      "Stool Sa m ples",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 16,
+     "y0": 502.2,
+     "y1": 515.5,
+     "texts": [
+      "",
+      "",
+      "X"
+     ]
+    },
+    {
+     "row": 17,
+     "y0": 515.5,
+     "y1": 529.6,
+     "texts": [
+      "C CI",
+      "",
+      "X"
+     ]
+    }
+   ]
+  },
+  {
+   "page": 16,
+   "caption": "confidentialprotocolj1pmckfahbtable2continuedscheduleofactivitiesforthemaintenancetreatmentperiodofstudyj1pmckfahthisscheduleappliestostudyparticipantswhoarerespondersatweek12forproceduresatanearlyterminationvisitseeetvintable4forproceduresatanunscheduledvisitseev997intable4",
+   "has_grid": true,
+   "has_text": true,
+   "mark_columns": 10,
+   "rotated": false,
+   "rows": [
+    {
+     "row": 0,
+     "y0": 72.0,
+     "y1": 85.3,
+     "texts": [
+      "Table 2 (continued). Schedule of activities",
+      "for the",
+      ""
+     ]
+    },
+    {
+     "row": 1,
+     "y0": 85.3,
+     "y1": 165.2,
+     "texts": [
+      "This schedule applies to study participantsFor procedures at an early termination visit,For procedures at an unscheduled visit, seeVisits 10 through 28 are eligible to beis provided by the sponsor and according tooccurring.",
+      "who aresee ETVV997 inconductedthe",
+      "respondersinTableremotelypreferences"
+     ]
+    },
+    {
+     "row": 2,
+     "y0": 165.2,
+     "y1": 178.9,
+     "texts": [
+      "Visit number",
+      "V20",
+      "V21"
+     ]
+    },
+    {
+     "row": 3,
+     "y0": 178.9,
+     "y1": 193.0,
+     "texts": [
+      "Weeks from randomization",
+      "34",
+      "36"
+     ]
+    },
+    {
+     "row": 4,
+     "y0": 193.0,
+     "y1": 206.6,
+     "texts": [
+      "Study day",
+      "239",
+      "253"
+     ]
+    },
+    {
+     "row": 5,
+     "y0": 206.6,
+     "y1": 220.7,
+     "texts": [
+      "Visit interval tolerance (days)",
+      "±3",
+      "±3"
+     ]
+    },
+    {
+     "row": 6,
+     "y0": 220.7,
+     "y1": 234.4,
+     "texts": [
+      "Fasting visit",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 7,
+     "y0": 234.4,
+     "y1": 248.0,
+     "texts": [
+      "Randomization and Dosing",
+      "",
+      ""
+     ]
+    },
+    {
+     "row": 8,
+     "y0": 248.0,
+     "y1": 262.1,
+     "texts": [
+      "Dosing",
+      "X",
+      "X"
+     ]
+    }
+   ]
+  }
+ ]
+}
