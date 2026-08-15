@@ -472,7 +472,12 @@ def validate_extraction(data: dict) -> ValidationResult:
         for m in cell.get("annotation_markers", "").split(","):
             if m.strip():
                 used_markers.add(m.strip())
-    
+
+    for cell in data["schedule_grid"]:
+        for m in cell.get("annotation_markers", "").split(","):
+            if m.strip():
+                used_markers.add(m.strip())
+
     undefined = used_markers - defined_markers
     if undefined:
         result.warnings.append(f"Markers used but not defined: {undefined}")

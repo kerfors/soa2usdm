@@ -1,0 +1,1612 @@
+{
+ "unified_annotations": [
+  {
+   "xannot_id": "xannot-001",
+   "annotation_type": "source_note",
+   "annotation_text": "The purpose of UC remission question should be",
+   "display_markers": "T1:c1",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-001"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-002",
+   "annotation_type": "source_note",
+   "annotation_text": "The purpose of UC remission question should be explained before the participant answers the question. Errors in the response cannot be corrected after the participant saves and confirms the response.",
+   "display_markers": "T1:c2",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-002"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-003",
+   "annotation_type": "source_note",
+   "annotation_text": "after the participant saves and confirms the response.",
+   "display_markers": "T1:c3",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-003"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-004",
+   "annotation_type": "source_note",
+   "annotation_text": "Includes relevant surgical history.",
+   "display_markers": "T1:c4",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-004"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-005",
+   "annotation_type": "source_note",
+   "annotation_text": "Includes relevant surgical history. Indication and history of interest.",
+   "display_markers": "T1:c5",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-005"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-006",
+   "annotation_type": "source_note",
+   "annotation_text": "Includes relevant surgical history. Indication and history of interest. Includes all UC-specific therapies since date of",
+   "display_markers": "T1:c6",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-006"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-007",
+   "annotation_type": "source_note",
+   "annotation_text": "Indication and history of interest. Includes all UC-specific therapies since date of diagnosis.",
+   "display_markers": "T1:c7",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-007"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-008",
+   "annotation_type": "source_note",
+   "annotation_text": "diagnosis. For AESIs, additional data are collected",
+   "display_markers": "T1:c8",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-008"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-009",
+   "annotation_type": "source_note",
+   "annotation_text": "For AESIs, additional data are collected (Section 8.3.6).",
+   "display_markers": "T1:c9",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-009"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-010",
+   "annotation_type": "source_note",
+   "annotation_text": "(Section 8.3.6).",
+   "display_markers": "T1:c10",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-010"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-011",
+   "annotation_type": "source_note",
+   "annotation_text": "Participantshouldremoveshoes.",
+   "display_markers": "T1:c11",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-014"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-012",
+   "annotation_type": "source_note",
+   "annotation_text": "Participantshouldremoveshoes. Blood pressure, bodytemperature, and pulserate.",
+   "display_markers": "T1:c12",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-015"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-013",
+   "annotation_type": "source_note",
+   "annotation_text": "Blood pressure, bodytemperature, and pulserate. Vitalsignsshould be measured after partic ipant has beensitting atleast 5 minutes.",
+   "display_markers": "T1:c13",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c13",
+     "annotation_id": "annot-013"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-016"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-014",
+   "annotation_type": "source_note",
+   "annotation_text": "and breast exams,unless clinicallyindicated,and includes assessmentforsigns andsy mpto ms of tuberculosis (TB),including peripherallymph nodes.",
+   "display_markers": "T1:c14",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c14",
+     "annotation_id": "annot-014"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-017"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-015",
+   "annotation_type": "source_note",
+   "annotation_text": "See Section 8.2.2.",
+   "display_markers": "T1:c15, T2-3:c6",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c15",
+     "annotation_id": "annot-015"
+    },
+    {
+     "table_num": 2,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    },
+    {
+     "table_num": 3,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-018"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 3
+  },
+  {
+   "xannot_id": "xannot-016",
+   "annotation_type": "source_note",
+   "annotation_text": "Locally performed.",
+   "display_markers": "T1:c16, T1:c17, T2-3:c7",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c16",
+     "annotation_id": "annot-016"
+    },
+    {
+     "table_num": 1,
+     "marker": "c17",
+     "annotation_id": "annot-017"
+    },
+    {
+     "table_num": 2,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    },
+    {
+     "table_num": 3,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-019",
+    "xact-020"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 4
+  },
+  {
+   "xannot_id": "xannot-017",
+   "annotation_type": "source_note",
+   "annotation_text": "pulmonologist. Not done at screening if done within 3 months before screening and if qualifying radiographs or equivalent imaging study and/or formal report are available for investigator’s review.",
+   "display_markers": "T1:c18",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c18",
+     "annotation_id": "annot-018"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-021"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-018",
+   "annotation_type": "source_note",
+   "annotation_text": "Check compliance for",
+   "display_markers": "T1:c19",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c19",
+     "annotation_id": "annot-019"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-023"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-019",
+   "annotation_type": "source_note",
+   "annotation_text": "Nocturnal Stools Bristol Stool Scale Urgency NRS",
+   "display_markers": "T1:c20, T2-3:c8",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c20",
+     "annotation_id": "annot-020"
+    },
+    {
+     "table_num": 2,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    },
+    {
+     "table_num": 3,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-024"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 3
+  },
+  {
+   "xannot_id": "xannot-020",
+   "annotation_type": "source_note",
+   "annotation_text": "Adapted for the assessment of ideation and behavior",
+   "display_markers": "T1:c21",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c21",
+     "annotation_id": "annot-021"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-028"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-021",
+   "annotation_type": "source_note",
+   "annotation_text": "Adapted for the assessment of ideation and behavior categories only.",
+   "display_markers": "T1:c22",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c22",
+     "annotation_id": "annot-022"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-029"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-022",
+   "annotation_type": "source_note",
+   "annotation_text": "categories only. Required if triggered by the Self-Harm Supplement",
+   "display_markers": "T1:c23",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c23",
+     "annotation_id": "annot-023"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-030"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-023",
+   "annotation_type": "source_note",
+   "annotation_text": "Required if triggered by the Self-Harm Supplement Form per instructions.",
+   "display_markers": "T1:c24",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c24",
+     "annotation_id": "annot-024"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-031"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-024",
+   "annotation_type": "source_note",
+   "annotation_text": "Fasting samples are preferred, but if participant is",
+   "display_markers": "T1:c25",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c25",
+     "annotation_id": "annot-025"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-033"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-025",
+   "annotation_type": "source_note",
+   "annotation_text": "Fasting samples are preferred, but if participant is non fasting at time of collection, this is not a protocol deviation.",
+   "display_markers": "T1:c26",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c26",
+     "annotation_id": "annot-026"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-034"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-026",
+   "annotation_type": "source_note",
+   "annotation_text": "deviation. Perform only for women of childbearing potential",
+   "display_markers": "T1:c27",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c27",
+     "annotation_id": "annot-027"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-035"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-027",
+   "annotation_type": "source_note",
+   "annotation_text": "Perform only for women of childbearing potential and women with a history of tubal ligation.",
+   "display_markers": "T1:c28",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c28",
+     "annotation_id": "annot-028"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-036"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-028",
+   "annotation_type": "source_note",
+   "annotation_text": "visits which have pregnancytesting,the pregnancy testresult mustbe confir med to benegative priorto dosing.Pregnancytesting may be performed more",
+   "display_markers": "T1:c29",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c29",
+     "annotation_id": "annot-029"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-037"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-029",
+   "annotation_type": "source_note",
+   "annotation_text": "Optional, perfor m only forwomen not of childbearing potentialto confir m post menopausal status.",
+   "display_markers": "T1:c30",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c30",
+     "annotation_id": "annot-030"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-038"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-030",
+   "annotation_type": "source_note",
+   "annotation_text": "status. Patients who had atuberculinskintest(TST) will",
+   "display_markers": "T1:c31",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c31",
+     "annotation_id": "annot-031"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-039"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-031",
+   "annotation_type": "source_note",
+   "annotation_text": "returnfrom 48to 72 hours after place mentto have thetestresultread. Sa mples may besentto central or locallaboratorybased onthetype oftest. Alocal",
+   "display_markers": "T1:c32",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c32",
+     "annotation_id": "annot-032"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-040"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-032",
+   "annotation_type": "source_note",
+   "annotation_text": "laboratory must be qualified bylocalregulations. H C V RNA will be measuredto confir m positive",
+   "display_markers": "T1:c33",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c33",
+     "annotation_id": "annot-033"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-041"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-033",
+   "annotation_type": "source_note",
+   "annotation_text": "H C V RNA will be measuredto confir m positive hepatitis C virus antibody. Includestestingfor H Bs Ag and anti-HBc .",
+   "display_markers": "T1:c34",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c34",
+     "annotation_id": "annot-034"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-042"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-034",
+   "annotation_type": "source_note",
+   "annotation_text": "hepatitis C virus antibody. Includestestingfor H Bs Ag and anti-HBc .",
+   "display_markers": "T1:c35",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c35",
+     "annotation_id": "annot-035"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-043"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-035",
+   "annotation_type": "source_note",
+   "annotation_text": "Onlyfor participants who are positivefor anti ‑ HBc atscreening. Collectsamples before dosing,if dosingis",
+   "display_markers": "T1:c36",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c36",
+     "annotation_id": "annot-036"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-044"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-036",
+   "annotation_type": "source_note",
+   "annotation_text": "Collectsamples before dosing,if dosingis scheduled. Collect additionalsamples atspecified timesrelativeto onset of hypersensitivity events.",
+   "display_markers": "T1:c37, T1:c38",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c37",
+     "annotation_id": "annot-037"
+    },
+    {
+     "table_num": 1,
+     "marker": "c38",
+     "annotation_id": "annot-038"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-045",
+    "xact-046"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-037",
+   "annotation_type": "source_note",
+   "annotation_text": "timesrelativeto onset of hypersensitivity events. Bloodsamplefor DNA pharmacogenetics can be",
+   "display_markers": "T1:c39",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c39",
+     "annotation_id": "annot-039"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-047"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-038",
+   "annotation_type": "source_note",
+   "annotation_text": "Bloodsamplefor DNA pharmacogenetics can be obtained anytime at or after V2.",
+   "display_markers": "T1:c40",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c40",
+     "annotation_id": "annot-040"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-048"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-039",
+   "annotation_type": "source_note",
+   "annotation_text": "obtained anytime at or after V2.",
+   "display_markers": "T1:c41",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c41",
+     "annotation_id": "annot-041"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-049"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-040",
+   "annotation_type": "source_note",
+   "annotation_text": "Screening endoscopy must occur ≤14 days priorto randomization. Atscreening, perfor m onlyfor participants who are eligibleforthestudy by all other studyentry criteria.",
+   "display_markers": "T1:c42",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c42",
+     "annotation_id": "annot-042"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-051"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-041",
+   "annotation_type": "source_note",
+   "annotation_text": "collection are providedinthelab manual. Flexible sig moidoscopyisreco m mended, exceptfor protocol-specifiedreasons when a colonoscopy",
+   "display_markers": "T1:c43",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c43",
+     "annotation_id": "annot-043"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-052"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-042",
+   "annotation_type": "source_note",
+   "annotation_text": "Additionallocalstooltesting(for exa mple, forova and parasites)is allo wed attheinvestigator’s discretion.",
+   "display_markers": "T1:c44",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c44",
+     "annotation_id": "annot-044"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-053"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-043",
+   "annotation_type": "source_note",
+   "annotation_text": "discretion. Additional C. difficile testingis allo wedthroughout thestudyattheinvestigator’s discretion.",
+   "display_markers": "T1:c45",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c45",
+     "annotation_id": "annot-045"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-054"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-044",
+   "annotation_type": "source_note",
+   "annotation_text": "thestudyattheinvestigator’s discretion.",
+   "display_markers": "T1:c46",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c46",
+     "annotation_id": "annot-046"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-055"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-045",
+   "annotation_type": "source_note",
+   "annotation_text": "No dosing at V3.",
+   "display_markers": "T1:c47",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c47",
+     "annotation_id": "annot-047"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-058"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-046",
+   "annotation_type": "source_note",
+   "annotation_text": "No dosing at V3. RS = Columbia –Suicide Severity Rating Scale;",
+   "display_markers": "T1:c48",
+   "source_occurrences": [
+    {
+     "table_num": 1,
+     "marker": "c48",
+     "annotation_id": "annot-048"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-059"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-047",
+   "annotation_type": "source_note",
+   "annotation_text": "For AESIs, additional data are collected",
+   "display_markers": "T2-3:c1",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    },
+    {
+     "table_num": 3,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-008"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-048",
+   "annotation_type": "source_note",
+   "annotation_text": "For AESIs, additional data are collected (Section8.3.6).",
+   "display_markers": "T2-3:c2",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    },
+    {
+     "table_num": 3,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-009"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-049",
+   "annotation_type": "source_note",
+   "annotation_text": "(Section8.3.6).",
+   "display_markers": "T2-3:c3",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    },
+    {
+     "table_num": 3,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-010"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-050",
+   "annotation_type": "source_note",
+   "annotation_text": "Blood pressure, bodytemperature, and pulse",
+   "display_markers": "T2-3:c4",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    },
+    {
+     "table_num": 3,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-015"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-051",
+   "annotation_type": "source_note",
+   "annotation_text": "Blood pressure, bodytemperature, and pulse rate. Vitalsignsshould be measured after participant has beensittingfor atleast 5 minutes.",
+   "display_markers": "T2-3:c5",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    },
+    {
+     "table_num": 3,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-016"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-052",
+   "annotation_type": "source_note",
+   "annotation_text": "Patient Global Rating of Severity (PGR-S).",
+   "display_markers": "T2-3:c9",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    },
+    {
+     "table_num": 3,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-060"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-053",
+   "annotation_type": "source_note",
+   "annotation_text": "Fastingsamples are preferred, butif",
+   "display_markers": "T2-3:c10",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    },
+    {
+     "table_num": 3,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-033"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-054",
+   "annotation_type": "source_note",
+   "annotation_text": "Fastingsamples are preferred, butif participant is nonfasting atti me of collection, thisis not a protocol deviation.",
+   "display_markers": "T2-3:c11",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    },
+    {
+     "table_num": 3,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-034"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-055",
+   "annotation_type": "source_note",
+   "annotation_text": "thisis not a protocol deviation. Perfor m onlyfor women of childbearing",
+   "display_markers": "T2-3:c12",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    },
+    {
+     "table_num": 3,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-035"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-056",
+   "annotation_type": "source_note",
+   "annotation_text": "pregnancytesting,the pregnancytestresult must be confir med to benegative priorto dosing.Pregnancytesting may be performed",
+   "display_markers": "T2-3:c13",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c13",
+     "annotation_id": "annot-013"
+    },
+    {
+     "table_num": 3,
+     "marker": "c13",
+     "annotation_id": "annot-013"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-037"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-057",
+   "annotation_type": "source_note",
+   "annotation_text": "frequenttesting. Onlyfor participants who are positivefor",
+   "display_markers": "T2-3:c14",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c14",
+     "annotation_id": "annot-014"
+    },
+    {
+     "table_num": 3,
+     "marker": "c14",
+     "annotation_id": "annot-014"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-049"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-058",
+   "annotation_type": "source_note",
+   "annotation_text": "Onlyfor participants who are positivefor anti‑ H Bc atscreening.",
+   "display_markers": "T2-3:c15",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c15",
+     "annotation_id": "annot-015"
+    },
+    {
+     "table_num": 3,
+     "marker": "c15",
+     "annotation_id": "annot-015"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-044"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-059",
+   "annotation_type": "source_note",
+   "annotation_text": "Collectsamples before dosing,if dosingis scheduled. Collect additionalsamples at specifiedtimesrelativeto onset of hypersensitivity events.",
+   "display_markers": "T2-3:c16, T2-3:c17",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c16",
+     "annotation_id": "annot-016"
+    },
+    {
+     "table_num": 2,
+     "marker": "c17",
+     "annotation_id": "annot-017"
+    },
+    {
+     "table_num": 3,
+     "marker": "c16",
+     "annotation_id": "annot-016"
+    },
+    {
+     "table_num": 3,
+     "marker": "c17",
+     "annotation_id": "annot-017"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-045",
+    "xact-039"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 4
+  },
+  {
+   "xannot_id": "xannot-060",
+   "annotation_type": "source_note",
+   "annotation_text": "hypersensitivity events. Bloodsamplefor DNA pharmacogenetics can",
+   "display_markers": "T2:c18",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c18",
+     "annotation_id": "annot-018"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-047"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-061",
+   "annotation_type": "source_note",
+   "annotation_text": "be obtained anytime at or after V2.",
+   "display_markers": "T2:c19",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c19",
+     "annotation_id": "annot-019"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-046"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-062",
+   "annotation_type": "source_note",
+   "annotation_text": "Perfor med atti me of endoscopy. Instructions",
+   "display_markers": "T2-3:c20",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c20",
+     "annotation_id": "annot-020"
+    },
+    {
+     "table_num": 3,
+     "marker": "c20",
+     "annotation_id": "annot-020"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-051"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-063",
+   "annotation_type": "source_note",
+   "annotation_text": "for collectionare providedinthelab manual. Flexiblesig moidoscopyisreco m mended, exceptfor protocol-specifiedreasons when a",
+   "display_markers": "T2-3:c21",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c21",
+     "annotation_id": "annot-021"
+    },
+    {
+     "table_num": 3,
+     "marker": "c21",
+     "annotation_id": "annot-021"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-052"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-064",
+   "annotation_type": "source_note",
+   "annotation_text": "No dosing at V29. acid; ETV = early",
+   "display_markers": "T2-3:c22",
+   "source_occurrences": [
+    {
+     "table_num": 2,
+     "marker": "c22",
+     "annotation_id": "annot-022"
+    },
+    {
+     "table_num": 3,
+     "marker": "c22",
+     "annotation_id": "annot-022"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-059"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-065",
+   "annotation_type": "source_note",
+   "annotation_text": "hypersensitivity events. Bloodsamplefor DNA pharmacogenetics",
+   "display_markers": "T3:c18",
+   "source_occurrences": [
+    {
+     "table_num": 3,
+     "marker": "c18",
+     "annotation_id": "annot-018"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-047"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-066",
+   "annotation_type": "source_note",
+   "annotation_text": "can be obtained anytime at or after V2.",
+   "display_markers": "T3:c19",
+   "source_occurrences": [
+    {
+     "table_num": 3,
+     "marker": "c19",
+     "annotation_id": "annot-019"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-046"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-067",
+   "annotation_type": "source_note",
+   "annotation_text": "Nofastinginthis period",
+   "display_markers": "T4:c1",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c1",
+     "annotation_id": "annot-001"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-027"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-068",
+   "annotation_type": "source_note",
+   "annotation_text": "Fastingis notrequiredforthelipid panel at ET V.",
+   "display_markers": "T4:c2, T4:c3",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c2",
+     "annotation_id": "annot-002"
+    },
+    {
+     "table_num": 4,
+     "marker": "c3",
+     "annotation_id": "annot-003"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-033",
+    "xact-034"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-069",
+   "annotation_type": "source_note",
+   "annotation_text": "Fastingis notrequiredforthelipid panel at ET V. Perfor m onlyfor women of childbearing potential and women",
+   "display_markers": "T4:c4",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c4",
+     "annotation_id": "annot-004"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-035"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-070",
+   "annotation_type": "source_note",
+   "annotation_text": "with a history oftuballigation. At dosing visits which have pregnancytesting,the pregnancytestresult must be confir med to benegative priorto dosing.Pregnancytesting may be performed morefrequentlythan designated onthe SoAiflocal",
+   "display_markers": "T4:c5",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c5",
+     "annotation_id": "annot-005"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-037"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-071",
+   "annotation_type": "source_note",
+   "annotation_text": "la wsor regulationsrequire morefrequenttesting. Onlyfor participants who are positivefor anti ‑ H Bc atscreening.",
+   "display_markers": "T4:c6",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c6",
+     "annotation_id": "annot-006"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-019"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-072",
+   "annotation_type": "source_note",
+   "annotation_text": "Onlyfor participants who are positivefor anti ‑ H Bc atscreening. Collectsamples before dosing,if dosingisscheduled. Collect",
+   "display_markers": "T4:c7",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c7",
+     "annotation_id": "annot-007"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-044"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-073",
+   "annotation_type": "source_note",
+   "annotation_text": "Collectsamples before dosing,if dosingisscheduled. Collect additionalsamples atspecifiedtimesrelativeto onset of hypersensitivity events.",
+   "display_markers": "T4:c8, T4:c9",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c8",
+     "annotation_id": "annot-008"
+    },
+    {
+     "table_num": 4,
+     "marker": "c9",
+     "annotation_id": "annot-009"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-045",
+    "xact-039"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 2
+  },
+  {
+   "xannot_id": "xannot-074",
+   "annotation_type": "source_note",
+   "annotation_text": "hypersensitivity events. Bloodsamplefor DNA pharmacogenetics can be obtained any",
+   "display_markers": "T4:c10",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c10",
+     "annotation_id": "annot-010"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-047"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-075",
+   "annotation_type": "source_note",
+   "annotation_text": "ti me at or afterV2.",
+   "display_markers": "T4:c11",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c11",
+     "annotation_id": "annot-011"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-046"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-076",
+   "annotation_type": "source_note",
+   "annotation_text": "Reco m mended at ET V based onjudg ment oftheinvestigator and after discussion withthesponsor’s medical monitor.If not performed at ET V,this will not be considered a protocol deviation.",
+   "display_markers": "T4:c12",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c12",
+     "annotation_id": "annot-012"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-051"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  },
+  {
+   "xannot_id": "xannot-077",
+   "annotation_type": "source_note",
+   "annotation_text": "Instructions for collectionare providedinthelab manual. Flexiblesig moidoscopyisreco m mended, except for protocol-specifiedreasons when a colonoscopyshould be",
+   "display_markers": "T4:c13",
+   "source_occurrences": [
+    {
+     "table_num": 4,
+     "marker": "c13",
+     "annotation_id": "annot-013"
+    }
+   ],
+   "referenced_xacts": [
+    "xact-052"
+   ],
+   "referenced_xcols": [],
+   "cell_references": [],
+   "occurrence_count": 1
+  }
+ ]
+}

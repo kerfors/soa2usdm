@@ -10,10 +10,15 @@ files are never touched. To bank a new protocol: drop its verified extraction
 and golden resolved/consolidated into place; this test discovers it automatically.
 
 On top of the golden diff, every discovered protocol is checked for annotation
-text integrity — adjacent-pair containment and degenerate source_note typing.
-NCT04677179 is the negative control: its notes column fragmented into 77 partial
-annotations, all mis-typed source_note, and the golden output here is the
-re-extraction. NCT03637764 is the positive control (clean from the start).
+text integrity — adjacent-pair containment, over-merge, and degenerate
+source_note typing. The two banked fixture protocols are clean current goldens:
+NCT04677179 (the hardest source in the corpus — raster pages, tiled tables,
+reworked annotation layer) and NCT03637764 (clean from the start).
+
+Every detector also has a negative control in fixtures/negative/ — a real
+historical bad state, taken from the collections git history, on which the
+detector must fire. A detector that only ever returns nothing is
+indistinguishable from a clean corpus.
 """
 import json
 import shutil
@@ -25,10 +30,11 @@ from soa2usdm import config
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 from soa2usdm.corrections import ApplyCorrectionsStep
-from soa2usdm.resolve import ResolveStep
+from soa2usdm.resolve import ResolveStep, find_partial_marker_bindings
 from soa2usdm.consolidate import (
     ConsolidateStep,
     find_adjacent_text_overlaps,
+    find_cross_table_binding_conflicts,
     find_over_merged_annotations,
     is_degenerate_annotation_typing,
     OVERLAP_PAIR_THRESHOLD,
@@ -158,3 +164,67 @@ def test_annotation_typing_not_degenerate(pipeline_output):
     annotations = consolidated_annotations(produced)
     assert not is_degenerate_annotation_typing(annotations), \
         f"{protocol}: all {len(annotations)} annotations typed source_note"
+
+
+def negative_fixture(name):
+    path = Path(__file__).parent / "fixtures" / "negative" / name
+    return json.loads(path.read_text())
+
+
+def test_fragmentation_detector_fires_on_known_bad():
+    """Negative control — NCT04677179's consolidated annotations as committed at
+    2d0f58d, before the 2026-07-28 annotation re-extraction: each Comment cell was
+    split across the rows it overlapped, yielding 77 fragments and 13 adjacent
+    pairs where one text contains the other."""
+    annotations = negative_fixture(
+        "NCT04677179_fragmented_annotations.json")["unified_annotations"]
+    pairs = find_adjacent_text_overlaps(annotations)
+    assert len(pairs) == 13, f"expected 13 fragmentation pairs, got {len(pairs)}"
+
+
+def test_degenerate_typing_detector_fires_on_known_bad():
+    """Negative control — the same 2d0f58d state also mis-typed every one of its
+    77 annotations as source_note (the notes column read as cross-references)."""
+    annotations = negative_fixture(
+        "NCT04677179_fragmented_annotations.json")["unified_annotations"]
+    assert is_degenerate_annotation_typing(annotations), \
+        "detector must fire on the all-source_note historical state"
+
+
+def test_cross_table_conflict_detector_fires_on_known_bad():
+    """Negative control — NCT04677179's consolidated output as committed at a96cf0c,
+    before the missing Genetics sample row was restored in Tables 2-4. The DNA
+    pharmacogenetics note (xannot-024) then bound to Genetics sample in Table 1 but
+    to Flow cytometry panel / CCI in the tables missing the row — the fingerprint
+    of a dropped row. xannot-023 is the known co-detection: identical PK note text
+    legitimately printed on two adjacent rows, a documented detector limitation."""
+    data = negative_fixture("NCT04677179_conflicting_bindings.json")
+    conflicts = dict(find_cross_table_binding_conflicts(data))
+    assert set(conflicts) == {"xannot-023", "xannot-024"}, \
+        f"expected xannot-023 and xannot-024, got {sorted(conflicts)}"
+    assert "Genetics sample" in conflicts["xannot-024"]
+
+
+def test_partial_binding_detector_fires_on_desynced_row():
+    """Negative control — the failure find_partial_marker_bindings exists for:
+    a corrected marker_locations that was not carried into the row-side
+    annotation_markers (the two fields record the same fact; resolve believes
+    the row). The historical desync (rev2, 2026-07-30) was repaired before it
+    was committed, so this reconstructs its exact shape on the banked real
+    extraction: the annotation declares an extra row in marker_locations that
+    no row's annotation_markers carries — the declared-only row will not bind."""
+    path = (Path(__file__).parent / "fixtures" / "protocols" / "NCT04677179"
+            / "SoA2USDM" / "extracted" / "NCT04677179_Table_01_extraction.json")
+    data = json.loads(path.read_text())
+    assert not find_partial_marker_bindings(data), "banked extraction must be consistent"
+    annot = next(a for a in data["annotations"]
+                 if a["annotation_marker"] == "c1"
+                 and a["marker_locations"][0]["location_type"] == "activity_name")
+    moved_to = annot["marker_locations"][0]["row_position"] + 2
+    annot["marker_locations"].append(
+        {"table_number": 1, "location_type": "activity_name",
+         "row_position": moved_to})
+    findings = find_partial_marker_bindings(data)
+    assert len(findings) == 1 and "'c1'" in findings[0] \
+        and str(moved_to) in findings[0], \
+        f"expected the declared-only row {moved_to} to be named, got {findings}"
