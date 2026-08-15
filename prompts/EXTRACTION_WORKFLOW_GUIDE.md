@@ -1,8 +1,8 @@
 # SoA2USDM — Extraction Workflow Guide
 
-**Version:** 2.5
+**Version:** 2.6
 
-How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) can be run two ways: the **non-interactive single-pass path** (v3.0, below) or the **two-conversation PDF→Excel→JSON path** (Conversations 1–2).
+How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file (each carries its own version header) — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) can be run two ways: the **non-interactive single-pass path** (below) or the **two-conversation PDF→Excel→JSON path** (Conversations 1–2).
 
 For architecture rationale, see [`documents/soa2usdm-schema-architecture.md`](../documents/soa2usdm-schema-architecture.md).
 For table type definitions, see [`documents/soa_table_type_definitions.md`](../documents/soa_table_type_definitions.md).
@@ -18,15 +18,15 @@ For table type definitions, see [`documents/soa_table_type_definitions.md`](../d
 
 ---
 
-## Non-interactive path (v3.0): PDF → JSON in one pass
+## Non-interactive path: PDF → JSON in one pass
 
-The default for most runs. Use `PDF_TO_JSON_PROMPT.md` (v3.0) in place of Conversations 1 and 2 — no Excel checkpoint, no staged confirmations.
+The default for most runs. Use `PDF_TO_JSON_PROMPT.md` in place of Conversations 1 and 2 — no Excel checkpoint, no staged confirmations.
 
 **Attach:** `PDF_TO_JSON_PROMPT.md` + SoA PDF (+ optionally protocol markdown) + `soa-table-extraction.schema.json` + `soa_table_type_definitions.md`
 
 **Say:** "Please read and follow the attached prompt to extract the SoA tables from this protocol to JSON."
 
-The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (table types and why, merged-mark spans, synthesised names/markers, low-confidence calls, orphan-risk annotations). Review that report against the per-table resolved HTML instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch. For a wide table split into side-by-side column-block tiles (e.g. V10–V19 and a V20–V29 "(continued)" spread), run the mark-check across *all* tiles and take the per-row union — a recurring row usually appears in every tile, so checking only one tile silently drops the others' visits (see `PDF_TO_JSON_PROMPT.md` §5).
+The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (table types and why, merged-mark spans, synthesised names/markers, low-confidence calls, orphan-risk annotations), with exception-based method provenance recorded in the JSON for any value derived by a non-default method (prompt §1e). Review that report against the per-table resolved HTML instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch. For a wide table split into side-by-side column-block tiles (e.g. V10–V19 and a V20–V29 "(continued)" spread), run the mark-check across *all* tiles and take the per-row union — a recurring row usually appears in every tile, so checking only one tile silently drops the others' visits (see `PDF_TO_JSON_PROMPT.md` §5).
 
 **Prefer the two-conversation flow below when:** you want a human-editable Excel artifact, or a very large/complex table where reviewing an intermediate is worth the extra time.
 
@@ -96,14 +96,15 @@ The model runs start to finish and returns one extraction JSON per table plus an
 
 Once extraction JSON files are in `{NCTID}/SoA2USDM/extracted/`, run `01_batch.ipynb`. Set `COLLECTION` in the config cell and execute.
 
-The batch notebook runs four steps in sequence:
+The batch notebook runs five steps in sequence:
 
 | Step | Class | Layer | What it does |
 |------|-------|-------|-------------|
-| 1 | `ResolveStep` | 2 | Adds IDs, validates hierarchy, derives relationships — per table |
-| 2 | `VisualizeResolvedStep` | — | Per-table HTML for debugging |
-| 3 | `ConsolidateStep` | 3 | Cross-table integration, activity matching, annotation dedup |
-| 4 | `VisualizeStep` | — | Consolidated HTML for review |
+| 1 | `ApplyCorrectionsStep` | 1.5 | Applies `*_corrections.json` sidecars → `*_extraction.verified.json`; raw never overwritten |
+| 2 | `ResolveStep` | 2 | Adds IDs, validates hierarchy, derives relationships — per table |
+| 3 | `VisualizeResolvedStep` | — | Per-table HTML for debugging |
+| 4 | `ConsolidateStep` | 3 | Cross-table integration, activity matching, annotation dedup |
+| 5 | `VisualizeStep` | — | Consolidated HTML for review |
 
 After all protocols: `IndexGeneratorStep` builds the collection index page.
 
@@ -143,6 +144,12 @@ print(errors.has_errors(), errors.summary())
 ```
 
 `ApplyCorrectionsStep` runs first — it applies any `*_corrections.json` sidecar over the raw extraction before resolution (raw is never overwritten).
+
+---
+
+## Row audit (independent check)
+
+After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extracted activity row against the rows its SoA pages actually print and writes `row_audit.json` to the collection root. Needs poppler (`pdftoppm`, `pdftotext`, `pdfinfo`) and the `bands` extra: `pip install -e '.[bands]'`.
 
 ---
 

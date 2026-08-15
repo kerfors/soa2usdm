@@ -1,9 +1,15 @@
 # The Annotation Model — a foundational problem
 
-> Status: **for discussion, nothing decided.** Written 2026-07-30 after a run of annotation defects
-> that turned out to share one root cause. Companion to `soa2usdm-schema-architecture.md`, which
-> describes the three layers as designed; this note describes where the annotation entity does not
-> hold up in practice.
+> Status: **acted on 2026-08-15** — kept as the analysis behind the changes. The remediation executed
+> is direction A plus the selective provenance below (the core of B at A's cost): the row-number
+> fallback is restricted and `referenced_props` gives property-scoped notes a true target; method
+> provenance is in the extraction schema and prompt (v3.6.0, exception-based); the schema files were
+> brought back in line with the pipeline's actual outputs; and the band method behind defects 1–2 is
+> shipped as code (`page_grid.py`). Of the closing questions, only Q4 — whether the definitional third
+> should stop becoming annotations — remains open. Originally written 2026-07-30 after a run of
+> annotation defects that turned out to share one root cause. Companion to
+> `soa2usdm-schema-architecture.md`, which describes the layers as designed; this note records where
+> the annotation entity did not hold up in practice, and what was done about it.
 
 ## The problem in one sentence
 

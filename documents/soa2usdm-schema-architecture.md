@@ -21,9 +21,21 @@ PDF Protocol Document
 │      soa-table-extraction               │
 │      "What does this table show?"       │
 │                                         │
-│  • Conversational workflow (Claude)     │
-│  • Human verification checkpoint        │
+│  • Single-pass Claude run (PDF→JSON)    │
+│  • Mechanical mark-check (from PDF)     │
+│  • Uncertainty report → human review    │
 │  • One file per table                   │
+└─────────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────────┐
+│      Layer 1.5: CORRECTIONS             │
+│      soa-table-corrections              │
+│      "What did the human adjudicate?"   │
+│                                         │
+│  • Sidecar applied deterministically    │
+│  • Raw extraction never overwritten     │
+│  • Only for tables with a sidecar       │
 └─────────────────────────────────────────┘
         │
         ▼
@@ -68,7 +80,7 @@ PDF Protocol Document
 
 **Schema:** `soa-table-extraction` v1.0
 
-**Implementation:** Two Claude conversations per table — PDF→Excel (Conversation 1) with human verification, then Excel→JSON (Conversation 2). The Excel intermediate allows domain experts to verify structure before any JSON is generated.
+**Implementation:** A single non-interactive Claude pass (PDF→JSON, `PDF_TO_JSON_PROMPT.md`). The model transcribes the table, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on rasters), and ends with an uncertainty report that surfaces every judgement call for human review against the resolved HTML. The two-conversation PDF→Excel→JSON path with a human-verified Excel checkpoint remains available when a human-editable intermediate is wanted.
 
 **Contains:**
 - Physical structure (rows, columns, positions)
@@ -76,6 +88,7 @@ PDF Protocol Document
 - Basic domain interpretation (property_type, indentation_level, hierarchical_level)
 - Table classification (main_soa, continuation, domain, subsidiary, track, reference)
 - Annotation markers with location tracking
+- Method provenance, exception-based (*how* a value was derived when not by the default method — a re-derivable procedure, not a confidence number)
 
 **Key Principle:** Extract what you see + interpret what's obvious.
 
@@ -83,11 +96,25 @@ PDF Protocol Document
 
 ---
 
+## Layer 1.5: Corrections
+
+**Schema:** `soa-table-corrections` v1.0
+
+**Implementation:** Programmatic (ApplyCorrectionsStep)
+
+Human review findings are recorded as a `*_corrections.json` sidecar and applied deterministically to produce `*_extraction.verified.json`. The raw extraction is never overwritten — the original model output is preserved and every change is auditable. Tables without a sidecar pass through untouched.
+
+**Key Principle:** The human is an adjudicator, not an editor — judgment enters through an auditable sidecar, never by rewriting model output.
+
+**Output:** `{NCTID}_Table_{NN}_extraction.verified.json` (only where corrections exist)
+
+---
+
 ## Layer 2: Resolution
 
 **Schema:** `soa-table-resolved` v1.0
 
-**Implementation:** Programmatic (ResolveStep, no Claude API)
+**Implementation:** Programmatic (ResolveStep, no Claude API). Reads the verified extraction where a corrections sidecar exists, the raw extraction otherwise.
 
 **Adds:**
 - Stable identifiers (`prop-001`, `act-015`, `col-007`, `annot-002`)
@@ -153,13 +180,26 @@ Cross-table IDs (`xact-NNN`, `xcol-NNN`, `xannot-NNN`) link to per-table IDs (`a
 
 ---
 
+## Independent Verification
+
+Two mechanical checks bracket the extraction, one inside the pass and one after the pipeline:
+
+- **Mark-check (inside the extraction pass):** re-derives the mark matrix from PDF geometry — bbox column-binning where a text layer exists, rule-line detection on rasters — and diffs it cell-for-cell against the model's visual read. Disagreements go to the uncertainty report.
+- **Row audit (after the pipeline):** `RowAuditStep` (`soa2usdm-row-audit`) compares every extracted activity row against the rows the SoA pages actually print, and writes `row_audit.json` per collection.
+
+Neither check trusts the model's read of the grid; both re-derive from the source PDF.
+
+---
+
 ## File Structure
 
 ```
 {NCTID}/SoA2USDM/
 ├── extracted/
-│   ├── *_verified.xlsx              # Verified Excel(s) from Conversation 1
-│   └── *_Table_{NN}_extraction.json # One per table
+│   ├── *_Table_{NN}_extraction.json          # Raw model output — immutable
+│   ├── *_Table_{NN}_corrections.json         # Human corrections sidecar (where needed)
+│   ├── *_Table_{NN}_extraction.verified.json # Sidecar applied (where one exists)
+│   └── *_verified.xlsx                       # Excel(s) — two-conversation path only
 ├── resolved/
 │   ├── *_Table_{NN}_resolved.json   # One per table
 │   └── *_Table_{NN}_resolved.html   # Per-table visualization
@@ -177,14 +217,16 @@ in the Excel files (e.g., table ranges, extra labels) are handled gracefully.
 
 | Layer | Question | Implementation | Scope |
 |-------|----------|----------------|-------|
-| **Extraction** | What does this table show? | Conversational | per-table |
+| **Extraction** | What does this table show? | Claude + mechanical verification | per-table |
 | **Resolution** | What precisely is in it? | Programmatic | per-table |
 | **Consolidation** | What was the protocol expressing? | Programmatic | per-protocol |
+
+Between extraction and resolution, human adjudication enters through the corrections sidecar (Layer 1.5) without ever touching the raw extraction.
 
 The architecture acknowledges that SoA tables are lossy compressions of study logic, and provides a systematic path to recover that logic while maintaining full traceability.
 
 ---
 
-**Version:** 3.0  
-**Date:** 2026-07-06  
-**Schemas:** soa-table-extraction v1.0, soa-table-resolved v1.0, soa-tables-consolidated v1.1
+**Version:** 4.0  
+**Date:** 2026-08-15  
+**Schemas:** soa-table-extraction v1.0, soa-table-corrections v1.0, soa-table-resolved v1.0, soa-tables-consolidated v1.1

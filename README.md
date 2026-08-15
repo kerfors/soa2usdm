@@ -1,10 +1,10 @@
 # SoA2USDM
 
-> Conversational AI workflow and programmatic pipeline for extracting Schedule of Activities (SoA) tables from clinical trial protocols and transforming them into structured, fully traceable, USDM-ready data. A domain expert guides the LLM through extraction and verification; Python handles resolution, consolidation, and visualization.
+> LLM extraction with mechanical verification, and a programmatic pipeline for transforming Schedule of Activities (SoA) tables from clinical trial protocols into structured, fully traceable, USDM-ready data. Claude extracts; mechanical checks re-derive the grid from the PDF; a domain expert reviews the evidence and adjudicates through auditable corrections; Python handles resolution, consolidation, and visualization.
 
 This repository is the **product**: the Python package, JSON schemas, prompts, notebooks, and design documents. Protocol collections — the derived extraction outputs and their visualizations — live in a **separate data repository**, [`soa2usdm-collections`](https://github.com/kerfors/soa2usdm-collections), so that code and data version independently and a public code repo stays free of protocol PDFs.
 
-The approach is described in the PHUSE paper *From Schedules of Activities (SoA) to USDM: Automating Protocol Extraction Using Large Language Models* (Forsberg & Ulander), available in the [PHUSE paper archive](https://phuse.global/).
+The approach originated in the PHUSE EU Connect 2025 paper [*From Schedules of Activities (SoA) to USDM: Automating Protocol Extraction Using Large Language Models*](https://phuse.s3.eu-central-1.amazonaws.com/Archive/2025/Connect/EU/Hamburg/PAP_ML08.pdf) (Forsberg & Ulander). The workflow has evolved substantially since — see [A Two-Year Journey](#a-two-year-journey) below.
 
 ## Architecture
 
@@ -12,11 +12,11 @@ Three processing layers:
 
 | Step | Question | How | Scope |
 |------|----------|-----|-------|
-| **1. Extraction** | What does this table show? | Claude AI + human verification | per table |
+| **1. Extraction** | What does this table show? | Claude + mechanical verification + human review | per table |
 | **2. Resolution** | What precisely is in it? | Programmatic (Python) | per table |
 | **3. Consolidation** | What was the protocol expressing? | Programmatic (Python) | per protocol |
 
-Layer 1 uses two Claude conversations per table (PDF→Excel→JSON, or a non-interactive PDF→JSON path) with human verification between steps. Layers 2–3 are pure Python, producing consolidated structured data and HTML visualizations.
+Layer 1 runs as a single non-interactive Claude pass (PDF→JSON): the model extracts, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on scanned ones), and ends with an uncertainty report that surfaces every judgement call for human review. Human fixes flow through an auditable corrections sidecar — the raw extraction is never overwritten. A two-conversation PDF→Excel→JSON path with an Excel checkpoint remains available when a human-editable intermediate is wanted. Layers 2–3 are pure Python, producing consolidated structured data and HTML visualizations; an independent row audit compares extracted rows against what the source pages actually print.
 
 The core processing logic lives in the `soa2usdm/` package; a batch notebook (`01_batch.ipynb`) provides the execution wrapper across protocol collections.
 
@@ -90,7 +90,7 @@ soa2usdm/
 
 ## Running It
 
-**Layer 1 — Extraction (Claude conversations):**
+**Layer 1 — Extraction (Claude):**
 Attach the prompt file + your data to a new Claude conversation. See [`prompts/EXTRACTION_WORKFLOW_GUIDE.md`](prompts/EXTRACTION_WORKFLOW_GUIDE.md) for the full workflow.
 
 **Layers 2–3 — Resolution, Consolidation & Visualization (Python):**
@@ -103,7 +103,11 @@ The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to
 
 **Errors collected, not raised.** Steps continue on errors — partial success matters when one table out of four has issues.
 
-**Two conversations, not one.** Layer 1 splits across two Claude conversations with Excel verification in between. Catches errors before they propagate into JSON.
+**Verification before propagation.** No extraction reaches the pipeline unreviewed. The mechanism has changed three times — Excel checkpoint (2025), then mechanical mark-check plus uncertainty report, then an independent row audit on top — but the invariant has not: catch errors before they propagate into downstream JSON.
+
+**Re-derive, don't eyeball.** The mark matrix is reconstructed mechanically from PDF geometry and diffed against the model's visual read — on dense grids this has caught merged-span errors that human Excel verification missed. Provenance fields record *how* each interpreted value was derived: a re-derivable method, not a confidence number.
+
+**Claude as product, not API.** Layer 1 runs in Claude's product surface — first chat conversations, now Claude Cowork — not through an API integration. Cowork opened new possibilities: file access and code execution inside the extraction session are exactly what make mechanical self-verification possible, since the same session that reads the table re-derives the mark matrix from the PDF. While both the models and the workflow are changing this fast, an API solution would have frozen an earlier workflow shape into code and meant rebuilding harness plumbing the product provides — and improves — for free. An API path stays open once the workflow stabilizes.
 
 **One file per table, then integrate.** Each table gets its own extraction/resolution file. Consolidation handles cross-table logic.
 
@@ -111,9 +115,11 @@ The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to
 
 **Traceability throughout.** Every element traces from consolidated output back through resolved and extracted to PDF page and row position.
 
-## Development Note
+## A Two-Year Journey
 
-This work spans a period of rapid LLM advancement. Each model generation brought material improvements in vision understanding, table structure recognition, and semantic reasoning. All pipeline steps use the latest available Claude model.
+This work spans roughly two years (2024–2026) of rapid LLM advancement, and the workflow changed shape with it. It began with automated multi-pass extraction, whose output could not be verified. The [2025 PHUSE paper](https://phuse.s3.eu-central-1.amazonaws.com/Archive/2025/Connect/EU/Hamburg/PAP_ML08.pdf) drew the consequence: a two-conversation workflow with a human-verified Excel checkpoint between PDF and JSON. Better models then made a third shape possible — a single non-interactive pass whose verification is engineered in rather than performed live: a mechanical mark-check re-derived from the PDF, an uncertainty report in place of interactive gates, a programmatic row audit, and an auditable corrections sidecar. Claude Cowork made this third shape practical — file access and code execution inside the extraction session itself. The human moved from guiding the extraction to reviewing its evidence.
+
+Each model generation brought material improvements in vision understanding, table structure recognition, and semantic reasoning. All pipeline steps use the latest available Claude model. See [`documents/background-and-challenges.md`](documents/background-and-challenges.md) for the fuller history.
 
 ## License
 
