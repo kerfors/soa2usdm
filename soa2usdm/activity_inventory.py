@@ -70,10 +70,16 @@ def _collect(collection: str):
                     "verbatim_name": a.get("activity_name", ""),
                     "has_schedule_data": a.get("has_schedule_data"),
                 }
+                # Legend-typed annotations are definitional (abbreviation keys),
+                # and their row binding is the marker's printed position, not
+                # scope — carrying them onto rows put "ulcerative colitis" on a
+                # Dosing row. Excluded from row lists, counts and search; they
+                # remain in the resolved/consolidated data and viewers.
                 row_anns = [{"marker": ann_by_id[aid]["annotation_marker"],
                              "table_number": tm.get("table_number"),
                              "text": ann_by_id[aid]["annotation_text"]}
-                            for aid in a.get("linked_annotation_ids", [])]
+                            for aid in a.get("linked_annotation_ids", [])
+                            if ann_by_id[aid]["annotation_type"] != "legend"]
                 ann_lookup[(pid, tid, a["activity_id"])] = row_anns
                 par = by_id.get(a.get("parent_activity_id"))
                 source_rows.append({
