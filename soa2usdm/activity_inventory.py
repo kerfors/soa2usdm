@@ -232,6 +232,7 @@ tr.open .chev{transform:rotate(90deg)}
 .detail td{background:#fbfcfe;padding:8px 12px 10px 30px}
 .detail .var{color:#555;font-size:11.5px;margin-bottom:6px}.detail .var b{color:var(--secfg)}
 .detail .fn{color:#555;font-size:11.5px;margin:4px 0}.detail .fn b{color:var(--pri);font-family:ui-monospace,Menlo,monospace;margin-right:4px}
+.detail .fnh{font-size:9.5px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.03em;margin:9px 0 2px;border-bottom:1px solid var(--line);padding-bottom:3px}
 .otab{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:2px;background:transparent}
 .otab th{position:static;background:transparent;border-bottom:1px solid var(--line);padding:4px 8px;font-size:9.5px;color:#888}
 .otab td{border-bottom:1px solid #eee;padding:4px 8px}
@@ -296,17 +297,17 @@ function conRow(r,i){
  const canExp=r.table_count>1||(r.variants||[]).length>1||(r.annotations||[]).length>0;
  return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
   `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
-  `<td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${sec}${(r.variants||[]).length>1?'<span class="flag">'+r.variants.length+' wordings</span>':''}</td>`+
+  `<td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${sec}${(r.variants||[]).length>1?'<span class="flag">'+r.variants.length+' wordings</span>':''}${(r.annotations||[]).length?'<span class="flag">'+r.annotations.length+' fn</span>':''}</td>`+
   `<td>${eh(r.parent_name)}</td><td>${nT}</td><td>${mt||'<span class="rp">—</span>'}</td></tr>`;
 }
 function detailRow(r){
  const vars=(r.variants||[]).length>1?`<div class="var">wording variants folded: <b>${r.variants.map(eh).join('</b> · <b>')}</b></div>`:'';
  const orows=(r.occurrences||[]).map(o=>`<tr><td class="tbl"><b>T${eh(o.table_number)}</b>${o.track_label?' · '+eh(o.track_label):''} <span class="tt" style="display:inline" title="${eh(o.table_title)}">${eh(o.table_title)}</span></td><td class="rp">${eh(o.row_position)}</td><td>${eh(o.verbatim_name)}</td><td class="rp">${o.has_schedule_data===false?'no marks':(o.has_schedule_data===true?'✓':'')}</td></tr>`).join('');
- const fns=(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="rp">T${eh(a.table_number)}</span> ${eh(a.text)}</div>`).join('');
+ const fns=(r.annotations||[]).length?`<div class="fnh">Linked annotations — deduplicated by text across source tables (marker · first table)</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="rp">T${eh(a.table_number)}</span> ${eh(a.text)}</div>`).join(''):'';
  return `<tr class="detail"><td colspan="6">${vars}<table class="otab"><thead><tr><th>Source table</th><th>Row</th><th>As extracted (verbatim)</th><th>Marks</th></tr></thead><tbody>${orows}</tbody></table>${fns}</td></tr>`;
 }
 function srcDetailRow(r){
- const fns=(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b> ${eh(a.text)}</div>`).join('');
+ const fns=`<div class="fnh">Linked annotations — this table row</div>`+(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b> ${eh(a.text)}</div>`).join('');
  return `<tr class="detail"><td colspan="7">${fns}</td></tr>`;
 }
 function srcRow(r,i){
