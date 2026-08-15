@@ -458,6 +458,12 @@ def audit_protocol(protocol_id: str, collection: str) -> dict:
         if assigned and all(isinstance(page, int) for page in declared):
             table_result["declared_page_count"] = declared[1] - declared[0] + 1
             table_result["page_count_agrees"] = table_result["declared_page_count"] == len(assigned)
+            if table_result["page_count_agrees"]:
+                # What to add to a PDF page to get the document page the
+                # extraction cites. Derived, and only where the two agree on
+                # how many pages the table has — anywhere else the pages
+                # cannot be lined up and no number is offered.
+                table_result["doc_page_offset"] = declared[0] - assigned[0]
         result["tables"].append(table_result)
     return result
 
@@ -515,8 +521,14 @@ def format_summary(report: dict) -> str:
             lines.append(f"  T{table['table_number']} pages {table['pages']} "
                          f"declared {table['declared_pages']} "
                          f"rows {matched}/{bands} matched{note}")
+            offset = table.get("doc_page_offset")
             for finding in table["on_page_not_extracted"]:
-                lines.append(f"     on page, not extracted  p{finding['page']} "
+                # Both numbers, always: the PDF page opens the file, the doc
+                # page is what the extraction and the reports cite, and they
+                # are not the same number.
+                where = (f"PDF p{finding['page']} / doc p{finding['page'] + offset}"
+                         if offset is not None else f"PDF p{finding['page']}")
+                lines.append(f"     on page, not extracted  {where} "
                              f"y{finding['y']} col{finding['column']}: {finding['text'][:80]!r}")
             for label in table["extracted_not_on_page"]:
                 lines.append(f"     extracted, not on page  {label!r}")
