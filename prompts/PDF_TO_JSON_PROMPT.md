@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.7.2 | Schema: soa-table-extraction v1.0
+> Prompt version 3.7.3 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -97,7 +97,7 @@ yourself about to guess, record the method or mark it unresolved instead.
 
 Assign `table_type` to every table per `soa_table_type_definitions.md`. Apply the discriminators explicitly:
 
-- **reference test first:** are the rows activities performed on subjects? If NO → `reference` (e.g. sample-spec tables whose rows are "Sample 1, Sample 2…", abbreviation lists).
+- **reference test first:** are the rows activities performed on subjects? If NO → `reference` (e.g. sample-spec tables whose rows are "Sample 1, Sample 2…", abbreviation lists). **But check what the rows key to before typing it `reference`:** if each row names an activity, visit or timepoint that already appears in the SoA and the row's other cell explains it, that content is annotations under §6 — emit one annotation per distinct note, bound to the element it names — not a table.
 - **subsidiary vs track:** finer timing for a subset of activities already in another table → `subsidiary`; a genuinely separate timeline with its own visits/duration/population → `track` (set `track_label`, see below).
 - **`track_label` is a short identifier, not a description.** Use the shortest phrase that tells this track apart from the other tracks in the *same study* — aim for one to four words, e.g. "Prediabetes", "Cohort 1", "Continued Access", "Extension (nonresponders)", "Early Termination / Unscheduled / Post-Treatment". Take the words from the source's own population or phase wording; do not compose a sentence, and do not restate the table number, the study name, the visit range, or filler like "Schedule of Activities" / "Treatment Period" when the label already distinguishes the track without it. Where the source spells the term inconsistently, follow the table title or the population statement rather than a column header. These labels surface as `population_track` on every column of the table, so they are read far more often than they are written.
 - **domain vs continuation:** same columns as the parent — rows continue across a page break → `continuation` (set `continuation_of`); different activity category on the shared timeline, **for the same participants** → `domain`.

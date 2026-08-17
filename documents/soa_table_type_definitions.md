@@ -1,4 +1,4 @@
-# SoA Table Type Definitions (v4)
+# SoA Table Type Definitions (v5)
 
 Classification scheme for Schedule of Activities tables in clinical trial protocols. Used for structure discovery before extraction and consolidation.
 
@@ -36,12 +36,13 @@ A table representing a genuinely separate study timeline for a different populat
 ### reference
 A table containing non-activity content - sample specifications, timing parameters, notes, abbreviations, or explanatory text. Rows are not procedures performed on subjects. Not a timeline; provides metadata that may link to activities but doesn't represent scheduled assessments.
 
+**A table is `reference` only if its rows key to nothing in the schedule.** Where each row names an activity, a visit or a timepoint that already appears in the SoA and the row's other cell explains it — an "Additional Information" or "Notes on assessments" table — that content is annotations, not a table. See the note below.
+
 *Examples:* 
 - *PK sampling tables where rows are "Sample 1, Sample 2..." with collection specifications*
-- *"Additional Information" tables explaining activity details*
 - *Abbreviation lists*
 
-*Note: Reference tables often capture content that downstream processing may represent as annotations - footnotes, instructions, conditional logic, or explanatory text that applies to specific activities or timepoints in the main schedule.*
+*Note — where the conversion happens.* Content explaining specific activities or timepoints in the main schedule becomes **annotations at extraction time** (prompt §6). It does not become a `reference` table for something downstream to convert later: `resolve` binds an annotation to its element through that row's `annotation_markers`, so a note left as a table row binds to nothing, and the loss is silent — the table is schema-valid, no marker is partial, and only the annotation count on the parent table shows it.
 
 ---
 
@@ -63,7 +64,10 @@ A table containing non-activity content - sample specifications, timing paramete
 ```
 Are the rows ACTIVITIES (procedures performed on subjects)?
 │
-├─ NO → reference
+├─ NO → Do the rows key to activities, visits or timepoints in another table?
+│       │
+│       ├─ YES → NOT a table — extract the content as annotations (prompt §6)
+│       └─ NO  → reference
 │
 └─ YES → Does it share the SAME columns as another table?
          │
