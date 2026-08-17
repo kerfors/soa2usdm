@@ -1,4 +1,4 @@
-# SoA Table Type Definitions (v5)
+# SoA Table Type Definitions (v6)
 
 Classification scheme for Schedule of Activities tables in clinical trial protocols. Used for structure discovery before extraction and consolidation.
 
@@ -11,6 +11,10 @@ The primary Schedule of Activities table that serves as the anchor for the study
 
 ### continuation
 A physical continuation of another table split across pages due to space constraints. Has identical column headers - the rows simply continue. Common in protocols with many activities. During consolidation, rows are appended to the parent table.
+
+**A page break inside ONE printed table is not a `continuation`.** Where the source prints a single table whose rows simply run onto the next page under a reprinted header, extract it as one table spanning both pages: `page_start`/`page_end` already carry the extent, and §1b of the extraction prompt says to de-duplicate the reprinted header and `schedule_property` rows. Reserve `continuation` for a source that presents the overflow as a table **in its own right** - its own table number, caption or title. Ask what the source numbered, not where the paper ran out.
+
+*Not to be confused with a horizontally tiled table (§5), where a second spread reprints the SAME body rows under DIFFERENT columns. Same rows + different columns is one tiled table and the marks are unioned across tiles; different rows + same columns is a page split. Compare the body rows across the two spreads before typing either.*
 
 ### domain
 A table with the same column structure (timeline) as the main_soa, **applying to the same participants**, but containing a different category of activities. Sponsors sometimes split assessments into separate tables by domain for readability - Non-laboratory assessments, Laboratory assessments, PK assessments, etc. During consolidation, activities merge into a unified list aligned to the shared timeline.
@@ -69,23 +73,33 @@ Are the rows ACTIVITIES (procedures performed on subjects)?
 │       ├─ YES → NOT a table — extract the content as annotations (prompt §6)
 │       └─ NO  → reference
 │
-└─ YES → Does it share the SAME columns as another table?
+└─ YES → Do the SAME body rows reprint under a DIFFERENT column block?
          │
-         ├─ YES → Is it a physical page split (rows continue)?
-         │        │
-         │        ├─ YES → continuation
-         │        └─ NO  → Does it schedule the SAME participants as that table?
-         │                 │
-         │                 ├─ YES → domain
-         │                 └─ NO  → track   (mutually exclusive populations)
+         ├─ YES → one horizontally tiled table (§5) — union the marks across the
+         │        tiles; do NOT emit a second table
          │
-         └─ NO → Is this the primary/anchor table?
+         └─ NO → Does it share the SAME columns as another table?
                   │
-                  ├─ YES → main_soa
-                  └─ NO  → Does it provide finer timing granularity?
+                  ├─ YES → Do the rows continue from that table?
+                  │        │
+                  │        ├─ YES → Does the source present the overflow as a table
+                  │        │        in its own right (own number / caption / title)?
+                  │        │        │
+                  │        │        ├─ YES → continuation
+                  │        │        └─ NO  → one table spanning both pages
+                  │        │
+                  │        └─ NO  → Does it schedule the SAME participants as that table?
+                  │                 │
+                  │                 ├─ YES → domain
+                  │                 └─ NO  → track   (mutually exclusive populations)
+                  │
+                  └─ NO → Is this the primary/anchor table?
                            │
-                           ├─ YES → subsidiary
-                           └─ NO  → track
+                           ├─ YES → main_soa
+                           └─ NO  → Does it provide finer timing granularity?
+                                    │
+                                    ├─ YES → subsidiary
+                                    └─ NO  → track
 ```
 
 **The population question is not optional.** Two schedules can carry byte-identical visit

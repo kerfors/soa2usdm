@@ -20,6 +20,7 @@ historical bad state, taken from the collections git history, on which the
 detector must fire. A detector that only ever returns nothing is
 indistinguishable from a clean corpus.
 """
+import re
 import json
 import shutil
 from pathlib import Path
@@ -478,3 +479,62 @@ def test_header_bound_detector_fires_on_header_binding():
     ua["is_section_header"] = True
     findings = find_header_bound_annotations(data)
     assert findings == [(annot["xannot_id"], [ua["activity_name"]])], findings
+
+
+# ---------------------------------------------------------------------------
+# Range notation (inventory-improvements item 5)
+# ---------------------------------------------------------------------------
+
+def test_range_fields_are_numeric_column_positions():
+    """`source_range` and `merged_cell_range` take "<first>:<last>" in the table's own
+    column_position numbering, never spreadsheet A1 notation.
+
+    The schema's description for merged_cell_range used to show 'B2:D2', and two independent
+    blind extractions of the same table disagreed because of it — one emitted '4:5', the other
+    'D1:E1'. The field is a bare string, so the A1 value validated silently and neither the
+    count-based checks nor jsonschema could see the corpus splitting into two notations. The
+    sibling field, whose description carried no A1 example, came out numeric in both runs.
+
+    Both directions, so a future schema edit cannot quietly drop the constraint."""
+    schema = json.loads((Path(__file__).parents[1] / "schemas"
+                         / "soa-table-extraction.schema.json").read_text())
+    for definition, field in (("schedule_grid_value", "merged_cell_range"),
+                              ("activity_schedule_value", "source_range")):
+        pattern = schema["definitions"][definition]["properties"][field].get("pattern")
+        assert pattern, f"{definition}.{field} has no pattern — an A1 value would validate"
+        rx = re.compile(pattern)
+        for good in ("4:5", "6:9", "12:24", ""):
+            assert rx.match(good), f"{definition}.{field} rejects the legitimate value {good!r}"
+        for bad in ("D1:E1", "B2:D2", "4-5", "sheet!A1:B2", "A:B"):
+            assert not rx.match(bad), f"{definition}.{field} accepts {bad!r}"
+
+    # Every range value in every LIVE collection is numeric. The banked fixtures are frozen
+    # snapshots taken before the notation was pinned, so they are counted rather than asserted
+    # clean: fixtures/NCT03637764 still carries 16 A1-style merged_cell_range values across 6
+    # spans (B1:C1, D1:G1, I1:K1, B2:C2, D2:F2, I2:J2) while its 155 source_range values are all
+    # numeric — the same asymmetry the defect predicted, since only merged_cell_range's schema
+    # description showed an A1 example. The live extraction of that protocol is numeric throughout.
+    # Pinned, not excluded, so the debt stays visible: re-banking that fixture should take this
+    # to 0 and this number with it.
+    KNOWN_A1_IN_FIXTURES = 16
+    seen = a1_in_fixtures = 0
+    for collection, protocols_dir in config.COLLECTIONS.items():
+        for path in Path(protocols_dir).glob("*/SoA2USDM/extracted/*_extraction.json"):
+            data = json.loads(path.read_text())
+            for array, field in (("schedule_grid", "merged_cell_range"),
+                                 ("activity_schedule", "source_range")):
+                for row in data.get(array, []):
+                    value = row.get(field)
+                    if value is None:
+                        continue
+                    seen += 1
+                    if re.fullmatch(r"(\d+:\d+)?", value):
+                        continue
+                    if collection == "fixtures":
+                        a1_in_fixtures += 1
+                        continue
+                    raise AssertionError(f"{collection}/{path.name}: {field} = {value!r}")
+    assert seen, "no range values found — the corpus check did not run"
+    assert a1_in_fixtures == KNOWN_A1_IN_FIXTURES, (
+        f"banked fixtures carry {a1_in_fixtures} A1-notation range values, expected "
+        f"{KNOWN_A1_IN_FIXTURES} — if a fixture was re-banked, update this number")

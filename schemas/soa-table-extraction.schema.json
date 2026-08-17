@@ -189,7 +189,8 @@
         },
         "merged_cell_range": {
           "type": "string",
-          "description": "If cell is part of merged cells, the range notation (e.g., 'B2:D2'). Merged cells in SoA tables indicate spanning concepts - a phase covering multiple visits, etc."
+          "pattern": "^(\\d+:\\d+)?$",
+          "description": "If cell is part of merged cells, the covered range as COLUMN POSITIONS in this table's own numbering (e.g. '6:9'). Never spreadsheet A1 notation - the example here used to read 'B2:D2', and because the field is a bare string an A1 value validated silently and split the corpus into two notations no count-based check could see. Empty or absent when the cell is not merged. Merged cells in SoA tables indicate spanning concepts - a phase covering multiple visits, etc."
         },
         "is_merged_cell": {
           "type": "boolean",
@@ -336,7 +337,8 @@
         },
         "source_range": {
           "type": "string",
-          "description": "If this cell value was distributed from a merged cell, the original column range (e.g., '7:9' means value applies to columns 7-9). Empty string if not from merge expansion."
+          "pattern": "^(\\d+:\\d+)?$",
+          "description": "If this cell value was distributed from a merged cell, the original column range as COLUMN POSITIONS (e.g. '7:9' means the value applies to columns 7-9). Never spreadsheet A1 notation. Empty string if not from merge expansion."
         },
         "annotation_markers": {
           "type": "string",
