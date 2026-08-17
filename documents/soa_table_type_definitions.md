@@ -13,11 +13,12 @@ The primary Schedule of Activities table that serves as the anchor for the study
 A physical continuation of another table split across pages due to space constraints. Has identical column headers - the rows simply continue. Common in protocols with many activities. During consolidation, rows are appended to the parent table.
 
 ### domain
-A table with the same column structure (timeline) as the main_soa but containing a different category of activities. Sponsors sometimes split assessments into separate tables by domain for readability - Non-laboratory assessments, Laboratory assessments, PK assessments, etc. During consolidation, activities merge into a unified list aligned to the shared timeline.
+A table with the same column structure (timeline) as the main_soa, **applying to the same participants**, but containing a different category of activities. Sponsors sometimes split assessments into separate tables by domain for readability - Non-laboratory assessments, Laboratory assessments, PK assessments, etc. During consolidation, activities merge into a unified list aligned to the shared timeline.
 
 *Examples:*
 - *Amgen protocol with Table 1a (Non-lab), Table 1b (Lab), Table 1c (PK) - all sharing 20 columns but grouping different assessment types.*
-- *Responder/Non-responder schedules that share the same visit structure but show different activities or conditional assessments for each population.*
+
+*NOT domain:* two schedules that split the study population into **mutually exclusive groups** (responders vs non-responders, arm A vs arm B) are `track`, not `domain` - even when they share identical visit labels. See the discriminator below.
 
 ### subsidiary
 A table with different (typically finer) column structure providing detailed timing for a subset of activities. Often used for intensive PK sampling where the main SoA shows "PK sampling" as a single activity, but a subsidiary table breaks this down by hour or minute. Links back to specific activities in the main timeline.
@@ -25,11 +26,12 @@ A table with different (typically finer) column structure providing detailed tim
 *Example: Alexion Table 2 showing hour-by-hour PK/PD sampling times (columns: -0.5h, 0h, 1h, 2h, 4h...) for specific study days referenced in Table 1.*
 
 ### track
-A table representing a genuinely separate study timeline for a different population or study phase. Has different column structure because the schedule itself is different - different visits, different duration, different timing. Maps to a separate ScheduleTimeline in USDM.
+A table representing a genuinely separate study timeline for a different population or study phase. Usually the column structure differs too - different visits, different duration, different timing - but **a different column structure is not required**: what makes a table a track is that it schedules a *different set of participants*, or the same participants in a *different study phase*. Maps to a separate ScheduleTimeline in USDM.
 
 *Examples:*
 - *NCT04184622 Section 1.3.2 - an additional 2-year treatment schedule only for participants with prediabetes at randomization, with its own visit numbering (101-199) and timing.*
 - *Continued Access schedules with distinct visit structures for participants continuing treatment after the main study period.*
+- *NCT04677179 Tables 2 and 3 - Maintenance (responders at Week 12) and Extension (non-responders at Week 12). Their visit labels, weeks and study days are numerically identical (V10-V29), but the two schedules apply to mutually exclusive populations, so each is its own track.*
 
 ### reference
 A table containing non-activity content - sample specifications, timing parameters, notes, abbreviations, or explanatory text. Rows are not procedures performed on subjects. Not a timeline; provides metadata that may link to activities but doesn't represent scheduled assessments.
@@ -49,9 +51,9 @@ A table containing non-activity content - sample specifications, timing paramete
 |------|------------------|-------------|---------------------|
 | **main_soa** | Primary grid | Activities | Anchor table |
 | **continuation** | SAME as parent | Activities continue | Append rows |
-| **domain** | SAME as parent | Different activity category | Merge activities |
+| **domain** | SAME as parent | Different activity category, SAME participants | Merge activities |
 | **subsidiary** | DIFFERENT (finer) | Activity subset, detailed timing | Link to parent activities |
-| **track** | DIFFERENT | Different population/phase | Separate ScheduleTimeline |
+| **track** | DIFFERENT, or same | Different population/phase | Separate ScheduleTimeline |
 | **reference** | N/A | Non-activities | Annotations/metadata |
 
 ---
@@ -68,7 +70,10 @@ Are the rows ACTIVITIES (procedures performed on subjects)?
          ├─ YES → Is it a physical page split (rows continue)?
          │        │
          │        ├─ YES → continuation
-         │        └─ NO  → domain
+         │        └─ NO  → Does it schedule the SAME participants as that table?
+         │                 │
+         │                 ├─ YES → domain
+         │                 └─ NO  → track   (mutually exclusive populations)
          │
          └─ NO → Is this the primary/anchor table?
                   │
@@ -78,3 +83,10 @@ Are the rows ACTIVITIES (procedures performed on subjects)?
                            ├─ YES → subsidiary
                            └─ NO  → track
 ```
+
+**The population question is not optional.** Two schedules can carry byte-identical visit
+labels, weeks and study days and still be separate tracks: identical columns mean the sponsor
+reused a visit numbering scheme, not that the same people attend those visits. Getting this
+wrong is silent - the consolidated `schedule_matrix` and column count are unaffected, but the
+`population_track` of every column in the misclassified table goes null, and the branch
+identity is gone with nothing failing anywhere.
