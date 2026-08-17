@@ -602,6 +602,9 @@ def generate_index_html(collection: str) -> str:
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; padding: 20px; color: #333; }
         
         .header { background: linear-gradient(135deg, #1F4788, #2E75B6); color: white; padding: 24px 30px; border-radius: 12px; margin-bottom: 20px; }
+        .header .back { font-size: 11px; margin-bottom: 6px; }
+        .header .back a { color: rgba(255,255,255,0.85); text-decoration: none; }
+        .header .back a:hover { text-decoration: underline; }
         .header h1 { font-size: 20px; margin-bottom: 4px; }
         .header .sub { font-size: 12px; opacity: 0.8; }
         .header .meta { font-size: 11px; opacity: 0.7; margin-top: 8px; }
@@ -660,6 +663,7 @@ def generate_index_html(collection: str) -> str:
 </head>
 <body>
     <div class="header">
+        <div class="back"><a href="../../../index.html">&larr; All collections</a></div>
         <h1>{esc(collection)}</h1>
         <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline</div>
         <div class="meta">{len(all_protocols)} protocols | {len(ready)} processed | {len(pending)} pending | Generated {generated_at}</div>
