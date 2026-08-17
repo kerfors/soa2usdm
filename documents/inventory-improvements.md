@@ -1,6 +1,6 @@
-# Backlog — inventory and annotation improvements
+# Backlog — inventory, annotation and schema items
 
-Four improvements motivated by working with the usdm_data corpus: two to the activity inventory (`soa2usdm/activity_inventory.py` → `activities.html` / `activities.json`), two to the annotation layer. All are additive — no schema break; raw extraction stays immutable, fixes flow through the corrections sidecar as usual.
+Items motivated by working with the usdm_data corpus: two to the activity inventory (`soa2usdm/activity_inventory.py` → `activities.html` / `activities.json`), two to the annotation layer, and one to the extraction schema. Items 1–4 are additive — no schema break; raw extraction stays immutable, fixes flow through the corrections sidecar as usual. Item 5 tightens a schema field that is currently unconstrained.
 
 ## 1 — Carry linked footnote text into the activity inventory
 
@@ -42,8 +42,20 @@ Four improvements motivated by working with the usdm_data corpus: two to the act
 
 **Size.** Small. Feeds item 1 (harvest quality).
 
+## 5 — Constrain the range notation in `soa-table-extraction.schema.json`
+
+**Motivation.** `/definitions/schedule_grid_value/properties/merged_cell_range` is `{"type": "string"}` and its description reads *"the range notation (e.g., 'B2:D2')"* — a spreadsheet A1 cell reference. Every one of the 699 range values in the corpus is instead a numeric column-position range (`'4:5'`, `'6:9'`, `'12:24'`), and every acceptance invariant is written that way. Because the type is a bare string, both notations validate and the disagreement is invisible.
+
+It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1 reproduced the mark matrix exactly — 117 marks, symmetric difference 0 once the column-anchor offset is applied — but emitted `'4:5'` in one run and `'D1:E1'` in the other. The decisive evidence for the cause: `activity_schedule.source_range` carries no A1 example in its description and came out numeric in *both* runs. Only the field with the misleading example flipped.
+
+**Sketch.** Reword the description to name the numeric convention (*"the covered column-position range, e.g. '4:9'"*), add `"pattern": "^\\d+:\\d+$"` so a non-numeric range fails validation instead of passing silently, and give `source_range` the same treatment for symmetry even though nothing has drifted there yet.
+
+**Acceptance.** All 699 existing range values in the corpus validate against the new pattern (699/699, no exceptions carved out); an A1-style value fails. Add a regression test alongside the existing schema tests.
+
+**Size.** Small. Schema + one test. Deferred 2026-08-17 — deliberately not bundled with prompt v3.7.0, so the remaining 18 studies run against an unchanged schema.
+
 ---
 
-2026-08-15. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, and the NCT04677179 protocol markdown.
+2026-08-15, item 5 added 2026-08-17. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
 
 **Status 2026-08-15:** items 1, 2 and 4 shipped; item 3 open. Item 2: `is_redacted` derived at resolve (exception-based — present only when true), carried onto `unified_activities`, filterable in the inventory, per-protocol count in the collection index (6/60, plus NCT05176314 2/24 and NCT05324124 1/20 — genuine redactions, not false positives). Item 4: legend density rule retypes footnote→`legend` at resolve with the extracted type kept in `annotation_type_source` (the 3 NCT04677179 unified legends; 0 false positives over 752 corpus annotations); header-bound detector warns at consolidation — measured base rate 5 across 4 protocols, all reading as deliberate group-scope notes, hence warning not error. The NCT04677179 header-bound misbind suspected above no longer exists in current data (the T4 c11 note was re-bound to the restored Dosing row on 2026-08-15).
