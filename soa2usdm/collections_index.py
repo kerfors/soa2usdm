@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from .base import PipelineStepBase
 from . import config
-from .index_generator import esc
+from .index_generator import esc, load_study_metadata
 
 
 def generate_collections_index_html() -> str:
@@ -25,7 +25,14 @@ def generate_collections_index_html() -> str:
         descriptor = config.load_collection_descriptor(name)
         collection_path = config.get_collection_path(name)
         rel = collection_path.relative_to(root).as_posix()
-        total = len(config.list_protocols(name))
+        # Studies the manifest marks not extractable are not outstanding work,
+        # so they are not counted here either -- same rule as the collection
+        # index, and it keeps the count independent of which source PDFs happen
+        # to be present in this working tree.
+        study_meta = load_study_metadata(collection_path)
+        excluded = {k for k, m in study_meta.items()
+                    if str(m.get('excluded_reason') or '').strip()}
+        total = len([p for p in config.list_protocols(name) if p not in excluded])
         processed = len(config.list_ready_protocols(name))
         title = descriptor.get("title", name)
         description = descriptor.get("description", "")

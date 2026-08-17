@@ -485,9 +485,28 @@ def generate_index_html(collection: str) -> str:
     # No descriptor / no provenance block -> the column is not rendered at all.
     provenance = descriptor.get('provenance')
 
+    # Studies the manifest marks as not extractable -- e.g. the posted protocol
+    # carries no SoA table. Declared as data in the manifest's excluded_reason
+    # column rather than derived from the filesystem, so the list is identical
+    # in a fresh clone and in a working tree that still holds the source PDFs.
+    excluded = [
+        {
+            'nct_id': key,
+            'provenance_ref': meta.get(provenance['field'], '') if provenance else '',
+            'study_code': meta.get('study_code', ''),
+            'study_acronym': meta.get('study_acronym', ''),
+            'excluded_reason': str(meta.get('excluded_reason') or '').strip(),
+        }
+        for key, meta in sorted(study_meta.items())
+        if str(meta.get('excluded_reason') or '').strip()
+    ]
+    excluded_ids = {e['nct_id'] for e in excluded}
+
     # Discover outputs for each protocol
     protocols = []
     for pid in all_protocols:
+        if pid in excluded_ids:
+            continue
         outputs = discover_protocol_outputs(pid, collection)
         meta = study_meta.get(pid, {})
         protocols.append({
@@ -504,6 +523,7 @@ def generate_index_html(collection: str) -> str:
     pending = [p for p in protocols if not p['has_resolved'] and not p['has_consolidated']]
     
     generated_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    excl_meta = f' | {len(excluded)} excluded' if excluded else ''
     
     def protocol_row(p: dict) -> str:
         nct = p['nct_id']
@@ -593,8 +613,19 @@ def generate_index_html(collection: str) -> str:
             <td class="viz">{report_html}</td>
         </tr>'''
     
+    def excluded_row(e: dict) -> str:
+        prov_td = f'<td class="prov-ref">{esc(e["provenance_ref"])}</td>' if provenance else ''
+        return f'''
+        <tr class="excluded-row">
+            <td class="nct">{esc(e['nct_id'])}</td>{prov_td}
+            <td class="study-code">{esc(e['study_code'])}</td>
+            <td class="acronym">{esc(e['study_acronym'])}</td>
+            <td class="excluded-reason" colspan="7">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
+        </tr>'''
+
     ready_rows = ''.join(protocol_row(p) for p in ready)
     pending_rows = ''.join(protocol_row(p) for p in pending)
+    excluded_rows = ''.join(excluded_row(e) for e in excluded)
     prov_th = f'<th>{esc(provenance["label"])}</th>' if provenance else ''
     
     css = """
@@ -651,6 +682,8 @@ def generate_index_html(collection: str) -> str:
         .resolved-group { white-space: nowrap; color: #666; font-size: 10px; }
         .pending { color: #aaa; font-style: italic; font-size: 10px; }
         .pending-row { opacity: 0.55; }
+        .excluded-row { opacity: 0.5; background: #fafafa; }
+        .excluded-reason { color: #999; font-style: italic; font-size: 10px; }
     """
     
     return f'''<!DOCTYPE html>
@@ -666,7 +699,7 @@ def generate_index_html(collection: str) -> str:
         <div class="back"><a href="../../../index.html">&larr; All collections</a></div>
         <h1>{esc(collection)}</h1>
         <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline</div>
-        <div class="meta">{len(all_protocols)} protocols | {len(ready)} processed | {len(pending)} pending | Generated {generated_at}</div>
+        <div class="meta">{len(protocols)} protocols | {len(ready)} processed | {len(pending)} pending{excl_meta} | Generated {generated_at}</div>
         <div style="margin-top:10px"><a href="activities.html" style="display:inline-block;padding:6px 12px;border:1px solid #1F4788;border-radius:6px;color:#1F4788;text-decoration:none;font-size:13px;font-weight:600">&#9636; All extracted activities &mdash; consolidated / source-table inventory &rarr;</a></div>
     </div>
     
@@ -680,6 +713,7 @@ def generate_index_html(collection: str) -> str:
             <tbody>
                 {ready_rows}
                 {pending_rows}
+                {excluded_rows}
             </tbody>
         </table>
         </div>
