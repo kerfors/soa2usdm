@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.7.1 | Schema: soa-table-extraction v1.0
+> Prompt version 3.7.2 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -141,7 +141,7 @@ Each activity row → one `activity`.
 
 ## 5. Grid values and merged cells
 
-- Column 1 is row labels — EXCLUDE it from `schedule_grid` and `activity_schedule`. Data columns start at position 2.
+- **Leading label columns are excluded, and `column_position` keeps the source's own column numbering.** Count the label columns on the left: the activity-name column, plus any further column that labels the row rather than schedules it — a Protocol Reference column, a Procedure Category column, or the narrow column carrying the header rows' own labels ("VISIT", "WEEK"). EXCLUDE every one of them from `schedule_grid` and `activity_schedule`, and do NOT renumber what is left: with `L` label columns the first data column is position `L+1`. One label column therefore starts at 2 (the usual case), two start at 3, three start at 4. Renumbering the data columns to 2 when `L` > 1 shifts every `column_position`, every `source_range` and every `merged_cell_range` in the table while nothing about the source has changed, and no count-based check can see the difference. State `L` and the first data position in the report.
 - Clean markers out of `cell_value` into `annotation_markers` (`Xᵃ` → `cell_value: "X"`, `annotation_markers: "a"`).
 - A legend-defined in-grid scheduling mark stays as a `cell_value`, not an annotation — e.g. keep `P` in the grid where the legend defines `P = predose`. It is a scheduling indicator like `X`.
 - **Merged marks — distribute, never centre.** A single mark sitting in a cell visually merged across N columns applies to ALL N columns. Emit one `activity_schedule` entry per covered column with the same `cell_value`, and set `source_range` to the span (e.g. `"4:15"`). Do NOT collapse a merged mark onto the one visually-centred column — that fabricates a single-visit schedule and destroys the real span. Confirm every span from the rule-line geometry (§1b text-layer / §1a image), not from where the glyph sits. The same applies to merged text cells such as "See instructions" / "See Section x.y": one entry per covered column, `source_range` set. For merged header cells, record `is_merged_cell` / `merged_cell_range` on each covered position.
