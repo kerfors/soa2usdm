@@ -83,7 +83,10 @@ def scrub(obj):
 @pytest.fixture(params=CASES, ids=[f"{c}/{p}" for c, p in CASES])
 def pipeline_output(request, tmp_path):
     """Copy one protocol's extraction into a temp collection, run resolve+consolidate,
-    and yield (protocol, produced_dir, golden_dir)."""
+    and yield (case_id, produced_dir, golden_dir), where case_id is "<collection>/<protocol>" —
+    the same string pytest uses as the test id. The two pinned expectation tables below are keyed
+    by it, so a banked fixture (a frozen snapshot) keeps its own expected values while the live
+    collection is free to move."""
     collection, protocol = request.param
     golden = Path(config.COLLECTIONS[collection]) / protocol / "SoA2USDM"
 
@@ -104,7 +107,7 @@ def pipeline_output(request, tmp_path):
         data[step_cls.step_name] = step_cls(errors, analytics).execute(data)
     assert not errors.has_errors(), [(e.step, e.message) for e in errors.all]
 
-    yield protocol, coll / protocol / "SoA2USDM", golden
+    yield f"{collection}/{protocol}", coll / protocol / "SoA2USDM", golden
     config.COLLECTIONS.pop(key, None)
 
 
@@ -282,8 +285,13 @@ def test_method_provenance_summary_warnings_and_unresolved():
 # corpus (752 resolved annotations): the pattern matches 8 — these 4 fragments
 # mistyped footnote, plus 4 legend lists already typed abbreviation, which the
 # guard leaves untouched. Everything else must keep its extracted type.
+# The banked fixture keeps the four fragments and stays the end-to-end positive control for the
+# retype path. The LIVE collection no longer contains them: prompt v3.7.0 §6 stops an abbreviation
+# block whose terms carry no in-grid marker from emitting annotations at all, so the corrupt
+# abbreviation-key fragments (NCT04677179 T1 c23, T2/T3 c13, T4 c12) are simply not extracted any
+# more. Nothing in usdm_data should need retyping.
 EXPECTED_LEGEND_RETYPES = {
-    "NCT04677179": {
+    "fixtures/NCT04677179": {
         ("Table_01", "annot-031"),
         ("Table_02", "annot-014"),
         ("Table_03", "annot-014"),
@@ -298,10 +306,12 @@ def test_legend_retypes_exactly_the_known_fragments(pipeline_output):
     abbreviation-legend fragments, retyped footnote -> legend; no other
     protocol has any retype."""
     protocol, produced, _ = pipeline_output
+    # protocol is the "<collection>/<protocol>" case id; the filename carries only the protocol.
+    stem = protocol.split("/")[-1]
     found = set()
     for rf in sorted((produced / "resolved").glob("*_resolved.json")):
         data = json.loads(rf.read_text())
-        table = rf.name.replace(f"{protocol}_", "").replace("_resolved.json", "")
+        table = rf.name.replace(f"{stem}_", "").replace("_resolved.json", "")
         for annot in data["annotations"]:
             src = annot.get("annotation_type_source")
             if src:
@@ -372,10 +382,17 @@ def test_legend_retype_preserves_already_definitional_types():
 # Consolidated-level redaction counts, measured 2026-08-15 and pinned:
 # the corpus' full population of CCI rows. Any other protocol reporting a
 # redaction is a false positive.
+# Keyed by case id like the other two tables, so the banked fixture keeps its own frozen count.
+# The live counts are unchanged by the Phase 3 re-extraction: NCT05176314's 2 and NCT05324124's 1
+# are restored by promotion-review corrections sidecars — one placeholder row per OBSERVED
+# redaction band, because the re-extraction established that the "CCI" lettering prints outside the
+# table's left rule (x = 174-199 px vs a rule at x = 200) and is an overlay, not a cell value. How
+# many rows a band conceals is not determinable from the source.
 EXPECTED_REDACTED_UNIFIED = {
-    "NCT04677179": 6,   # of 60 unified activities
-    "NCT05176314": 2,
-    "NCT05324124": 1,
+    "usdm_data/NCT04677179": 6,   # of 64 unified activities
+    "usdm_data/NCT05176314": 2,
+    "usdm_data/NCT05324124": 1,
+    "fixtures/NCT04677179": 6,
 }
 
 
@@ -420,11 +437,19 @@ def test_redacted_name_pattern_boundaries():
 # NCT03283098's Pre-HD qualifier says "applying to all laboratory assessments"
 # outright). This is why the detector warns instead of erroring. A count
 # moving here means a binding changed — look before repinning.
+# Base rate, not zero: a note scoping a whole section legitimately binds to that section's header
+# row. The Phase 3 re-extraction left the TOTAL at 5 and moved one — NCT03283098 -1 (nothing now
+# binds to its 'Laboratory Assessments' header) and NCT04677179 +1 (T2's "Not applicable for
+# responders during the time period of V10 through V19" binds to the 'Endoscopic Procedure'
+# header). Verified on a 150 dpi render of doc p.27: that row is a shaded section header with NO
+# printed marker, and the location carries method "synthesized" — §6's rule for a notes-column
+# entry the source gives no marker, link it to the row it sits beside. All five, before and after,
+# are the same shape.
 EXPECTED_HEADER_BOUND = {
-    "NCT03283098": 1,
-    "NCT04557384": 1,
-    "NCT04573309": 2,
-    "NCT04730349": 1,
+    "usdm_data/NCT04557384": 1,
+    "usdm_data/NCT04573309": 2,
+    "usdm_data/NCT04677179": 1,
+    "usdm_data/NCT04730349": 1,
 }
 
 
