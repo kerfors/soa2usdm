@@ -19,12 +19,40 @@ from . import config
 from .index_generator import load_study_metadata, esc
 
 
-def _sponsor_ta(d4k: str):
-    """Derive sponsor (leading token) and therapeutic area (trailing token) from d4k_folder."""
-    parts = d4k.split("_") if d4k else []
-    sponsor = parts[0] if parts else ""
-    ta = parts[-1] if (len(parts) >= 2 and not parts[-1].startswith("NCT")) else ""
-    return sponsor, ta
+def _first_token(value: str) -> str:
+    return value.split("_")[0] if value else ""
+
+
+def _last_token_unless_nct(value: str) -> str:
+    parts = value.split("_") if value else []
+    return parts[-1] if (len(parts) >= 2 and not parts[-1].startswith("NCT")) else ""
+
+
+# Closed rule vocabulary for descriptor-declared metadata derivation. A
+# collection whose manifest lacks a column may declare which naming convention
+# fills it (e.g. usdm_data derives sponsor/TA from the d4k folder name). An
+# unknown rule name fails fast with KeyError.
+_DERIVATION_RULES = {
+    "first_token": _first_token,
+    "last_token_unless_nct": _last_token_unless_nct,
+}
+
+
+def _study_fields(meta: dict, descriptor: dict) -> tuple[str, str]:
+    """Resolve sponsor and therapeutic_area for one study.
+
+    Manifest column first; otherwise the collection descriptor's
+    derived_metadata rule for that field; otherwise blank.
+    """
+    derived = descriptor.get("derived_metadata", {})
+    values = {}
+    for field in ("sponsor", "therapeutic_area"):
+        value = str(meta.get(field) or "").strip()
+        if not value and field in derived:
+            spec = derived[field]
+            value = _DERIVATION_RULES[spec["rule"]](str(meta.get(spec["from"]) or ""))
+        values[field] = value
+    return values["sponsor"], values["therapeutic_area"]
 
 
 def _collect(collection: str):
@@ -38,6 +66,7 @@ def _collect(collection: str):
     """
     collection_path = config.get_collection_path(collection)
     study_meta = load_study_metadata(collection_path)
+    descriptor = config.load_collection_descriptor(collection)
 
     source_rows = []
     resolved_lookup = {}
@@ -45,9 +74,7 @@ def _collect(collection: str):
     for pid in config.list_protocols(collection):
         meta = study_meta.get(pid, {})
         d4k = meta.get("d4k_folder", "") or ""
-        sponsor, ta = _sponsor_ta(d4k)
-        if meta.get("therapeutic_area"):
-            ta = str(meta["therapeutic_area"]).strip()
+        sponsor, ta = _study_fields(meta, descriptor)
         try:
             resolved_dir = config.get_resolved_dir(pid, collection)
         except FileNotFoundError:
@@ -104,9 +131,7 @@ def _collect(collection: str):
     for pid in config.list_protocols(collection):
         meta = study_meta.get(pid, {})
         d4k = meta.get("d4k_folder", "") or ""
-        sponsor, ta = _sponsor_ta(d4k)
-        if meta.get("therapeutic_area"):
-            ta = str(meta["therapeutic_area"]).strip()
+        sponsor, ta = _study_fields(meta, descriptor)
         try:
             consolidated_dir = config.get_consolidated_dir(pid, collection)
         except FileNotFoundError:

@@ -5,6 +5,7 @@ Paths, constants, and discovery functions.
 All paths relative to the repository root (parent of this package folder).
 """
 
+import json
 import os
 from pathlib import Path
 
@@ -60,6 +61,20 @@ def get_collection_path(collection: str) -> Path:
 def get_collection_root(collection: str) -> Path:
     """Get the root folder of a collection (parent of protocols/)."""
     return get_collection_path(collection).parent
+
+
+def load_collection_descriptor(collection: str) -> dict:
+    """Load the collection descriptor (collection.json at the collection root).
+
+    The descriptor carries collection-specific presentation and metadata
+    conventions — title, description, provenance column (label + field +
+    url_template), and derived_metadata rules — so no collection is special
+    in code. Returns {} when the collection has no descriptor.
+    """
+    path = get_collection_root(collection) / "collection.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def get_protocol_path(protocol_id: str, collection: str) -> Path:

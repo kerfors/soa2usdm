@@ -48,10 +48,12 @@ def load_study_metadata(collection_path: Path) -> dict:
                 headers = [str(h).strip() if h else '' for h in rows[0]]
                 for row in rows[1:]:
                     record = dict(zip(headers, row))
-                    # Non-NCT studies (e.g. CDISC_Pilot) have a blank nct_id;
-                    # fall back to d4k_folder so their metadata is keyed to the
-                    # protocol folder name the generator iterates over.
-                    key = record.get('nct_id') or record.get('d4k_folder', '')
+                    # Metadata is keyed by the protocol folder name the
+                    # generator iterates over: an explicit protocol_id column
+                    # wins; else nct_id (folders named by NCT ID); else
+                    # d4k_folder (non-NCT studies in usdm_data, e.g. CDISC_Pilot).
+                    key = (record.get('protocol_id') or record.get('nct_id')
+                           or record.get('d4k_folder', ''))
                     if key:
                         metadata[key] = record
         
@@ -477,7 +479,12 @@ def generate_index_html(collection: str) -> str:
     collection_path = config.get_collection_path(collection)
     all_protocols = config.list_protocols(collection)
     study_meta = load_study_metadata(collection_path)
-    
+    descriptor = config.load_collection_descriptor(collection)
+    # Optional provenance column, declared per collection in collection.json:
+    # {"label": ..., "field": <manifest column>, "url_template": "...{value}..."}.
+    # No descriptor / no provenance block -> the column is not rendered at all.
+    provenance = descriptor.get('provenance')
+
     # Discover outputs for each protocol
     protocols = []
     for pid in all_protocols:
@@ -485,7 +492,7 @@ def generate_index_html(collection: str) -> str:
         meta = study_meta.get(pid, {})
         protocols.append({
             'nct_id': pid,
-            'd4k_folder': meta.get('d4k_folder', ''),
+            'provenance_ref': meta.get(provenance['field'], '') if provenance else '',
             'study_code': meta.get('study_code', ''),
             'study_acronym': meta.get('study_acronym', ''),
             'soa_pages': meta.get('soa_pages', ''),
@@ -561,17 +568,20 @@ def generate_index_html(collection: str) -> str:
         soa = esc(str(p['soa_pages'])) if p['soa_pages'] else ''
         study_code = esc(str(p['study_code'])) if p['study_code'] else ''
         acronym = esc(str(p['study_acronym'])) if p['study_acronym'] else ''
-        d4k_folder = esc(str(p['d4k_folder'])) if p['d4k_folder'] else ''
-        d4k_cell = (f'<a href="https://github.com/data4knowledge/usdm_data/tree/main/source_data/protocols/{d4k_folder}" target="_blank" rel="noopener">{d4k_folder}</a>'
-                    if d4k_folder else '')
+        prov_td = ''
+        if provenance:
+            ref = esc(str(p['provenance_ref'])) if p['provenance_ref'] else ''
+            prov_cell = (f'<a href="{esc(provenance["url_template"].replace("{value}", str(p["provenance_ref"])))}" '
+                         f'target="_blank" rel="noopener">{ref}</a>'
+                         if ref else '')
+            prov_td = f'\n            <td class="prov-ref">{prov_cell}</td>'
         nct_cell = (f'<a href="https://clinicaltrials.gov/study/{nct}" target="_blank">{nct}</a>'
                     if nct.startswith('NCT') else nct)
 
         row_cls = 'ready' if is_ready else 'pending-row'
-        
+
         return f'''<tr class="{row_cls}">
-            <td class="nct">{nct_cell}</td>
-            <td class="d4k-folder">{d4k_cell}</td>
+            <td class="nct">{nct_cell}</td>{prov_td}
             <td class="study-code">{study_code}</td>
             <td class="acronym">{acronym}</td>
             <td class="soa-pages">{soa}</td>
@@ -585,6 +595,7 @@ def generate_index_html(collection: str) -> str:
     
     ready_rows = ''.join(protocol_row(p) for p in ready)
     pending_rows = ''.join(protocol_row(p) for p in pending)
+    prov_th = f'<th>{esc(provenance["label"])}</th>' if provenance else ''
     
     css = """
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -608,7 +619,7 @@ def generate_index_html(collection: str) -> str:
         .nct a { color: #1F4788; text-decoration: none; }
         .nct a:hover { text-decoration: underline; }
         .study-code { font-family: monospace; font-size: 10px; color: #555; white-space: nowrap; }
-        .d4k-folder { font-family: monospace; font-size: 10px; color: #777; white-space: nowrap; }
+        .prov-ref { font-family: monospace; font-size: 10px; color: #777; white-space: nowrap; }
         .acronym { font-weight: 500; color: #444; white-space: nowrap; }
         .soa-pages { white-space: nowrap; color: #888; font-family: monospace; font-size: 10px; }
         .stats { white-space: nowrap; font-family: monospace; font-size: 10px; color: #666; }
@@ -660,7 +671,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th><th>d4k Folder</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Per-protocol extraction uncertainty / review notes">Report</th>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Per-protocol extraction uncertainty / review notes">Report</th>
             </tr></thead>
             <tbody>
                 {ready_rows}
