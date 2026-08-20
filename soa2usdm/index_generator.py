@@ -125,12 +125,23 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 'path': viewer_rel,
                 'label': label,
             })
-        # Uncertainty report (per-protocol; .md preferred, .txt fallback)
+        # Uncertainty report (per-protocol; .md preferred, .txt fallback).
+        # Markdown is rendered to HTML because GitHub Pages serves .md as plain
+        # text: the tables arrive as raw pipes and long lines do not wrap.
         for ext in ('.md', '.txt'):
             report = extracted_dir / f"{protocol_id}_uncertainty_report{ext}"
-            if report.exists():
+            if not report.exists():
+                continue
+            if ext == '.md':
+                report_html = report.with_suffix('.html')
+                if (not report_html.exists()
+                        or report_html.stat().st_mtime < report.stat().st_mtime):
+                    _render_markdown_html(report, report_html, protocol_id, collection_path,
+                                          title="SoA Extraction Uncertainty Report")
+                result['report_file'] = str(report_html.relative_to(collection_path))
+            else:
                 result['report_file'] = f"{protocol_id}/SoA2USDM/extracted/{report.name}"
-                break
+            break
 
     # Resolved HTMLs + JSONs
     resolved_dir = soa_folder / "resolved"
@@ -205,7 +216,7 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
             html_file = md_file.with_suffix('.html')
             # Generate HTML wrapper if missing or stale
             if not html_file.exists() or html_file.stat().st_mtime < md_file.stat().st_mtime:
-                _render_usdm_eval_html(md_file, html_file, protocol_id, collection_path)
+                _render_markdown_html(md_file, html_file, protocol_id, collection_path)
             rel = html_file.relative_to(collection_path)
             result['usdm_evaluation'] = str(rel)
             result['usdm_evaluation_label'] = md_file.stem  # filename without extension
@@ -214,8 +225,9 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
     return result
 
 
-def _render_usdm_eval_html(md_path: Path, html_path: Path, protocol_id: str, collection_path: Path):
-    """Render USDM evaluation markdown as styled HTML."""
+def _render_markdown_html(md_path: Path, html_path: Path, protocol_id: str, collection_path: Path,
+                          title: str = "USDM Readiness Evaluation"):
+    """Render a per-protocol markdown report as styled HTML."""
     # Compute relative back link to index.html at collection root
     rel_to_collection = html_path.relative_to(collection_path)
     back_prefix = '/'.join(['..'] * len(rel_to_collection.parts[:-1]))  # go up to collection root
@@ -234,7 +246,7 @@ def _render_usdm_eval_html(md_path: Path, html_path: Path, protocol_id: str, col
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>{esc(protocol_id)} — USDM Readiness Evaluation</title>
+<title>{esc(protocol_id)} — {esc(title)}</title>
 <style>
     body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
            max-width: 960px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }}
