@@ -54,6 +54,20 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small. Schema + one test. Deferred 2026-08-17 — deliberately not bundled with prompt v3.7.0, so the remaining 18 studies run against an unchanged schema.
 
+## 6 — Surface the open decisions: a report header block (prompt §7), then `review_items` in the schema
+
+**Motivation.** The uncertainty report is the review surface that replaced the PDF→Excel human checkpoint (guide v2.6). On NCT05051579 it runs 390 lines, and the calls a reviewer must actually decide are spread across §5 (seven subsections), §6 and §9 — the `n12` annotation-scope decision is documented under *Synthesised values*, not under the section literally titled "The judgement calls, stated plainly". A reviewer who goes straight to the section named for decisions still misses one. A review surface that has to be read end to end to find its own worklist is not a checkpoint.
+
+**Sketch.** Two steps, independent, (a) first.
+(a) *Prompt only, no schema change.* §7 gains a required opening block: a **Decisions needed** table — one row per open call giving where it is (page, row/marker), the call made, the alternative, and the section holding the detail — followed by a short **Recorded, not open** list of calls made under an explicit rule. The existing detail sections stay exactly as they are.
+(b) *Schema + pipeline.* Add an optional `review_items` array to `soa-table-extraction`: `{id, severity, location {page, row_position?, column_position?, annotation_marker?}, call_made, alternative, report_section}`. Route it into the `review_queue` that `consolidate` already carries (fed today only by fuzzy activity matching), show an open-decision count per protocol in the collection index beside the Report link, and add a gate check that every `review_items` entry names a report section that exists and vice versa — the cross-check the prose-only version cannot have.
+
+**Acceptance.** (a) A regenerated report opens with the block, and the four open calls on NCT05051579 — PK sub-labels, `n12` scope, the `n1` intro paragraph, `Fasting Visit` type — are visible without scrolling. (b) `review_items` validates across the corpus with *absent* legal, so no backfill is forced; the index shows the per-protocol count; the gate fails when block and data disagree.
+
+**Size.** (a) Small — prompt wording only; no code, no re-extraction, no schema version bump. (b) Medium — schema, consolidate, index generator, one gate check, tests.
+
+**Raised 2026-08-20** from the first `test`-collection extraction (NCT05051579 / Lilly J2A-MC-GZGI). Do (a) and judge the shape against a real report before spending (b). The NCT05051579 report was hand-patched with the block on 2026-08-20 as the trial; the prompt is unchanged.
+
 ---
 
 2026-08-15, item 5 added 2026-08-17. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
