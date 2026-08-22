@@ -24,6 +24,7 @@ TARGETS = {
     "activities",
     "activity_schedule",
     "annotations",
+    "review_items",
 }
 
 
@@ -31,21 +32,38 @@ def apply_corrections(raw: dict, corrections_doc: dict) -> dict:
     """Apply a corrections sidecar to a raw extraction dict, returning a new dict.
 
     Ops (fail fast on ambiguity):
-        add    -- append `set` as a new entry to the target array
-        set    -- update the single entry matching `match` with `set`
-        remove -- drop entries matching `match` (must hit at least one)
+        add     -- append `set` as a new entry to the target array
+        set     -- update the single entry matching `match` with `set`
+        remove  -- drop entries matching `match` (must hit at least one)
+        confirm -- change nothing; records that the review item named in
+                   `review_item` was examined and the call kept
+
+    A correction may name a `review_item` (an id from the extraction's
+    `review_items`); the id must exist, because that reference is the only
+    record that the item was decided.
     """
     doc = copy.deepcopy(raw)
+    known_items = {item["id"] for item in raw.get("review_items", [])}
     for c in corrections_doc["corrections"]:
         target = c["target"]
         if target not in TARGETS:
             raise ValueError(f"Correction {c['id']}: unknown target '{target}'")
+        op = c["op"]
+        if "review_item" in c and c["review_item"] not in known_items:
+            raise ValueError(f"Correction {c['id']}: review_item '{c['review_item']}' is not in the extraction's review_items")
+        if op == "confirm":
+            if "review_item" not in c:
+                raise ValueError(f"Correction {c['id']}: 'confirm' requires 'review_item'")
+            continue
         arr = doc.get(target)
+        if target == "review_items" and arr is None and op == "add":
+            arr = doc[target] = []
         if not isinstance(arr, list):
             raise ValueError(f"Correction {c['id']}: target array '{target}' missing in extraction")
-        op = c["op"]
         if op == "add":
             arr.append(c["set"])
+            if target == "review_items":
+                known_items.add(c["set"]["id"])
         elif op == "set":
             match = c["match"]
             hits = [item for item in arr if all(item.get(k) == v for k, v in match.items())]
@@ -61,6 +79,43 @@ def apply_corrections(raw: dict, corrections_doc: dict) -> dict:
         else:
             raise ValueError(f"Correction {c['id']}: unknown op '{op}'")
     return doc
+
+
+def review_status(extracted_dir: Path) -> dict:
+    """Derive the state of a protocol's review items from its extracted/ folder.
+
+    Items come from each table's verified extraction when one exists (a sidecar
+    may add items), else from the raw file. An item is decided exactly when a
+    correction in that table's sidecar names it in `review_item`; nothing else
+    records a decision. Returns {"total", "open", "decided", "items"} where
+    items is a list of {"id", "table_number", "decided", "correction_id"}.
+    """
+    items = []
+    for raw_path in sorted(extracted_dir.glob("*_extraction.json")):
+        verified = raw_to_verified_path(raw_path)
+        src = verified if verified.exists() else raw_path
+        with open(src) as f:
+            doc = json.load(f)
+        decided = {}
+        sidecar = raw_to_corrections_path(raw_path)
+        if sidecar.exists():
+            with open(sidecar) as f:
+                for c in json.load(f)["corrections"]:
+                    if "review_item" in c:
+                        decided.setdefault(c["review_item"], c["id"])
+        for item in doc.get("review_items", []):
+            items.append({
+                "id": item["id"],
+                "table_number": doc["table_metadata"]["table_number"],
+                "decided": item["id"] in decided,
+                "correction_id": decided.get(item["id"]),
+            })
+    return {
+        "total": len(items),
+        "open": sum(1 for i in items if not i["decided"]),
+        "decided": sum(1 for i in items if i["decided"]),
+        "items": items,
+    }
 
 
 def raw_to_corrections_path(raw_path: Path) -> Path:

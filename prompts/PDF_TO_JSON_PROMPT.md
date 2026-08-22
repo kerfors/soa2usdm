@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.7.3 | Schema: soa-table-extraction v1.0
+> Prompt version 3.8.0 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -167,7 +167,16 @@ Each footnote / legend / abbreviation → one `annotation`.
 
 ## 7. Uncertainty report (this replaces the interactive gates)
 
-After writing the JSON, output a short report — plain text, not JSON — for human post-hoc review against the per-table resolved HTML. Cover:
+After writing the JSON, output a short report — plain text, not JSON — for human post-hoc review against the per-table resolved HTML.
+
+**The report opens with two blocks, before anything else:**
+
+1. **`## Decisions needed (N)`** — one table row per open judgement call: a call you made deliberately that a reviewer could reasonably overturn. Columns: `#` (D1, D2, … — numbered once across ALL tables of the protocol, in report order), `where` (document page and the row(s) or marker), `call made`, `alternative`, `detail` (the report section holding the reasoning). Write `call made` and `alternative` so that a reviewer who has never seen the schema can choose between them. Nothing here is a suspected error — errors go in the sections below. N may be 0; the heading is still printed.
+2. **`## Recorded, not open (N)`** — calls made under an explicit rule of this prompt, one line each naming the rule, so a reviewer knows they were considered rather than overlooked.
+
+**Every row of the Decisions-needed block is ALSO emitted as data**: the `review_items` array of the extraction JSON of the table the call belongs to (one entry per row, same `id`, `severity` high when the call changes rows, marks or what a note governs / medium when it changes a type or a name / low for presentation, `location` with the document page and the row position(s) or marker, `call_made`, `alternative`, `report_section`). The block and the arrays must agree one-to-one — the gate checks it. A call that concerns more than one table goes in the first table's array. Do NOT record a resolution anywhere: the raw extraction is immutable, and an item becomes "decided" only when a later corrections-sidecar entry names its id.
+
+Then cover:
 
 - **Per table:** `table_type` (and why, when not obvious), column count, activity count, and **activity rows per page across the declared page range** — call out any page in the range that contributed none (§4).
 - **Merged-mark decisions:** which activity rows had a mark or text distributed across a span, and the spans.
@@ -197,3 +206,4 @@ One JSON file per table: `{NCTID}_Table_{NN}_extraction.json`. Before delivering
 - merged marks distributed across their span with `source_range` set
 - `track_label` set for `track` tables only
 - `method` provenance fields recorded wherever a non-default method was used (§1e) — and no guessed targets: an undeterminable scope is `location_type: "unresolved"`, never an invented one
+- every row of the report's Decisions-needed block (§7) has exactly one `review_items` entry with the same id, and no `review_items` entry lacks a row; ids run D1, D2, … once across the whole protocol

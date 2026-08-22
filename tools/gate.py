@@ -317,6 +317,50 @@ def quoted_spans(text):
                     yield q
 
 
+DECISION_ROW = re.compile(r"^\|\s*(D\d+)\s*\|", re.M)
+
+
+def check_review_items(study):
+    """Check 13: the report's Decisions-needed block and the review_items arrays agree one-to-one.
+
+    Ids are protocol-unique by contract, so they are compared as sets across all tables of the
+    study. An extraction with no review_items key at all (pre-v3.8.0) is reported once as CHECK,
+    not FAIL, so older studies can still pass the gate; a present-but-mismatching set FAILS.
+    """
+    d = STAGING / study
+    reports = sorted(d.glob("*_uncertainty_report.md"))
+    if not reports:
+        return [("13 review", "WARN", "no report found")]
+    text = reports[0].read_text()
+    block = re.search(r"^## Decisions needed \((\d+)\)(.*?)(?=^## |\Z)", text, re.M | re.S)
+    in_report = set(DECISION_ROW.findall(block.group(2))) if block else set()
+    in_data, carried = [], 0
+    for p in sorted(d.glob("*_extraction.json")):
+        doc = json.loads(p.read_text())
+        if "review_items" in doc:
+            carried += 1
+            in_data.extend(i["id"] for i in doc["review_items"])
+    out = []
+    if not carried:
+        # Pre-v3.8.0 output: neither the block nor the arrays are required, so nothing here can
+        # FAIL — the accepted corpus must keep gating at 0 FAIL (the calibration rule).
+        out.append(("13 review", "CHECK", f"no table carries review_items (pre-v3.8.0 output?); "
+                    f"report {'lists ' + str(sorted(in_report)) if block else 'has no Decisions-needed block'}"))
+        return out
+    if not block:
+        out.append(("13 review", "FAIL", "report has no '## Decisions needed (N)' block"))
+    elif int(block.group(1)) != len(in_report):
+        out.append(("13 review", "FAIL", f"block says ({block.group(1)}) but lists {len(in_report)} rows"))
+    if len(in_data) != len(set(in_data)):
+        out.append(("13 review", "FAIL", f"duplicate review_items ids across tables: {sorted(in_data)}"))
+    only_report, only_data = in_report - set(in_data), set(in_data) - in_report
+    if only_report or only_data:
+        out.append(("13 review", "FAIL", f"report-only {sorted(only_report)}, data-only {sorted(only_data)}"))
+    if not out:
+        out.append(("13 review", "OK", f"{len(in_report)} decision(s), block and review_items agree"))
+    return out
+
+
 def check_quotes(study):
     """Every quotation in the uncertainty report must be a verbatim substring of the source."""
     d = STAGING / study
@@ -423,8 +467,9 @@ def main():
                     print(f"\n-- Table {t:02d} -- MISSING from staging (baseline has it)")
                     total_fail += 1
 
-        for name, level, msg in check_quotes(study):
+        for name, level, msg in check_quotes(study) + check_review_items(study):
             print(f"  [{level}] {name}: {msg}")
+            total_fail += level == "FAIL"
 
     print(f"\n{'=' * 78}\n{total_fail} FAIL-level finding(s)")
 

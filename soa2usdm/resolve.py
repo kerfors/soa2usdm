@@ -855,7 +855,10 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
         "schedule_columns": schedule_columns,
         "activities": resolved_activities,
         "activity_schedule": resolved_schedule,
-        "annotations": resolved_annotations
+        "annotations": resolved_annotations,
+        # Open judgement calls pass through untouched; the key is emitted only
+        # when the extraction carried it, so older extractions stay byte-stable.
+        **({"review_items": extraction["review_items"]} if "review_items" in extraction else {})
     }
 
 

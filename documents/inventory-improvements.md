@@ -68,6 +68,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Raised 2026-08-20** from the first `test`-collection extraction (NCT05051579 / Lilly J2A-MC-GZGI). Do (a) and judge the shape against a real report before spending (b). The NCT05051579 report was hand-patched with the block on 2026-08-20 as the trial; the prompt is unchanged.
 
+**Status 2026-08-22: (a) and (b) shipped together**, once the review-page prototype showed the page wants the decisions as data from the start. Prompt v3.8.0 §7 requires the two opening blocks and the one-to-one `review_items`; the schema field is optional (absent = pre-v3.8.0, no backfill forced); resolve passes it through and consolidate aggregates it as `review_items` with `table_number` — kept **separate from `review_queue`**, which stays consolidation's own low-confidence matches. The collection index shows "n / total open" beside the Report link; `tools/gate.py` check 13 compares the block and the arrays. One deviation from the sketch above: **resolution is derived, not stored** — an item is decided exactly when a corrections-sidecar entry names it in the new `review_item` field (new op `confirm` records "examined, call kept" without changing data), so the raw extraction stays immutable and the sidecar remains the only write path. NCT05051579's four items were backfilled through its sidecar (`target: review_items, op: add`), the route any pre-v3.8.0 extraction can use.
+
 ---
 
 2026-08-15, item 5 added 2026-08-17. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.

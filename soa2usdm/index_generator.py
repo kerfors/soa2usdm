@@ -16,6 +16,7 @@ from typing import Optional
 
 from .base import PipelineStepBase
 from . import config
+from .corrections import review_status
 
 
 def esc(text) -> str:
@@ -125,6 +126,10 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 'path': viewer_rel,
                 'label': label,
             })
+        # Open judgement calls: derived from review_items + sidecar references.
+        status = review_status(extracted_dir)
+        result['review_items_total'] = status['total']
+        result['review_items_open'] = status['open']
         # Uncertainty report (per-protocol; .md preferred, .txt fallback).
         # Markdown is rendered to HTML because GitHub Pages serves .md as plain
         # text: the tables arrive as raw pipes and long lines do not wrap.
@@ -589,6 +594,11 @@ def generate_index_html(collection: str) -> str:
         report_html = ''
         if p.get('report_file'):
             report_html = f'<a href="{p["report_file"]}" class="link-report" title="Extraction uncertainty / review report">report</a>'
+        # Decisions needed: shown only where the extraction carries review_items,
+        # as "open / total" (an item is decided when a sidecar correction names it).
+        if p.get('review_items_total'):
+            report_html += (f' <span class="decisions" title="Open judgement calls awaiting a reviewer, of all raised by the extraction">'
+                            f'{p["review_items_open"]} / {p["review_items_total"]} open</span>')
 
         # USDM readiness column
         usdm_html = ''
@@ -688,6 +698,7 @@ def generate_index_html(collection: str) -> str:
         .link-json:hover { background: #e0e0e0; color: #555; }
         .link-report { background: #fff8e1; color: #8d6e00; }
         .link-report:hover { background: #ffecb3; }
+        .decisions { font-size: 11px; color: #8d6e00; white-space: nowrap; }
         .link-usdm { background: #f3e5f5; color: #6a1b9a; }
         .link-usdm:hover { background: #e1bee7; }
         

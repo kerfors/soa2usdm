@@ -77,9 +77,62 @@
         "$ref": "#/definitions/unified_annotation"
       },
       "description": "Annotations consolidated across all source tables. Identical annotation text is deduplicated with source occurrences tracked."
+    },
+    "review_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/extraction_review_item"
+      },
+      "description": "Open judgement calls from every table of the protocol, each with its table_number. Present only when at least one table carried review_items. Distinct from review_queue, which holds consolidation's own low-confidence activity matches."
     }
   },
   "definitions": {
+    "extraction_review_item": {
+      "type": "object",
+      "description": "One open judgement call the extractor made that a reviewer could reasonably overturn. Mirrors one row of the uncertainty report's 'Decisions needed' block (prompt section 7). Resolution is NOT recorded here: an item counts as decided when a corrections-sidecar entry names its id in 'review_item', so the raw extraction stays immutable and the sidecar is the only write path.",
+      "required": ["table_number", "id", "severity", "location", "call_made", "alternative", "report_section"],
+      "additionalProperties": false,
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "description": "Source table the item was raised in."
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^D[0-9]+$",
+          "description": "Decision id, unique across ALL tables of the protocol (D1, D2, ...) and identical to the id printed in the report's Decisions-needed block."
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "high = changes rows, marks or what a note governs; medium = changes a type or a name; low = presentation only."
+        },
+        "location": {
+          "type": "object",
+          "required": ["page"],
+          "additionalProperties": false,
+          "properties": {
+            "page": {"type": "integer", "description": "Document page the call is about (same numbering as source_page)."},
+            "row_position": {"type": "integer", "description": "The activity or schedule_property row the call is about, when it is one row."},
+            "row_positions": {"type": "array", "items": {"type": "integer"}, "description": "All rows the call is about, when more than one."},
+            "column_position": {"type": "integer"},
+            "annotation_marker": {"type": "string", "description": "Marker of the annotation the call is about, when it concerns a note's scope or existence."}
+          }
+        },
+        "call_made": {
+          "type": "string",
+          "description": "What the extraction records, in one or two plain sentences a reviewer without the schema can read."
+        },
+        "alternative": {
+          "type": "string",
+          "description": "The other reasonable reading, stated so that a reviewer can choose it."
+        },
+        "report_section": {
+          "type": "string",
+          "description": "Section of the uncertainty report holding the detail (e.g. '5.2')."
+        }
+      }
+    },
     "consolidation_metadata": {
       "type": "object",
       "description": "Metadata about the consolidation process and source tables",

@@ -31,13 +31,13 @@
           },
           "target": {
             "type": "string",
-            "enum": ["schedule_properties", "schedule_grid", "activities", "activity_schedule", "annotations"],
+            "enum": ["schedule_properties", "schedule_grid", "activities", "activity_schedule", "annotations", "review_items"],
             "description": "Which extraction array this correction acts on."
           },
           "op": {
             "type": "string",
-            "enum": ["add", "set", "remove"],
-            "description": "add=append 'set' as a new entry; set=update the single entry matching 'match'; remove=drop entries matching 'match'."
+            "enum": ["add", "set", "remove", "confirm"],
+            "description": "add=append 'set' as a new entry; set=update the single entry matching 'match'; remove=drop entries matching 'match'; confirm=change nothing - records that the reviewer examined the review item named in 'review_item' and kept the call (requires 'review_item'; no 'match' or 'set')."
           },
           "match": {
             "type": "object",
@@ -69,6 +69,11 @@
             "type": "string",
             "format": "date-time",
             "description": "When the correction was made (ISO 8601)."
+          },
+          "review_item": {
+            "type": "string",
+            "pattern": "^D[0-9]+$",
+            "description": "Id of the extraction's review_items entry this correction answers. An item is decided exactly when some correction in this file names it: with op 'confirm' the call stands, with any other op this correction is the alternative taken. Absent on corrections that are not answers to a review item."
           }
         }
       }

@@ -1319,6 +1319,17 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
             data = json.load(fp)
         tables[data['table_metadata']['table_number']] = data
 
+    # Open judgement calls from every table, tagged with their table. Ids are
+    # protocol-unique by contract (extraction schema), so a clash is a defect.
+    review_items = [
+        {"table_number": num, **item}
+        for num, t in sorted(tables.items())
+        for item in t.get("review_items", [])
+    ]
+    seen_ids = [item["id"] for item in review_items]
+    if len(seen_ids) != len(set(seen_ids)):
+        raise ValueError(f"{protocol_id}: review_items ids are not unique across tables: {sorted(seen_ids)}")
+
     # Classify by type
     tables_by_type = defaultdict(list)
     for num, t in tables.items():
@@ -1414,7 +1425,8 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
             for segment, cols in by_segment.items()
         },
         "schedule_matrix": matrix,
-        "unified_annotations": [ua.to_dict() for ua in annot_consolidator.unified_annotations]
+        "unified_annotations": [ua.to_dict() for ua in annot_consolidator.unified_annotations],
+        **({"review_items": review_items} if review_items else {})
     }
 
 
