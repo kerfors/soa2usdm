@@ -35,8 +35,13 @@ COLLECTIONS = {
 }
 COLLECTIONS["fixtures"] = FIXTURES_ROOT / "protocols"
 
-# Default collection: first discovered real collection, else the fixtures.
-DEFAULT_COLLECTION = next((c for c in COLLECTIONS if c != "fixtures"), "fixtures")
+# Default collection: usdm_data when present (the reference corpus the PDF-backed
+# tests and the row-audit / inventory CLIs assume), else the first discovered real
+# collection, else the fixtures. Sort order is not a contract: 'misc_studies' < 'usdm_data'.
+DEFAULT_COLLECTION = (
+    "usdm_data" if "usdm_data" in COLLECTIONS
+    else next((c for c in COLLECTIONS if c != "fixtures"), "fixtures")
+)
 
 # Schema locations
 SCHEMAS_DIR = PKG_DIR.parent / "schemas"
