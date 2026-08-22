@@ -107,7 +107,7 @@ The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to
 
 **Errors collected, not raised.** Steps continue on errors — partial success matters when one table out of four has issues.
 
-**Verification before propagation.** No extraction reaches the pipeline unreviewed. The mechanism has changed three times — Excel checkpoint (2025), then mechanical mark-check plus uncertainty report, then an independent row audit on top — but the invariant has not: catch errors before they propagate into downstream JSON.
+**Verification before propagation.** No extraction reaches the pipeline unreviewed. The mechanism has changed four times — Excel checkpoint (2025), then mechanical mark-check plus uncertainty report, then an independent row audit on top, then a review page that draws the extraction on its source pages and turns the report's open decisions into data (`review_items`, decided through the corrections sidecar) — but the invariant has not: catch errors before they propagate into downstream JSON.
 
 **Re-derive, don't eyeball.** The mark matrix is reconstructed mechanically from PDF geometry and diffed against the model's visual read — on dense grids this has caught merged-span errors that human Excel verification missed. Provenance fields record *how* each interpreted value was derived: a re-derivable method, not a confidence number.
 
