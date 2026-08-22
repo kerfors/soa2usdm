@@ -452,7 +452,7 @@ footer{padding:8px 22px 20px;font-size:11px;color:var(--muted)}
  <h1>__PID__ — review of the SoA extraction</h1>
  <div class="sub">__COLL__ · __NTABLES__ · document pages __PAGES__ · generated __GENERATED__</div>
 </header>
-<div class="crumb"><a href="../../../index.html">__COLL__</a> › <b>__PID__</b> › Review &nbsp;·&nbsp; <a href="__PID___uncertainty_report.html">extraction report</a> · <a href="../consolidated/__PID___consolidated.html">consolidated</a></div>
+<div class="crumb"><a href="../../../index.html">__COLL__</a> › <b>__PID__</b> › Review &nbsp;·&nbsp; <a href="__PID___uncertainty_report.html">extraction log</a> · <a href="../consolidated/__PID___consolidated.html">consolidated</a></div>
 
 <div class="tiles" id="tiles"></div>
 
@@ -610,7 +610,7 @@ function buildDecisions(){
  const items=t.review_items, rq=D.across.review_queue;
  document.getElementById('ndec').textContent = D.review_status.open + rq.length;
  let h='';
- if(!items.length && !t.applied.length) h+=`<p class="small">This table carries no review items${D.review_status.total?'':' — the extraction predates the field (prompt v3.8.0), so its open calls, if any, are only in the extraction report'}.</p>`;
+ if(!items.length && !t.applied.length) h+=`<p class="small">This table carries no review items${D.review_status.total?'':' — the extraction predates the field (prompt v3.8.0), so its open calls, if any, are only in the extraction log'}.</p>`;
  else h+='<p class="small">Calls the extractor made that could reasonably go the other way. Click one to see it on the page (call in purple, alternative rows in blue where the call names them). Choosing drafts a sidecar entry below; nothing is saved from here.</p>';
  items.forEach(d=>{
   const done=D.decided[d.id];

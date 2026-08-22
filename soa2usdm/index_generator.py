@@ -146,7 +146,7 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 if (not report_html.exists()
                         or report_html.stat().st_mtime < report.stat().st_mtime):
                     _render_markdown_html(report, report_html, protocol_id, collection_path,
-                                          title="SoA Extraction Uncertainty Report")
+                                          title="Extraction log")
                 result['report_file'] = str(report_html.relative_to(collection_path))
             else:
                 result['report_file'] = f"{protocol_id}/SoA2USDM/extracted/{report.name}"
@@ -595,17 +595,20 @@ def generate_index_html(collection: str) -> str:
         if p.get('redacted'):
             red_html = f'<span title="{p["redacted"]} of {p["activities"]} unified activity rows are CCI-redacted in the public protocol">{p["redacted"]} / {p["activities"]}</span>'
 
+        # Review column: the review page, and the state of its open decisions
+        # (an item is decided when a sidecar correction names it). Log column:
+        # the extractor's own account of the run (the uncertainty report).
+        review_html = ''
+        if p.get('review_file'):
+            review_html = f'<a href="{p["review_file"]}" class="link-review" title="Review page: the extraction against its source pages">review</a>'
+        if p.get('review_items_total'):
+            n_open, n_total = p['review_items_open'], p['review_items_total']
+            state = f'{n_open} open of {n_total}' if n_open else f'all {n_total} decided'
+            review_html += (f' <span class="decisions" title="Judgement calls raised by the extraction, and how many still await a reviewer">'
+                            f'{state}</span>')
         report_html = ''
         if p.get('report_file'):
-            report_html = f'<a href="{p["report_file"]}" class="link-report" title="Extraction uncertainty / review report">report</a>'
-        if p.get('review_file'):
-            report_html = (f'<a href="{p["review_file"]}" class="link-review" title="Review page: the extraction against its source pages">review</a> '
-                           + report_html)
-        # Decisions needed: shown only where the extraction carries review_items,
-        # as "open / total" (an item is decided when a sidecar correction names it).
-        if p.get('review_items_total'):
-            report_html += (f' <span class="decisions" title="Open judgement calls awaiting a reviewer, of all raised by the extraction">'
-                            f'{p["review_items_open"]} / {p["review_items_total"]} open</span>')
+            report_html = f'<a href="{p["report_file"]}" class="link-report" title="The extractor\'s own account of the run: what it decided and where it was unsure">extraction log</a>'
 
         # USDM readiness column
         usdm_html = ''
@@ -639,6 +642,7 @@ def generate_index_html(collection: str) -> str:
             <td class="viz">{resolved_html}</td>
             <td class="viz">{cons_html}</td>
             <td class="stats">{red_html}</td>
+            <td class="viz">{review_html}</td>
             <td class="viz">{report_html}</td>
         </tr>'''
     
@@ -649,7 +653,7 @@ def generate_index_html(collection: str) -> str:
             <td class="nct">{esc(e['nct_id'])}</td>{prov_td}
             <td class="study-code">{esc(e['study_code'])}</td>
             <td class="acronym">{esc(e['study_acronym'])}</td>
-            <td class="excluded-reason" colspan="7">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
+            <td class="excluded-reason" colspan="8">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
         </tr>'''
 
     ready_rows = ''.join(protocol_row(p) for p in ready)
@@ -740,7 +744,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Per-protocol extraction uncertainty / review notes">Report</th>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
             </tr></thead>
             <tbody>
                 {ready_rows}
