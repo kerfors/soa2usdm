@@ -90,6 +90,7 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
         'has_consolidated': False,
         'consolidated_file': None,
         'report_file': None,
+        'review_file': None,
         'redacted': 0,
         'activities': 0,
     }
@@ -126,6 +127,9 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 'path': viewer_rel,
                 'label': label,
             })
+        review = extracted_dir / f"{protocol_id}_review.html"
+        if review.exists():
+            result['review_file'] = f"{protocol_id}/SoA2USDM/extracted/{review.name}"
         # Open judgement calls: derived from review_items + sidecar references.
         status = review_status(extracted_dir)
         result['review_items_total'] = status['total']
@@ -594,6 +598,9 @@ def generate_index_html(collection: str) -> str:
         report_html = ''
         if p.get('report_file'):
             report_html = f'<a href="{p["report_file"]}" class="link-report" title="Extraction uncertainty / review report">report</a>'
+        if p.get('review_file'):
+            report_html = (f'<a href="{p["review_file"]}" class="link-review" title="Review page: the extraction against its source pages">review</a> '
+                           + report_html)
         # Decisions needed: shown only where the extraction carries review_items,
         # as "open / total" (an item is decided when a sidecar correction names it).
         if p.get('review_items_total'):
@@ -699,6 +706,8 @@ def generate_index_html(collection: str) -> str:
         .link-report { background: #fff8e1; color: #8d6e00; }
         .link-report:hover { background: #ffecb3; }
         .decisions { font-size: 11px; color: #8d6e00; white-space: nowrap; }
+        .link-review { background: #e8f0fa; color: #1F4788; font-weight: 600; }
+        .link-review:hover { background: #d2e1f5; }
         .link-usdm { background: #f3e5f5; color: #6a1b9a; }
         .link-usdm:hover { background: #e1bee7; }
         

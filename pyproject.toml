@@ -20,6 +20,7 @@ test = ["pytest"]
 [project.scripts]
 soa2usdm-activities = "soa2usdm.activity_inventory:main"
 soa2usdm-row-audit = "soa2usdm.row_audit:main"
+soa2usdm-review-page = "soa2usdm.review_page:main"
 
 [tool.setuptools]
 packages = ["soa2usdm"]

@@ -186,6 +186,7 @@ Two mechanical checks bracket the extraction, one inside the pass and one after 
 
 - **Mark-check (inside the extraction pass):** re-derives the mark matrix from PDF geometry — bbox column-binning where a text layer exists, rule-line detection on rasters — and diffs it cell-for-cell against the model's visual read. Disagreements go to the uncertainty report.
 - **Row audit (after the pipeline):** `RowAuditStep` (`soa2usdm-row-audit`) compares every extracted activity row against the rows the SoA pages actually print, and writes `row_audit.json` per collection.
+- **Review page (per protocol):** `ReviewPageStep` renders the source pages and draws the extraction on them — row bands, a cell-by-cell mark check, annotation bindings, `review_items` as the reviewer's worklist, consolidation's cross-table folds — so every schema-level fact can be checked against the printed page. The page writes nothing; a decision drafts a corrections-sidecar entry, keeping the sidecar the only write path.
 
 Neither check trusts the model's read of the grid; both re-derive from the source PDF.
 

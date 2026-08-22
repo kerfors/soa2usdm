@@ -105,6 +105,7 @@ The batch notebook runs five steps in sequence:
 | 3 | `VisualizeResolvedStep` | — | Per-table HTML for debugging |
 | 4 | `ConsolidateStep` | 3 | Cross-table integration, activity matching, annotation dedup |
 | 5 | `VisualizeStep` | — | Consolidated HTML for review |
+| 6 | `ReviewPageStep` | — | `{NCTID}_review.html`: the extraction against its rendered source pages — rows, marks, notes, review items and cross-table folds drawn where they refer to; drafts sidecar entries, writes nothing |
 
 After all protocols: `IndexGeneratorStep` builds the collection index page.
 
@@ -124,6 +125,7 @@ from soa2usdm.resolve import ResolveStep
 from soa2usdm.visualize_resolved import VisualizeResolvedStep
 from soa2usdm.consolidate import ConsolidateStep
 from soa2usdm.visualize import VisualizeStep
+from soa2usdm.review_page import ReviewPageStep
 from soa2usdm.index_generator import IndexGeneratorStep
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
@@ -134,7 +136,7 @@ pid = 'NCT00000000'
 errors, analytics = Errors(), Analytics()
 data = {'source': {'protocol_id': pid, 'collection': COLLECTION}}
 for step_cls in (ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep,
-                 ConsolidateStep, VisualizeStep):
+                 ConsolidateStep, VisualizeStep, ReviewPageStep):
     data[step_cls.step_name] = step_cls(errors, analytics).execute(data)
 
 # Rebuild the collection index after any protocol change
