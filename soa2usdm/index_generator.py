@@ -693,7 +693,11 @@ def generate_index_html(collection: str) -> str:
         .header h1 { font-size: 20px; margin-bottom: 4px; }
         .header .sub { font-size: 12px; opacity: 0.8; }
         .header .meta { font-size: 11px; opacity: 0.7; margin-top: 8px; }
-        
+        .header .activities-link { display: inline-block; margin-top: 10px; padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.55); border-radius: 6px; color: #fff;
+            background: rgba(255,255,255,0.08); text-decoration: none; font-size: 13px; font-weight: 600; }
+        .header .activities-link:hover { background: rgba(255,255,255,0.18); }
+
         .section { background: white; border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .section-header { padding: 12px 20px; font-size: 13px; font-weight: 600; color: white; }
         
@@ -759,7 +763,7 @@ def generate_index_html(collection: str) -> str:
         <h1>{esc(collection)}</h1>
         <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline</div>
         <div class="meta">{len(protocols)} protocols | {len(ready)} processed | {len(pending)} pending{excl_meta} | Generated {generated_at}</div>
-        <div style="margin-top:10px"><a href="activities.html" style="display:inline-block;padding:6px 12px;border:1px solid #1F4788;border-radius:6px;color:#1F4788;text-decoration:none;font-size:13px;font-weight:600">&#9636; All extracted activities &mdash; consolidated / source-table inventory &rarr;</a></div>
+        <div><a href="activities.html" class="activities-link">&#9636; All extracted activities &mdash; consolidated / source-table inventory &rarr;</a></div>
     </div>
     
     <div class="section">
