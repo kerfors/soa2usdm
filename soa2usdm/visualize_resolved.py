@@ -21,6 +21,7 @@ from dataclasses import dataclass
 
 from .base import PipelineStepBase
 from . import config
+from .nav import NAV_CSS, nav_block, page_title
 
 
 # =============================================================================
@@ -121,22 +122,20 @@ class NavContext:
 
 
 def gen_navigation(nav: Optional[NavContext], is_consolidated: bool = False) -> str:
-    """Generate navigation bar HTML."""
+    """Shared breadcrumb + sibling strip (soa2usdm.nav), then the table-local
+    prev/next navigation this page keeps for itself.
+
+    The strip covers what the local breadcrumb and the "Consolidated View"
+    action link used to do — and adds review / extraction log / extraction
+    data, so every sibling page of the protocol is one click away.
+    """
     if nav is None:
         return ''
-    
-    # Breadcrumb: Collection > Protocol > Table
-    # Path from resolved/ is ../../index.html for collection index
-    parts = [f'<a href="../../../index.html" class="nav-link">{nav.collection}</a>']
-    parts.append('<span class="nav-sep">›</span>')
-    parts.append(f'<span class="nav-current">{nav.protocol_id}</span>')
-    
-    if not is_consolidated:
-        parts.append('<span class="nav-sep">›</span>')
-        parts.append(f'<span class="nav-current">Table {nav.current_table_num}</span>')
-    
-    breadcrumb = ''.join(parts)
-    
+
+    shared = nav_block(nav.collection, nav.protocol_id,
+                       f'Table {nav.current_table_num} — resolved',
+                       depth=3, current=('resolved', nav.current_table_num))
+
     # Table navigation (for resolved pages with multiple tables)
     table_nav = ''
     if not is_consolidated and len(nav.all_tables) > 1:
@@ -159,16 +158,11 @@ def gen_navigation(nav: Optional[NavContext], is_consolidated: bool = False) -> 
             {next_link}
         </div>'''
     
-    # Action links
-    action_links = ''
-    if not is_consolidated and nav.has_consolidated:
-        action_links = f'<a href="../consolidated/{nav.protocol_id}_consolidated.html" class="nav-action">Consolidated View →</a>'
-    
-    return f'''
+    if not table_nav:
+        return shared
+    return shared + f'''
     <nav class="navigation">
-        <div class="nav-breadcrumb">{breadcrumb}</div>
         {table_nav}
-        <div class="nav-actions">{action_links}</div>
     </nav>'''
 
 
@@ -831,26 +825,7 @@ def generate_resolved_html(data: dict, input_file: str, nav: Optional[NavContext
             gap: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }}
-        .nav-breadcrumb {{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-        }}
-        .nav-link {{
-            color: {COLORS['header']};
-            text-decoration: none;
-        }}
-        .nav-link:hover {{
-            text-decoration: underline;
-        }}
-        .nav-sep {{
-            color: #999;
-        }}
-        .nav-current {{
-            font-weight: 600;
-            color: #333;
-        }}
+        {NAV_CSS}
         .nav-tables {{
             display: flex;
             align-items: center;
@@ -890,24 +865,7 @@ def generate_resolved_html(data: dict, input_file: str, nav: Optional[NavContext
             background: {COLORS['header']};
             color: white;
         }}
-        .nav-actions {{
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }}
-        .nav-action {{
-            padding: 6px 12px;
-            background: #C65911;
-            color: white;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 11px;
-            font-weight: 500;
-        }}
-        .nav-action:hover {{
-            background: #a84a0e;
-        }}
-        
+
         .header {{
             background: linear-gradient(135deg, {COLORS['header']} 0%, #2E5EA8 100%);
             color: white; padding: 25px 30px; border-radius: 8px; margin-bottom: 20px;
@@ -1031,7 +989,7 @@ def generate_resolved_html(data: dict, input_file: str, nav: Optional[NavContext
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{table_id} - Resolved Table</title>
+    <title>{page_title(nav.protocol_id, f'Table {nav.current_table_num} resolved', nav.collection) if nav else f'{table_id} · resolved'}</title>
     <style>{css}</style>
 </head>
 <body>

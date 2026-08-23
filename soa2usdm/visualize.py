@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 from .base import PipelineStepBase
 from . import config
+from .nav import NAV_CSS, nav_block, page_title
 
 
 # =============================================================================
@@ -98,36 +99,16 @@ class NavContext:
 
 
 def gen_navigation(nav) -> str:
-    """Generate navigation bar HTML for consolidated view."""
+    """Shared breadcrumb + sibling strip (soa2usdm.nav) for the consolidated view.
+
+    The strip's resolved links replace the local T-buttons this page used to
+    render, and add review / extraction log / extraction data — every sibling
+    page of the protocol, from one shared generator.
+    """
     if nav is None:
         return ''
-    
-    # Breadcrumb: Collection > Protocol > Consolidated
-    parts = [f'<a href="../../../index.html" class="nav-link">{nav.collection}</a>']
-    parts.append('<span class="nav-sep">›</span>')
-    parts.append(f'<span class="nav-current">{nav.protocol_id}</span>')
-    parts.append('<span class="nav-sep">›</span>')
-    parts.append('<span class="nav-current">Consolidated</span>')
-    
-    breadcrumb = ''.join(parts)
-    
-    # Links to individual table views
-    table_links = ''
-    if nav.all_tables:
-        table_btns = []
-        for tnum, fname in nav.all_tables:
-            table_btns.append(f'<a href="../resolved/{fname}" class="nav-table-btn">T{tnum}</a>')
-        table_links = f"""
-        <div class="nav-tables">
-            <span class="nav-tables-label">Tables:</span>
-            <span class="nav-table-list">{' '.join(table_btns)}</span>
-        </div>"""
-    
-    return f"""
-    <nav class="navigation">
-        <div class="nav-breadcrumb">{breadcrumb}</div>
-        {table_links}
-    </nav>"""
+    return nav_block(nav.collection, nav.protocol_id, 'Consolidated SoA',
+                     depth=3, current=('consolidated', None))
 
 
 def get_level_color(level: int) -> str:
@@ -893,63 +874,8 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
             max-width: 1800px; margin: 0 auto;
         }}
         
-        .navigation {{
-            background: white;
-            border-radius: 8px;
-            padding: 10px 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }}
-        .nav-breadcrumb {{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-        }}
-        .nav-link {{
-            color: #1F4788;
-            text-decoration: none;
-        }}
-        .nav-link:hover {{
-            text-decoration: underline;
-        }}
-        .nav-sep {{
-            color: #999;
-        }}
-        .nav-current {{
-            font-weight: 600;
-            color: #333;
-        }}
-        .nav-tables {{
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }}
-        .nav-tables-label {{
-            font-size: 11px;
-            color: #666;
-        }}
-        .nav-table-list {{
-            display: flex;
-            gap: 4px;
-        }}
-        .nav-table-btn {{
-            padding: 4px 8px;
-            background: #f0f0f0;
-            border-radius: 4px;
-            text-decoration: none;
-            color: #333;
-            font-size: 11px;
-        }}
-        .nav-table-btn:hover {{
-            background: #e0e0e0;
-        }}
-        
+        {NAV_CSS}
+
         .header {{
             background: linear-gradient(135deg, {COLORS['header']} 0%, #2E5EA8 100%);
             color: white; padding: 25px 30px; border-radius: 8px; margin-bottom: 20px;
@@ -1117,7 +1043,7 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{protocol_id} - Consolidated Schedule</title>
+    <title>{page_title(protocol_id, 'Consolidated SoA', nav.collection) if nav else f'{protocol_id} · Consolidated SoA'}</title>
     <style>{css}</style>
 </head>
 <body>

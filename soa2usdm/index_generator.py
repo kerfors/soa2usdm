@@ -17,10 +17,26 @@ from typing import Optional
 from .base import PipelineStepBase
 from . import config
 from .corrections import review_status
+from .nav import NAV_CSS, nav_block, page_title
 
 
 def esc(text) -> str:
     return html_lib.escape(str(text)) if text else ""
+
+
+# Rendered reports and JSON viewers regenerate on source mtime alone, so a
+# nav-markup change would never reach files whose source did not change.
+# The shared nav block is the marker: a file without it predates the shared
+# navigation and is regenerated once.
+_NAV_MARKER = '<nav class="pnav"'
+
+
+def _is_current(html_path: Path, src_path: Path) -> bool:
+    """True when the rendered HTML is newer than its source and already
+    carries the shared navigation block."""
+    return (html_path.exists()
+            and html_path.stat().st_mtime >= src_path.stat().st_mtime
+            and _NAV_MARKER in html_path.read_text(encoding='utf-8'))
 
 
 def load_study_metadata(collection_path: Path) -> dict:
@@ -121,7 +137,10 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
         # Extraction JSONs in extracted/
         for ejson in sorted(extracted_dir.glob("*_extraction.json")):
             label = ejson.name.replace(f'{protocol_id}_', '').replace('_extraction.json', '').replace('Table_', 'T')
-            viewer_rel = _render_json_html(ejson, collection_path, f"{protocol_id} — {label} Extraction")
+            tnum = int(label[1:])
+            viewer_rel = _render_json_html(ejson, collection_path, protocol_id, collection,
+                                           f"Table {tnum} extraction data",
+                                           current=('extraction', tnum))
             result['extraction_json_files'].append({
                 'filename': ejson.name,
                 'path': viewer_rel,
@@ -143,10 +162,9 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 continue
             if ext == '.md':
                 report_html = report.with_suffix('.html')
-                if (not report_html.exists()
-                        or report_html.stat().st_mtime < report.stat().st_mtime):
+                if not _is_current(report_html, report):
                     _render_markdown_html(report, report_html, protocol_id, collection_path,
-                                          title="Extraction log")
+                                          collection, title="Extraction log", current="log")
                 result['report_file'] = str(report_html.relative_to(collection_path))
             else:
                 result['report_file'] = f"{protocol_id}/SoA2USDM/extracted/{report.name}"
@@ -165,7 +183,8 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 json_viewer = None
                 json_file = resolved_dir / json_name
                 if json_file.exists():
-                    json_viewer = _render_json_html(json_file, collection_path, f"{protocol_id} — {label} Resolved")
+                    json_viewer = _render_json_html(json_file, collection_path, protocol_id,
+                                                    collection, f"Table {int(label[1:])} resolved data")
                 result['resolved_files'].append({
                     'filename': name,
                     'path': f"{protocol_id}/SoA2USDM/resolved/{name}",
@@ -184,7 +203,9 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
             # JSON companion viewer
             cons_json = cons_dir / f"{protocol_id}_consolidated.json"
             if cons_json.exists():
-                result['consolidated_json'] = _render_json_html(cons_json, collection_path, f"{protocol_id} — Consolidated SoA")
+                result['consolidated_json'] = _render_json_html(cons_json, collection_path,
+                                                                protocol_id, collection,
+                                                                "consolidated data")
             
             # Read stats from JSON
             cons_json = cons_dir / f"{protocol_id}_consolidated.json"
@@ -224,8 +245,8 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
             md_file = eval_files[-1]  # latest version
             html_file = md_file.with_suffix('.html')
             # Generate HTML wrapper if missing or stale
-            if not html_file.exists() or html_file.stat().st_mtime < md_file.stat().st_mtime:
-                _render_markdown_html(md_file, html_file, protocol_id, collection_path)
+            if not _is_current(html_file, md_file):
+                _render_markdown_html(md_file, html_file, protocol_id, collection_path, collection)
             rel = html_file.relative_to(collection_path)
             result['usdm_evaluation'] = str(rel)
             result['usdm_evaluation_label'] = md_file.stem  # filename without extension
@@ -235,13 +256,16 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
 
 
 def _render_markdown_html(md_path: Path, html_path: Path, protocol_id: str, collection_path: Path,
-                          title: str = "USDM Readiness Evaluation"):
+                          collection: str, title: str = "USDM Readiness Evaluation",
+                          current: str = None):
     """Render a per-protocol markdown report as styled HTML."""
-    # Compute relative back link to index.html at collection root
+    # Depth below the collection index — reports can sit at the protocol
+    # root, in SoA2USDM/, or in a layer subfolder.
     rel_to_collection = html_path.relative_to(collection_path)
-    back_prefix = '/'.join(['..'] * len(rel_to_collection.parts[:-1]))  # go up to collection root
-    back_link = f'{back_prefix}/index.html' if back_prefix else 'index.html'
-    
+    depth = len(rel_to_collection.parts) - 1
+    nav_html = nav_block(collection, protocol_id, title, depth=depth,
+                         current=(current, None))
+
     try:
         import markdown
         md_text = md_path.read_text(encoding='utf-8')
@@ -255,10 +279,11 @@ def _render_markdown_html(md_path: Path, html_path: Path, protocol_id: str, coll
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>{esc(protocol_id)} — {esc(title)}</title>
+<title>{esc(page_title(protocol_id, title, collection))}</title>
 <style>
-    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
            max-width: 960px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }}
+    {NAV_CSS}
     h1 {{ color: #1F4788; border-bottom: 2px solid #1F4788; padding-bottom: 8px; font-size: 22px; }}
     h2 {{ color: #2E75B6; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-top: 32px; font-size: 17px; }}
     h3 {{ color: #444; margin-top: 24px; font-size: 14px; }}
@@ -272,61 +297,57 @@ def _render_markdown_html(md_path: Path, html_path: Path, protocol_id: str, coll
     blockquote {{ border-left: 3px solid #6a1b9a; margin: 16px 0; padding: 8px 16px; background: #faf5fc; color: #555; }}
     strong {{ color: #222; }}
     hr {{ border: none; border-top: 1px solid #ddd; margin: 24px 0; }}
-    .back {{ font-size: 12px; margin-bottom: 20px; }}
-    .back a {{ color: #1F4788; text-decoration: none; }}
-    .back a:hover {{ text-decoration: underline; }}
 </style>
 </head>
 <body>
-    <div class="back"><a href="{back_link}">← Back to collection index</a></div>
+    {nav_html}
     {body}
 </body>
 </html>'''
     html_path.write_text(html, encoding='utf-8')
 
 
-def _render_json_html(json_path: Path, collection_path: Path, title: str = None):
+def _render_json_html(json_path: Path, collection_path: Path, protocol_id: str,
+                      collection: str, page_label: str, current: tuple = (None, None)):
     """Render a JSON file as a styled, interactive HTML viewer.
-    
+
     Generates {name}_viewer.html alongside the JSON file with:
     - Syntax-highlighted JSON (keys, strings, numbers, booleans, null)
     - Collapsible objects/arrays (click to expand/collapse)
     - Search/filter box
-    - Back link to collection index
+    - Shared breadcrumb + sibling strip (soa2usdm.nav)
     - Link to download raw JSON
-    
-    Only regenerates if JSON is newer than existing viewer HTML.
+
+    Only regenerates if the JSON is newer than the existing viewer HTML or
+    the viewer predates the shared navigation block.
     """
     viewer_path = json_path.with_name(json_path.stem + '_viewer.html')
-    
+
     # Skip if viewer is up to date
-    if viewer_path.exists() and viewer_path.stat().st_mtime >= json_path.stat().st_mtime:
+    if _is_current(viewer_path, json_path):
         return str(viewer_path.relative_to(collection_path))
-    
-    # Compute back link
+
     rel_to_collection = viewer_path.relative_to(collection_path)
-    back_prefix = '/'.join(['..'] * len(rel_to_collection.parts[:-1]))
-    back_link = f'{back_prefix}/index.html' if back_prefix else 'index.html'
-    
+    depth = len(rel_to_collection.parts) - 1
+    nav_html = nav_block(collection, protocol_id, page_label, depth=depth, current=current)
+
     # Read and escape JSON content
     json_text = json_path.read_text(encoding='utf-8')
     json_escaped = html_lib.escape(json_text)
-    
-    if not title:
-        title = json_path.stem
-    
+
+    title = f"{protocol_id} — {page_label}"
+
     html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>{esc(title)}</title>
+<title>{esc(page_title(protocol_id, page_label, collection))}</title>
 <style>
     * {{ box-sizing: border-box; }}
     body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
            margin: 0; padding: 20px; background: #f8f9fa; color: #333; }}
+    {NAV_CSS}
     .toolbar {{ display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }}
-    .back a {{ color: #1F4788; text-decoration: none; font-size: 12px; }}
-    .back a:hover {{ text-decoration: underline; }}
     .title {{ font-size: 16px; font-weight: 600; color: #1F4788; }}
     .raw-link {{ font-size: 11px; }}
     .raw-link a {{ color: #888; text-decoration: none; font-family: monospace; }}
@@ -367,8 +388,8 @@ def _render_json_html(json_path: Path, collection_path: Path, title: str = None)
 </style>
 </head>
 <body>
+    {nav_html}
     <div class="toolbar">
-        <div class="back"><a href="{back_link}">← Back to collection index</a></div>
         <div class="title">{esc(title)}</div>
         <div class="raw-link"><a href="{json_path.name}" download>raw json</a></div>
         <div class="stats" id="stats"></div>
@@ -632,7 +653,7 @@ def generate_index_html(collection: str) -> str:
 
         row_cls = 'ready' if is_ready else 'pending-row'
 
-        return f'''<tr class="{row_cls}">
+        return f'''<tr class="{row_cls}" id="{esc(nct)}">
             <td class="nct">{nct_cell}</td>{prov_td}
             <td class="study-code">{study_code}</td>
             <td class="acronym">{acronym}</td>
@@ -649,7 +670,7 @@ def generate_index_html(collection: str) -> str:
     def excluded_row(e: dict) -> str:
         prov_td = f'<td class="prov-ref">{esc(e["provenance_ref"])}</td>' if provenance else ''
         return f'''
-        <tr class="excluded-row">
+        <tr class="excluded-row" id="{esc(e['nct_id'])}">
             <td class="nct">{esc(e['nct_id'])}</td>{prov_td}
             <td class="study-code">{esc(e['study_code'])}</td>
             <td class="acronym">{esc(e['study_acronym'])}</td>
@@ -681,6 +702,8 @@ def generate_index_html(collection: str) -> str:
         th { background: #f0f0f0; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 600; color: #666; border-bottom: 2px solid #ddd; white-space: nowrap; }
         td { padding: 6px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
         tr.ready:hover { background: #f8f9fa; }
+        /* The row a protocol page's breadcrumb points back to (#NCT... anchor). */
+        tr:target td { background: #fff3b0; }
         
         .nct { font-family: monospace; font-weight: 600; white-space: nowrap; }
         .nct a { color: #1F4788; text-decoration: none; }
@@ -727,12 +750,12 @@ def generate_index_html(collection: str) -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{esc(collection)} — SoA2USDM Index</title>
+    <title>{esc(collection)} · collection index · SoA2USDM</title>
     <style>{css}</style>
 </head>
 <body>
     <div class="header">
-        <div class="back"><a href="../../../index.html">&larr; All collections</a></div>
+        <div class="back"><a href="../../../index.html">Collections</a> <span style="opacity:.6">›</span> {esc(collection)}</div>
         <h1>{esc(collection)}</h1>
         <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline</div>
         <div class="meta">{len(protocols)} protocols | {len(ready)} processed | {len(pending)} pending{excl_meta} | Generated {generated_at}</div>

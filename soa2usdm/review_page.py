@@ -36,6 +36,7 @@ from pathlib import Path
 from . import config
 from .base import PipelineStepBase
 from .corrections import raw_to_corrections_path, review_status
+from .nav import nav_block
 from .page_grid import (cell_text, drop_superscripts, join_words, page_grid, page_words,
                         words_in)
 from .row_audit import audit_protocol, best_matches, keyed, normalise
@@ -316,6 +317,8 @@ def render_review_html(model: dict) -> str:
     page_span = f"{pages[0]}–{pages[-1]}" if pages else "?"
     return (_TEMPLATE
             .replace("__PID__", pid)
+            .replace("__NAV__", nav_block(model["collection"], model["protocol_id"],
+                                          "Review", depth=3, current=("review", None)))
             .replace("__COLL__", esc(model["collection_title"]))
             .replace("__NTABLES__", f"{n_tables} table{'s' if n_tables != 1 else ''}")
             .replace("__PAGES__", esc(page_span))
@@ -357,7 +360,7 @@ def main():
 
 _TEMPLATE = r"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<title>__PID__ · SoA extraction review</title>
+<title>__PID__ · Review · __COLL__</title>
 <style>
 :root{--blue:#1F4788;--blue2:#2E75B6;--ink:#1f2933;--muted:#5f6b7a;--line:#d9dee5;--bg:#f5f7fa;
  --ok:#2e7d32;--warn:#c77700;--bad:#c62828;--sel:#ffb300;--note:#6a1b9a;--alt:#0277bd;--fold:#00695c}
@@ -366,8 +369,10 @@ body{margin:0;font:14px/1.45 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;c
 header{background:var(--blue);color:#fff;padding:14px 22px}
 header h1{margin:0;font-size:20px;font-weight:600}
 header .sub{opacity:.85;font-size:13px;margin-top:3px}
-.crumb{font-size:12px;padding:8px 22px;background:#fff;border-bottom:1px solid var(--line);color:var(--muted)}
-.crumb a{color:var(--blue2);text-decoration:none}.crumb b{color:var(--ink)}
+.pnav{font-size:12px;padding:8px 22px;background:#fff;border-bottom:1px solid var(--line);color:var(--muted)}
+.pnav a{color:var(--blue2);text-decoration:none}.pnav a:hover{text-decoration:underline}
+.pnav-cur{font-weight:600;color:var(--ink)}.pnav-sep{color:#9aa4af;margin:0 4px}
+.pnav-sib{margin-top:3px}.pnav-grp{font-size:11px;color:#8a94a0}
 .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px 22px}
 .tile{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px}
 .tile .k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
@@ -457,7 +462,7 @@ footer{padding:8px 22px 20px;font-size:11px;color:var(--muted)}
  <h1>__PID__ — review of the SoA extraction</h1>
  <div class="sub">__COLL__ · __NTABLES__ · document pages __PAGES__ · generated __GENERATED__</div>
 </header>
-<div class="crumb"><a href="../../../index.html">__COLL__</a> › <b>__PID__</b> › Review &nbsp;·&nbsp; <a href="__PID___uncertainty_report.html">extraction log</a> · <a href="../consolidated/__PID___consolidated.html">consolidated</a></div>
+__NAV__
 
 <div class="tiles" id="tiles"></div>
 

@@ -221,7 +221,7 @@ def generate_activity_inventory(collection: str):
 
 
 _TEMPLATE = r'''<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>__COLLECTION__ — SoA activities inventory</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>__COLLECTION__ · activities inventory · SoA2USDM</title>
 <style>
 :root{--fg:#333;--pri:#1F4788;--sec:#2E75B6;--muted:#888;--line:#e0e0e0;--bg:#f8f9fa;--panel:#fff;--secrow:#fbf7e8;--secfg:#8d6e00}
 *{box-sizing:border-box}
@@ -276,7 +276,7 @@ tr.open .chev{transform:rotate(90deg)}
 footer{padding:16px 22px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);background:var(--panel)}
 </style></head><body>
 <header>
-<div class="back"><a href="index.html">&larr; __COLLECTION__ collection index</a></div>
+<div class="back"><a href="../../../index.html">Collections</a> <span style="opacity:.6">›</span> <a href="index.html">__COLLECTION__</a> <span style="opacity:.6">›</span> Activities inventory</div>
 <h1>Schedule-of-Activities — Activities inventory</h1>
 <div class="sub"><b>Consolidated</b> = one row per distinct activity per study (source-table rows folded in as provenance; intra-protocol, mostly exact). <b>Source-table</b> = every activity exactly as it sits in each SoA table. No cross-protocol clustering. Built from the <code>consolidated/</code> and <code>resolved/</code> pipeline layers.</div>
 <div class="stats"><span><b>__PROT__</b> protocols</span><span><b>__CON__</b> consolidated activities</span><span><b>__SRC__</b> source-table rows</span><span><b>__FOLD__</b> folded</span><span><b>__MT__</b> span &gt;1 table</span><span><b>__WV__</b> folded across differing wording</span><span><b>__RED__</b> redacted (CCI)</span></div>
