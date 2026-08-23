@@ -1,23 +1,45 @@
-# Global identifiers for extracted items — design note
+# Global identifiers — design note
 
-**Status: proposal, 2026-08-23. Nothing here is implemented; this document is the artifact to agree on first.**
+**Status: proposal, 2026-08-23; extended the same day. Nothing here is implemented; this document is the artifact to agree on first.**
 
-Every item the pipeline produces — a unified activity, a deduplicated annotation, a source table — currently has identity only *inside one JSON file*: `xact-027` means something in `NCT04184622_consolidated.json` and nothing anywhere else. The moment an item is cited outside the repo (a publication, a slide, a triple in the coming semantic layer), that identity should be global, stable, and resolvable. This note proposes how, following the pattern already established for the model side in [usdm-rdf](https://github.com/kerfors/usdm-rdf), which mints class and property IRIs under `https://w3id.org/cdisc/usdm/v4/`. That work identifies the *model* (TBox); this proposal identifies the *data* (ABox). The two meet in a single kind of statement:
+Identity in this project has three layers. The top one exists, the bottom one is specified here, and the middle one — the one that matters most — is where the coming semantic/USDM work begins.
+
+| Layer | What is identified | IRIs |
+|---|---|---|
+| **Model** | USDM classes and properties | `w3id.org/cdisc/usdm/v4/Activity` — minted by [usdm-rdf](https://github.com/kerfors/usdm-rdf) |
+| **Specification** | the USDM representation of one study: its ScheduleTimeline, Activities, Encounters, Timings | proposed below |
+| **Evidence** | what the extraction produced: unified activities, annotations, tables — and under them the stamped source pages | proposed below |
+
+The specification is what the world will exchange and cite; the extracted SoA data is **one part of its evidence**, not the primary object. The layers meet in two kinds of statement:
 
 ```
-<https://w3id.org/soa2usdm/v1/usdm_data/NCT04184622/xact-027>
-    rdf:type <https://w3id.org/cdisc/usdm/v4/Activity> .
+<…/NCT04184622/usdm/{activity-id}>  rdf:type              <https://w3id.org/cdisc/usdm/v4/Activity> .
+<…/NCT04184622/usdm/{activity-id}>  prov:wasDerivedFrom   <…/usdm_data/NCT04184622/xact-027> .
 ```
 
 ## Why
 
-- **Citability.** A publication about SoA patterns can cite `…/xact-027` and the claim stays clickable and checkable — down to the printed page — years later. This is FAIR F1: globally unique, persistent, resolvable identifiers.
-- **Typing.** The semantic/USDM layer's central act — "this extracted thing is a USDM Activity / Encounter / Timing" — becomes one triple per item, joining this project's instances to usdm-rdf's classes.
-- **Linking.** Biomedical-concept anchoring, cross-protocol activity equivalence, and resolved See-Section references (backlog item 3) all become statements between identified things instead of notes inside files.
+- **Citability.** A publication about SoA patterns can cite an item and the claim stays clickable and checkable — down to the printed page — years later. This is FAIR F1: globally unique, persistent, resolvable identifiers.
+- **Typing.** The semantic layer's central act — "this is a USDM Activity / Encounter / Timing" — becomes one triple per specification instance, joining this project's data to usdm-rdf's classes.
+- **Provenance.** Biomedical-concept anchoring, cross-protocol activity equivalence, resolved See-Section references (backlog item 3), and above all the specification-to-source trace all become statements between identified things instead of notes inside files.
 
-## What gets an IRI — and what deliberately does not
+## The specification layer
 
-Mint identifiers for what will be cited; leave provenance addressable *relative to* an identified item.
+The USDM instances of a study are the first-class citizens. Design points:
+
+- **Honor USDM's own id convention.** Every USDM element carries an `id`; the IRI is the specification namespace plus that id — the emitted JSON stays plain conformant USDM, and the IRIs are computed, not stored. Ids are generated deterministically from the derivation, so they are stable within a release (the same stability model as the evidence layer, below).
+- **Provenance is a repeatable, qualified link — and it points one way.** A `usdm:Activity` usually derives from one unified SoA activity; Encounters derive from visit columns, Timings from week/window rows; some instances (study identity, arms, objectives) have no SoA source at all, and some SoA rows will not survive into USDM. `prov:wasDerivedFrom` carries this: repeatable per source, qualifiable when the SoA is one source among several. The specification cites its evidence; the reverse direction is a query, never a stored statement (re-derive, don't store).
+- **One release freezes the whole chain.** Specification and evidence share the release axis: `…/{release}/{study}/usdm/{id}` beside `…/{release}/{collection}/{protocol}/{item}`. Within a release every cross-layer link resolves by construction; a re-extraction re-derives specification, evidence, and the provenance between them under the next tag. Separate version axes would let the layers drift and are not introduced until a real need (e.g. re-rendering USDM without re-extracting) forces it.
+
+The rest of the specification layer's design — which USDM classes are instantiated, how the derivation works — belongs to the semantic layer itself, not this note. What this note fixes is only its identity scheme and its link to the evidence.
+
+## The evidence layer
+
+Every item the pipeline produces — a unified activity, a deduplicated annotation, a source table — currently has identity only *inside one JSON file*: `xact-027` means something in `NCT04184622_consolidated.json` and nothing anywhere else. This layer gives the extraction outputs the stable identity the specification's provenance links (and any direct citation of the evidence) need to point at.
+
+### What gets an IRI — and what deliberately does not
+
+Mint identifiers for what will be cited or pointed at by provenance; leave the rest addressable *relative to* an identified item.
 
 | Gets an IRI | Example |
 |---|---|
@@ -29,7 +51,9 @@ Mint identifiers for what will be cited; leave provenance addressable *relative 
 
 Extraction rows, marks, cells, and page bands get **no** IRIs. They are the evidence chain, already addressable through an identified item's `source_refs` (table + row position + document page), and minting them would multiply the identifier surface without anything citing them directly. If something ever needs to cite a row, the table IRI plus row position is the citation.
 
-## The stability problem, and the decision
+**Known gap, exposed by the specification layer:** USDM Encounters and Timings trace back to *visits and timing rows*, and the consolidated layer today has no unified visit/timing identities — only the hierarchy. The table above is therefore incomplete for the trace-back the specification needs; what the evidence layer identifies must be driven by the specification layer's derivation, not only by what a publication cites. To be resolved in the semantic-layer design.
+
+### The stability problem, and the decision
 
 `xact-027` is a **derived** identifier: deterministic, but positional. A re-extraction or a correction that changes the consolidation folding renumbers items. A global identifier that silently changes referent between corpus versions is worse than none. Three options were considered:
 
@@ -39,23 +63,25 @@ Extraction rows, marks, cells, and page bands get **no** IRIs. They are the evid
 
 **A "release" must therefore become explicit.** Proposal: a git tag on `soa2usdm-collections` (`v1`, `v2`, …), placed when a corpus state is worth citing. Between tags, plain URLs into the Pages site serve fine; IRIs refer only to tagged states.
 
-## The IRI scheme
+### The IRI scheme
 
 ```
-https://w3id.org/soa2usdm/{release}/{collection}/{protocol}/{item}
+https://w3id.org/soa2usdm/{release}/{collection}/{protocol}/{item}          # evidence
+https://w3id.org/soa2usdm/{release}/{study}/usdm/{usdm-element-id}         # specification
 ```
 
 - Slash semantics, no hash fragments (as adopted for usdm-rdf in its v0.3).
-- `{item}` is the id the pipeline already emits: `xact-NNN`, `xannot-NNN`, `table-N`. No new naming scheme is invented; the IRI is the existing id given a stable prefix.
-- **IRIs are computed, not stored.** The consolidated JSON keeps carrying `xact_id`; the mapping from id to IRI is this specification. Storing IRIs in the data would violate re-derive-don't-store and would break every stored value at the next release tag.
+- Evidence `{item}` is the id the pipeline already emits: `xact-NNN`, `xannot-NNN`, `table-N`. No new naming scheme is invented; the IRI is the existing id given a stable prefix.
+- **IRIs are computed, not stored.** The consolidated JSON keeps carrying `xact_id`, the USDM JSON its element `id`s; the mapping from id to IRI is this specification. Storing IRIs in the data would violate re-derive-don't-store and would break every stored value at the next release tag.
 
-## Dereferencing
+### Dereferencing
 
 w3id.org provides the indirection layer — a `.htaccess` in the [w3id registry](https://github.com/perma-id/w3id.org), the mechanics already exercised once for usdm-rdf — pointing into the Pages site, which is the resolution target:
 
 - `Accept: text/html` → the consolidated view, anchored at the item: `…/NCT04184622_consolidated.html#xact-027`. Requires per-item anchors in the consolidated HTML (small generator change); the review page can accept the same anchor for its linked-row view.
 - `Accept: application/json` → the protocol's consolidated JSON on Pages. Item-level granularity inside the file is the reader's job for now.
 - Later, if the semantic layer wants it: a build step emitting one small JSON-LD file per item (static hosting cannot slice a JSON at request time). An optimization, not a prerequisite.
+- Specification IRIs dereference to the study's USDM JSON (and its HTML view) once the semantic layer emits them; same mechanics.
 
 Because IRIs are version-scoped and Pages serves only the current corpus, older releases resolve via the tag: the w3id rule for `/v1/` targets the Pages content as of tag `v1` (GitHub serves tagged files raw even when Pages has moved on). Exact routing to be settled in the w3id PR.
 
@@ -65,10 +91,12 @@ Because IRIs are version-scoped and Pages serves only the current corpus, older 
 2. Per-item anchors in the consolidated HTML (`id="xact-NNN"` / `id="xannot-NNN"`); review page accepts the same anchor.
 3. First release tag on `soa2usdm-collections` when the corpus is next in a citable state.
 4. w3id PR registering `soa2usdm` with the routing above.
-5. Semantic layer emits typed triples against these IRIs (its own design, not this document's).
+5. Semantic layer: settle unified visit/timing identity in the evidence layer, then emit USDM instances with deterministic ids and `prov:wasDerivedFrom` links against these IRIs.
 
 ## Open questions
 
+- Unified visit/timing identity in the consolidated layer (the known gap above) — prerequisite for Encounter/Timing provenance.
+- Deterministic USDM element ids: exact generation rule, and whether plain-USDM consumers need them to look like UUIDs.
 - Cross-version continuity: when (not whether) the registry of option 2 becomes necessary, and what its sidecar looks like.
 - Whether `misc_studies` items should be mintable at all, or IRIs reserved for collections meant to be cited.
 - Whether review items and corrections deserve IRIs (they are decisions about items, and citable in principle) — deferred until something needs to cite one.
