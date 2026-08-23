@@ -13,7 +13,8 @@ reviewer to paste into `*_corrections.json`; the sidecar remains the only
 write path and the raw extraction stays immutable (see corrections.py).
 
 Inputs (all read, never modified):
-    {NCT}_soa.pdf                       pages rendered with pdftoppm
+    {NCT}_soa.pdf                       page geometry and text layer (page_grid)
+    {NCT}_soa_pages/pNN.png + pages.json   pages pre-rendered at ingest by tools/page_map.py --render
     extracted/*_extraction[.verified].json   structure, marks, annotations, review_items
     extracted/*_corrections.json        applied corrections, decided review items
     resolved/*_resolved.json            table ids (for cross-table references)
@@ -21,12 +22,14 @@ Inputs (all read, never modified):
     row_audit.audit_protocol            page assignment, doc-page offset, audit lists
     page_grid                           bands, columns, words
 
-Output: extracted/{NCT}_review.html plus the rendered pages as PNG files in
-extracted/{NCT}_review_pages/ (one per PDF page, referenced relatively).
+Output: extracted/{NCT}_review.html. Pages are not rendered here: the page
+images come pre-rendered (and stamped with their document page number) from
+{NCT}_soa_pages/ beside the PDF, referenced relatively. Each image carries a
+synthetic caption strip below the verbatim page bitmap; pages.json records the
+page fraction so the overlay maps onto the page region only.
 """
 import html as html_lib
 import json
-import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -37,8 +40,6 @@ from .page_grid import (cell_text, drop_superscripts, join_words, page_grid, pag
                         words_in)
 from .row_audit import audit_protocol, best_matches, keyed, normalise
 
-RENDER_DPI = 80          # readable at page-pane width, ~100 KB per page as PNG
-
 
 # =============================================================================
 # Model
@@ -47,17 +48,6 @@ RENDER_DPI = 80          # readable at page-pane width, ~100 KB per page as PNG
 def _load(path: Path) -> dict:
     with open(path) as f:
         return json.load(f)
-
-
-def _render_png(pdf: Path, page: int, image_dir: Path) -> str:
-    """Render one PDF page to image_dir/p{NN}.png; returns the file name."""
-    image_dir.mkdir(parents=True, exist_ok=True)
-    name = f"p{page:02d}.png"
-    subprocess.run(
-        ["pdftoppm", "-png", "-r", str(RENDER_DPI), "-f", str(page), "-l", str(page),
-         "-singlefile", str(pdf), str(image_dir / name[:-4])],
-        capture_output=True, check=True)
-    return name
 
 
 def _markers(value) -> list[str]:
@@ -105,7 +95,7 @@ def _column_map(g, words, props: dict, grid: dict) -> tuple[dict, list, str]:
 
 
 def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf: Path,
-                 resolved: dict | None, image_dir: Path, image_rel: str) -> dict:
+                 resolved: dict | None, page_imgs: dict, image_rel: str) -> dict:
     """Everything the page needs for one table: structure, pages with geometry, checks."""
     meta = extraction["table_metadata"]
     redacted = {a["row_position"] for a in (resolved or {}).get("activities", []) if a.get("is_redacted")}
@@ -152,6 +142,14 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
         words = page_words(pdf, pdf_page)
         labels = drop_superscripts(words)
         doc_page = pdf_page + offset
+        entry = page_imgs.get(pdf_page)
+        if entry is None:
+            raise KeyError(f"pages.json has no entry for PDF page {pdf_page} — "
+                           f"re-run tools/page_map.py --render")
+        if entry["doc_page"] != doc_page:
+            raise ValueError(f"PDF page {pdf_page}: pages.json says document page "
+                             f"{entry['doc_page']}, row audit says {doc_page} — the stamped "
+                             f"images and the page map disagree; re-run tools/page_map.py --render")
         cand = [(rp, a["activity_name"]) for rp, a in activities.items()
                 if not has_source_page or a.get("source_page") == doc_page]
         name_to_row = {}
@@ -199,7 +197,8 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
         pages.append({"pdf_page": pdf_page, "doc_page": doc_page, "width_pt": g.width_pt,
                       "height_pt": g.height_pt, "columns": [[round(a, 1), round(b, 1)] for a, b in g.columns],
                       "col_map": col_map, "col_method": col_method,
-                      "bands": bands, "img": f"{image_rel}/{_render_png(pdf, pdf_page, image_dir)}"})
+                      "bands": bands, "img": f"{image_rel}/{entry['file']}",
+                      "page_frac": round(entry["page_height_px"] / entry["height_px"], 4)})
 
     applied = []
     if sidecar and sidecar.exists():
@@ -252,9 +251,10 @@ def _across_tables(consolidated: dict | None) -> dict:
             "stats": consolidated["consolidation_metadata"].get("match_stats", {})}
 
 
-def build_review_model(protocol_id: str, collection: str, image_dir: Path | None = None) -> dict:
-    """Model for the page. Page images go to image_dir (default: next to the
-    output, `{NCT}_review_pages/`) and are referenced relative to the HTML."""
+def build_review_model(protocol_id: str, collection: str) -> dict:
+    """Model for the page. Page images come pre-rendered from `{NCT}_soa_pages/`
+    beside the PDF (tools/page_map.py --render) and are referenced relative to
+    the HTML; nothing is rendered here."""
     pdf = config.find_soa_pdf(protocol_id, collection)
     if pdf is None:
         raise FileNotFoundError(f"{protocol_id}: no {protocol_id}_soa.pdf in {collection}")
@@ -265,9 +265,14 @@ def build_review_model(protocol_id: str, collection: str, image_dir: Path | None
     if audit["status"] != "ok":
         raise RuntimeError(f"{protocol_id}: row audit status {audit['status']!r} — cannot place pages")
     audit_by_table = {t["table_number"]: t for t in audit["tables"]}
-    if image_dir is None:
-        image_dir = config.get_extracted_dir(protocol_id, collection) / f"{protocol_id}_review_pages"
-    image_rel = image_dir.name
+    images_dir = pdf.parent / f"{protocol_id}_soa_pages"
+    manifest_path = images_dir / "pages.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(
+            f"{protocol_id}: no {images_dir.name}/pages.json — render the pages first: "
+            f"python3 tools/page_map.py --collection {collection} --render")
+    page_imgs = {e["pdf_page"]: e for e in _load(manifest_path)["pages"]}
+    image_rel = f"../../{images_dir.name}"
 
     tables = []
     for ef in extraction_files:
@@ -277,7 +282,7 @@ def build_review_model(protocol_id: str, collection: str, image_dir: Path | None
         resolved_path = config.get_resolved_dir(protocol_id, collection) / config.extraction_to_resolved_filename(raw.name)
         resolved = _load(resolved_path) if resolved_path.exists() else None
         tables.append(_table_model(extraction, raw_to_corrections_path(raw), audit_by_table[tnum], pdf, resolved,
-                                   image_dir, image_rel))
+                                   page_imgs, image_rel))
 
     status = review_status(config.get_extracted_dir(protocol_id, collection))
     decided = {i["id"]: i["correction_id"] for i in status["items"] if i["decided"]}
@@ -488,7 +493,7 @@ footer{padding:8px 22px 20px;font-size:11px;color:var(--muted)}
  </div>
 </main>
 
-<footer>Page images in <code>__PID___review_pages/</code>. Generated from the pipeline's own files: page geometry from the rule-line band detector, row matching as in the row audit, marks from the page text layer compared with the extraction, decisions from the extraction's review items, cross-table relations from consolidation. Selecting a row on the page or in the table highlights it in the other. This page writes nothing: a decision only drafts an entry for the protocol's corrections sidecar.</footer>
+<footer>Page images in <code>__PID___soa_pages/</code>, rendered at ingest by <code>tools/page_map.py --render</code>; the caption strip below each page is synthetic, the page bitmap above it is verbatim. Page numbers (p.NN) are document pages — the page's sequence position in the source protocol PDF; printed page footers are unreliable in this corpus and are not used. Generated from the pipeline's own files: page geometry from the rule-line band detector, row matching as in the row audit, marks from the page text layer compared with the extraction, decisions from the extraction's review items, cross-table relations from consolidation. Selecting a row on the page or in the table highlights it in the other. This page writes nothing: a decision only drafts an entry for the protocol's corrections sidecar.</footer>
 
 <script>
 const D = __DATA__;
@@ -523,7 +528,7 @@ function buildTabs(){
  const tt=document.getElementById('tabletabs'); tt.innerHTML='';
  D.tables.forEach((t,i)=>{ const b=document.createElement('button'); b.className='tbl'+(i===S.t?' on':''); b.textContent='Table '+t.number; b.title=t.title; b.onclick=()=>showTable(i); tt.appendChild(b); });
  const pt=document.getElementById('pagetabs'); pt.innerHTML='';
- T().pages.forEach((p,i)=>{ const b=document.createElement('button'); b.className=i===S.page?'on':''; b.textContent='p.'+p.doc_page; b.onclick=()=>showPage(i); pt.appendChild(b); });
+ T().pages.forEach((p,i)=>{ const b=document.createElement('button'); b.className=i===S.page?'on':''; b.textContent='p.'+p.doc_page; b.title='document page '+p.doc_page+' — sequence position in the source protocol PDF (printed page footers are not used)'; b.onclick=()=>showPage(i); pt.appendChild(b); });
 }
 function showTable(i){ S.t=i; S.page=0; S.selRow=null; S.selProp=null; S.noteRows=[]; S.altRows=[]; S.foldRows=[]; buildTabs(); buildTable(); buildDecisions(); buildNotes(); buildChecks(); showPage(0); }
 
@@ -532,6 +537,8 @@ function showPage(i){
  [...document.getElementById('pagetabs').children].forEach((b,j)=>b.classList.toggle('on',j===i));
  document.getElementById('pageimg').src=p.img;
  const svg=document.getElementById('overlay');
+ // The image carries a caption strip below the page bitmap; the overlay must map onto the page region only.
+ svg.style.height=(p.page_frac*100)+'%';
  svg.setAttribute('viewBox',`0 0 ${p.width_pt} ${p.height_pt}`); svg.setAttribute('preserveAspectRatio','none');
  if(!p.columns.length){ svg.innerHTML=''; return; }
  const x0=p.columns[0][0], x1=p.columns[p.columns.length-1][1];

@@ -21,8 +21,12 @@ from soa2usdm.review_page import (_across_tables, _column_map, _markers, build_r
 
 FIXTURE = Path(__file__).parent / "fixtures" / "protocols" / "NCT04677179" / "SoA2USDM"
 SOA_PDF = config.find_soa_pdf("NCT04677179", "usdm_data") if "usdm_data" in config.COLLECTIONS else None
+SOA_PAGES = SOA_PDF.parent / "NCT04677179_soa_pages" if SOA_PDF else None
 needs_pdf = pytest.mark.skipif(
     not (shutil.which("pdftoppm") and SOA_PDF), reason="needs poppler and the usdm_data PDFs")
+needs_pages = pytest.mark.skipif(
+    not (SOA_PAGES and (SOA_PAGES / "pages.json").exists()),
+    reason="needs the pre-rendered NCT04677179_soa_pages (tools/page_map.py --render)")
 
 
 def test_markers_are_split_from_the_comma_separated_string():
@@ -62,8 +66,9 @@ def test_column_map_is_read_from_the_header_row_on_a_tiled_table():
 
 
 @needs_pdf
-def test_full_build_places_every_page_and_renders(tmp_path):
-    model = build_review_model("NCT04677179", "usdm_data", image_dir=tmp_path / "NCT04677179_review_pages")
+@needs_pages
+def test_full_build_places_every_page_and_references_prerendered_images():
+    model = build_review_model("NCT04677179", "usdm_data")
     assert [t["number"] for t in model["tables"]] == [1, 2, 3, 4]
     for t in model["tables"]:
         assert t["pages"], f"table {t['number']} has no pages"
@@ -76,10 +81,13 @@ def test_full_build_places_every_page_and_renders(tmp_path):
     assert diffs == [(3, 38, 4), (3, 38, 8)]
     html = render_review_html(model)
     assert "NCT04677179 — review of the SoA extraction" in html
-    # Page images are files beside the HTML, referenced relatively, one per PDF page.
-    assert model["image_dir"] == "NCT04677179_review_pages"
+    # Page images are the pre-rendered, stamped files beside the PDF, referenced
+    # relative to the HTML in extracted/. page_frac maps the overlay onto the page
+    # region only (the caption strip below it is synthetic).
+    assert model["image_dir"] == "../../NCT04677179_soa_pages"
     for t in model["tables"]:
         for p in t["pages"]:
-            assert p["img"] == f"NCT04677179_review_pages/p{p['pdf_page']:02d}.png"
-            assert (tmp_path / p["img"]).exists()
+            assert p["img"] == f"../../NCT04677179_soa_pages/p{p['pdf_page']:02d}.png"
+            assert (SOA_PAGES / f"p{p['pdf_page']:02d}.png").exists()
+            assert 0.9 < p["page_frac"] < 1.0
     assert "</script>" in html and "<\\/" not in html.split("<script>")[0]

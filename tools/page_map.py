@@ -19,9 +19,20 @@ So this script does NOT guess. Where the excerpt has more pages than the declare
 both candidate mappings, shows the first and last lines of the pages in question, and asks for a
 decision. Confirm by writing the answer into the manifest or by passing --front / --back.
 
+Rendered pages (--render)
+-------------------------
+For each decided study, --render writes `<protocol>/<STUDY>_soa_pages/pNN.png` — one PNG per
+PDF page at RENDER_DPI — plus a `pages.json` manifest. A caption strip is APPENDED BELOW the
+page bitmap carrying the computed document page number: an addition to the canvas, never an
+overprint, so the page bitmap itself stays verbatim pdftoppm output. The stamp repeats the
+map; when a map decision changes, re-run --render so stamp and map cannot drift apart.
+The review page consumes these images and pages.json. Extraction input stays the PDF plus
+PAGEMAP.md — stamped images are human-facing.
+
 Usage:
     python3 tools/page_map.py --collection usdm_data                 # report, decide nothing
     python3 tools/page_map.py --collection usdm_data --write         # write blind/<STUDY>/PAGEMAP.md
+    python3 tools/page_map.py --collection usdm_data --render        # write <protocol>/<STUDY>_soa_pages/
     python3 tools/page_map.py --collection usdm_data --back NCT04184622 --back NCT03637764
 """
 
@@ -35,6 +46,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from soa2usdm import config  # noqa: E402
+
+RENDER_DPI = 150         # extraction-grade; the review page scales down in HTML
+STRIP_PT = 18            # caption strip height in points, scaled by RENDER_DPI
 
 
 def pdf_pages(pdf):
@@ -78,11 +92,53 @@ def read_manifest(collection):
     return out, root
 
 
+def render_study_pages(pdf, study, pages, declared_last, out_dir):
+    """Render pNN.png per PDF page plus pages.json, with a caption strip below the page bitmap.
+
+    The strip carries the COMPUTED document page number — the page's sequence position in the
+    source protocol PDF — because printed footers are unreliable (see module docstring). It is
+    appended to the canvas below the page; the page bitmap itself stays verbatim.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+    out_dir.mkdir(parents=True, exist_ok=True)
+    n = len(pages)
+    strip_px = round(STRIP_PT * RENDER_DPI / 72)
+    font = ImageFont.load_default(size=round(strip_px * 0.55))
+    entries = []
+    for i, doc in enumerate(pages, start=1):
+        name = f"p{i:02d}.png"
+        subprocess.run(["pdftoppm", "-png", "-r", str(RENDER_DPI), "-f", str(i), "-l", str(i),
+                        "-singlefile", str(pdf), str(out_dir / name[:-4])],
+                       capture_output=True, check=True)
+        page = Image.open(out_dir / name).convert("RGB")
+        canvas = Image.new("RGB", (page.width, page.height + strip_px), "#e8edf3")
+        canvas.paste(page, (0, 0))
+        draw = ImageDraw.Draw(canvas)
+        draw.line([(0, page.height), (page.width, page.height)], fill="#1F4788", width=2)
+        label = f"{study}  ·  SoA excerpt PDF page {i}/{n}  ·  document page {doc}"
+        if doc > declared_last:
+            label += "  (beyond the declared SoA range)"
+        draw.text((strip_px // 2, page.height + strip_px // 2), label,
+                  fill="#1F4788", font=font, anchor="lm")
+        canvas.save(out_dir / name)
+        entries.append({"pdf_page": i, "doc_page": doc, "file": name,
+                        "width_px": canvas.width, "height_px": canvas.height,
+                        "page_height_px": page.height})
+    (out_dir / "pages.json").write_text(json.dumps(
+        {"study": study, "dpi": RENDER_DPI, "strip_px": strip_px,
+         "note": "document page = sequence position in the source protocol PDF; printed page "
+                 "footers are not used. The caption strip below each page bitmap is synthetic; "
+                 "the page bitmap above it is verbatim pdftoppm output.",
+         "pages": entries}, indent=2) + "\n")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--collection", default="usdm_data")
     ap.add_argument("--blind", default=os.environ.get("SOA2USDM_BLIND", "blind"))
     ap.add_argument("--write", action="store_true", help="write blind/<STUDY>/PAGEMAP.md")
+    ap.add_argument("--render", action="store_true",
+                    help=f"write <protocol>/<STUDY>_soa_pages/pNN.png at {RENDER_DPI} dpi + pages.json")
     ap.add_argument("--front", action="append", default=[], help="extra pages are at the FRONT")
     ap.add_argument("--back", action="append", default=[], help="extra pages are at the BACK")
     ap.add_argument("--explicit", default=None, help='JSON {"STUDY": [63,64,72,78]} for a non-contiguous excerpt')
@@ -138,6 +194,10 @@ def main():
                       "the document page, one higher, and in one case showing a protocol number instead.",
                       "This table is authoritative.", ""]
             (d / "PAGEMAP.md").write_text("\n".join(lines))
+
+        if args.render:
+            render_study_pages(pdf, study, pages, b, root / study / f"{study}_soa_pages")
+            print(f"      rendered {len(pages)} page(s) → {study}_soa_pages/")
 
     if undecided:
         print(f"\n{len(undecided)} study(ies) need a decision before extraction: {', '.join(undecided)}")
