@@ -103,6 +103,8 @@ The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to
 **Reviewing an extraction (HTML):**
 `ReviewPageStep` (run by `01_batch.ipynb`, or `soa2usdm-review-page <NCTID> --collection <name>`) writes `{NCTID}_review.html` next to the extraction report: the source pages (pre-rendered at ingest into `{NCTID}_soa_pages/` by `tools/page_map.py --render`, each stamped below the page bitmap with its document page number) with the extracted rows, marks, notes, open decisions (`review_items`) and cross-table folds drawn where they refer to, linked both ways with the extracted table. It shows nothing that is not already in the pipeline's files and writes nothing — a decision only drafts an entry for the corrections sidecar. Same requirements as the row audit.
 
+The review page is a proof of concept with two aims: to envision what a user interface for a review user could look like — worklist (`review_items`), evidence, and the sidecar write path in one place — and to showcase the traceability the pipeline already carries: every highlight is an existing extraction field drawn at the position on the source page it refers to. It also lays groundwork for the semantic/USDM layer: any claim about what an SoA table expresses should be checkable against a printed page in seconds, which is why the page images are pre-rendered and stamped at ingest.
+
 ## Key Design Decisions
 
 **Errors collected, not raised.** Steps continue on errors — partial success matters when one table out of four has issues.
