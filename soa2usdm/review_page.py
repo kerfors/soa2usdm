@@ -135,22 +135,30 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
                             "text": an["annotation_text"], "rows": rows, "prop_rows": prop_rows,
                             "other": other})
 
-    offset = audit_table["doc_page_offset"]
+    offset = audit_table.get("doc_page_offset")
     has_source_page = any("source_page" in a for a in activities.values())
     pages, matched, disagreements, page_mark_total = [], {}, [], 0
     for pdf_page in audit_table["pages"]:
         g = page_grid(pdf, pdf_page)
         words = page_words(pdf, pdf_page)
         labels = drop_superscripts(words)
-        doc_page = pdf_page + offset
         entry = page_imgs.get(pdf_page)
         if entry is None:
             raise KeyError(f"pages.json has no entry for PDF page {pdf_page} — "
                            f"re-run tools/page_map.py --render")
-        if entry["doc_page"] != doc_page:
-            raise ValueError(f"PDF page {pdf_page}: pages.json says document page "
-                             f"{entry['doc_page']}, row audit says {doc_page} — the stamped "
-                             f"images and the page map disagree; re-run tools/page_map.py --render")
+        if offset is None:
+            # The audit abstained from an offset (a page in the declared range
+            # carries no activity bands — e.g. a trailing footnotes-only page —
+            # so declared and assigned page counts disagree). Its independent
+            # drift check cannot run; pages.json carries the page_map decision,
+            # which PAGEMAP.md declares authoritative — use it directly.
+            doc_page = entry["doc_page"]
+        else:
+            doc_page = pdf_page + offset
+            if entry["doc_page"] != doc_page:
+                raise ValueError(f"PDF page {pdf_page}: pages.json says document page "
+                                 f"{entry['doc_page']}, row audit says {doc_page} — the stamped "
+                                 f"images and the page map disagree; re-run tools/page_map.py --render")
         cand = [(rp, a["activity_name"]) for rp, a in activities.items()
                 if not has_source_page or a.get("source_page") == doc_page]
         name_to_row = {}
