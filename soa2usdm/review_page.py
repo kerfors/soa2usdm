@@ -96,7 +96,8 @@ def _column_map(g, words, props: dict, grid: dict) -> tuple[dict, list, str]:
 
 
 def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf: Path,
-                 resolved: dict | None, page_imgs: dict, image_rel: str) -> dict:
+                 resolved: dict | None, page_imgs: dict, image_rel: str,
+                 extra_pages: tuple | list = ()) -> dict:
     """Everything the page needs for one table: structure, pages with geometry, checks."""
     meta = extraction["table_metadata"]
     redacted = {a["row_position"] for a in (resolved or {}).get("activities", []) if a.get("is_redacted")}
@@ -138,7 +139,7 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
     offset = audit_table.get("doc_page_offset")
     has_source_page = any("source_page" in a for a in activities.values())
     pages, matched, disagreements, page_mark_total = [], {}, [], 0
-    for pdf_page in audit_table["pages"]:
+    for pdf_page in sorted(set(audit_table["pages"]) | set(extra_pages)):
         g = page_grid(pdf, pdf_page)
         words = page_words(pdf, pdf_page)
         labels = drop_superscripts(words)
@@ -282,16 +283,27 @@ def build_review_model(protocol_id: str, collection: str) -> dict:
             f"python3 tools/page_map.py --collection {collection} --render")
     page_imgs = {e["pdf_page"]: e for e in _load(manifest_path)["pages"]}
     image_rel = f"../../{images_dir.name}"
+    # Pages the audit could assign to no table (they carry no activity bands —
+    # footnotes-only pages, typically). Each still belongs to the table whose
+    # declared doc-page range covers it, and its notes are review surface too,
+    # so route it there by the pages.json doc page and show it image-only.
+    unassigned = [pa["page"] for pa in audit.get("page_assignment", [])
+                  if pa["table_index"] is None]
 
     tables = []
     for ef in extraction_files:
         extraction = _load(ef)
-        tnum = extraction["table_metadata"]["table_number"]
+        meta = extraction["table_metadata"]
+        tnum = meta["table_number"]
+        extra = [p for p in unassigned
+                 if p in page_imgs and isinstance(meta.get("page_start"), int)
+                 and isinstance(meta.get("page_end"), int)
+                 and meta["page_start"] <= page_imgs[p]["doc_page"] <= meta["page_end"]]
         raw = ef.with_name(ef.name.replace(".verified.json", ".json"))
         resolved_path = config.get_resolved_dir(protocol_id, collection) / config.extraction_to_resolved_filename(raw.name)
         resolved = _load(resolved_path) if resolved_path.exists() else None
         tables.append(_table_model(extraction, raw_to_corrections_path(raw), audit_by_table[tnum], pdf, resolved,
-                                   page_imgs, image_rel))
+                                   page_imgs, image_rel, extra_pages=extra))
 
     status = review_status(config.get_extracted_dir(protocol_id, collection))
     decided = {i["id"]: i["correction_id"] for i in status["items"] if i["decided"]}
