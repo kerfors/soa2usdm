@@ -65,6 +65,17 @@ def test_column_map_is_read_from_the_header_row_on_a_tiled_table():
     assert 1 in first[0].values()                   # the visit-number band was found
 
 
+def test_unreadable_pages_carry_the_audit_reason_first_reason_wins():
+    from soa2usdm.review_page import _unreadable_pages
+    audit = {"pages_with_rotated_text": [1, 2], "pages_without_text_layer": [2, 3],
+             "pages_without_grid": [3, 9]}
+    out = _unreadable_pages(audit)
+    assert sorted(out) == [1, 2, 3, 9]
+    assert out[1].startswith("table printed rotated") and out[2].startswith("table printed rotated")
+    assert out[3].startswith("no text layer") and out[9].startswith("no rule-line grid")
+    assert _unreadable_pages({}) == {}
+
+
 @needs_pdf
 @needs_pages
 def test_full_build_places_every_page_and_references_prerendered_images():
@@ -73,6 +84,8 @@ def test_full_build_places_every_page_and_references_prerendered_images():
     for t in model["tables"]:
         assert t["pages"], f"table {t['number']} has no pages"
         assert all(p["col_method"] == "header" for p in t["pages"])
+        assert t["checks"]["rows_checked"] and t["checks"]["marks_checked"]
+        assert t["checks"]["unreadable_pages"] == []
         assert t["checks"]["on_page_not_extracted"] == []
     # The one remaining mark difference is a detector artefact, not an extraction error:
     # on document page 36 a redacted (CCI) row's two marks land in the neighbouring

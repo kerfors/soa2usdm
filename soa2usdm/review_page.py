@@ -97,8 +97,13 @@ def _column_map(g, words, props: dict, grid: dict) -> tuple[dict, list, str]:
 
 def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf: Path,
                  resolved: dict | None, page_imgs: dict, image_rel: str,
-                 extra_pages: tuple | list = ()) -> dict:
-    """Everything the page needs for one table: structure, pages with geometry, checks."""
+                 extra_pages: tuple | list = (), unreadable: dict | None = None) -> dict:
+    """Everything the page needs for one table: structure, pages with geometry, checks.
+
+    `unreadable` maps PDF pages the row audit could not read (rotated table, no
+    text layer, no rule-line grid) to the reason; the checks say so rather than
+    reporting an unchecked page as agreeing."""
+    unreadable = unreadable or {}
     meta = extraction["table_metadata"]
     redacted = {a["row_position"] for a in (resolved or {}).get("activities", []) if a.get("is_redacted")}
     tnum = meta["table_number"]
@@ -207,6 +212,7 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
         pages.append({"pdf_page": pdf_page, "doc_page": doc_page, "width_pt": g.width_pt,
                       "height_pt": g.height_pt, "columns": [[round(a, 1), round(b, 1)] for a, b in g.columns],
                       "col_map": col_map, "col_method": col_method,
+                      "unreadable": unreadable.get(pdf_page),
                       "bands": bands, "img": f"{image_rel}/{entry['file']}",
                       "page_frac": round(entry["page_height_px"] / entry["height_px"], 4)})
 
@@ -240,6 +246,13 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
             "mark_disagreements": disagreements,
             "marks": len(extraction["activity_schedule"]),
             "page_marks": page_mark_total,
+            # What the checks above could actually see. A table whose every
+            # page is unreadable has 0 missed rows and 0 mark differences
+            # because nothing was compared, not because it agrees.
+            "unreadable_pages": [{"doc_page": p["doc_page"], "reason": p["unreadable"]}
+                                 for p in pages if p["unreadable"]],
+            "rows_checked": any(not p["unreadable"] for p in pages),
+            "marks_checked": any(p["col_method"] != "none" and not p["unreadable"] for p in pages),
         },
     }
 
@@ -259,6 +272,21 @@ def _across_tables(consolidated: dict | None) -> dict:
                       "sources": [{"table": r["table_num"], "row": r["row_position"]} for r in refs]})
     return {"folds": folds, "review_queue": consolidated.get("review_queue", []),
             "stats": consolidated["consolidation_metadata"].get("match_stats", {})}
+
+
+def _unreadable_pages(audit: dict) -> dict[int, str]:
+    """PDF pages the row audit could not read, with the reason it gave."""
+    reasons = (
+        ("pages_with_rotated_text", "table printed rotated — activities run across the page, "
+                                    "the band detector reads rows"),
+        ("pages_without_text_layer", "no text layer — image-only page"),
+        ("pages_without_grid", "no rule-line grid detected"),
+    )
+    unreadable: dict[int, str] = {}
+    for key, reason in reasons:
+        for page in audit.get(key, []):
+            unreadable.setdefault(page, reason)
+    return unreadable
 
 
 def build_review_model(protocol_id: str, collection: str) -> dict:
@@ -289,6 +317,7 @@ def build_review_model(protocol_id: str, collection: str) -> dict:
     # so route it there by the pages.json doc page and show it image-only.
     unassigned = [pa["page"] for pa in audit.get("page_assignment", [])
                   if pa["table_index"] is None]
+    unreadable = _unreadable_pages(audit)
 
     tables = []
     for ef in extraction_files:
@@ -303,7 +332,7 @@ def build_review_model(protocol_id: str, collection: str) -> dict:
         resolved_path = config.get_resolved_dir(protocol_id, collection) / config.extraction_to_resolved_filename(raw.name)
         resolved = _load(resolved_path) if resolved_path.exists() else None
         tables.append(_table_model(extraction, raw_to_corrections_path(raw), audit_by_table[tnum], pdf, resolved,
-                                   page_imgs, image_rel, extra_pages=extra))
+                                   page_imgs, image_rel, extra_pages=extra, unreadable=unreadable))
 
     status = review_status(config.get_extracted_dir(protocol_id, collection))
     decided = {i["id"]: i["correction_id"] for i in status["items"] if i["decided"]}
@@ -539,11 +568,21 @@ const tableIndex = num => D.tables.findIndex(t=>t.number===num);
  const badRows = new Set(); D.tables.forEach(t=>t.checks.mark_disagreements.forEach(d=>badRows.add(t.number+':'+d.row)));
  const badCells = D.tables.reduce((n,t)=>n+t.checks.mark_disagreements.length,0);
  const rs = D.review_status, rq = D.across.review_queue.length;
+ // A check that saw no readable page is not a pass: say "not checked" and why.
+ const rowsUnchecked = D.tables.filter(t=>!t.checks.rows_checked), marksUnchecked = D.tables.filter(t=>!t.checks.marks_checked);
+ const reasons = (ts, marks) => [...new Set(ts.flatMap(t=>t.checks.unreadable_pages.map(u=>u.reason.split(' — ')[0]).concat(marks&&t.checks.rows_checked?['column headers could not be read']:[])))].join('; ');
+ const partial = (ts, base, marks) => ts.length ? `${base} · ${ts.map(t=>'Table '+t.number).join(', ')} not checked: ${reasons(ts, marks)}` : base;
+ const rowsTile = rowsUnchecked.length===D.tables.length
+   ? ['', 'Printed rows missed', 'not checked', reasons(rowsUnchecked)]
+   : [missed?'bad':(rowsUnchecked.length?'warn':'ok'), 'Printed rows missed', missed, partial(rowsUnchecked, missed ? 'row bands on the pages with no extracted row' : 'every printed row the checker could read is extracted')];
+ const marksTile = marksUnchecked.length===D.tables.length
+   ? ['', 'Mark check', 'not checked', reasons(marksUnchecked, true)]
+   : [badRows.size||marksUnchecked.length?'warn':'ok', 'Mark check', badRows.size ? `${badRows.size} row${badRows.size!==1?'s':''}` : 'agrees', partial(marksUnchecked, badRows.size ? `${badCells} cells differ between page text and extraction — open the row to judge` : 'page text and extraction agree on every mark', true)];
  document.getElementById('tiles').innerHTML = [
   ['', 'Extracted', `${acts} activities`, `${D.tables.length} table${D.tables.length!==1?'s':''} · ${marks} marks · ${notes} notes`],
-  [missed?'bad':'ok', 'Printed rows missed', missed, missed ? 'row bands on the pages with no extracted row' : 'every printed row the checker could read is extracted'],
+  rowsTile,
   [unplaced?'warn':'ok', 'Rows the checker could not place', unplaced, 'extracted rows with no matching page band (section headings, composed names, packed rows)'],
-  [badRows.size?'warn':'ok', 'Mark check', badRows.size ? `${badRows.size} row${badRows.size!==1?'s':''}` : 'agrees', badRows.size ? `${badCells} cells differ between page text and extraction — open the row to judge` : 'page text and extraction agree on every mark'],
+  marksTile,
   [rs.open||rq?'warn':'ok', 'Decisions open', (rs.open+rq), `${rs.decided} of ${rs.total} extraction calls decided · ${rq} consolidation match${rq!==1?'es':''} to review`],
  ].map(([c,k,v,d])=>`<div class="tile ${c}"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 })();
@@ -732,6 +771,10 @@ function buildChecks(){
  const badByRow={}; c.mark_disagreements.forEach(d=>{(badByRow[d.row]=badByRow[d.row]||[]).push(d)});
  let h=`<p class="small">Independent checks for Table ${t.number}, re-derived from the PDF — not the extractor's own report.</p>`;
  if(c.audit_note) h+=`<p class="small"><b>Row audit note:</b> ${esc(c.audit_note)}</p>`;
+ if(c.unreadable_pages.length){
+  const byReason={}; c.unreadable_pages.forEach(u=>{(byReason[u.reason]=byReason[u.reason]||[]).push('p.'+u.doc_page)});
+  h+=`<p class="small"><b>Pages the checker could not read${c.rows_checked?'':' — this table is not checked'}:</b> ${Object.entries(byReason).map(([r,ps])=>`${ps.join(', ')} — ${esc(r)}`).join('; ')}. Rows and marks on these pages appear below as unplaced or unchecked, not as errors.</p>`;
+ }
  h+=`<h3 style="font-size:13px;margin:8px 0 4px">Printed rows not extracted (${c.on_page_not_extracted.length})</h3>`;
  h+=c.on_page_not_extracted.length? `<ul class="plain">${c.on_page_not_extracted.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="small">None — every row band with a label the checker could read matches an extracted row.</p>';
  h+=`<h3 style="font-size:13px;margin:12px 0 4px">Extracted rows the checker could not place (${c.extracted_not_on_page.length})</h3><p class="small">Usually section headings printed as full-width shaded bands, names composed from two cells, or tightly packed rows the band detector merged. Click to locate in the table.</p><ul class="plain">${c.extracted_not_on_page.map(r=>`<li><a href="#" data-row="${r}">${esc(rowLabel(r))}</a>${m[r]&&m[r].doc_page?` <span class="small">p.${m[r].doc_page}</span>`:''}</li>`).join('')}</ul>`;
