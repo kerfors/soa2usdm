@@ -105,6 +105,8 @@ The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to
 
 The review page is a proof of concept with two aims: to envision what a user interface for a review user could look like — worklist (`review_items`), evidence, and the sidecar write path in one place — and to showcase the traceability the pipeline already carries: every highlight is an existing extraction field drawn at the position on the source page it refers to. It also lays groundwork for the semantic/USDM layer: any claim about what an SoA table expresses should be checkable against a printed page in seconds, which is why the page images are pre-rendered and stamped at ingest.
 
+A short captions-only walkthrough of the review page (84 s, MP4) is published as a [release asset](https://github.com/kerfors/soa2usdm/releases/download/showcase-video-2026-09/SoA2USDM_review_page_showcase.mp4); the storyboard and the scripts that regenerate it are in [`showcase_video/`](showcase_video/README.md).
+
 ## Key Design Decisions
 
 **Errors collected, not raised.** Steps continue on errors — partial success matters when one table out of four has issues.

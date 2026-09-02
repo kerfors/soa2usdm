@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>card</title>
+<style>
+html,body{margin:0;height:100%;background:#1F4788;color:#fff;font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+.card{height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 160px;box-sizing:border-box}
+.k{font-size:26px;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-bottom:26px}
+h1{font-size:72px;margin:0 0 30px;font-weight:600;line-height:1.1}
+p{font-size:36px;line-height:1.35;margin:0;opacity:.92;max-width:1400px}
+.foot{position:absolute;bottom:60px;left:160px;font-size:26px;opacity:.7}
+.trio{display:flex;gap:60px;margin-top:30px}
+.trio div{flex:1;border-top:4px solid rgba(255,255,255,.5);padding-top:18px;font-size:30px;line-height:1.35}
+.trio b{display:block;font-size:40px;margin-bottom:8px}
+</style></head><body>
+<div id="title" class="card">
+ <div class="k">SoA2USDM · proof of concept</div>
+ <h1>Reviewing an SoA extraction<br>against its source</h1>
+ <p>What a human-in-the-loop review interface could look like — every extracted fact shown next to the protocol page it came from.</p>
+ <div class="foot">usdm_data collection · NCT04184622 · captions only</div>
+</div>
+<div id="end" class="card" style="display:none">
+ <div class="k">SoA2USDM · proof of concept</div>
+ <h1>Traceability · Precision · Human in the loop</h1>
+ <div class="trio">
+  <div><b>Traceability</b>source page ↔ extracted row ↔ consolidated activity, on every review page</div>
+  <div><b>Precision</b>independent checks re-derived from the PDF: printed rows, mark check, placement</div>
+  <div><b>Human in the loop</b>decisions recorded as data; the page is regenerated, never edited in place</div>
+ </div>
+ <div class="foot">github.com/kerfors/soa2usdm · kerfors.github.io/soa2usdm-collections</div>
+</div>
+</body></html>
