@@ -386,6 +386,46 @@ def audit_table(reads: dict[int, PageRead], pages: list[int], labels: list[str])
     }
 
 
+def constrain_to_windows(scores: list[list[int]], pages: list[int], doc_pages: dict[int, int],
+                         windows: list[tuple]) -> list[dict]:
+    """Zero a page's score for every table whose declared page window excludes it.
+
+    scores[page_index][table] is modified in place. windows[table] is the
+    extraction's (page_start, page_end) in document pages; a table with no
+    integer window takes any page. Returns the pages whose labels fit an
+    excluded table better than any table inside their window — evidence
+    that the declared window, not the page, may be wrong.
+    """
+    outside = []
+    for index, page in enumerate(pages):
+        doc_page = doc_pages.get(page)
+        if doc_page is None:
+            continue
+        inside = [table for table, (start, end) in enumerate(windows)
+                  if not (isinstance(start, int) and isinstance(end, int))
+                  or start <= doc_page <= end]
+        best_inside = max((scores[index][table] for table in inside), default=0)
+        for table in range(len(windows)):
+            if table in inside or scores[index][table] == 0:
+                continue
+            if scores[index][table] > best_inside:
+                outside.append({"page": page, "doc_page": doc_page, "table_index": table,
+                                "declared_pages": list(windows[table]),
+                                "explained_bands": scores[index][table],
+                                "best_inside_window": best_inside})
+            scores[index][table] = 0
+    return outside
+
+
+def page_map(pdf_path: Path, protocol_id: str) -> dict[int, int] | None:
+    """PDF page -> document page from `{NCT}_soa_pages/pages.json`, or None when not rendered."""
+    manifest = pdf_path.parent / f"{protocol_id}_soa_pages" / "pages.json"
+    if not manifest.exists():
+        return None
+    entries = json.loads(manifest.read_text(encoding="utf-8"))["pages"]
+    return {e["pdf_page"]: e["doc_page"] for e in entries}
+
+
 def audit_protocol(protocol_id: str, collection: str) -> dict:
     """Row-completeness audit of every table of one protocol."""
     pdf_path = config.find_soa_pdf(protocol_id, collection)
@@ -420,6 +460,19 @@ def audit_protocol(protocol_id: str, collection: str) -> dict:
     scores = [[page_score(reads[page].rows, keys)
                if reads[page].is_schedule_page and not reads[page].rotated else 0
                for keys in keyed_per_table] for page in pages]
+    # Each extraction declares the document pages its table spans, and
+    # pages.json (tools/page_map.py) records which document page each PDF page
+    # is. Where both exist, a page can only be assigned to a table whose
+    # declared window holds it: label overlap alone cannot tell two schedules
+    # of the same protocol apart (Days 3-28 vs After Day 28 share most rows).
+    # A page whose labels fit a table outside its window better than any
+    # table inside it is reported, not obeyed — the declared range may be the
+    # extraction's error. Tables without a declared window take any page.
+    doc_pages = page_map(pdf_path, protocol_id)
+    windows = [(e.get("table_metadata", {}).get("page_start"),
+                e.get("table_metadata", {}).get("page_end")) for e in extractions]
+    result["pages_outside_declared_window"] = (
+        constrain_to_windows(scores, pages, doc_pages, windows) if doc_pages is not None else [])
     # A schedule page that no extraction explains is not a dropped row, it is a
     # dropped page: reporting its every band against the nearest table would
     # bury that. Held out of the assignment and reported as a page.

@@ -140,6 +140,30 @@ def test_captions_split_tables_that_share_their_activities():
     assert assign_pages(scores, [None] * 4) == [0, 0, 0, 0]
 
 
+def test_declared_page_windows_separate_lookalike_tables():
+    """NCT04320615: three appendices (77-80, 81-83, 84-85) sharing most row
+    labels. Label overlap alone gave Table 1 five pages and Table 3 none; the
+    declared windows settle it; pages whose labels fit an excluded table
+    better than any table inside their window are reported, not moved."""
+    from soa2usdm.row_audit import constrain_to_windows
+    pages = list(range(1, 10))
+    doc_pages = {p: p + 76 for p in pages}
+    windows = [(77, 80), (81, 83), (84, 85)]
+    scores = [[20, 18, 3], [19, 17, 2], [0, 0, 0], [0, 0, 0], [17, 15, 4],
+              [2, 2, 0], [16, 16, 2], [15, 15, 14], [0, 0, 0]]
+    outside = constrain_to_windows(scores, pages, doc_pages, windows)
+    assert scores == [[20, 0, 0], [19, 0, 0], [0, 0, 0], [0, 0, 0], [0, 15, 0],
+                      [0, 2, 0], [0, 16, 0], [0, 0, 14], [0, 0, 0]]
+    assert assign_pages(scores, [None] * 9) == [0, 0, None, None, 1, 1, 1, 2, None]
+    assert [(o["page"], o["table_index"], o["best_inside_window"]) for o in outside] == [
+        (5, 0, 15), (8, 0, 14), (8, 1, 14)]
+    # A table without a declared window takes any page, and an excluded table
+    # that merely ties the inside one is zeroed without a report.
+    scores = [[5, 5], [5, 5]]
+    assert constrain_to_windows(scores, [1, 2], {1: 10, 2: 11}, [(10, 10), (None, None)]) == []
+    assert scores == [[5, 5], [0, 5]]
+
+
 def test_a_caption_two_tables_share_anchors_nothing():
     titles = ["Study Schedule Protocol I8F-MC-GPGS", "Study Schedule Protocol I8F-MC-GPGS"]
     assert caption_table(normalise("Study Schedule Protocol I8F-MC-GPGS"), titles) is None
