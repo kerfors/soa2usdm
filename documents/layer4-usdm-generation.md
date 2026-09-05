@@ -295,13 +295,14 @@ Check the DDF-RA issue tracker first. As of 2026-09-03:
 
 ### usdm-rdf is a pinned dependency, never a write target
 
-Deliverables at `v0.6.0` via w3id; checker at commit `4c39d0a`. It changes only when this
+Deliverables at `v0.7.0` via w3id; checker at commit `d7bb3e3`. It changes only when this
 work finds a defect in what it publishes. That direction of traffic is what makes this an
 independent consumer — which is what the "no false positives across 6,620 triples from an
 independent generator" line in the usdm-rdf dossier rests on.
 
-Three findings from this work already landed there: decision D7 (instance IRIs), the
-pre-lift duplicate-id scan, and the context-check limitation note.
+Four findings from this work already landed there: decision D7 (instance IRIs), the
+pre-lift duplicate-id scan, the context-check limitation note, and the terminology-coverage
+statement (the 20 borrowed codelist bindings, published as deactivated shapes in v0.7.0).
 
 ### Instance IRIs (usdm-rdf decision D7)
 
