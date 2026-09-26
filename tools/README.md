@@ -15,6 +15,8 @@ guess where guessing would be silent.
 | `promote_dryrun.py` | rehearses the whole promotion (install, retire/keep sidecars, rebuild, regenerate the published index pages) so it can be checked before anything real is touched |
 | `audit_blinding.py` | reads the subagent transcripts and reports tool calls that reached outside the blind tree, or into memory, Project knowledge or past chats |
 | `stamp_model.py` | writes `extraction_metadata.model` into staged extractions from the run setting; refuses to overwrite a different value |
+| `baseline.py` | regenerates `documents/re-extraction-baseline.json` from the accepted corpus with the gate's and the row audit's own code; same corpus, same bytes |
+| `verify_mined.py` | checks `documents/re-extraction-baseline-mined.json`: key sets, and every `evidence_quote` verbatim in its uncertainty report |
 
 Paths come from the environment: `SOA2USDM_COLLECTIONS`, `SOA2USDM_STAGING`, `SOA2USDM_BLIND`,
 `SOA2USDM_CALIB`, `SOA2USDM_SCRATCH`, `SOA2USDM_SIDECARS`.

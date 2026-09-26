@@ -1,8 +1,10 @@
 """Per-table promotion gate — mechanical checks only, no judgement.
 
-Implements steps 1-7, 9 and 10 of the acceptance checklist's promotion gate against
-freshly extracted tables in the staging area. Steps 8 (row audit) and 11 (deterministic
-layers) run separately because they need the corpus, not the staging area.
+Implements the checks of the acceptance checklist's promotion gate (§8) that run on freshly
+extracted tables in the staging area: 1-7, 9, 10, 12, 13, 14 and quote fidelity, under the
+ids printed here. Checks 8 (row audit) and 11 (deterministic layers) run in dryrun.py because
+they need the corpus, not the staging area; 15 (study criteria) and 16 (corrections) are
+review steps.
 
 Every check here is deterministic. Nothing in this file decides whether a delta is
 acceptable — it only reports what the delta is.
