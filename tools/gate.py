@@ -30,6 +30,11 @@ STAGING = Path(os.environ.get("SOA2USDM_STAGING", "staging"))
 BLIND = Path(os.environ.get("SOA2USDM_BLIND", "blind"))
 BASELINE = REPO / "documents" / "re-extraction-baseline.json"
 SCHEMA = REPO / "schemas" / "soa-table-extraction.schema.json"
+PROMPT = REPO / "prompts" / "PDF_TO_JSON_PROMPT.md"
+_pv = re.search(r"Prompt version (\d+\.\d+\.\d+)", PROMPT.read_text())
+if not _pv:
+    sys.exit(f"cannot read the prompt version from {PROMPT}")
+PROMPT_VERSION = _pv.group(1)
 
 sys.path.insert(0, str(REPO))
 from soa2usdm.resolve import find_partial_marker_bindings
@@ -79,6 +84,20 @@ def check_table(path, schema, base):
     status = data.get("extraction_metadata", {}).get("extraction_status")
     if status != "ready_for_resolution":
         f.append(("1 schema", "FAIL", f"extraction_status={status!r}"))
+
+    # 14 — provenance (prompt v3.8.1+). The accepted corpus predates both fields, so their joint
+    # absence is CHECK, not FAIL — otherwise calibration against calib/ would fail every table.
+    # Once either field is present the table is v3.8.1+ output: prompt_version must match the repo
+    # prompt, and model must have been stamped by tools/stamp_model.py.
+    em = data.get("extraction_metadata", {})
+    pv, mdl = em.get("prompt_version"), em.get("model")
+    if pv is None and mdl is None:
+        f.append(("14 provenance", "CHECK", "no model / prompt_version (pre-v3.8.1 output?)"))
+    else:
+        if pv != PROMPT_VERSION:
+            f.append(("14 provenance", "FAIL", f"prompt_version={pv!r}, repo prompt is {PROMPT_VERSION}"))
+        if not mdl:
+            f.append(("14 provenance", "FAIL", "model not stamped — run tools/stamp_model.py"))
 
     annots = data.get("annotations", [])
     meta = data.get("table_metadata", {})

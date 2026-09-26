@@ -516,6 +516,15 @@
           "type": "string",
           "description": "Tool, model, or person who performed extraction. E.g., 'Claude-3.5-Sonnet', 'Manual-KL'"
         },
+        "model": {
+          "type": "string",
+          "description": "API model id of the model that performed the extraction, e.g. 'claude-opus-5-5'. Recorded by the orchestration step from the run setting (tools/stamp_model.py), not reported by the extracting agent. Absent on extractions made before prompt v3.8.1."
+        },
+        "prompt_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Version of the extraction prompt used, copied from the prompt's header line, e.g. '3.8.1'. Absent on extractions made before prompt v3.8.1."
+        },
         "source_document": {
           "type": "object",
           "description": "Source document identification",

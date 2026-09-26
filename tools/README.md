@@ -13,7 +13,8 @@ guess where guessing would be silent.
 | `gate.py` | per-table promotion gate: schema, orphans, marker agreement, containment, typing, page coverage, baseline deltas, marker bindings, quote fidelity |
 | `dryrun.py` | the two gate steps that need the corpus rather than the staging area — row audit, and the deterministic layers — in a throwaway scratch collection |
 | `promote_dryrun.py` | rehearses the whole promotion (install, retire/keep sidecars, rebuild, regenerate the published index pages) so it can be checked before anything real is touched |
-| `audit_blinding.py` | reads the subagent transcripts and reports tool calls that reached outside the blind tree |
+| `audit_blinding.py` | reads the subagent transcripts and reports tool calls that reached outside the blind tree, or into memory, Project knowledge or past chats |
+| `stamp_model.py` | writes `extraction_metadata.model` into staged extractions from the run setting; refuses to overwrite a different value |
 
 Paths come from the environment: `SOA2USDM_COLLECTIONS`, `SOA2USDM_STAGING`, `SOA2USDM_BLIND`,
 `SOA2USDM_CALIB`, `SOA2USDM_SCRATCH`, `SOA2USDM_SIDECARS`.

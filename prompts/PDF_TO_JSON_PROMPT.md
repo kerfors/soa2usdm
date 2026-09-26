@@ -1,6 +1,6 @@
 # SoA Table Extraction: PDF → JSON (single-pass, non-interactive)
 
-> Prompt version 3.8.0 | Schema: soa-table-extraction v1.0
+> Prompt version 3.8.1 | Schema: soa-table-extraction v1.0
 > Supersedes the two-conversation PDF→Excel (v2.8) + Excel→JSON (v2.4) flow for non-interactive runs. Use the v2.x flow when a human-editable Excel checkpoint is wanted; use this when you want to attach the PDF and get extraction JSON in one pass.
 
 Extract the SoA table(s) from the attached protocol directly to `soa-table-extraction` JSON — one file per table. Run start to finish without stopping for confirmation. Surface every judgement call in the **uncertainty report** at the end instead of asking mid-run.
@@ -191,7 +191,15 @@ Only STOP mid-run if genuinely blocked (illegible PDF, missing pages). Otherwise
 
 ## 8. Output
 
-One JSON file per table: `{NCTID}_Table_{NN}_extraction.json`. Before delivering, verify:
+One JSON file per table: `{NCTID}_Table_{NN}_extraction.json`.
+
+Set `extraction_metadata` provenance as follows:
+
+- `extractor` = `Claude, PDF_TO_JSON_PROMPT single-pass` — exactly this string
+- `prompt_version` = the version in this prompt's header line, e.g. `3.8.1`
+- do **not** set `model` — the orchestration step records it from the run setting
+
+Before delivering, verify:
 
 - `schema_name` = `soa-table-extraction`, `schema_version` = `1.0`, `extraction_status` = `ready_for_resolution`
 - every `property_comment` is meaningful; every `cell_value` is clean (markers extracted)

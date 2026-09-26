@@ -5,7 +5,8 @@ The blinding is physical (the corpus is moved into the vault for the duration of
 this is the check on the physical measure, not a substitute for it. It reports two classes:
 
   LEAK    a tool call whose input names a path that would reveal prior output for the study being
-          extracted, or the vault, or the code repo
+          extracted, or the vault, or the code repo; or any call to a memory, Project-knowledge or
+          past-chat tool (FORBIDDEN_TOOLS)
   CROSS   a tool call reading another study's blind folder — not a baseline leak (a PDF is source,
           not output) but it means an agent wandered, and the pilot's blinding claim was
           "0 forbidden-path tool calls", so it is worth counting separately
@@ -36,6 +37,15 @@ FORBIDDEN = [
     (r"/calib(/|\b)", "the calibration corpus"),
     (r"REDACTIONS\.json", "the redaction log"),
     (r"\bgit\b\s+(show|log|cat-file|grep)", "git history"),
+]
+
+# Tools that read memory, Project knowledge or past chats. They take no path, so FORBIDDEN cannot
+# see them, and in a Cowork session they can carry study answers (review decisions, corrections,
+# per-study findings). Any call to one from an extraction agent is a leak.
+FORBIDDEN_TOOLS = [
+    (r"^mcp__memory__", "memory"),
+    (r"^Projects$", "Project knowledge"),
+    (r"^mcp__claude_ai__(conversation_search|read_conversation|recent_chats)$", "past chats"),
 ]
 
 STUDY = re.compile(r"(NCT\d{8}|[A-Z][A-Za-z0-9_]*_Pilot)")
@@ -92,6 +102,10 @@ def main():
         mine = own_study(p)
         for tool, inp in tool_inputs(p):
             calls[tool] += 1
+            hit = next((what for pat, what in FORBIDDEN_TOOLS if re.search(pat, tool)), None)
+            if hit:
+                leaks.append((p.name, tool, hit, inp[:200]))
+                continue
             for pat, what in FORBIDDEN:
                 if re.search(pat, inp):
                     leaks.append((p.name, tool, what, inp[:200]))
