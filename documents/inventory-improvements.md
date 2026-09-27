@@ -123,6 +123,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small in text, but a prompt version bump: the blind `_instructions/` must be re-redacted before any extraction session (sweep-2 `redaction/`).
 
+**Status 2026-09-27: text done in prompt 3.9.0** (with item 15, branch `prompt-3.9.0-2026-09-27`). Rules: §5 **Empty cells** (complete `schedule_grid` with `""`; `activity_schedule` non-empty only — 44 of 47 published tables already have the complete grid, 46 of 47 omit empty body cells); §6 **Synthesised markers** (prefixes `pr` / `n` / `g`, numbered per table in reading order, a dropped note leaves a gap); §3 synthesised property names = the fixed name of the `property_type`, and a label cell that heads the activity column is not the row's name; §2 `track_label` keeps the source's capitalisation; §4 **Whitespace in `activity_name`** (line breaks join with one space, none next to `/` or after a line-final `-`); §7 floor — a call a stated rule decides is Recorded, not open. Acceptance amended: the NCT02107703 re-run is checked against these rules, not against run 1 — they pick run 1 for the grid and `track_label`, run 2 for the synthesised row-1 name, the T2 markers and the whitespace. Acceptance test: next session (item 15). Published extractions are not backfilled (item 21h).
+
 ## 12 — `dryrun.py` rehearses studies of other collections
 
 **Motivation.** Like `promote_dryrun.py` before `133cd9e`, `dryrun.py` takes every study folder in STAGING. With usdm_data and misc_studies staged together it copies extractions into protocol folders that do not exist in the chosen collection.
@@ -166,6 +168,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 **Acceptance.** A re-extraction of two reviewed studies (e.g. NCT04557384, NCT04677179) raises no review item that one of (a)–(h) decides.
 
 **Size.** Small to medium in text; a prompt version bump.
+
+**Status 2026-09-27: text done in prompt 3.9.0 / taxonomy v7** (branch `prompt-3.9.0-2026-09-27`). (a) §5 **Spanned values** with the two exceptions (a cross-reference over the whole schedule → `source_note`, no cells; text that names its own columns → those columns only), arrows, and **Qualified marks** reworded (a qualifier stays in its ruled cell — the old "distribute if the label names columns" contradicted group K). (b) §6 **Binding by what a note names** (notes without a printed marker; split sentence; group row; table-wide `g` note anchored to the top header row, marker on no element). (c) §3 **Header bands — typing**; the open case decided as the D-a rule applied literally (option C1): NCT04573309 row 1 stays `epoch`, a blank span stays blank, the mix goes in `property_comment` — no published change. (d) §3 **Header cells over several rows**. (e) §4 **Hierarchy — printed signals only**. (f) §2 **track vs main_soa** + taxonomy v7 (main_soa, track definition, summary row, decision-tree node "does every participant pass through it?"). (g) Option G2: **abbreviations are not annotations** — CDISC_Pilot T1 ab1/ab2 to be removed by sidecar (item 21a); a glossary is item 21f. (h) Option H3: printed orientation, `subsidiary`, rows named 'Sample n'; taxonomy `reference` example narrowed to specification-only tables; the transpose is item 21g. Left out by decision: the page-top continuation rule (group M1, item 17) and the subtitle-in-notes rule (single case). Redaction re-run on a VM-local blind folder: 21 of 21 spans match once, 0 identifiers; no new spans. **Acceptance test (next session, plan in the SoA2USDM Project handoff):** blind re-extraction of NCT04557384, NCT04677179, CDISC_Pilot, NCT02107703, compared with the published `.verified.json` and discarded.
 
 ## 16 — Taxonomy: no property type for a visit attribute
 
@@ -213,9 +217,23 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** (a) medium (schema + consolidate); (b)–(d), (f) small; (e) small to medium.
 
+## 21 — Follow-ups from prompt 3.9.0 (items 11 + 15)
+
+**Motivation.** What the revision leaves outside the prompt text. None blocks the acceptance test.
+(a) *CDISC_Pilot T1 abbreviations.* Rule 15g (G2) removes abbreviation annotations; the published T1 still carries ab1 ET / ab2 RT on the header property. Sidecar: remove both and clear the property's `annotation_markers`, naming review item D3 (alternative taken).
+(b) *Table-wide notes anchored two ways.* NCT04557384 T3 g1–g4 and NCT03421379 T1 n1 carry the marker on header row 1's `annotation_markers` (row scope); NCT04004988 g1/g2 follow the table-scope convention that §6 now states. Align by sidecar, or leave.
+(c) *Gate check 14 on a mixed-version corpus.* Check 14 compares `prompt_version` with the repo prompt, so gating any published table (3.8.1) now FAILs 14 — 47 of 47 in a calibration run on copies. Only matters for calibration; options: an accepted-versions list or an env override.
+(d) *Gate check 13 reads one report.* `check_review` takes `reports[0]`; NCT03637764 has two since item 19, the flow-chart report sorts first, and 13 FAILs with data-only D1–D6. Same gap as item 20b.
+(e) *Header-bound test since item 19.* `test_header_bound_annotations_match_base_rate[usdm_data/NCT03637764]` fails (3 notes bound to the T02 group rows 'Pharmacokinetics' / 'Immunogenicity (ADA)'), also on the 3.8.1 texts. The bindings follow rule 15b (a note on a group row governs the group); check them against p.22, then add the study to `EXPECTED_HEADER_BOUND`. Together with item 14 these are the 2 failing tests (250 passed).
+(f) *Study-level glossary.* With abbreviations no longer annotations, the abbreviation block could be harvested once per study (term → expansion, page) and joined to header values such as ED / ET / UNS — deterministic, no LLM.
+(g) *Transpose row-oriented sampling tables after resolve.* NCT04557384 T3 is extracted in printed orientation (rule 15h, H3). A deterministic reshape (sample rows → timepoint columns, mark columns → activities) would give the USDM shape and let its PK / IG rows link to Table 1's PK / IG by name (item 20a).
+(h) *Published conventions not backfilled.* The 3.9.0 conventions differ from the published 3.8.1 extractions only in form: synthesised property names and marker prefixes, 3 activity names with a line break next to `/` (NCT02107703 T1, NCT03637764 T1, NCT05324124 T1), 3 tables without the complete grid (NCT03637764 T02/T03, NCT05259917), NCT04004988's 190 empty body cells. Left as is by decision; the gate counts non-empty marks.
+
+**Size.** (a), (b), (e) small, sidecar or test; (c), (d) small, gate; (f) small to medium; (g) medium.
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
 
 **Status 2026-09-27 (item-19 session, 20:30–21:10):** item 19 done. NCT03637764 'Pharmacokinetics and Immunogenicity Flow Chart' (pp.22–23) and 'Exploratory Biomarker Flow Chart' (p.24) extracted in a blind session (Opus 5.5, prompt 3.8.1) as subsidiary Tables 02 and 03; gate 0 FAIL; review items D7–D13 confirmed; D1 closed by Table 01 corr-013 (alternative taken). All 13 NCT03637764 review items decided. Collections branch `item19-2026-09-27`. Item 20 added from what the addition showed.
 

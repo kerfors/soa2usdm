@@ -1,4 +1,4 @@
-# SoA Table Type Definitions (v6)
+# SoA Table Type Definitions (v7)
 
 Classification scheme for Schedule of Activities tables in clinical trial protocols. Used for structure discovery before extraction and consolidation.
 
@@ -7,7 +7,7 @@ Classification scheme for Schedule of Activities tables in clinical trial protoc
 ## Table Types
 
 ### main_soa
-The primary Schedule of Activities table that serves as the anchor for the study timeline. Contains the core activity × timepoint grid showing what procedures are performed at which visits/days/cycles. Every protocol has at least one. When multiple independent schedules exist (e.g., Screening table and Treatment table with different column structures), each is classified as main_soa.
+The primary Schedule of Activities table that serves as the anchor for the study timeline. Contains the core activity × timepoint grid showing what procedures are performed at which visits/days/cycles. Every protocol has at least one. When multiple independent schedules exist (e.g., Screening table and Treatment table with different column structures), each is classified as main_soa. The same holds for any schedule that every participant passes through in sequence, even when it is printed as separate tables with their own visit numbering: sequence alone does not make a table a `track`.
 
 ### continuation
 A physical continuation of another table split across pages due to space constraints. Has identical column headers - the rows simply continue. Common in protocols with many activities. During consolidation, rows are appended to the parent table.
@@ -30,7 +30,7 @@ A table with different (typically finer) column structure providing detailed tim
 *Example: Alexion Table 2 showing hour-by-hour PK/PD sampling times (columns: -0.5h, 0h, 1h, 2h, 4h...) for specific study days referenced in Table 1.*
 
 ### track
-A table representing a genuinely separate study timeline for a different population or study phase. Usually the column structure differs too - different visits, different duration, different timing - but **a different column structure is not required**: what makes a table a track is that it schedules a *different set of participants*, or the same participants in a *different study phase*. Maps to a separate ScheduleTimeline in USDM.
+A table representing a branch of the study that only some participants take: a sub-population, a cohort or arm, a sub-study, responders vs non-responders, or a later phase that only some participants enter (e.g. post-study access, or visits after early termination). Usually the column structure differs too - different visits, different duration, different timing - but **a different column structure is not required**: what makes a table a track is that it schedules a *subset or branch of the participants*. A phase that every participant passes through in sequence is not a track, even when it is printed as its own table - see main_soa. Maps to a separate ScheduleTimeline in USDM.
 
 *Examples:*
 - *NCT04184622 Section 1.3.2 - an additional 2-year treatment schedule only for participants with prediabetes at randomization, with its own visit numbering (101-199) and timing.*
@@ -43,7 +43,7 @@ A table containing non-activity content - sample specifications, timing paramete
 **A table is `reference` only if its rows key to nothing in the schedule.** Where each row names an activity, a visit or a timepoint that already appears in the SoA and the row's other cell explains it — an "Additional Information" or "Notes on assessments" table — that content is annotations, not a table. See the note below.
 
 *Examples:* 
-- *PK sampling tables where rows are "Sample 1, Sample 2..." with collection specifications*
+- *Sample-specification tables where rows are "Sample 1, Sample 2..." with collection specifications only (tube, volume, processing) and no timing. A sampling table whose rows carry cycle, day or time is `subsidiary` - finer timing for an existing activity - and is extracted in its printed orientation (prompt §2).*
 - *Abbreviation lists*
 
 *Note — where the conversion happens.* Content explaining specific activities or timepoints in the main schedule becomes **annotations at extraction time** (prompt §6). It does not become a `reference` table for something downstream to convert later: `resolve` binds an annotation to its element through that row's `annotation_markers`, so a note left as a table row binds to nothing, and the loss is silent — the table is schema-valid, no marker is partial, and only the annotation count on the parent table shows it.
@@ -58,7 +58,7 @@ A table containing non-activity content - sample specifications, timing paramete
 | **continuation** | SAME as parent | Activities continue | Append rows |
 | **domain** | SAME as parent | Different activity category, SAME participants | Merge activities |
 | **subsidiary** | DIFFERENT (finer) | Activity subset, detailed timing | Link to parent activities |
-| **track** | DIFFERENT, or same | Different population/phase | Separate ScheduleTimeline |
+| **track** | DIFFERENT, or same | Branch only some participants take | Separate ScheduleTimeline |
 | **reference** | N/A | Non-activities | Annotations/metadata |
 
 ---
@@ -99,7 +99,11 @@ Are the rows ACTIVITIES (procedures performed on subjects)?
                            └─ NO  → Does it provide finer timing granularity?
                                     │
                                     ├─ YES → subsidiary
-                                    └─ NO  → track
+                                    └─ NO  → Does every participant pass through it
+                                             (a sequential part of the one timeline)?
+                                             │
+                                             ├─ YES → main_soa
+                                             └─ NO  → track   (a branch only some take)
 ```
 
 **The population question is not optional.** Two schedules can carry byte-identical visit
