@@ -366,9 +366,15 @@ Binding constraints for the Phase 2 fan-out, over and above the extraction promp
 - **Write only into the staging area.** Never into `collections/*/protocols/*/SoA2USDM/`, and
   never anywhere under `tests/`. Promotion is a separate gated step.
 - **The blind covers memory and Project content, not only folders.** Extraction sessions run
-  outside the SoA2USDM Project, with memory generation off and only the blind folder connected: a
-  memory or Project read carries study answers and leaves no file path. `audit_blinding.py`
-  reports any memory, Project or past-chat tool call as LEAK.
+  outside the SoA2USDM Project, with memory generation and past-chat search off and only the blind
+  folder connected: a memory or Project read carries study answers and leaves no file path.
+- **The blinding is physical; sweep 2 has no transcript audit.** Extraction sessions do not copy
+  their transcripts out: in the Phase 1 pilot (2026-09-27) that step was stopped by a model
+  safeguard after all output had been written. The blinding claim rests on the session setup above
+  and on the blind tree holding no baseline content (PDFs, page maps, redacted instructions, fresh
+  output). What is not verified is wandering inside the blind tree — another study's PDF or a
+  sibling's fresh output from the same run; neither carries baseline answers. `audit_blinding.py`
+  stays available for any run whose transcripts exist.
 - **`tests/fixtures/negative/` is untouchable.** Those five files are deliberately defective
   historical snapshots — the negative controls each detector must fire on. Regenerating them from
   clean output silently deletes the entire negative-control set while the suite still passes green.

@@ -28,7 +28,8 @@ acceptance checklist, the machine baseline, the calibration tree, the scratch pi
 directory* out of the tree the agents can see, for the duration of the fan-out. `gate.py` carries
 corpus counts in its own calibration comments; a scratch collection is a full copy of the corpus.
 Give each agent only `blind/<STUDY>/` — the PDF and its `PAGEMAP.md` — plus a redacted copy of the
-prompt, taxonomy and schema. Then audit it with `audit_blinding.py`.
+prompt, taxonomy and schema. Where the agent transcripts are available, audit them with
+`audit_blinding.py`; sweep 2 runs without them (checklist §9).
 
 **2. Redact the instructions.** The shipped prompt and taxonomy contain worked examples that name
 real protocols *and give away their answers* — a table's classification, a restoration's activity
