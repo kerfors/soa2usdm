@@ -1,0 +1,185 @@
+{
+  "note": "Sweep 2 redaction log. Apply with apply_redactions.py after EVERY prompt/taxonomy edit. Must never enter the blind tree.",
+  "prompt_version": "3.8.1",
+  "taxonomy_version": "v6",
+  "copied_unchanged": [
+    "schemas/soa-table-extraction.schema.json"
+  ],
+  "tier_c_kept": [
+    "P = predose (§5)",
+    "Fasting / Telephone-visit bands (§1b)",
+    "Sample 1, Sample 2 (§2, taxonomy)",
+    "See instructions (§5)",
+    "responders vs non-responders (prompt §2, taxonomy)"
+  ],
+  "entries": [
+    {
+      "id": "P1",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "On NCT04677179, 20 of 30 SoA pages are like this and only one page has a vector\ntable.",
+      "replace": "In one protocol of an earlier run, most SoA pages were like this and only one page had a vector\ntable.",
+      "why": "names study; gives its raster page count"
+    },
+    {
+      "id": "P2",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "on NCT03637764 it caught 4 merged-span errors the Excel-verified extraction had missed",
+      "replace": "in an earlier run it caught merged-span errors that an Excel-verified extraction had missed",
+      "why": "names study; gives its merged-span error count"
+    },
+    {
+      "id": "P3",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "on NCT04677179 this nearly dropped a CCI row that carries three marks",
+      "replace": "in an earlier run this nearly dropped a row with a redacted cell that carries marks",
+      "why": "names study; gives a row and its mark count"
+    },
+    {
+      "id": "P4",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "on NCT04677179 the whole first body page of Table 4 was missed, taking 14 activities and\n  26 marks with it,",
+      "replace": "in an earlier run a whole body page of one table was missed, taking its activities and\n  marks with it,",
+      "why": "names study/table; gives the restoration counts (a checklist invariant)"
+    },
+    {
+      "id": "P5a",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "(e.g. V10–V19 in one spread, V20–V29 in a \"(continued)\" spread)",
+      "replace": "(e.g. the first block of visits in one spread, the next block in a \"(continued)\" spread)",
+      "why": "NCT04677179's actual tiling visit ranges"
+    },
+    {
+      "id": "P5b",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "(e.g. an explicit \"Not applicable during V10–V19\" note)",
+      "replace": "(e.g. an explicit note that the row does not apply to that tile's visits)",
+      "why": "NCT04677179's actual visit range"
+    },
+    {
+      "id": "P6",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "(e.g. the Main Study table)",
+      "replace": "(e.g. the primary schedule table)",
+      "why": "'Main Study' is NCT01847274's table title; points at its undefined-marker answer"
+    },
+    {
+      "id": "P7",
+      "tier": "A",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "on NCT04677179 T1 the serum-pregnancy and urine-pregnancy notes are a genuine pair, printed that way on doc pp.20 and 21",
+      "replace": "in an earlier run two notes for related tests were a genuine pair, printed that way on consecutive pages",
+      "why": "names study/table; gives the containment verdict the gate re-asks"
+    },
+    {
+      "id": "P8",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "e.g. \"Prediabetes\", \"Cohort 1\", \"Continued Access\", \"Extension (nonresponders)\", \"Early Termination / Unscheduled / Post-Treatment\"",
+      "replace": "e.g. \"Cohort <n>\", \"Part <X>\", \"<sub-population>\", \"<phase> (<population>)\"",
+      "why": "4 of 5 are verbatim accepted track_labels (NCT04184622, NCT02291289, NCT04557384, NCT04677179)"
+    },
+    {
+      "id": "P9",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "(e.g. \"Patients who have PD …\" spanning only some columns)",
+      "replace": "(e.g. \"Participants who meet <criterion> …\" spanning only some columns)",
+      "why": "verbatim condition band of NCT02291289 T1"
+    },
+    {
+      "id": "P10",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "a Protocol Reference column, a Procedure Category column, or the narrow column carrying the header rows' own labels (\"VISIT\", \"WEEK\")",
+      "replace": "a cross-reference column, a category column, or the narrow column carrying the header rows' own labels",
+      "why": "the label-column answers for NCT02107703 (L=3) and CDISC_Pilot (L=2)"
+    },
+    {
+      "id": "P11",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "\"X (Cycle 5 only)\", \"X (Day 3-5)\"",
+      "replace": "\"X (Cycle n only)\", \"X (Day n–m)\"",
+      "why": "verbatim qualified marks of NCT04730349 T2"
+    },
+    {
+      "id": "P12",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "\"Inclusion criteria (6.1)\", \"HbA1c (Appendix 2)\", \"Trial product compliance (7.1) (7.6)\"",
+      "replace": "\"<activity> (x.y)\", \"<lab test> (Appendix n)\", \"<activity> (x.y) (x.z)\"",
+      "why": "verbatim inline-reference labels of the three Novo T1s"
+    },
+    {
+      "id": "P13",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "\"V2ᵃ\", \"ETVᵇ\", \"V997ᶜ\"",
+      "replace": "\"V2ᵃ\", \"V5ᵇ\", \"V9ᶜ\"",
+      "why": "ETV and V997 occur only in NCT04677179"
+    },
+    {
+      "id": "P14a",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "e.g. \"See Section 8.2.2.\", \"See Appendix 8.\"",
+      "replace": "e.g. \"See Section x.y.z.\", \"See Appendix n.\"",
+      "why": "verbatim annotations of NCT04677179/NCT03637764 and NCT02291289 (the gate 5a cases)"
+    },
+    {
+      "id": "P14b",
+      "tier": "B",
+      "file": "prompts/PDF_TO_JSON_PROMPT.md",
+      "find": "(\"See Appendix 2 for details. Day 1 predose sample is for baseline only.\")",
+      "replace": "(\"See Appendix n for details. <one sentence of instruction>.\")",
+      "why": "verbatim annotation of NCT04004988 T1"
+    },
+    {
+      "id": "T1",
+      "tier": "A",
+      "file": "documents/soa_table_type_definitions.md",
+      "find": "*Amgen protocol with Table 1a (Non-lab), Table 1b (Lab), Table 1c (PK) - all sharing 20 columns but grouping different assessment types.*",
+      "replace": "*A protocol with separate Non-laboratory, Laboratory and PK tables - all sharing the same columns but grouping different assessment types.*",
+      "why": "sponsor identifies NCT03283098; gives its table types and column count"
+    },
+    {
+      "id": "T2",
+      "tier": "A",
+      "file": "documents/soa_table_type_definitions.md",
+      "find": "*Example: Alexion Table 2 showing hour-by-hour PK/PD sampling times (columns: -0.5h, 0h, 1h, 2h, 4h...) for specific study days referenced in Table 1.*",
+      "replace": "*Example: a table showing hour-by-hour PK/PD sampling times (columns such as pre-dose, 0h, 1h, 2h...) for specific study days referenced in the main SoA.*",
+      "why": "sponsor identifies NCT04573309; gives its T2 classification"
+    },
+    {
+      "id": "T3",
+      "tier": "A",
+      "file": "documents/soa_table_type_definitions.md",
+      "find": "*NCT04184622 Section 1.3.2 - an additional 2-year treatment schedule only for participants with prediabetes at randomization, with its own visit numbering (101-199) and timing.*",
+      "replace": "*An additional treatment schedule only for a sub-population identified at randomization, with its own visit numbering and timing.*",
+      "why": "names study; gives its track, population and visit numbering"
+    },
+    {
+      "id": "T4",
+      "tier": "A",
+      "file": "documents/soa_table_type_definitions.md",
+      "find": "*NCT04677179 Tables 2 and 3 - Maintenance (responders at Week 12) and Extension (non-responders at Week 12). Their visit labels, weeks and study days are numerically identical (V10-V29), but the two schedules apply to mutually exclusive populations, so each is its own track.*",
+      "replace": "*Two tables whose visit labels, weeks and study days are numerically identical, but which schedule mutually exclusive populations (e.g. responders vs non-responders at an interim assessment), so each is its own track.*",
+      "why": "names study/tables; gives their classification and visit range"
+    },
+    {
+      "id": "T5",
+      "tier": "B",
+      "file": "documents/soa_table_type_definitions.md",
+      "find": "*Continued Access schedules with distinct",
+      "replace": "*Post-study access schedules with distinct",
+      "why": "'Continued Access' is NCT04557384 T2's accepted track_label"
+    }
+  ]
+}

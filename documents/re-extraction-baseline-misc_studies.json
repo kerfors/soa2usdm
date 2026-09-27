@@ -1,0 +1,141 @@
+{
+ "collection": "misc_studies",
+ "collections": {
+  "head": "95ea627",
+  "extractions_last_changed": "18f7b5e"
+ },
+ "extraction_hash": "f8167bc042e29e7e",
+ "counts": {
+  "studies": 2,
+  "tables": 2
+ },
+ "row_audit": {
+  "protocols": 2,
+  "protocols_audited": 2,
+  "tables": 2,
+  "tables_without_pages": 0,
+  "pages_not_in_any_extraction": 0,
+  "on_page_not_extracted": 0,
+  "extracted_not_on_page": 18,
+  "on_page_not_extracted_items": []
+ },
+ "per_table_metrics": [
+  {
+   "study": "NCT01797120",
+   "table": 1,
+   "ttype": "main_soa",
+   "pages": "69-71",
+   "acts": 20,
+   "bind": 19,
+   "marks": 71,
+   "props": 2,
+   "grid": 13,
+   "ann": 19,
+   "fn": 18,
+   "sn": 1,
+   "ab": 0,
+   "lg": 0
+  },
+  {
+   "study": "NCT05051579",
+   "table": 1,
+   "ttype": "main_soa",
+   "pages": "13-18",
+   "acts": 70,
+   "bind": 14,
+   "marks": 372,
+   "props": 6,
+   "grid": 98,
+   "ann": 14,
+   "fn": 14,
+   "sn": 0,
+   "ab": 0,
+   "lg": 0
+  }
+ ],
+ "quote_verification": {
+  "checked": 27,
+  "verbatim": 22,
+  "unverified": 5,
+  "skipped": 1,
+  "per_study": [
+   {
+    "study": "NCT01797120",
+    "verbatim": 6,
+    "unverified": 1,
+    "skipped": 0
+   },
+   {
+    "study": "NCT05051579",
+    "verbatim": 16,
+    "unverified": 4,
+    "skipped": 1
+   }
+  ],
+  "unverified_items": [
+   {
+    "study": "NCT01797120",
+    "item": "NCT01797120_uncertainty_report.md: not a verbatim substring — 'End of Induction Phase \\\\<OR\\\\> End of Treatment Section 5.6'"
+   },
+   {
+    "study": "NCT05051579",
+    "item": "NCT05051579_uncertainty_report.md: not a verbatim substring — 'Pharmacokinetic (PK) sample - Predose/Postdose'"
+   },
+   {
+    "study": "NCT05051579",
+    "item": "NCT05051579_uncertainty_report.md: not a verbatim substring — 'Ask what the source numbered, not where the paper ran out'"
+   },
+   {
+    "study": "NCT05051579",
+    "item": "NCT05051579_uncertainty_report.md: not a verbatim substring — 'instruction-overflow rows that only carry footnote text'"
+   },
+   {
+    "study": "NCT05051579",
+    "item": "NCT05051579_uncertainty_report.md: not a verbatim substring — 'Study Period II / Treatment Period'"
+   }
+  ]
+ },
+ "corrections": {
+  "sidecars": 2,
+  "sidecars_with_content": 2,
+  "total": 12,
+  "files": [
+   {
+    "file": "NCT01797120_Table_01_corrections.json",
+    "count": 5,
+    "ops": {
+     "add": 1,
+     "confirm": 1,
+     "set": 3
+    },
+    "targets": {
+     "annotations": 2,
+     "schedule_grid": 1,
+     "schedule_properties": 2
+    },
+    "match_keys": {
+     "column_position,row_position": 1,
+     "none": 2,
+     "row_position": 2
+    }
+   },
+   {
+    "file": "NCT05051579_Table_01_corrections.json",
+    "count": 7,
+    "ops": {
+     "add": 4,
+     "confirm": 2,
+     "set": 1
+    },
+    "targets": {
+     "annotations": 3,
+     "review_items": 4
+    },
+    "match_keys": {
+     "annotation_marker": 1,
+     "none": 6
+    }
+   }
+  ]
+ }
+}

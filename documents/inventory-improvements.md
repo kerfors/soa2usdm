@@ -110,9 +110,50 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small to medium — one function, but it changes consolidation output, so the whole collection is rebuilt and compared.
 
+## 11 — Prompt: pin the conventions that flip between runs
+
+**Motivation.** Sweep 2 reproduced content (marks, rows, annotations, merged ranges, anchoring) but not three conventions, which changed between runs of the same prompt (NCT02107703 run 1 vs run 2) and between sweeps. Each shows up as a delta that is not a change in the schedule, and each has to be explained by hand in review.
+(a) *Empty grid cells.* Emitted as entries or omitted: NCT04004988 280 `activity_schedule` entries for 90 marks; NCT01797120 `schedule_grid` +3, NCT05051579 +22.
+(b) *Marker numbering.* Synthesized markers are renumbered when an earlier one drops out: NCT05051579 n2→n1 … n14→n13 once the intro paragraph was not emitted; NCT03637764 n2–n8 → pr1–pr6 + n2 (this is what makes the parked Layer 4 labels stale).
+(c) *Synthesized names.* Property and marker names chosen by the extractor drift: 'Study Phase'→'Phase', 'Screening/Lead-In Period'→'Screening/Lead-in sub-period', marker prefixes n→cm, tn→nt; `track_label` case.
+
+**Sketch.** One prompt revision with a rule per convention: (a) emit or omit empty cells, one way; (b) number synthesized markers in reading order and never renumber — a dropped note leaves a gap; (c) a short naming rule for synthesized property names and a fixed prefix list for synthesized markers. The gate's `marks` metric already counts non-empty cells only (`133cd9e`), so (a) no longer shows as a false delta there.
+
+**Acceptance.** A re-run of NCT02107703 under the new prompt reproduces run 1's conventions, not only its content.
+
+**Size.** Small in text, but a prompt version bump: the blind `_instructions/` must be re-redacted before any extraction session (sweep-2 `redaction/`).
+
+## 12 — `dryrun.py` rehearses studies of other collections
+
+**Motivation.** Like `promote_dryrun.py` before `133cd9e`, `dryrun.py` takes every study folder in STAGING. With usdm_data and misc_studies staged together it copies extractions into protocol folders that do not exist in the chosen collection.
+
+**Sketch.** The same filter as `promote_dryrun.py`: keep only studies with a protocol folder in `SOA2USDM_COLLECTION`, print the skipped ones.
+
+**Size.** Small.
+
+## 13 — Silent `except Exception: pass` in the page generators
+
+**Motivation.** `220c6fd` made the index fail loudly on a missing dependency. Three blocks still hide an unreadable file rather than a missing package: the consolidated-JSON read in `index_generator.discover_protocol_outputs` (tables, activities, compression, redaction count go missing from the index row), and the resolved-file scans for the nav table list in `visualize.py` and `visualize_resolved.py` (a table drops out of the per-table navigation). None has fired in the corpus as far as known; the point is that nothing would say so if it did.
+
+**Sketch.** Let the exception propagate, or log it as a step error. No fallback.
+
+**Size.** Small.
+
+## 14 — Legend rule retypes a footnote that quotes an abbreviation line
+
+**Motivation.** The legend density rule (item 4) retyped NCT03283098 Table 3 `annot-001` (marker a) footnote→legend. The note is a footnote: it records that footnote a is not printed for Table 1c, quotes the abbreviation line that is printed ('HD = hemodialysis; ET = early termination; SDA = Study drug administration.'), and gives Table 1b's footnote a as a probable equivalent (sweep-2 judgement call D6, accepted). The quoted abbreviation line is what matches the pattern. `tests/test_pipeline_regression.py::test_legend_retypes_exactly_the_known_fragments` fails on it since the sweep-2 promotion (251 passed, 1 failed on `0a3deb8`).
+
+**Sketch.** Tighten the rule so a legend-shaped span inside a longer explanatory text does not retype the whole note (e.g. require the legend pattern to cover most of the text), then re-measure the false-positive rate over the corpus. Do not add the case to `EXPECTED_LEGEND_RETYPES` — that would record a false positive as expected.
+
+**Acceptance.** The test passes with `EXPECTED_LEGEND_RETYPES` unchanged; the four NCT04677179 fragments are still retyped.
+
+**Size.** Small.
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 added 2026-09-27. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+
+**Status 2026-09-27 (evening):** items 11–14 added from the sweep-2 backlog. Shipped the same day outside this list: sweep-2 tool fixes (`133cd9e` — row audit `--collection` in both rehearsal scripts; `promote_dryrun.py` per-collection studies, review page and nav re-render; gate check 9 repointed at `source_range` consistency; gate `marks` counts non-empty cells; quotes from the prompt or taxonomy skipped, not unverified) and `220c6fd` (index generator fails loudly without openpyxl or markdown; `index` extra). The sweep-2 builds had published degraded pages for want of those two packages — repaired in collections `12375b6`. Evidence for 11–14: sweep-2 `PHASE1-RESULTS.md`, `PHASE2-RESULTS.md`, `MISC-RESULTS.md` (kept in the SoA2USDM Project).
 
 **Status 2026-09-27:** item 9 shipped (`46dd147`): `table_metadata` is a corrections target (op `set`, no `match`, `table_number` protected). With a sidecar setting NCT04677179 Table 4 back to `track`, the study consolidates to 64 unified activities (102 without). Item 10 open.
 
