@@ -149,9 +149,61 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small.
 
+## 15 — Prompt: state the review rules the extractions already follow
+
+**Motivation.** The 2026-09-27 review decided 111 of the 112 open sweep-2 review items; 106 were confirms. Most confirms apply one of a few rules the extractions follow already but the prompt does not state, so the same call is flagged again in every study. Rules as decided (each is quoted in the confirm reasons of the collections sidecars):
+(a) *Spanned values* (group K). A merged cell's value is distributed over the columns its rule lines cover; a glyph drawn across ruled cells over the columns it crosses; a value in one ruled cell stays in that column, with its qualifier ('X (Day 3-5)'). Exceptions taken where the source itself shows the literal reading is wrong: NCT02107703 T1 dosing text limited to the treatment columns; NCT03637764 'See … Flow Chart' spans are cross-references (source_note), not timing.
+(b) *Annotation binding* (group M). A note that names specific visits or columns is bound to those cells; a note on a group row governs the group; a note with no specific target stays table-wide. Applied as alternatives to NCT04557384 D5, NCT04677179 T4 D13 (sentence split into its own note), NCT05051579 D5.
+(c) *Header bands* (group D-a). Typed by dominant content; a printed row label wins; single-column visit labels (Randomisation, EOT, ED, End of trial, Study Completion) stay values of an epoch/period band. Open: bands that mix visit types and phases over two rows (NCT04573309 rows 1–2) have no clean typing.
+(d) *Header cells over several header rows* (group F). Recorded once, on the row whose type matches the content, split by printed line where lines match different rows; covered cells empty; no value repeated, no row added.
+(e) *Hierarchy* (group H). From printed signals (indent, bold, shading, full-width bands); a group stays open across a page break until the next header; no implicit group; a label cell spanning sub-rows is a parent with children.
+(f) *Table type* (group B). `track` is a branch some participants take (sub-study, extension, continued access, cohort, responders); a sequential schedule every participant passes through stays `main_soa` even when printed as separate tables (NCT03402841, NCT04320615 — their duplicate unified activities are item 10). The taxonomy's `track` definition ("different population or study phase") and its decision tree do not make this distinction yet.
+(g) *Abbreviations* (group N). §6 is applied unevenly: CDISC_Pilot emits ET/RT on the header cells that consist of those terms; NCT05324124 and NCT04004988 do not emit 'ED = early discontinuation' although 'ED' is a header cell. Decide once and apply corpus-wide.
+(h) *Row-oriented sampling tables* (group B). NCT04557384 T3 (rows = samples; cycle/day/time as data columns; PK/IG as mark columns) is kept `subsidiary` in printed orientation. The USDM-correct shape is transposed (samples as timepoint columns, PK/IG as activities), and the taxonomy's `reference` example names exactly this kind of table. Needs one rule.
+
+**Sketch.** One prompt/taxonomy revision stating (a)–(h), done together with item 11 (one version bump; re-redact the blind `_instructions/`). Then the extraction flags only calls that fall outside a stated rule.
+
+**Acceptance.** A re-extraction of two reviewed studies (e.g. NCT04557384, NCT04677179) raises no review item that one of (a)–(h) decides.
+
+**Size.** Small to medium in text; a prompt version bump.
+
+## 16 — Taxonomy: no property type for a visit attribute
+
+**Motivation.** 'Fasting visit' rows (X at the fasting visits) were typed `other` by the extraction in NCT04184622 and NCT04677179 and `modality` in NCT05051579. The review aligned all to `modality` through sidecars (group E) so one attribute has one type, but `modality` means how a visit is conducted, not a requirement on it.
+
+**Sketch.** Add a property type for visit attributes/requirements (or state that `modality` covers them), then retire the six alignment corrections.
+
+**Size.** Small.
+
+## 17 — Page-break defects the extraction does not detect
+
+**Motivation.** (a) A label cell split by a page break with its marks on one page only: NCT04573309 T1 'PD: …' prints mark-free at the top of p.15 under the PK row of p.14; Table 2 prints PK and PD in one cell with shared marks. Kept mark-free with a labelled reviewer note (n1); no marks were invented. NCT04557384 T1 shows the same split, which the extraction did catch (review items D1/D2). (b) Reprinted headers that disagree: NCT03693430 V33 window ±3 on pp.9–10, ±5 on pp.11–12; recorded as ±3 with a labelled reviewer note (n1).
+
+**Sketch.** (a) A check that flags a mark-free row at a page top whose label continues the last row of the previous page. (b) A gate check that compares reprinted header values across pages and reports disagreements.
+
+**Size.** Small to medium.
+
+## 18 — Activity inventory: cell-level notes
+
+**Motivation.** `activities.json`/`.html` list only activity-level annotations. A note bound to a cell drops out of the inventory although it is in resolved and consolidated (`cell_references`): NCT05051579 n10 (Participant Survey × ET) since the review rebound it, and NCT04677179 T4 c15 (Vital signs × V997), split out by the review.
+
+**Sketch.** List cell-level notes under the activity, with the column they bind to.
+
+**Size.** Small.
+
+## 19 — NCT03637764: extract the two flow charts
+
+**Motivation.** Review item NCT03637764 T1 D1 is left open by decision (alternative, deferred). The 'Pharmacokinetics and Immunogenicity Flow Chart' (pp.22–23) and the 'Exploratory Biomarker Flow Chart' (p.24) carry the sample timing of the PK, ADA and biomarker rows of Table 1; since the group-K decision those rows carry only source_notes pr7/pr8 and no schedule data. A sidecar cannot add a table.
+
+**Sketch.** A targeted extraction session (blind setup as in sweep 2) producing Tables 2 and 3, typed `subsidiary`; promote; then close D1 with a correction naming it.
+
+**Size.** Small (one study, two tables) plus the promotion steps.
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+
+**Status 2026-09-27 (review session, 19:25–20:25):** items 15–19 added from the review of the 112 open sweep-2 review items: 111 decided (106 confirms, 5 alternatives), NCT03637764 T1 D1 left open (item 19). Decisions recorded in the collections sidecars, branch `review-2026-09-27` (15 commits, 3a64b9e..1baeedd).
 
 **Status 2026-09-27 (evening):** items 11–14 added from the sweep-2 backlog. Shipped the same day outside this list: sweep-2 tool fixes (`133cd9e` — row audit `--collection` in both rehearsal scripts; `promote_dryrun.py` per-collection studies, review page and nav re-render; gate check 9 repointed at `source_range` consistency; gate `marks` counts non-empty cells; quotes from the prompt or taxonomy skipped, not unverified) and `220c6fd` (index generator fails loudly without openpyxl or markdown; `index` extra). The sweep-2 builds had published degraded pages for want of those two packages — repaired in collections `12375b6`. Evidence for 11–14: sweep-2 `PHASE1-RESULTS.md`, `PHASE2-RESULTS.md`, `MISC-RESULTS.md` (kept in the SoA2USDM Project).
 
