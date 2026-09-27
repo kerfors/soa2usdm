@@ -199,9 +199,25 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small (one study, two tables) plus the promotion steps.
 
+## 20 — Adding tables to an accepted study
+
+**Motivation.** Item 19 added two flow charts (NCT03637764 Tables 02 and 03) to a study whose Table 01 was already accepted and reviewed. Four gaps:
+(a) *Consolidation cannot link a subsidiary table to the main-SoA row it refines.* Matching is by activity name only (exact, then fuzzy). Table 01's 'PK', 'ADA' and 'Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw' match nothing in Tables 02/03 ('Pharmacokinetics', 'Immunogenicity (ADA)', 'Peripheral Blood', …), and Table 02's IMP infusion rows do not match Table 01's 'Isatuximab Administration' / 'Atezolizumab Administration'. All 25 new activities consolidate as `new` (29 → 54 unified). The relation exists only as text: Table 01 source notes pr7/pr8 and `table_metadata.notes`.
+(b) *One report per protocol.* The index and the nav bar link only `{NCT}_uncertainty_report.md`; the second session's `NCT03637764_flowcharts_uncertainty_report.md` is published but not linked.
+(c) *Gate on a partial re-extraction.* With only the new tables staged, the default baseline reports Table 01 as MISSING (FAIL). The run used a baseline copy without the study (`SOA2USDM_BASELINE`).
+(d) *`page_map.py --write` has no study filter.* It writes PAGEMAP.md for every decided study; the one needed was copied out of a temporary folder.
+(e) *Row audit on the new tables.* It reads a single label column. On p.24 (three label columns, grey-filled cells) it finds 4 of 10 row bands, reports almost every extracted row as not on page, and reports 'Archival Pre-Treatment Tumor Tissue Collection …' as on page but not extracted. On p.22 it reads footnote lines a/b below the grid as two rows. usdm_data on-page-not-extracted 9 → 12; all three are false positives, checked on the page images.
+(f) *Stale nav on unchanged pages.* The index step re-renders an extraction viewer or report page only when its source file is newer, so the Table 01 viewer and the report page kept a nav without Tables 02/03. Forced here by touching the two source files (modification time only, content unchanged).
+
+**Sketch.** (a) An explicit link from a subsidiary table (or its rows) to the main-SoA activity it refines — derived from a resolved cross-reference source_note ('See … Flow Chart') or declared in `table_metadata` — used by consolidate as a refinement relation, not a name match. Related to item 3. (b) Link every `*_uncertainty_report.md` of a protocol. (c) A table filter or an expected-present list in gate. (d) `--study` on page_map.py. (e) Take the label-column count from the extraction's first data column; stop row detection at the footnote block. (f) Re-render the nav whenever the protocol's set of sibling pages changes.
+
+**Size.** (a) medium (schema + consolidate); (b)–(d), (f) small; (e) small to medium.
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+
+**Status 2026-09-27 (item-19 session, 20:30–21:10):** item 19 done. NCT03637764 'Pharmacokinetics and Immunogenicity Flow Chart' (pp.22–23) and 'Exploratory Biomarker Flow Chart' (p.24) extracted in a blind session (Opus 5.5, prompt 3.8.1) as subsidiary Tables 02 and 03; gate 0 FAIL; review items D7–D13 confirmed; D1 closed by Table 01 corr-013 (alternative taken). All 13 NCT03637764 review items decided. Collections branch `item19-2026-09-27`. Item 20 added from what the addition showed.
 
 **Status 2026-09-27 (review session, 19:25–20:25):** items 15–19 added from the review of the 112 open sweep-2 review items: 111 decided (106 confirms, 5 alternatives), NCT03637764 T1 D1 left open (item 19). Decisions recorded in the collections sidecars, branch `review-2026-09-27` (15 commits, 3a64b9e..1baeedd).
 
