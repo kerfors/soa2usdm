@@ -116,6 +116,31 @@ def test_sidecar_can_add_review_items_to_an_older_extraction():
     assert "review_items" not in raw                 # the raw dict is not mutated
 
 
+def test_table_metadata_set_overrides_type_without_touching_raw():
+    """Backlog item 9: a reviewed table type / track label goes through the sidecar."""
+    raw = json.loads(RAW_T1.read_text())
+    raw["review_items"] = [D2]
+    fix = {"table_type": "track", "track_label": "Early Termination / Unscheduled / Post-Treatment"}
+    out = apply_corrections(raw, _sidecar(
+        _corr("corr-001", target="table_metadata", op="set", set=fix, review_item="D2")))
+    assert {k: out["table_metadata"][k] for k in fix} == fix
+    assert raw["table_metadata"]["table_type"] == "main_soa"      # the raw dict is not mutated
+    jsonschema.validate(_sidecar(_corr("corr-001", target="table_metadata", op="set", set=fix)),
+                        _schema("soa-table-corrections.schema.json"))
+
+
+def test_table_metadata_rejects_match_other_ops_and_table_number():
+    raw = json.loads(RAW_T1.read_text())
+    for bad, msg in (
+        (dict(op="set", match={"table_number": 1}, set={"table_type": "track"}), "without 'match'"),
+        (dict(op="add", set={"table_type": "track"}), "without 'match'"),
+        (dict(op="remove", match={"table_type": "main_soa"}), "without 'match'"),
+        (dict(op="set", set={"table_number": 2}), "cannot be corrected"),
+    ):
+        with pytest.raises(ValueError, match=msg):
+            apply_corrections(raw, _sidecar(_corr("corr-001", target="table_metadata", **bad)))
+
+
 # ---------------------------------------------------------------- derived status
 
 def test_review_status_is_derived_from_sidecar_references(tmp_path):

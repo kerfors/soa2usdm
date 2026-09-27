@@ -31,8 +31,8 @@
           },
           "target": {
             "type": "string",
-            "enum": ["schedule_properties", "schedule_grid", "activities", "activity_schedule", "annotations", "review_items"],
-            "description": "Which extraction array this correction acts on."
+            "enum": ["schedule_properties", "schedule_grid", "activities", "activity_schedule", "annotations", "review_items", "table_metadata"],
+            "description": "Which extraction array this correction acts on. 'table_metadata' is the one object, not an array: it takes op 'set' without 'match', and 'table_number' cannot be set."
           },
           "op": {
             "type": "string",

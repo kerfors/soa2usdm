@@ -17,7 +17,7 @@ from pathlib import Path
 from . import config
 from .base import PipelineStepBase
 
-# Extraction arrays a correction may target.
+# Extraction arrays a correction may target, plus the table_metadata object.
 TARGETS = {
     "schedule_properties",
     "schedule_grid",
@@ -25,6 +25,7 @@ TARGETS = {
     "activity_schedule",
     "annotations",
     "review_items",
+    "table_metadata",
 }
 
 
@@ -34,6 +35,7 @@ def apply_corrections(raw: dict, corrections_doc: dict) -> dict:
     Ops (fail fast on ambiguity):
         add     -- append `set` as a new entry to the target array
         set     -- update the single entry matching `match` with `set`
+                   (for `table_metadata`: update the object; no `match`)
         remove  -- drop entries matching `match` (must hit at least one)
         confirm -- change nothing; records that the review item named in
                    `review_item` was examined and the call kept
@@ -54,6 +56,13 @@ def apply_corrections(raw: dict, corrections_doc: dict) -> dict:
         if op == "confirm":
             if "review_item" not in c:
                 raise ValueError(f"Correction {c['id']}: 'confirm' requires 'review_item'")
+            continue
+        if target == "table_metadata":
+            if op != "set" or "match" in c:
+                raise ValueError(f"Correction {c['id']}: 'table_metadata' takes op 'set' without 'match'")
+            if "table_number" in c["set"]:
+                raise ValueError(f"Correction {c['id']}: 'table_number' cannot be corrected (it names the file)")
+            doc["table_metadata"].update(c["set"])
             continue
         arr = doc.get(target)
         if target == "review_items" and arr is None and op == "add":
