@@ -25,7 +25,8 @@ from pathlib import Path
 FORBIDDEN = [
     (r"\.vault-", "the vault"),
     (r"soa2usdm-collections", "the collections repo"),
-    (r"/SoA2USDM/(soa2usdm|documents|tests|tools)\b", "the code repo"),
+    (r"(?i)/soa2usdm/(soa2usdm|documents|tests|tools)\b", "the code repo"),
+    (r"soa2usdm-sweep2", "the sweep-2 orchestration tree (worktree, calib, scratch, redaction log)"),
     (r"re-extraction-(baseline|acceptance)", "the checklist / machine baseline"),
     (r"extraction\.verified", "verified extraction output"),
     (r"_corrections\.json", "a corrections sidecar"),
@@ -49,7 +50,7 @@ FORBIDDEN_TOOLS = [
 ]
 
 STUDY = re.compile(r"(NCT\d{8}|[A-Z][A-Za-z0-9_]*_Pilot)")
-BLIND = re.compile(r"/blind/([A-Za-z0-9_]+)")
+BLIND = re.compile(r"(?:/blind|soa2usdm-blind)/(?:_out/)?(?!_instructions\b|_transcripts\b)([A-Za-z0-9_]+)")
 
 
 def tool_inputs(path):
