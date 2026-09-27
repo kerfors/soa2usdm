@@ -50,7 +50,7 @@ FORBIDDEN_TOOLS = [
 ]
 
 STUDY = re.compile(r"(NCT\d{8}|[A-Z][A-Za-z0-9_]*_Pilot)")
-BLIND = re.compile(r"(?:/blind|soa2usdm-blind)/(?:_out/)?(?!_instructions\b|_transcripts\b)([A-Za-z0-9_]+)")
+BLIND = re.compile(r"(?:/blind|soa2usdm-blind)/(?:_out/)?(?!_instructions\b|_transcripts\b|_out\b)([A-Za-z0-9_]+)")
 
 
 def tool_inputs(path):
