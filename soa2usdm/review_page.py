@@ -226,7 +226,8 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
         "number": tnum, "title": meta["table_title"], "type": meta["table_type"],
         "doc_pages": [meta["page_start"], meta["page_end"]], "sidecar": sidecar.name if sidecar else None,
         "data_cols": data_cols, "visit_hdr": visit_hdr, "week_hdr": week_hdr,
-        "props": [{"row": rp, "name": p["property_name"], "type": p["property_type"]}
+        "props": [{"row": rp, "name": p["property_name"], "type": p["property_type"],
+                   "values": grid.get(rp, {})}
                   for rp, p in sorted(props.items())],
         "activities": [{"row": rp, "name": a["activity_name"],
                         "indent": a["activity_name_source"].get("indentation_level", 0),
@@ -483,8 +484,11 @@ ul.plain{padding-left:18px;margin:6px 0}
 #tablewrap{overflow:auto;height:calc(56vh - 264px);min-height:220px}
 table.soa{border-collapse:collapse;font-size:12px;width:100%;background:#fff}
 table.soa th,table.soa td{border:1px solid var(--line);padding:2px 6px;white-space:nowrap}
-table.soa thead th{position:sticky;top:0;background:#fafbfc;z-index:2;font-weight:600}
-table.soa thead tr:nth-child(2) th{top:24px;font-weight:400;color:var(--muted)}
+table.soa thead{position:sticky;top:0;z-index:2}
+table.soa thead th{background:#fafbfc;font-weight:600}
+table.soa th.name{min-width:280px;white-space:normal;text-align:left}
+table.soa tr.hdr{cursor:pointer}
+table.soa tr.sel th{background:#fff3d6!important}
 table.soa td.name{min-width:280px;white-space:normal}
 table.soa td.mark{text-align:center;width:26px}
 table.soa tr.act{cursor:pointer}
@@ -648,9 +652,9 @@ function buildTable(){
  const t=T(), el=document.getElementById('soa'), cols=t.data_cols;
  const foldsByRow={}; D.across.folds.forEach(f=>f.sources.forEach(s=>{ if(s.table===t.number) (foldsByRow[s.row]=foldsByRow[s.row]||[]).push(f); }));
  const badByRow={}; t.checks.mark_disagreements.forEach(d=>{(badByRow[d.row]=badByRow[d.row]||[]).push(d.col)});
- let h='<thead><tr><th>Activity</th>'+cols.map(c=>`<th>${esc(t.visit_hdr[c]||'')}</th>`).join('')+'</tr>';
- h+='<tr><th class="small">'+(t.week_hdr && Object.keys(t.week_hdr).length?'week':'')+'</th>'+cols.map(c=>`<th>${esc(t.week_hdr[c]||'')}</th>`).join('')+'</tr></thead><tbody>';
- t.props.forEach(p=>{ h+=`<tr class="hdr" data-prop="${p.row}"><td class="name">${esc(p.name)} <span class="badge cm">header · ${esc(p.type)}</span></td><td colspan="${cols.length}" class="small">header row ${p.row}</td></tr>`; });
+ let h='<thead>';
+ t.props.forEach(p=>{ h+=`<tr class="hdr" data-prop="${p.row}"><th class="name">${esc(p.name)} <span class="badge cm">header · ${esc(p.type)}</span></th>`+cols.map(c=>`<th>${esc(p.values[c]||'')}</th>`).join('')+'</tr>'; });
+ h+='</thead><tbody>';
  t.activities.forEach(a=>{
   const marks=new Set(a.marks), bad=new Set(badByRow[a.row]||[]);
   const badges=[];
