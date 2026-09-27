@@ -90,9 +90,29 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small, but it touches the prompt version. Raised 2026-08-22.
 
+## 9 — Correct `table_metadata` through the corrections sidecar
+
+**Motivation.** The corrections schema's `target` enum covers `schedule_properties`, `schedule_grid`, `activities`, `activity_schedule`, `annotations` and `review_items` — not `table_metadata`. A reviewed decision on a table's type or track label therefore has no write path that keeps the raw extraction immutable. It came up in the sweep-1 pilot (track labels set by hand in staging) and again in the sweep-2 pilot: NCT04677179 Table 4 was extracted as `main_soa` (its judgement call D11), and the review decision (2026-09-27) is to keep the accepted `track` / 'Early Termination / Unscheduled / Post-Treatment'.
+
+**Sketch.** Add `table_metadata` to the `target` enum with op `set` only (no `add` / `remove` — there is exactly one), apply it in ApplyCorrections before Resolve, and allow a `review_item` reference so the D11 decision is recorded as resolved on the review page.
+
+**Acceptance.** A sidecar entry setting `table_type` and `track_label` on NCT04677179 Table 4 reproduces the accepted typing; resolve and consolidate see `track`; the review page shows D11 decided.
+
+**Size.** Small. Schema enum + ApplyCorrections + one test. Needed before NCT04677179 can be promoted from sweep 2.
+
+## 10 — Consolidate a study with more than one `main_soa` table
+
+**Motivation.** `consolidate_tables` processes every `main_soa` table as a base (`is_base=True`), and base tables never match each other. With two `main_soa` tables in one study the activities split into two parallel sets. In the sweep-2 pilot, NCT04677179 with Table 4 typed `main_soa` consolidated to 102 unified activities instead of 64: Table 1 stood alone, and Tables 2 and 3 attached to Table 4. Activity names and parents were identical to the accepted extraction; only the table type differed. Item 9 fixes this study, but any study whose source really has two main schedules hits the same split.
+
+**Sketch.** Keep the first `main_soa` table (lowest table number) as the base and match every further `main_soa` table against it like a non-base table; or make the base a single pass over all main tables that allows matching between them.
+
+**Acceptance.** NCT04677179 consolidates to 64 unified activities with Table 4 typed either way; the other 21 usdm_data protocols consolidate unchanged.
+
+**Size.** Small to medium — one function, but it changes consolidation output, so the whole collection is rebuilt and compared.
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 added 2026-09-27. Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
 
 **Status 2026-08-22:** items 1, 2, 4, 5 and 6 shipped; item 3 open (substantive, and the natural groundwork for the semantic layer); items 7–8 raised, deferred on purpose. Smaller items closed the same day outside this list: `config.DEFAULT_COLLECTION` pinned to `usdm_data` (sort order had silently skipped the PDF-backed tests once a second collection existed), and the NCT05051579 `proximity`→`synthesized` relabel through its sidecar.
 
