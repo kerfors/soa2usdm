@@ -55,7 +55,12 @@ def build():
     SCRATCH.parent.mkdir(parents=True)
     shutil.copytree(REAL, SCRATCH)
 
-    studies = sorted(p.name for p in STAGING.iterdir() if p.is_dir())
+    # STAGING can hold studies of more than one collection; rehearse only this collection's.
+    staged_all = sorted(p.name for p in STAGING.iterdir() if p.is_dir())
+    studies = [s for s in staged_all if (SCRATCH / COLLECTION / "protocols" / s).is_dir()]
+    for s in staged_all:
+        if s not in studies:
+            print(f"  {s}: not in collection {COLLECTION} — skipped")
     installed = retired = kept = added = removed = 0
     for study in studies:
         ext = SCRATCH / COLLECTION / "protocols" / study / "SoA2USDM" / "extracted"
@@ -111,18 +116,24 @@ from soa2usdm.resolve import ResolveStep
 from soa2usdm.consolidate import ConsolidateStep
 from soa2usdm.visualize_resolved import VisualizeResolvedStep
 from soa2usdm.visualize import VisualizeStep
+from soa2usdm.review_page import ReviewPageStep
 from soa2usdm.index_generator import IndexGeneratorStep
 from soa2usdm.collections_index import CollectionsIndexStep
 from soa2usdm.activity_inventory import ActivityInventoryStep
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 
-STEPS = [ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep, ConsolidateStep, VisualizeStep]
+STEPS = [ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep, ConsolidateStep, VisualizeStep,
+         ReviewPageStep]
+# The nav strip is discovered from disk when a page is rendered. build() cleared consolidated/, so
+# on the first pass the resolved pages find no consolidated or review sibling. Render the pages
+# again once every artefact exists, so their nav matches a rebuild over a populated tree.
+RERENDER = [VisualizeResolvedStep, VisualizeStep]
 fail = 0
 for pid in {studies!r}:
     errors, analytics = Errors(), Analytics()
     data = {{'source': {{'protocol_id': pid, 'collection': '{COLLECTION}'}}}}
-    for sc in STEPS:
+    for sc in STEPS + RERENDER:
         try:
             data[sc.step_name] = sc(errors, analytics).execute(data)
         except Exception as e:
@@ -163,7 +174,7 @@ def main():
     ok = run(studies)
     print("\n-- row audit --")
     env = dict(os.environ, SOA2USDM_COLLECTIONS=str(SCRATCH), PYTHONPATH=str(REPO))
-    r = subprocess.run([sys.executable, "-m", "soa2usdm.row_audit"], env=env,
+    r = subprocess.run([sys.executable, "-m", "soa2usdm.row_audit", "--collection", COLLECTION], env=env,
                        capture_output=True, text=True)
     tail = [l for l in r.stdout.splitlines() if "protocols," in l]
     print("  " + (tail[-1] if tail else "no output"))

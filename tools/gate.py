@@ -34,6 +34,7 @@ BLIND = Path(os.environ.get("SOA2USDM_BLIND", "blind"))
 BASELINE = Path(os.environ.get("SOA2USDM_BASELINE", REPO / "documents" / "re-extraction-baseline.json"))
 SCHEMA = REPO / "schemas" / "soa-table-extraction.schema.json"
 PROMPT = REPO / "prompts" / "PDF_TO_JSON_PROMPT.md"
+TAXONOMY = REPO / "documents" / "soa_table_type_definitions.md"
 _pv = re.search(r"Prompt version (\d+\.\d+\.\d+)", PROMPT.read_text())
 if not _pv:
     sys.exit(f"cannot read the prompt version from {PROMPT}")
@@ -205,11 +206,29 @@ def check_table(path, schema, base):
                 f.append(("6 coverage", "WARN",
                           f"doc page(s) {empty} contributed no activity rows — report must say why"))
 
-    # 9 — merged marks carry source_range
+    # 9 — a merged mark is distributed consistently. activity_schedule has no is_merged_cell (the
+    # schema defines it only on schedule_grid), so the first version of this check read a field
+    # that is never there and could not fire. What activity_schedule does carry is source_range
+    # "a:b" on each column a merged value was distributed to: the entry's own column must lie in
+    # the range, and every column of the range must be present on the row with the same value and
+    # the same range. Calibrated 0 findings over 471 such entries in 45 accepted tables (2026-09-27).
+    cells = {(e.get("row_position"), e.get("column_position")): e for e in data.get("activity_schedule", [])}
     for e in data.get("activity_schedule", []):
-        if e.get("is_merged_cell") and not e.get("source_range"):
-            f.append(("9 merged", "FAIL",
-                      f"activity_schedule r{e.get('row_position')}c{e.get('column_position')} merged without source_range"))
+        sr = e.get("source_range")
+        if not sr:
+            continue
+        r, c = e.get("row_position"), e.get("column_position")
+        a, b = (int(x) for x in sr.split(":"))
+        if not a <= c <= b:
+            f.append(("9 merged", "FAIL", f"activity_schedule r{r}c{c} lies outside its source_range {sr}"))
+            continue
+        for k in range(a, b + 1):
+            o = cells.get((r, k))
+            if o is None or o.get("cell_value") != e.get("cell_value") or o.get("source_range") != sr:
+                f.append(("9 merged", "FAIL",
+                          f"activity_schedule r{r}c{c} source_range {sr}: column {k} "
+                          f"{'missing' if o is None else 'differs'}"))
+                break
 
     # 10 — track_label only on track
     tt, tl = meta.get("table_type"), meta.get("track_label")
@@ -268,7 +287,10 @@ def check_table(path, schema, base):
         "pages": f"{ps}-{pe}",
         "acts": len(data.get("activities", [])),
         "bind": bind,
-        "marks": len(data.get("activity_schedule", [])),
+        # Non-empty marks only. Whether an empty cell is emitted as an entry is a convention that
+        # flips between runs (NCT04004988: 90 marks, 280 entries), so counting entries reports a
+        # delta where the schedule is unchanged.
+        "marks": sum(1 for e in data.get("activity_schedule", []) if norm(e.get("cell_value"))),
         "props": len(data.get("schedule_properties", [])),
         "grid": len(data.get("schedule_grid", [])),
         "ann": len(annots),
@@ -399,6 +421,11 @@ def check_quotes(study):
         haystack.append(" ⏎ ".join(acc))
     hay = " ⏎ ".join(haystack)
     hay_tight = re.sub(r"\s+", "", hay)
+    # The extractor also reads the prompt and the taxonomy. A span quoted from them is verbatim
+    # but is not evidence about the PDF, so it is skipped like the rule text in QUOTE_SKIP, not
+    # counted as verified. Before this, such a span showed as unverified (sweep 2: 2 false positives).
+    instr = norm(PROMPT.read_text() + " ⏎ " + TAXONOMY.read_text())
+    instr_tight = re.sub(r"\s+", "", instr)
 
     out, n_ok, n_bad, n_skip = [], 0, 0, 0
     for rp in reports:
@@ -412,6 +439,8 @@ def check_quotes(study):
                 continue
             if all(x in hay or re.sub(r"\s+", "", x) in hay_tight for x in frags):
                 n_ok += 1
+            elif all(x in instr or re.sub(r"\s+", "", x) in instr_tight for x in frags):
+                n_skip += 1
             else:
                 n_bad += 1
                 out.append(("quotes", "CHECK", f"{rp.name}: not a verbatim substring — {q[:160]!r}"))

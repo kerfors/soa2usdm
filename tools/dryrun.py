@@ -124,7 +124,8 @@ sys.exit(1 if fail else 0)
 def run_row_audit():
     env = dict(os.environ, SOA2USDM_COLLECTIONS=str(SCRATCH), PYTHONPATH=str(REPO))
     out = SCRATCH / "row_audit_scratch.json"
-    r = subprocess.run([sys.executable, "-m", "soa2usdm.row_audit", "--json", str(out)],
+    r = subprocess.run([sys.executable, "-m", "soa2usdm.row_audit", "--collection", COLLECTION,
+                        "--json", str(out)],
                        env=env, capture_output=True, text=True)
     tail = [l for l in r.stdout.splitlines() if "protocols," in l]
     print("  " + (tail[-1] if tail else r.stdout.splitlines()[-1] if r.stdout else "no output"))
