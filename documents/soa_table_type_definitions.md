@@ -1,4 +1,4 @@
-# SoA Table Type Definitions (v7)
+# SoA Table Type Definitions (v8)
 
 Classification scheme for Schedule of Activities tables in clinical trial protocols. Used for structure discovery before extraction and consolidation.
 
@@ -30,7 +30,7 @@ A table with different (typically finer) column structure providing detailed tim
 *Example: Alexion Table 2 showing hour-by-hour PK/PD sampling times (columns: -0.5h, 0h, 1h, 2h, 4h...) for specific study days referenced in Table 1.*
 
 ### track
-A table representing a branch of the study that only some participants take: a sub-population, a cohort or arm, a sub-study, responders vs non-responders, or a later phase that only some participants enter (e.g. post-study access, or visits after early termination). Usually the column structure differs too - different visits, different duration, different timing - but **a different column structure is not required**: what makes a table a track is that it schedules a *subset or branch of the participants*. A phase that every participant passes through in sequence is not a track, even when it is printed as its own table - see main_soa. Maps to a separate ScheduleTimeline in USDM.
+A table representing a branch of the study that only some participants take: a sub-population, a cohort or arm, a sub-study, responders vs non-responders, or a later phase that only some participants enter (e.g. post-study access, or visits after early termination). Usually the column structure differs too - different visits, different duration, different timing - but **a different column structure is not required**: what makes a table a track is that it schedules a *subset or branch of the participants*. A phase that every participant passes through in sequence is not a track, even when it is printed as its own table - see main_soa. A table printed for visits entered on a condition rather than in sequence (early termination, unscheduled visits, conditional follow-up) is a track, also when it also carries a visit that every participant attends. Maps to a separate ScheduleTimeline in USDM.
 
 *Examples:*
 - *NCT04184622 Section 1.3.2 - an additional 2-year treatment schedule only for participants with prediabetes at randomization, with its own visit numbering (101-199) and timing.*

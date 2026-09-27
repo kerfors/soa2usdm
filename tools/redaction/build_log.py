@@ -98,7 +98,7 @@ add("T5", "B", TAX,
 
 log = {"note": "Sweep 2 redaction log. Apply with apply_redactions.py after EVERY prompt/taxonomy edit. "
                "Must never enter the blind tree.",
-       "prompt_version": "3.9.0", "taxonomy_version": "v7",
+       "prompt_version": "3.9.1", "taxonomy_version": "v8",
        "copied_unchanged": ["schemas/soa-table-extraction.schema.json"],
        "tier_c_kept": ["P = predose (§5)", "Fasting / Telephone-visit bands (§1b)", "Sample 1, Sample 2 (§2, taxonomy)",
                        "See instructions (§5)", "responders vs non-responders (prompt §2, taxonomy)"],
