@@ -89,8 +89,13 @@ def load_study_metadata(collection_path: Path) -> dict:
         
         wb.close()
         return metadata
-    except Exception:
-        return {}
+    except ImportError as e:
+        # Fail loudly. This used to be `except Exception: return {}`: a build without openpyxl
+        # published indexes with sponsor, d4k_folder and therapeutic_area empty on every row,
+        # and nothing reported it (sweep 2, collections 95ea627).
+        raise RuntimeError(
+            f"openpyxl is required to read {xlsx_path}. Install the extra: pip install 'soa2usdm[index]'"
+        ) from e
 
 
 def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
@@ -268,12 +273,14 @@ def _render_markdown_html(md_path: Path, html_path: Path, protocol_id: str, coll
 
     try:
         import markdown
-        md_text = md_path.read_text(encoding='utf-8')
-        body = markdown.markdown(md_text, extensions=['tables', 'fenced_code'])
-    except ImportError:
-        # Fallback: basic rendering without markdown library
-        md_text = md_path.read_text(encoding='utf-8')
-        body = f'<pre style="white-space: pre-wrap; font-family: inherit;">{html_lib.escape(md_text)}</pre>'
+    except ImportError as e:
+        # Fail loudly. The former fallback published the report as raw markdown in a <pre>
+        # block, silently (sweep 2: all 24 extraction logs, collections 95ea627 / e720a4a).
+        raise RuntimeError(
+            f"markdown is required to render {md_path.name}. Install the extra: pip install 'soa2usdm[index]'"
+        ) from e
+    md_text = md_path.read_text(encoding='utf-8')
+    body = markdown.markdown(md_text, extensions=['tables', 'fenced_code'])
     
     html = f'''<!DOCTYPE html>
 <html lang="en">

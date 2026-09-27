@@ -15,6 +15,9 @@ notebooks = ["pandas", "requests", "pymupdf", "pymupdf4llm", "openpyxl"]
 # Page geometry (soa2usdm.page_grid, soa2usdm.row_audit) also needs poppler
 # on PATH: pdftoppm, pdftotext, pdfinfo.
 bands = ["numpy"]
+# Collection index and activity inventory: the study manifest (studies_protocols.xlsx) and the
+# rendered extraction logs. Both fail loudly without these.
+index = ["openpyxl", "markdown"]
 test = ["pytest"]
 
 [project.scripts]
