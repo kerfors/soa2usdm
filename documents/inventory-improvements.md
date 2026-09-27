@@ -262,6 +262,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** (a) small–medium (model + JS, test on NCT04677179). (b)–(d) small. (e) a measurement first.
 
+**Status 2026-09-27 (23:34–):** (a) and (b) done (branch `review-header-bands-2026-09-27`): each page band carries `prop` from `_column_map` (set on all 249 header bands, null elsewhere); the overlay selects and highlights by it in both directions; the Notes tab names the property. Checked on NCT04677179 T1 p.17 (header row 'Weeks from randomization' ↔ its band). Where no header band is recognised on the current page, nothing is highlighted. (c)–(e) open.
+
 ---
 
 2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.

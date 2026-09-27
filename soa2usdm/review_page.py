@@ -193,6 +193,7 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
                 page_marks.append(1 if "x" in normalise(join_words(words_in(words, cx0, y0, cx1, y1))) else 0)
             band = {"i": i, "y0": round(y0, 1), "y1": round(y1, 1), "text": text,
                     "kind": "header" if is_header else "activity", "row": row,
+                    "prop": header_bands.get(i),
                     "status": ("matched" if row is not None else "header" if is_header
                                else "blank" if not text.strip() and not any(page_marks) else "unmatched")}
             if not is_header:
@@ -619,13 +620,13 @@ function showPage(i){
   if(b.row!==null && S.foldRows.includes(b.row)) cls.push('fold');
   if(b.row!==null && S.noteRows.includes(b.row)) cls.push('note');
   if(b.row!==null && S.altRows.includes(b.row)) cls.push('alt');
-  if(b.kind==='header' && S.selProp===b.i+1) cls.push('sel');
-  const hide = (!showRows && !hl && !(b.kind==='header'&&S.selProp===b.i+1)) || (b.kind==='header' && !showHdr && S.selProp!==b.i+1);
+  if(b.kind==='header' && S.selProp===b.prop) cls.push('sel');
+  const hide = (!showRows && !hl && !(b.kind==='header'&&S.selProp===b.prop)) || (b.kind==='header' && !showHdr && S.selProp!==b.prop);
   h+=`<rect class="${cls.join(' ')}" data-i="${b.i}" x="${x0}" y="${b.y0}" width="${x1-x0}" height="${b.y1-b.y0}"${hide?' style="stroke:transparent;fill:transparent"':''}><title>${esc(b.text||'(no label text)')}${b.row!==null?' → '+esc(rowLabel(b.row)):(b.status==='unmatched'?' — not matched to an extracted row':'')}</title></rect>`;
   if(showMarks && b.mark_diff && b.mark_diff.length) b.mark_diff.forEach(c=>{ const col=p.columns[c-1]; if(col) h+=`<rect class="cellbad" x="${col[0]}" y="${b.y0}" width="${col[1]-col[0]}" height="${b.y1-b.y0}"/>`; });
  });
  svg.innerHTML=h;
- svg.querySelectorAll('.band').forEach(r=>r.onclick=()=>{ const b=p.bands[+r.dataset.i]; if(b.row!==null) selectRow(b.row,true); else if(b.kind==='header') selectProp(b.i+1); });
+ svg.querySelectorAll('.band').forEach(r=>r.onclick=()=>{ const b=p.bands[+r.dataset.i]; if(b.row!==null) selectRow(b.row,true); else if(b.kind==='header') selectProp(b.prop); });
 }
 ['lyRows','lyMarks','lyHdr'].forEach(id=>document.getElementById(id).onchange=()=>showPage(S.page));
 
@@ -751,7 +752,7 @@ function buildNotes(){
  let h='<p class="small">Footnotes and instruction blocks bound to rows. Click one to see which rows it governs. An asterisk marks a binding the extractor inferred rather than read from a printed marker; "by name" means the note names the row rather than marking it.</p>';
  t.annotations.forEach(a=>{
   const rows=a.rows.map(r=>`${esc(rowLabel(r.row))}${r.method==='text_match'?' (by name)':(r.method&&r.method!=='proximity'?'*':'')}`);
-  const props=a.prop_rows.map(r=>`header row ${r.row}*`);
+  const props=a.prop_rows.map(r=>`${esc(t.props.find(p=>p.row===r.row).name)}*`);
   const other=a.other.map(r=>`${esc(r.type)}${r.row?' row '+r.row:''}${r.col?' col '+r.col:''}`);
   h+=`<div class="notecard" data-m="${esc(a.marker)}"><span class="m">${esc(a.marker)}</span> <span class="small">${esc(a.type)}</span> <span class="rows">→ ${[...rows,...props,...other].join('; ')||'no row'}</span><div>${esc(a.text)}</div></div>`;
  });
