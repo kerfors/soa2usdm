@@ -231,6 +231,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** (a), (b), (e) small, sidecar or test; (c), (d) small, gate; (f) small to medium; (g) medium.
 
+**Status 2026-09-27 (23:43–):** (a) done — CDISC_Pilot T1 corr-004..007 remove ab1/ab2 and clear the ET / RT header cells (the markers sat on the two VISIT grid cells, not on the property row). corr-003 (confirm) stays as history; D3 is decided either way (item 24a). (b)–(h) open.
+
 ## 22 — Prompt 3.9.0 acceptance test: rule gaps and conventions
 
 **Motivation.** The blind acceptance run of prompt 3.9.0 (NCT04557384, NCT04677179, CDISC_Pilot, NCT02107703; 10 tables; results in `claude/prompt-3.9.0-ACCEPTANCE-RESULTS.md`, SoA2USDM Project) reversed three published calls and still raised five items that a stated rule decides. Each cause is in the rule text, not in the tools. Discarded, not promoted.
@@ -250,6 +252,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Decisions (Kerstin, 2026-09-27 23:07).** (a) one activity per printed item, marks on each, flat — as published. (b) text between title and frame, or directly below it, belongs to the table — as published. (c) `track` — as published (D11). (g) row 1 = first header row; an in-frame title band is not a row — the corpus majority (45 of 47 tables); NCT04557384 T1/T2 (title band = row 1) stay as published, their sidecars match their own numbering. (i) bind a visit only where the note states a condition on it; a visit named as a reference point is not bound — published D12 stands; the ETV condition notes of NCT04677179 T4 (Weeks-row interval, lipid fasting, endoscopy, colon biopsy) move to the named cells by sidecar. (d), (e), (f), (h) one sentence each. Text: prompt 3.9.1 / taxonomy v8. Open: the T4 sidecar (with 21a); the repeat acceptance run.
 
+**Status 2026-09-27 (23:43–):** (i) sidecar done — NCT04677179 T4 corr-007..021: c1 (Weeks-row interval note) → the V801 and V802 cells of the Weeks row, ETV not bound (reference point); c7 (lipid fasting) and c12 (endoscopy) → the ETV mark; c13 (colon biopsy) split per §6 into c13 (first sentence) and c17 (last sentence) on the ETV mark and c16 (the two middle sentences) on the row. D12 unchanged. Open: the repeat acceptance run.
+
 ## 23 — Review page: header rows and the page overlay (follow-ups from the header-row fix)
 
 **Motivation.** The header-row fix (2026-09-27, branch `review-header-rows-2026-09-27`) draws every `schedule_properties` row once in the table pane, with its name, type badge and grid values, as the click target for `selectProp`. Found while reading and testing it; not fixed in that scope.
@@ -264,9 +268,21 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Status 2026-09-27 (23:34–):** (a) and (b) done (branch `review-header-bands-2026-09-27`): each page band carries `prop` from `_column_map` (set on all 249 header bands, null elsewhere); the overlay selects and highlights by it in both directions; the Notes tab names the property. Checked on NCT04677179 T1 p.17 (header row 'Weeks from randomization' ↔ its band). Where no header band is recognised on the current page, nothing is highlighted. (c)–(e) open.
 
+## 24 — Follow-ups from the 22i / 21a sidecar session
+
+**Motivation.** Found while writing and rebuilding the NCT04677179 T4 and CDISC_Pilot T1 sidecars (2026-09-27, 23:43–). None fixed in that scope.
+(a) *`review_status` reports the first correction naming an item.* `corrections.review_status` uses `setdefault`, so an item decided twice (a confirm, later an alternative) keeps pointing at the first correction. CDISC_Pilot D3: corr-003 (confirm) and corr-004/005 (removal, superseding it) — `review_status` returns corr-003 for D3. Candidate: take the last correction naming the item.
+(b) *Fragment check on source-faithful repetition.* `find_adjacent_text_overlaps` (consolidate warning at 3 pairs; `test_annotations_not_fragmented`) counts NCT04677179 c12 ⊃ c13 since the c13 split: the Endoscopy and Colon biopsy comment cells both print 'Recommended at ETV based on judgment of the investigator and after discussion with the sponsor's medical monitor.' (p.45). NCT04677179 now has 3 pairs (019/020, 042/043, 051/052), so the test FAILs and consolidate warns 'likely one note cell fragmented'. Third failing test with items 14 and 21e. Candidate: a per-study list of known source-faithful pairs (as `EXPECTED_HEADER_BOUND`), or skip pairs whose notes are bound to different activities.
+(c) *Activity inventory lists row-level notes only.* `activities.json` shows a note under an activity only when it is bound to the activity name. Notes bound to a mark (NCT04677179 T4 c7, c12, c13, c15, c17) or to a header cell are not listed under the activity, so moving a note from row to cell removes it from the inventory. Candidate: list cell-bound notes under their activity, with the column.
+(d) *Review page, cell-level bindings.* The Notes tab names a cell binding as 'schedule_cell row R col C' (activity or property rows are named since 23b); the table pane draws note markers only on activity names — no marker on marks, header cells or header-row names (e.g. T4 c1 on the V801 / V802 Weeks cells, c15 on Vital signs × V997, t1 on V802, c2 on Fasting visit). Candidate: name the row and column label in the Notes tab; draw the markers in the table pane.
+
+**Size.** (a) small (code). (b) small (test / consolidate). (c) small to medium. (d) small (review_page.py).
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+
+**Status 2026-09-27 (22i / 21a sidecar session, 23:43–):** NCT04677179 T4 ETV condition notes moved to the cells they name, c13 split (item 22i); CDISC_Pilot T1 ab1/ab2 removed (item 21a). Collections sidecars only; follow-ups in item 24.
 
 **Status 2026-09-27 (review-page header-row session, 23:17–):** review page header rows fixed (`soa2usdm/review_page.py`; each `schedule_properties` row drawn once with its name, type and values, and the click target for the property; the placeholder rows are gone); follow-ups in item 23.
 
