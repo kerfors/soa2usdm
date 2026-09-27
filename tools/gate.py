@@ -27,10 +27,11 @@ import jsonschema
 #   SOA2USDM_BLIND        blind/<STUDY>/ — the PDF and PAGEMAP.md the agents see
 #   SOA2USDM_CALIB        a copy of the ACCEPTED corpus, for calibrating checks
 #   SOA2USDM_SCRATCH      throwaway collection for rehearsals
+#   SOA2USDM_BASELINE     per-table baseline JSON (default documents/re-extraction-baseline.json)
 REPO = Path(os.environ.get("SOA2USDM_REPO", Path(__file__).resolve().parents[1]))
 STAGING = Path(os.environ.get("SOA2USDM_STAGING", "staging"))
 BLIND = Path(os.environ.get("SOA2USDM_BLIND", "blind"))
-BASELINE = REPO / "documents" / "re-extraction-baseline.json"
+BASELINE = Path(os.environ.get("SOA2USDM_BASELINE", REPO / "documents" / "re-extraction-baseline.json"))
 SCHEMA = REPO / "schemas" / "soa-table-extraction.schema.json"
 PROMPT = REPO / "prompts" / "PDF_TO_JSON_PROMPT.md"
 _pv = re.search(r"Prompt version (\d+\.\d+\.\d+)", PROMPT.read_text())
