@@ -86,6 +86,12 @@ def own_study(path):
     return None
 
 
+def is_orchestrator(path):
+    """A transcript that spawns agents. It names every study it hands out, so it is checked for
+    FORBIDDEN paths and tools but not for cross-study reads."""
+    return any(tool in ("Agent", "Task") for tool, _ in tool_inputs(path))
+
+
 def main():
     dirs = [Path(d) for d in sys.argv[1:]]
     if not dirs:
@@ -101,6 +107,7 @@ def main():
     calls = Counter()
     for p in files:
         mine = own_study(p)
+        orchestrator = is_orchestrator(p)
         for tool, inp in tool_inputs(p):
             calls[tool] += 1
             hit = next((what for pat, what in FORBIDDEN_TOOLS if re.search(pat, tool)), None)
@@ -112,10 +119,13 @@ def main():
                     leaks.append((p.name, tool, what, inp[:200]))
                     break
             else:
-                for m in BLIND.finditer(inp):
-                    if mine and m.group(1) != mine:
-                        crosses.append((p.name, tool, mine, m.group(1)))
-                        break
+                if orchestrator or not mine:
+                    continue
+                # A study id anywhere in the input, not only in a blind-tree path: an agent that has
+                # cd'd into the blind tree reads other studies by relative path.
+                others = ({m.group(1) for m in BLIND.finditer(inp)} | set(STUDY.findall(inp))) - {mine}
+                if others:
+                    crosses.append((p.name, tool, mine, ",".join(sorted(others))))
 
     print(f"transcripts: {len(files)}   tool calls: {sum(calls.values())}")
     print("  " + ", ".join(f"{k} {v}" for k, v in calls.most_common(10)))
