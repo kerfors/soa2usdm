@@ -211,7 +211,7 @@ Each of these was investigated and closed in an earlier session. A fresh extract
 | Item | Study | Why it looks wrong | Why it is right |
 |---|---|---|---|
 | `xannot-023` | NCT04677179 | Identical PK note text on two rows reads as a cross-table binding conflict | The note genuinely prints twice — on *PK samples* and on the redacted *CCI* row below it, confirmed on doc p.22. A detector limitation, not a data defect. Still the only cross-table conflict in the corpus. |
-| 4 section headers | NCT04677179 | Row audit reports them as on-page-not-extracted (23 of the 33) | *Patient-Reported Outcomes (Electronic)*, *Clinician-Administered Questionnaires (Paper)*, *Laboratory Tests and Sample Collections*, *Stool Samples* are omitted consistently including in T1 — a sponsor convention, not loss |
+| 4 section headers | NCT04677179 | Before sweep 1 the row audit reported them as on-page-not-extracted (23 of the then 33) | *Patient-Reported Outcomes (Electronic)*, *Clinician-Administered Questionnaires (Paper)*, *Laboratory Tests and Sample Collections*, *Stool Samples* are extracted as mark-free activity rows (indent 0) in T1–T4 — the convention since sweep 1 (decision 2026-08-17). Omitting them is a regression. |
 | `xannot-035` | NCT04677179 | Reported orphaned | T4 c1 is `schedule_property` scope and the consolidator deliberately does not expand property refs to columns. Benign. |
 | ±3 vs ±5 window | NCT03693430 | V33 visit window inconsistent | **Confirmed source defect.** Both values legibly printed on the repeated header — ±3 on doc p9, ±5 on doc p11, body never restates. No tiebreaker, so first occurrence (±3) stands. Not an extraction error. |
 | soa.pdf p.5 flow chart | NCT03637764 | Row audit keeps reporting the page | **Out of scope by decision.** Rows are sample types, cells carry sample IDs and dosing-relative windows ("SOI", "EOI +30 min"), not marks — study timing, which the three-layer model does not carry. |
@@ -235,7 +235,7 @@ Do not expect these to improve, and treat any new "resolution" of them as fabric
 
 - **NCT04730349** — redaction boxes may hide rows; footnote `c` table-scope unconfirmed.
 - **NCT05176314**, **NCT05324124** — fully redacted CCI activity rows.
-- **NCT01847274** T3 — markers 4–15 have no printed definitions (see §4.2).
+- **NCT01847274** T3 — markers 4–15 have no printed definitions (see §4.1).
 - **NCT04677179** — 4 corrupt abbreviation-key fragments (T1 c23, T2/T3 c13, T4 c12) from the
   multi-column footnote block; left as found by decision.
 - **NCT04677179** T1 `c21_2` reads "Addition alc. Difficile testing" where doc p.23 reads
