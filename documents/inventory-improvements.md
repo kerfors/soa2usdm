@@ -304,7 +304,9 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 (h) A legend symbol printed with a superscript ('Xa', 'Xb') is one symbol; bind only its own legend entry. §6 sentence; CDISC_Pilot T1 sidecar removes 'X' from the 5 cells and from the X legend's `marker_locations`.
 (i) §1c sentence: map symbol-font private-use glyphs (U+F0B1 → '±') and U+2011 → '-'. gate.py: FAIL on any U+E000–U+F8FF in extraction text.
 (d), (e), (k) need no call: §4 '/' join example, floor, gate quote check as candidates above.
-Order: collections sidecars (a, g, h) · prompt 3.9.2 / taxonomy v9 text (b, c, d, e, f, g, h, i) · gate.py (i, k) · `apply_redactions.py` · repeat acceptance run.
+Order: collections sidecars (a, g, h) · prompt 3.9.2 text (b, c, d, e, f, g, h, i) · gate.py (i, k) · `apply_redactions.py` · repeat acceptance run.
+
+**Status 2026-09-28 (13:19–):** prompt 3.9.2 text (b)–(i) and gate.py (i: check 1c, FAIL on U+E000–U+F8FF; k: markdown stripped before the quote match) done, branch `prompt-3.9.2-2026-09-28`. Taxonomy unchanged (v8). Checks: `apply_redactions.py` 21 spans once, 0 identifiers; Tier-B scan of the added text against the four acceptance studies' published names (one example replaced); gate on the 47 published tables identical before / after; on the 3.9.1 acceptance output check 1c fires on NCT02107703 T1 (U+F0B1) and the quote false positive is gone; pytest 249 passed, 3 failed (14, 21e, 24b). Open: collections sidecars (a, g, h); repeat acceptance run.
 
 ---
 

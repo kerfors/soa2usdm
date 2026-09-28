@@ -89,6 +89,15 @@ def check_table(path, schema, base):
     if status != "ready_for_resolution":
         f.append(("1 schema", "FAIL", f"extraction_status={status!r}"))
 
+    # 1c — no private-use code points (prompt §1c, Symbol-font glyphs). A symbol font's glyph copied
+    # from the text layer (U+F0B1 where the page shows '±') is not a character anyone can read
+    # downstream; the 3.9.0 and 3.9.1 acceptance runs both shipped one while the report claimed '±'.
+    strings = []
+    json_strings(data, strings)
+    pua = sorted({f"U+{ord(c):04X}" for s in strings for c in s if 0xE000 <= ord(c) <= 0xF8FF})
+    if pua:
+        f.append(("1c characters", "FAIL", f"private-use code point(s) in text fields: {', '.join(pua)}"))
+
     # 14 — provenance (prompt v3.8.1+). The accepted corpus predates both fields, so their joint
     # absence is CHECK, not FAIL — otherwise calibration against calib/ would fail every table.
     # Once either field is present the table is v3.8.1+ output: prompt_version must match the repo
@@ -424,7 +433,9 @@ def check_quotes(study):
     # The extractor also reads the prompt and the taxonomy. A span quoted from them is verbatim
     # but is not evidence about the PDF, so it is skipped like the rule text in QUOTE_SKIP, not
     # counted as verified. Before this, such a span showed as unverified (sweep 2: 2 false positives).
-    instr = norm(PROMPT.read_text() + " ⏎ " + TAXONOMY.read_text())
+    # Markdown emphasis and code marks are stripped: a report quoting a rule sentence drops the
+    # backticks around a term (3.9.1 acceptance: 1 false positive).
+    instr = norm(re.sub(r"[`*]", "", PROMPT.read_text() + " ⏎ " + TAXONOMY.read_text()))
     instr_tight = re.sub(r"\s+", "", instr)
 
     out, n_ok, n_bad, n_skip = [], 0, 0, 0
