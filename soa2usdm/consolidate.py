@@ -243,8 +243,13 @@ class ActivityConsolidator:
 
         return None, 'new', 0.0
 
-    def process_table(self, table: dict, table_num: int, is_base: bool = False):
-        """Process activities from a resolved table."""
+    def process_table(self, table: dict, table_num: int, is_base: bool = False,
+                      merge_review_matches: bool = True):
+        """Process activities from a resolved table.
+
+        merge_review_matches=False keeps a fuzzy match below the auto threshold
+        ('fuzzy_review') as a separate activity instead of merging it — used between
+        main_soa tables, where a consolidation merge cannot be corrected later."""
         acts = table['activities']
         act_by_id = {a['activity_id']: a for a in acts}
         table_id = table['table_metadata']['table_id']
@@ -271,6 +276,8 @@ class ActivityConsolidator:
                 self.match_stats['new'] += 1
             else:
                 matched_ua, status, confidence = self._find_match(act, parent_name, table_num)
+                if status == 'fuzzy_review' and not merge_review_matches:
+                    matched_ua, status, confidence = None, 'new', 0.0
 
                 if matched_ua:
                     matched_ua.add_source(table_id, table_num, act['activity_id'],
@@ -460,8 +467,16 @@ class ColumnConsolidator:
             for p in table.get('schedule_properties', [])
         }
 
+    def _unified_property_id(self, prop_id: str, table_num: int) -> str:
+        """Unified id for a new unified property: the table's own id, unless an
+        earlier unified property already carries it (the same local id filed under
+        another level or qualifier key in another table) — then '<id>-t<table>'.
+        A duplicate id left two property_hierarchy entries with one id (item 26g)."""
+        used = {p.property_id for p in self.property_info.values()}
+        return prop_id if prop_id not in used else f"{prop_id}-t{table_num}"
+
     def _extract_column_properties(self, column: dict, 
-                                    prop_lookup: dict) -> List[ColumnPropertyValue]:
+                                    prop_lookup: dict, table_num: int) -> List[ColumnPropertyValue]:
         """Extract property values for a column."""
         result = []
         for cv in column.get('column_values', []):
@@ -489,7 +504,7 @@ class ColumnConsolidator:
                 
                 if prop_key not in self.property_info:
                     self.property_info[prop_key] = PropertyInfo(
-                        property_id=prop_id,
+                        property_id=self._unified_property_id(prop_id, table_num),
                         property_type=info['property_type'],
                         property_name=info['property_name'],
                         hierarchical_level=level,
@@ -545,7 +560,7 @@ class ColumnConsolidator:
         ]
 
         for col in data_cols:
-            prop_values = self._extract_column_properties(col, prop_lookup)
+            prop_values = self._extract_column_properties(col, prop_lookup, table_num)
 
             ucol = UnifiedColumn(
                 xcol_id=self._make_xcol_id(),
@@ -586,6 +601,17 @@ class ColumnConsolidator:
 # Annotation Consolidation
 # =============================================================================
 
+def is_table_scope_annotation(annot: dict) -> bool:
+    """A table-wide note (prompt §6): no element carries its marker, and every
+    marker_location is a schedule_property location — the table-scope convention.
+    Such a note binds nothing by design; it is not an orphan (item 25l)."""
+    refs = annot.get('referenced_elements', {})
+    if any(refs.get(k) for k in ('property_ids', 'column_ids', 'activity_ids', 'cell_references')):
+        return False
+    locs = annot.get('marker_locations') or []
+    return bool(locs) and all(loc.get('location_type') == 'schedule_property' for loc in locs)
+
+
 def normalize_annotation_text(text: str) -> str:
     """Normalize annotation text for duplicate detection."""
     # Lowercase, collapse whitespace, strip
@@ -604,6 +630,7 @@ class UnifiedAnnotation:
     referenced_xcols: list = field(default_factory=list)
     referenced_props: list = field(default_factory=list)
     cell_references: list = field(default_factory=list)
+    table_scope: bool = False
 
     def add_occurrence(self, table_num: int, marker: str, annot_id: str):
         """Add a source occurrence."""
@@ -648,7 +675,9 @@ class UnifiedAnnotation:
             'referenced_xcols': self.referenced_xcols,
             'referenced_props': self.referenced_props,
             'cell_references': self.cell_references,
-            'occurrence_count': len(self.source_occurrences)
+            'occurrence_count': len(self.source_occurrences),
+            # Exception-based: present only for a table-wide note (item 25l).
+            **({'annotation_scope': 'table'} if self.table_scope else {})
         }
 
 
@@ -724,6 +753,7 @@ class AnnotationConsolidator:
         
         # Map referenced elements to cross-table IDs
         refs = annot.get('referenced_elements', {})
+        table_scope = is_table_scope_annotation(annot)
         
         xacts = []
         for act_id in refs.get('activity_ids', []):
@@ -796,6 +826,8 @@ class AnnotationConsolidator:
             for cell_ref in cell_refs:
                 if cell_ref not in ua.cell_references:
                     ua.cell_references.append(cell_ref)
+            # Table scope only while every occurrence is table-wide.
+            ua.table_scope = ua.table_scope and table_scope
         else:
             # New unique annotation
             ua = UnifiedAnnotation(
@@ -806,7 +838,8 @@ class AnnotationConsolidator:
                 referenced_xacts=xacts,
                 referenced_xcols=xcols,
                 referenced_props=xprops,
-                cell_references=cell_refs
+                cell_references=cell_refs,
+                table_scope=table_scope
             )
             ua.add_occurrence(table_num, marker, annot_id)
             self.unified_annotations.append(ua)
@@ -1126,7 +1159,7 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
             or ua.get("referenced_props")
             or ua.get("cell_references")
         )
-        if not has_refs:
+        if not has_refs and ua.get("annotation_scope") != "table":
             result.warnings.append(
                 f"{xannot_id}: orphaned annotation \u2014 no referenced_xacts, "
                 f"referenced_xcols, referenced_props, or cell_references"
@@ -1338,9 +1371,13 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
     # Activity consolidation
     act_consolidator = ActivityConsolidator()
 
-    # Process main tables first as base
-    for num in tables_by_type.get('main_soa', []):
-        act_consolidator.process_table(tables[num], num, is_base=True)
+    # Process main tables first. Only the first (lowest-numbered) main_soa table is
+    # the base; a further main_soa table is matched against it like any other table.
+    # Base tables never match each other, so with every main table as a base a study
+    # with several main schedules split into parallel activity sets (inventory item 10).
+    for i, num in enumerate(sorted(tables_by_type.get('main_soa', []))):
+        act_consolidator.process_table(tables[num], num, is_base=(i == 0),
+                                       merge_review_matches=False)
 
     # Process remaining tables (except reference)
     for num in sorted(tables.keys()):

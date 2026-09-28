@@ -679,7 +679,9 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
         )
     )
     
-    # Post-resolution: warn about annotations with no referenced elements
+    # Post-resolution: warn about annotations with no referenced elements. A
+    # table-wide note (prompt §6: no element carries the marker, every location a
+    # schedule_property location) binds nothing by design — not an orphan (item 25l).
     orphan_count = 0
     for ra in resolved_annotations:
         refs = ra["referenced_elements"]
@@ -689,7 +691,10 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
             or refs.get("activity_ids")
             or refs.get("cell_references")
         )
-        if not has_any:
+        locs = ra.get("marker_locations") or []
+        table_wide = bool(locs) and all(
+            loc.get("location_type") == "schedule_property" for loc in locs)
+        if not has_any and not table_wide:
             orphan_count += 1
             marker = ra["annotation_marker"]
             text_preview = ra["annotation_text"][:50]

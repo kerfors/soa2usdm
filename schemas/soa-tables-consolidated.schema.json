@@ -305,7 +305,7 @@
       "properties": {
         "property_id": {
           "type": "string",
-          "description": "Property ID from source table"
+          "description": "Property ID from the first source table that contributed this property; suffixed '-t<table>' when that id is already used by another unified property"
         },
         "hierarchical_level": {
           "type": [
@@ -688,6 +688,11 @@
           "type": "integer",
           "minimum": 1,
           "description": "Number of times this annotation appears across tables"
+        },
+        "annotation_scope": {
+          "type": "string",
+          "enum": ["table"],
+          "description": "Present only for a table-wide note (prompt §6): no element carries its marker and every source location is a schedule_property location. It binds nothing by design and is not an orphan."
         }
       }
     },
