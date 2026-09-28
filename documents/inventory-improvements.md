@@ -199,6 +199,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small.
 
+**Status 2026-09-28: done** (with 24c). `activity_inventory`: a note bound to a mark (an `activity_schedule` cell) is listed under its activity with the column(s) it binds to (`columns`: the column's header values, empty and lone-dash values left out, e.g. 'ETV', 'Screening / -28 to -1'); a note already bound to the activity name is not listed twice; legend notes stay out as before. usdm_data: 75 consolidated entries gain a cell-bound note (NCT05051579 n10, NCT04677179 T4 c7, c12, c13, c15, c17 among them); misc_studies 50. A note bound to a header cell describes a column, not an activity, and is not listed under activities.
+
 ## 19 — NCT03637764: extract the two flow charts
 
 **Motivation.** Review item NCT03637764 T1 D1 is left open by decision (alternative, deferred). The 'Pharmacokinetics and Immunogenicity Flow Chart' (pp.22–23) and the 'Exploratory Biomarker Flow Chart' (p.24) carry the sample timing of the PK, ADA and biomarker rows of Table 1; since the group-K decision those rows carry only source_notes pr7/pr8 and no schedule data. A sidecar cannot add a table.
@@ -220,6 +222,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 **Sketch.** (a) An explicit link from a subsidiary table (or its rows) to the main-SoA activity it refines — derived from a resolved cross-reference source_note ('See … Flow Chart') or declared in `table_metadata` — used by consolidate as a refinement relation, not a name match. Related to item 3. (b) Link every `*_uncertainty_report.md` of a protocol. (c) A table filter or an expected-present list in gate. (d) `--study` on page_map.py. (e) Take the label-column count from the extraction's first data column; stop row detection at the footnote block. (f) Re-render the nav whenever the protocol's set of sibling pages changes.
 
 **Size.** (a) medium (schema + consolidate); (b)–(d), (f) small; (e) small to medium.
+
+**Status 2026-09-28:** (b) done — the nav and the collection index link every `<pid>*_uncertainty_report` of a protocol, its own first ('extraction log (flowcharts)' for NCT03637764). (c) done — `tools/gate.py --partial`: a baseline table absent from staging is reported 'not staged', not FAIL. (d) done — `tools/page_map.py --study` (repeatable). (f) done — a rendered viewer or report counts as current only when it carries the exact nav block that would be generated now, so a sibling page added later refreshes the nav of pages whose source did not change. (a), (e) open.
 
 ## 21 — Follow-ups from prompt 3.9.0 (items 11 + 15)
 
@@ -273,6 +277,7 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 **Size.** (a) small–medium (model + JS, test on NCT04677179). (b)–(d) small. (e) a measurement first.
 
 **Status 2026-09-27 (23:34–):** (a) and (b) done (branch `review-header-bands-2026-09-27`): each page band carries `prop` from `_column_map` (set on all 249 header bands, null elsewhere); the overlay selects and highlights by it in both directions; the Notes tab names the property. Checked on NCT04677179 T1 p.17 (header row 'Weeks from randomization' ↔ its band). Where no header band is recognised on the current page, nothing is highlighted. (c)–(e) open.
+**Status 2026-09-28:** (c) done — the table pane's columns are every header-grid column plus every mark column; `visit_hdr` / `week_hdr` removed (no published table changes its columns). (d) done — the table uses separated borders (`border-spacing: 0`, right / bottom cell borders), so no body strip shows between sticky header rows; not checked in a browser (the VM has none). (e) open.
 
 ## 24 — Follow-ups from the 22i / 21a sidecar session
 
@@ -283,6 +288,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 (d) *Review page, cell-level bindings.* The Notes tab names a cell binding as 'schedule_cell row R col C' (activity or property rows are named since 23b); the table pane draws note markers only on activity names — no marker on marks, header cells or header-row names (e.g. T4 c1 on the V801 / V802 Weeks cells, c15 on Vital signs × V997, t1 on V802, c2 on Fasting visit). Candidate: name the row and column label in the Notes tab; draw the markers in the table pane.
 
 **Size.** (a) small (code). (b) small (test / consolidate). (c) small to medium. (d) small (review_page.py).
+
+**Status 2026-09-28:** (a) done, differently from the candidate — taking the last correction is wrong where later corrections are companions of one decision (NCT01797120 D1 corr-006..008, NCT05176314 D1 corr-025..026), so `review_status` keeps `correction_id` (the first) and adds `correction_ids` (all, in sidecar order); the review page shows them all ('decided · corr-003, corr-004, corr-005' for CDISC_Pilot D3). (c) done with item 18. (d) done — the table pane draws note markers where they are printed: activity name, mark, header row name, header cell (a marker equal to the cell's own symbol, the 'X' legend on an 'X' mark, is left out; 'Xa' keeps its 'a'); the Notes tab names a cell binding by its row and column labels ('Vital signs × V997 …'). Checked by running the page script (jsdom): no errors, markers placed, no 'schedule_cell row' left. With items 18, 20b–d/f, 23c–d: 42 derived files change (24 review pages, NCT03637764 pages and report links, both activity inventories, the usdm_data index); pytest 252 passed.
 
 **Status 2026-09-28:** (b) done in the test — `EXPECTED_OVERLAP_PAIRS` pins NCT04677179 at 3 source-faithful pairs (T1 c16 / c17 pregnancy notes; T3 t5 / t6 remote-visit note per tile, review D10; T4 c12 / c13 colon biopsy split, 22i); any other count fails. Consolidate still logs its fragment warning for this study (warning only, threshold 3).
 

@@ -142,13 +142,20 @@ def main():
     ap.add_argument("--front", action="append", default=[], help="extra pages are at the FRONT")
     ap.add_argument("--back", action="append", default=[], help="extra pages are at the BACK")
     ap.add_argument("--explicit", default=None, help='JSON {"STUDY": [63,64,72,78]} for a non-contiguous excerpt')
+    ap.add_argument("--study", action="append", default=[],
+                    help="map only this study (repeatable); default: every study in the manifest (item 20d)")
     args = ap.parse_args()
 
     explicit = json.loads(Path(args.explicit).read_text()) if args.explicit else {}
     manifest, root = read_manifest(args.collection)
     undecided = []
 
+    unknown = sorted(set(args.study) - set(manifest))
+    if unknown:
+        sys.exit(f"--study not in the {args.collection} manifest: {', '.join(unknown)}")
     for study, (a, b) in sorted(manifest.items()):
+        if args.study and study not in args.study:
+            continue
         pdf = root / study / f"{study}_soa.pdf"
         if not pdf.exists():
             print(f"  {study:<14} no _soa.pdf — skipped")

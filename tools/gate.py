@@ -471,7 +471,11 @@ def check_quotes(study):
 def main():
     schema = json.loads(SCHEMA.read_text())
     base = {(r["study"], r["table"]): r for r in json.loads(BASELINE.read_text())["per_table_metrics"]}
-    studies = sys.argv[1:] or sorted(p.name for p in STAGING.iterdir() if p.is_dir())
+    # --partial: only some tables of a study are staged (tables added to an accepted study, item 20c).
+    # A baseline table absent from staging is then reported, not failed.
+    argv = sys.argv[1:]
+    partial = "--partial" in argv
+    studies = [a for a in argv if a != "--partial"] or sorted(p.name for p in STAGING.iterdir() if p.is_dir())
 
     # The committed baseline JSON predates the binding metric, so derive it from the accepted corpus
     # rather than editing a signed-off artefact. Absent CALIB, check 12 simply does not run.
@@ -532,6 +536,8 @@ def main():
                 why = EXPECTED_ABSENT.get((s, t))
                 if why:
                     print(f"\n-- Table {t:02d} -- absent from staging, EXPECTED: {why}")
+                elif partial:
+                    print(f"\n-- Table {t:02d} -- not staged (--partial run): baseline table not checked")
                 else:
                     print(f"\n-- Table {t:02d} -- MISSING from staging (baseline has it)")
                     total_fail += 1

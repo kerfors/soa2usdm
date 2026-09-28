@@ -31,12 +31,14 @@ def esc(text) -> str:
 _NAV_MARKER = '<nav class="pnav"'
 
 
-def _is_current(html_path: Path, src_path: Path) -> bool:
+def _is_current(html_path: Path, src_path: Path, nav_html: str | None = None) -> bool:
     """True when the rendered HTML is newer than its source and already
-    carries the shared navigation block."""
+    carries the shared navigation block — with nav_html given, exactly that
+    block: a sibling page added later (a table, a report) changes the nav of
+    pages whose own source did not change (item 20f)."""
     return (html_path.exists()
             and html_path.stat().st_mtime >= src_path.stat().st_mtime
-            and _NAV_MARKER in html_path.read_text(encoding='utf-8'))
+            and (nav_html or _NAV_MARKER) in html_path.read_text(encoding='utf-8'))
 
 
 def load_study_metadata(collection_path: Path) -> dict:
@@ -167,13 +169,21 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 continue
             if ext == '.md':
                 report_html = report.with_suffix('.html')
-                if not _is_current(report_html, report):
-                    _render_markdown_html(report, report_html, protocol_id, collection_path,
-                                          collection, title="Extraction log", current="log")
+                _render_markdown_html(report, report_html, protocol_id, collection_path,
+                                      collection, title="Extraction log", current="log")
                 result['report_file'] = str(report_html.relative_to(collection_path))
             else:
                 result['report_file'] = f"{protocol_id}/SoA2USDM/extracted/{report.name}"
             break
+        # Further reports of the same protocol, e.g. '<pid>_flowcharts_uncertainty_report.md' for
+        # tables added to an accepted study (item 20b).
+        result['extra_reports'] = []
+        for report in sorted(extracted_dir.glob(f"{protocol_id}_*_uncertainty_report.md")):
+            infix = report.name[len(protocol_id) + 1:-len("_uncertainty_report.md")]
+            report_html = report.with_suffix('.html')
+            _render_markdown_html(report, report_html, protocol_id, collection_path, collection,
+                                  title=f"Extraction log ({infix})", current="log", current_n=infix)
+            result['extra_reports'].append((infix, str(report_html.relative_to(collection_path))))
 
     # Resolved HTMLs + JSONs
     resolved_dir = soa_folder / "resolved"
@@ -249,9 +259,8 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
         if eval_files:
             md_file = eval_files[-1]  # latest version
             html_file = md_file.with_suffix('.html')
-            # Generate HTML wrapper if missing or stale
-            if not _is_current(html_file, md_file):
-                _render_markdown_html(md_file, html_file, protocol_id, collection_path, collection)
+            # Generate HTML wrapper if missing or stale (the check is inside)
+            _render_markdown_html(md_file, html_file, protocol_id, collection_path, collection)
             rel = html_file.relative_to(collection_path)
             result['usdm_evaluation'] = str(rel)
             result['usdm_evaluation_label'] = md_file.stem  # filename without extension
@@ -262,14 +271,17 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
 
 def _render_markdown_html(md_path: Path, html_path: Path, protocol_id: str, collection_path: Path,
                           collection: str, title: str = "USDM Readiness Evaluation",
-                          current: str = None):
-    """Render a per-protocol markdown report as styled HTML."""
+                          current: str = None, current_n=None):
+    """Render a per-protocol markdown report as styled HTML, unless the page is
+    current (newer than its source and carrying today's nav block)."""
     # Depth below the collection index — reports can sit at the protocol
     # root, in SoA2USDM/, or in a layer subfolder.
     rel_to_collection = html_path.relative_to(collection_path)
     depth = len(rel_to_collection.parts) - 1
     nav_html = nav_block(collection, protocol_id, title, depth=depth,
-                         current=(current, None))
+                         current=(current, current_n))
+    if _is_current(html_path, md_path, nav_html):
+        return
 
     try:
         import markdown
@@ -330,13 +342,13 @@ def _render_json_html(json_path: Path, collection_path: Path, protocol_id: str,
     """
     viewer_path = json_path.with_name(json_path.stem + '_viewer.html')
 
-    # Skip if viewer is up to date
-    if _is_current(viewer_path, json_path):
-        return str(viewer_path.relative_to(collection_path))
-
     rel_to_collection = viewer_path.relative_to(collection_path)
     depth = len(rel_to_collection.parts) - 1
     nav_html = nav_block(collection, protocol_id, page_label, depth=depth, current=current)
+
+    # Skip if viewer is up to date, nav included
+    if _is_current(viewer_path, json_path, nav_html):
+        return str(viewer_path.relative_to(collection_path))
 
     # Read and escape JSON content
     json_text = json_path.read_text(encoding='utf-8')
@@ -637,6 +649,8 @@ def generate_index_html(collection: str) -> str:
         report_html = ''
         if p.get('report_file'):
             report_html = f'<a href="{p["report_file"]}" class="link-report" title="The extractor\'s own account of the run: what it decided and where it was unsure">extraction log</a>'
+        for infix, path in p.get('extra_reports', []):
+            report_html += f' <a href="{path}" class="link-report" title="Extraction log of a later session on this protocol ({esc(infix)})">extraction log ({esc(infix)})</a>'
 
         # USDM readiness column
         usdm_html = ''

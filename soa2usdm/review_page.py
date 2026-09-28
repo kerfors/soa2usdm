@@ -110,20 +110,26 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
     activities = {a["row_position"]: a for a in extraction["activities"]}
     props = {p["row_position"]: p for p in extraction["schedule_properties"]}
     marks: dict[int, set[int]] = {}
+    # Note markers on single cells (a mark, a header cell), drawn where they are printed (item 24d).
+    # A marker that is the cell's own symbol is left out: the 'X' legend bound to every 'X' mark
+    # would only repeat the mark ('Xa' keeps its 'a').
+    cell_markers: dict[int, dict[int, list]] = {}
     for c in extraction["activity_schedule"]:
         marks.setdefault(c["row_position"], set()).add(c["column_position"])
+        ms = [m for m in _markers(c.get("annotation_markers")) if m != (c.get("cell_value") or "").strip()]
+        if ms:
+            cell_markers.setdefault(c["row_position"], {})[c["column_position"]] = ms
     grid: dict[int, dict[int, str]] = {}
+    grid_markers: dict[int, dict[int, list]] = {}
     for g in extraction["schedule_grid"]:
         grid.setdefault(g["row_position"], {})[g["column_position"]] = g["cell_value"]
+        ms = [m for m in _markers(g.get("annotation_markers")) if m != (g.get("cell_value") or "").strip()]
+        if ms:
+            grid_markers.setdefault(g["row_position"], {})[g["column_position"]] = ms
 
-    # Column headers for the table pane: the visit-typed property row, then the
-    # week-typed one; fall back to the last two header rows when types are absent.
-    by_type = {p["property_type"]: rp for rp, p in props.items()}
-    visit_row = by_type.get("visit") or max(props, default=None)
-    week_row = by_type.get("week")
-    visit_hdr = grid.get(visit_row, {}) if visit_row else {}
-    week_hdr = grid.get(week_row, {}) if week_row else {}
-    data_cols = sorted(set(visit_hdr) | set(week_hdr) | {c for cols in marks.values() for c in cols})
+    # Table-pane columns: every header-grid column and every column carrying a mark. Built from
+    # the visit / week rows alone, a column present only in another header row was dropped (item 23c).
+    data_cols = sorted({c for vals in grid.values() for c in vals} | {c for cols in marks.values() for c in cols})
 
     annotations = []
     for an in extraction["annotations"]:
@@ -226,14 +232,16 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
     return {
         "number": tnum, "title": meta["table_title"], "type": meta["table_type"],
         "doc_pages": [meta["page_start"], meta["page_end"]], "sidecar": sidecar.name if sidecar else None,
-        "data_cols": data_cols, "visit_hdr": visit_hdr, "week_hdr": week_hdr,
+        "data_cols": data_cols,
         "props": [{"row": rp, "name": p["property_name"], "type": p["property_type"],
-                   "values": grid.get(rp, {})}
+                   "values": grid.get(rp, {}), "markers": _markers(p.get("annotation_markers")),
+                   "cell_markers": grid_markers.get(rp, {})}
                   for rp, p in sorted(props.items())],
         "activities": [{"row": rp, "name": a["activity_name"],
                         "indent": a["activity_name_source"].get("indentation_level", 0),
                         "doc_page": a.get("source_page"), "markers": _markers(a.get("annotation_markers")),
-                        "marks": sorted(marks.get(rp, set())), "band": list(matched.get(rp, (None, None))),
+                        "marks": sorted(marks.get(rp, set())), "cell_markers": cell_markers.get(rp, {}),
+                        "band": list(matched.get(rp, (None, None))),
                         "is_header": bool(a.get("is_section_header")), "is_redacted": rp in redacted,
                         "name_composed": a["activity_name_source"].get("cell_text") != a["activity_name"]}
                        for rp, a in sorted(activities.items())],
@@ -337,7 +345,7 @@ def build_review_model(protocol_id: str, collection: str) -> dict:
                                    page_imgs, image_rel, extra_pages=extra, unreadable=unreadable))
 
     status = review_status(config.get_extracted_dir(protocol_id, collection))
-    decided = {i["id"]: i["correction_id"] for i in status["items"] if i["decided"]}
+    decided = {i["id"]: ", ".join(i["correction_ids"]) for i in status["items"] if i["decided"]}
     cons_file = config.find_consolidated_file(protocol_id, collection)
     consolidated = _load(cons_file) if cons_file else None
 
@@ -483,8 +491,8 @@ ul.plain{padding-left:18px;margin:6px 0}
 .foldcard .src{cursor:pointer;color:var(--blue2)}
 .foldcard .src:hover{text-decoration:underline}
 #tablewrap{overflow:auto;height:calc(56vh - 264px);min-height:220px}
-table.soa{border-collapse:collapse;font-size:12px;width:100%;background:#fff}
-table.soa th,table.soa td{border:1px solid var(--line);padding:2px 6px;white-space:nowrap}
+table.soa{border-collapse:separate;border-spacing:0;border-top:1px solid var(--line);border-left:1px solid var(--line);font-size:12px;width:100%;background:#fff}
+table.soa th,table.soa td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:2px 6px;white-space:nowrap}
 table.soa thead{position:sticky;top:0;z-index:2}
 table.soa thead th{background:#fafbfc;font-weight:600}
 table.soa th.name{min-width:280px;white-space:normal;text-align:left}
@@ -649,12 +657,16 @@ function gotoRow(tableNum, row, cls){
 }
 
 // ---------- table pane
+// Note markers as clickable superscripts, wherever they are printed: activity name, mark, header row, header cell.
+function sup(ms){ return (ms||[]).map(m=>`<sup class="mk" data-m="${esc(m)}" title="note ${esc(m)}">${esc(m)}</sup>`).join(''); }
+// A column named by its header values, empty and lone-dash values left out ('ETV', 'Screening / -28 to -1').
+function colLabel(c){ return T().props.map(p=>p.values[c]).filter(v=>v&&!/^[—–-]$/.test(v.trim())).join(' / ')||('column '+c); }
 function buildTable(){
  const t=T(), el=document.getElementById('soa'), cols=t.data_cols;
  const foldsByRow={}; D.across.folds.forEach(f=>f.sources.forEach(s=>{ if(s.table===t.number) (foldsByRow[s.row]=foldsByRow[s.row]||[]).push(f); }));
  const badByRow={}; t.checks.mark_disagreements.forEach(d=>{(badByRow[d.row]=badByRow[d.row]||[]).push(d.col)});
  let h='<thead>';
- t.props.forEach(p=>{ h+=`<tr class="hdr" data-prop="${p.row}"><th class="name">${esc(p.name)} <span class="badge cm">header · ${esc(p.type)}</span></th>`+cols.map(c=>`<th>${esc(p.values[c]||'')}</th>`).join('')+'</tr>'; });
+ t.props.forEach(p=>{ h+=`<tr class="hdr" data-prop="${p.row}"><th class="name">${esc(p.name)}${sup(p.markers)} <span class="badge cm">header · ${esc(p.type)}</span></th>`+cols.map(c=>`<th>${esc(p.values[c]||'')}${sup(p.cell_markers[c])}</th>`).join('')+'</tr>'; });
  h+='</thead><tbody>';
  t.activities.forEach(a=>{
   const marks=new Set(a.marks), bad=new Set(badByRow[a.row]||[]);
@@ -664,9 +676,9 @@ function buildTable(){
   if(a.name_composed) badges.push('<span class="badge cm" title="the name was composed from more than one printed cell">composed name</span>');
   if(bad.size) badges.push(`<span class="badge bad">${bad.size} marks differ</span>`);
   (foldsByRow[a.row]||[]).forEach(f=>{ const others=f.sources.filter(s=>!(s.table===t.number&&s.row===a.row)); badges.push(`<span class="badge fold" data-x="${f.xact_id}" title="${esc(f.status)} — same activity as: ${esc(others.map(o=>'Table '+o.table+' row '+o.row).join(', '))}">${f.status==='exact'?'also in':'matched to'} ${others.map(o=>'T'+o.table).join(' ')}</span>`); });
-  const sups=a.markers.map(m=>`<sup class="mk" data-m="${esc(m)}" title="note ${esc(m)}">${esc(m)}</sup>`).join('');
+  const sups=sup(a.markers);
   h+=`<tr class="act${a.is_header?' sect':''}" data-row="${a.row}"><td class="name" style="padding-left:${a.indent*18+4}px">${esc(a.name)}${sups}${badges.join('')}${a.doc_page?`<span class="small" style="float:right">p.${a.doc_page}</span>`:''}</td>`;
-  cols.forEach(c=>{ h+=`<td class="mark${bad.has(c)?' bad':''}">${marks.has(c)?'✕':''}</td>`; });
+  cols.forEach(c=>{ h+=`<td class="mark${bad.has(c)?' bad':''}">${marks.has(c)?'✕':''}${sup(a.cell_markers[c])}</td>`; });
   h+='</tr>';
  });
  el.innerHTML=h+'</tbody>';
@@ -753,7 +765,15 @@ function buildNotes(){
  t.annotations.forEach(a=>{
   const rows=a.rows.map(r=>`${esc(rowLabel(r.row))}${r.method==='text_match'?' (by name)':(r.method&&r.method!=='proximity'?'*':'')}`);
   const props=a.prop_rows.map(r=>`${esc(t.props.find(p=>p.row===r.row).name)}*`);
-  const other=a.other.map(r=>`${esc(r.type)}${r.row?' row '+r.row:''}${r.col?' col '+r.col:''}`);
+  const other=a.other.map(r=>{
+   // A cell binding named by its row and column labels: 'Vital signs × V997' (item 24d).
+   if(r.type==='schedule_cell' && r.row!=null && r.col!=null){
+    const p=t.props.find(x=>x.row===r.row), act=t.activities.find(x=>x.row===r.row);
+    const rl=act?rowLabel(r.row):(p?p.name:'row '+r.row);
+    return `${esc(rl)} × ${esc(colLabel(r.col))}${r.method==='text_match'?' (by name)':''}`;
+   }
+   return `${esc(r.type)}${r.row?' row '+r.row:''}${r.col?' col '+r.col:''}`;
+  });
   h+=`<div class="notecard" data-m="${esc(a.marker)}"><span class="m">${esc(a.marker)}</span> <span class="small">${esc(a.type)}</span> <span class="rows">→ ${[...rows,...props,...other].join('; ')||'no row'}</span><div>${esc(a.text)}</div></div>`;
  });
  el.innerHTML=h;

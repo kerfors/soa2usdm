@@ -97,7 +97,10 @@ def review_status(extracted_dir: Path) -> dict:
     may add items), else from the raw file. An item is decided exactly when a
     correction in that table's sidecar names it in `review_item`; nothing else
     records a decision. Returns {"total", "open", "decided", "items"} where
-    items is a list of {"id", "table_number", "decided", "correction_id"}.
+    items is a list of {"id", "table_number", "decided", "correction_id",
+    "correction_ids"}: correction_id is the first correction naming the item,
+    correction_ids all of them in sidecar order — a decision can take several
+    corrections, and a later one can supersede an earlier confirm (item 24a).
     """
     items = []
     for raw_path in sorted(extracted_dir.glob("*_extraction.json")):
@@ -111,13 +114,14 @@ def review_status(extracted_dir: Path) -> dict:
             with open(sidecar) as f:
                 for c in json.load(f)["corrections"]:
                     if "review_item" in c:
-                        decided.setdefault(c["review_item"], c["id"])
+                        decided.setdefault(c["review_item"], []).append(c["id"])
         for item in doc.get("review_items", []):
             items.append({
                 "id": item["id"],
                 "table_number": doc["table_metadata"]["table_number"],
                 "decided": item["id"] in decided,
-                "correction_id": decided.get(item["id"]),
+                "correction_id": decided[item["id"]][0] if item["id"] in decided else None,
+                "correction_ids": decided.get(item["id"], []),
             })
     return {
         "total": len(items),

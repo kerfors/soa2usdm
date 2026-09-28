@@ -69,10 +69,10 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
 
     extraction: [(n, href)] JSON viewers (from the *_extraction.json files —
     the viewer HTML is regenerated with the index, in the same batch).
-    resolved: [(n, href)] per-table resolved pages. consolidated / review /
-    log: href or None. The log href is emitted when the uncertainty report
-    exists as .md or already-rendered .html (the .html is rendered with the
-    index, same batch).
+    resolved: [(n, href)] per-table resolved pages. consolidated / review:
+    href or None. logs: [(infix, href)] one per uncertainty report (infix None
+    for the protocol's own report), emitted when the report exists as .md or
+    already-rendered .html (the .html is rendered with the index, same batch).
     """
     soa = config.get_protocol_path(protocol_id, collection) / "SoA2USDM"
     ext_dir, res_dir, cons_dir = soa / "extracted", soa / "resolved", soa / "consolidated"
@@ -91,16 +91,22 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
 
     cons = cons_dir / f"{protocol_id}_consolidated.html"
     review = ext_dir / f"{protocol_id}_review.html"
-    log_html = ext_dir / f"{protocol_id}_uncertainty_report.html"
-    log_md = ext_dir / f"{protocol_id}_uncertainty_report.md"
+    # Every uncertainty report of the protocol, its own first: a study can carry more than one
+    # (NCT03637764 since item 19: '<pid>_flowcharts_uncertainty_report'). Item 20b.
+    logs = []
+    if ext_dir.is_dir():
+        stems = {f.name[:-len(sfx)] for sfx in ("_uncertainty_report.md", "_uncertainty_report.html")
+                 for f in ext_dir.glob(f"{protocol_id}*{sfx}")}
+        for stem in sorted(stems, key=lambda s: (s != protocol_id, s)):
+            infix = stem[len(protocol_id) + 1:] or None
+            logs.append((infix, f"SoA2USDM/extracted/{stem}_uncertainty_report.html"))
 
     return {
         "extraction": extraction,
         "resolved": resolved,
         "consolidated": f"SoA2USDM/consolidated/{cons.name}" if cons.exists() else None,
         "review": f"SoA2USDM/extracted/{review.name}" if review.exists() else None,
-        "log": f"SoA2USDM/extracted/{log_html.name}"
-               if (log_html.exists() or log_md.exists()) else None,
+        "logs": logs,
     }
 
 
@@ -145,8 +151,9 @@ def nav_block(collection: str, protocol_id: str, page_label: str, depth: int,
         groups.append(link(sib["consolidated"], "consolidated", kind == "consolidated"))
     if sib["review"] or kind == "review":
         groups.append(link(sib["review"] or "", "review", kind == "review"))
-    if sib["log"]:
-        groups.append(link(sib["log"], "extraction log", kind == "log"))
+    for infix, href in sib["logs"]:
+        label = "extraction log" + (f" ({_esc(infix)})" if infix else "")
+        groups.append(link(href, label, kind == "log" and cur_n == infix))
 
     strip = f'<div class="pnav-sib">{f" {dot} ".join(groups)}</div>' if groups else ""
     return (f'<nav class="pnav" aria-label="Breadcrumb">'

@@ -87,6 +87,22 @@ def _collect(collection: str):
             tid = tm.get("table_id")
             by_id = {a["activity_id"]: a for a in d.get("activities", [])}
             ann_by_id = {an["annotation_id"]: an for an in d.get("annotations", [])}
+            # Notes bound to a mark (activity_schedule cell) belong to that activity too; they
+            # carry the column(s) they bind to. Items 18 / 24c: without this, moving a note from
+            # the row to the cell it names dropped it from the inventory.
+            # The composite label joins every header row's value; empty and lone-dash values
+            # ('ETV / — / — / —') carry nothing for a reader and are left out.
+            col_label = {c["column_id"]: " / ".join(
+                             v for v in c.get("composite_label", "").split(" / ")
+                             if v.strip() not in ("", "—", "–", "-"))
+                         for c in d.get("schedule_columns", [])}
+            cell_anns = {}
+            for s in d.get("activity_schedule", []):
+                for aid in s.get("linked_annotation_ids") or []:
+                    cols = cell_anns.setdefault(s["activity_id"], {}).setdefault(aid, [])
+                    label = col_label.get(s["column_id"], "")
+                    if label not in cols:
+                        cols.append(label)
             for a in d.get("activities", []):
                 resolved_lookup[(pid, tid, a["activity_id"])] = {
                     "table_number": tm.get("table_number"),
@@ -102,11 +118,18 @@ def _collect(collection: str):
                 # scope — carrying them onto rows put "ulcerative colitis" on a
                 # Dosing row. Excluded from row lists, counts and search; they
                 # remain in the resolved/consolidated data and viewers.
+                row_ids = a.get("linked_annotation_ids", [])
                 row_anns = [{"marker": ann_by_id[aid]["annotation_marker"],
                              "table_number": tm.get("table_number"),
                              "text": ann_by_id[aid]["annotation_text"]}
-                            for aid in a.get("linked_annotation_ids", [])
+                            for aid in row_ids
                             if ann_by_id[aid]["annotation_type"] != "legend"]
+                row_anns += [{"marker": ann_by_id[aid]["annotation_marker"],
+                              "table_number": tm.get("table_number"),
+                              "text": ann_by_id[aid]["annotation_text"],
+                              "columns": cols}
+                             for aid, cols in cell_anns.get(a["activity_id"], {}).items()
+                             if aid not in row_ids and ann_by_id[aid]["annotation_type"] != "legend"]
                 ann_lookup[(pid, tid, a["activity_id"])] = row_anns
                 par = by_id.get(a.get("parent_activity_id"))
                 source_rows.append({
@@ -342,11 +365,11 @@ function conRow(r,i){
 function detailRow(r){
  const vars=(r.variants||[]).length>1?`<div class="var">wording variants folded: <b>${r.variants.map(eh).join('</b> · <b>')}</b></div>`:'';
  const orows=(r.occurrences||[]).map(o=>`<tr><td class="tbl"><b>T${eh(o.table_number)}</b>${o.track_label?' · '+eh(o.track_label):''} <span class="tt" style="display:inline" title="${eh(o.table_title)}">${eh(o.table_title)}</span></td><td class="rp">${eh(o.row_position)}</td><td>${eh(o.verbatim_name)}</td><td class="rp">${o.has_schedule_data===false?'no marks':(o.has_schedule_data===true?'✓':'')}</td></tr>`).join('');
- const fns=(r.annotations||[]).length?`<div class="fnh">Linked annotations — deduplicated by text across source tables (marker · first table)</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="rp">T${eh(a.table_number)}</span> ${eh(a.text)}</div>`).join(''):'';
+ const fns=(r.annotations||[]).length?`<div class="fnh">Linked annotations — deduplicated by text across source tables (marker · first table · column(s) for a note bound to a mark)</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="rp">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span> ${eh(a.text)}</div>`).join(''):'';
  return `<tr class="detail"><td colspan="6">${vars}<table class="otab"><thead><tr><th>Source table</th><th>Row</th><th>As extracted (verbatim)</th><th>Marks</th></tr></thead><tbody>${orows}</tbody></table>${fns}</td></tr>`;
 }
 function srcDetailRow(r){
- const fns=`<div class="fnh">Linked annotations — this table row</div>`+(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b> ${eh(a.text)}</div>`).join('');
+ const fns=`<div class="fnh">Linked annotations — this table row (column(s) for a note bound to a mark)</div>`+(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b>${a.columns?'<span class="rp">'+eh(a.columns.join('; '))+'</span>':''} ${eh(a.text)}</div>`).join('');
  return `<tr class="detail"><td colspan="7">${fns}</td></tr>`;
 }
 function srcRow(r,i){
