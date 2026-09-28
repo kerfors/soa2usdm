@@ -220,6 +220,7 @@ Each of these was investigated and closed in an earlier session. A fresh extract
 |---|---|---|---|
 | PK note (`xannot-026` at collections `842867b`) | NCT04677179 | Identical PK note text on two rows reads as a cross-table binding conflict | The note genuinely prints twice — on *PK samples* and on the redacted *CCI* row below it, confirmed on doc p.22. A detector limitation, not a data defect. |
 | 4 section headers | NCT04677179 | Before sweep 1 the row audit reported them as on-page-not-extracted (23 of the then 33) | *Patient-Reported Outcomes (Electronic)*, *Clinician-Administered Questionnaires (Paper)*, *Laboratory Tests and Sample Collections*, *Stool Samples* are extracted as mark-free activity rows (indent 0) in T1–T4 — the convention since sweep 1 (decision 2026-08-17). Omitting them is a regression. |
+| `xannot-022` (at collections `842867b`) | NCT02291289 | Detector reports a cross-table conflict: T1 binds the Supplemental Biomarker closure note to Stool sample only, T2–T5 to Metastatic tumour tissue and Stool sample | Source-faithful: T1 prints the sentence under Stool sample only (another sub-line under the tissue row), T2 under both rows — doc pp.170, 175. |
 | ±3 vs ±5 window | NCT03693430 | V33 visit window inconsistent | **Confirmed source defect.** Both values legibly printed on the repeated header — ±3 on doc p9, ±5 on doc p11, body never restates. No tiebreaker, so first occurrence (±3) stands. Not an extraction error. |
 
 ### 5.2 Restorations that must survive
