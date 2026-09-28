@@ -384,9 +384,15 @@ def check_review_items(study):
     reports = sorted(d.glob("*_uncertainty_report.md"))
     if not reports:
         return [("13 review", "WARN", "no report found")]
-    text = reports[0].read_text()
-    block = re.search(r"^## Decisions needed \((\d+)\)(.*?)(?=^## |\Z)", text, re.M | re.S)
-    in_report = set(DECISION_ROW.findall(block.group(2))) if block else set()
+    # A study can carry more than one report (NCT03637764 since item 19: the protocol report and the
+    # flow-chart report). Every report's block counts; the ids are compared over their union (item 21d).
+    blocks = []
+    for rp in reports:
+        m = re.search(r"^## Decisions needed \((\d+)\)(.*?)(?=^## |\Z)", rp.read_text(), re.M | re.S)
+        if m:
+            blocks.append((rp.name, int(m.group(1)), set(DECISION_ROW.findall(m.group(2)))))
+    block = bool(blocks)
+    in_report = set().union(*(rows for _, _, rows in blocks))
     in_data, carried = [], 0
     for p in sorted(d.glob("*_extraction.json")):
         doc = json.loads(p.read_text())
@@ -402,8 +408,9 @@ def check_review_items(study):
         return out
     if not block:
         out.append(("13 review", "FAIL", "report has no '## Decisions needed (N)' block"))
-    elif int(block.group(1)) != len(in_report):
-        out.append(("13 review", "FAIL", f"block says ({block.group(1)}) but lists {len(in_report)} rows"))
+    for name, n, rows in blocks:
+        if n != len(rows):
+            out.append(("13 review", "FAIL", f"{name}: block says ({n}) but lists {len(rows)} rows"))
     if len(in_data) != len(set(in_data)):
         out.append(("13 review", "FAIL", f"duplicate review_items ids across tables: {sorted(in_data)}"))
     only_report, only_data = in_report - set(in_data), set(in_data) - in_report

@@ -153,6 +153,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small.
 
+**Status 2026-09-28: done.** `is_legend_annotation`: a `;` segment that is neither a definition nor carries an '=' may be at most a 4-word OCR remnant; a longer one is explanatory text quoting an abbreviation line. Over the corpus and fixtures (1,629 annotations) only NCT03283098 T3 annot-001 changes (legend → its extracted `footnote`); the four NCT04677179 fixture fragments and the labelled abbreviation list still match; `EXPECTED_LEGEND_RETYPES` unchanged. The note is added as a verbatim negative to `test_legend_pattern_on_real_corpus_texts`.
+
 ## 15 — Prompt: state the review rules the extractions already follow
 
 **Motivation.** The 2026-09-27 review decided 111 of the 112 open sweep-2 review items; 106 were confirms. Most confirms apply one of a few rules the extractions follow already but the prompt does not state, so the same call is flagged again in every study. Rules as decided (each is quoted in the confirm reasons of the collections sidecars):
@@ -233,6 +235,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** (a), (b), (e) small, sidecar or test; (c), (d) small, gate; (f) small to medium; (g) medium.
 
+**Status 2026-09-28:** (d) done — gate check 13 reads the Decisions-needed block of every `*_uncertainty_report.md` of the study and compares the union of their ids with the review_items (each block's count checked on its own); NCT03637764 FAIL → OK, 13 decisions; single-report studies unchanged. (e) done — Table 02 prints its markers on the group bands themselves ('Pharmacokinetics a,i', 'Immunogenicity (ADA) a,e,i', doc p.22, checked on the page), so the 3 bindings are correct; `EXPECTED_HEADER_BOUND` gets NCT03637764: 3.
+
 **Status 2026-09-27 (23:43–):** (a) done — CDISC_Pilot T1 corr-004..007 remove ab1/ab2 and clear the ET / RT header cells (the markers sat on the two VISIT grid cells, not on the property row). corr-003 (confirm) stays as history; D3 is decided either way (item 24a). (b)–(h) open.
 
 ## 22 — Prompt 3.9.0 acceptance test: rule gaps and conventions
@@ -279,6 +283,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 (d) *Review page, cell-level bindings.* The Notes tab names a cell binding as 'schedule_cell row R col C' (activity or property rows are named since 23b); the table pane draws note markers only on activity names — no marker on marks, header cells or header-row names (e.g. T4 c1 on the V801 / V802 Weeks cells, c15 on Vital signs × V997, t1 on V802, c2 on Fasting visit). Candidate: name the row and column label in the Notes tab; draw the markers in the table pane.
 
 **Size.** (a) small (code). (b) small (test / consolidate). (c) small to medium. (d) small (review_page.py).
+
+**Status 2026-09-28:** (b) done in the test — `EXPECTED_OVERLAP_PAIRS` pins NCT04677179 at 3 source-faithful pairs (T1 c16 / c17 pregnancy notes; T3 t5 / t6 remote-visit note per tile, review D10; T4 c12 / c13 colon biopsy split, 22i); any other count fails. Consolidate still logs its fragment warning for this study (warning only, threshold 3).
 
 ## 25 — Prompt 3.9.1 acceptance test: remaining gaps
 
@@ -333,6 +339,7 @@ Order: collections sidecars (a, g, h) · prompt 3.9.2 text (b, c, d, e, f, g, h,
 
 **Status 2026-09-28 (15:02–):** decisions (a), (b), (c), (e) done on branches, nothing committed. soa2usdm `item26-2026-09-28`: prompt 3.9.3 (§6 Deduplicate by text sentence; §8 example), REDACTIONS.json / build_log.py version fields; `apply_redactions.py` 21 spans once, 0 identifiers. Collections `sidecars-item26-2026-09-28`: CDISC_Pilot T1 corr-014 / corr-015 (a, b → `legend`), NCT04677179 T4 corr-023 ('Study day' level null); rebuild of the two studies 0 errors, 18 files changed in content (written), 13 timestamp-only (not written), activity inventory unchanged; 41 sidecars schema-valid, each re-applied = its `.verified.json`; pytest 249 passed, 3 failed (14, 21e, 24b). (g) found by the rebuild.
 *(g) done 2026-09-28:* a unified property whose table-local id is already used by another unified property gets `<id>-t<table>` (NCT02107703 `prop-004-t2`, NCT04677179 `prop-003-t4`); no other study changes. Same session as item 10 and 25l: full-corpus rebuild with the old and the new code (old = published, 0 content differences), 66 derived files changed, no extraction / sidecar / `.verified.json` change; pytest 249 passed, 3 failed (14, 21e, 24b).
+*(f) closed 2026-09-28, no code change:* the gate already splits a quote on '…' and checks each part (≥ 15 characters). The two NCT04677179 quotes fail because they are composed, not elided — 'at an ETV / an unscheduled visit' joins two printed notes, 'responders/nonresponders' two tables — so CHECK is right. A §7 sentence asking for verbatim quotes without composition is a candidate for the next prompt revision. With items 14, 21d/e, 24b the test suite is green: pytest 252 passed.
 
 ---
 

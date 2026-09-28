@@ -138,12 +138,27 @@ def consolidated_annotations(produced):
     return json.loads(pf.read_text())["unified_annotations"]
 
 
+# Source-faithful containment pairs, pinned per protocol like EXPECTED_HEADER_BOUND: a change in the
+# count means a note text or a binding changed — look before repinning. usdm_data/NCT04677179 (3, item
+# 24b): T1 c16 in c17 (serum / urine pregnancy notes, consecutive printed cells); T3 t5 / t6 (the
+# remote-visit note printed on both tiles, one character apart — review D10, prompt 3.9.3 §6
+# Deduplicate by text); T4 c13 in c12 (the colon biopsy note's first sentence repeats the Endoscopy
+# note, p.45 — item 22i split).
+EXPECTED_OVERLAP_PAIRS = {
+    "usdm_data/NCT04677179": 3,
+}
+
+
 def test_annotations_not_fragmented(pipeline_output):
     """A single notes-column cell split across the rows it overlaps surfaces as
     consecutive annotations whose text contains one another. Measured over 22
     protocols: clean ones score 0-1, the fragmented NCT04677179 extraction scored 13."""
     protocol, produced, _ = pipeline_output
     pairs = find_adjacent_text_overlaps(consolidated_annotations(produced))
+    if protocol in EXPECTED_OVERLAP_PAIRS:
+        assert len(pairs) == EXPECTED_OVERLAP_PAIRS[protocol], \
+            f"{protocol}: {len(pairs)} adjacent annotation pairs share contained text: {pairs}"
+        return
     assert len(pairs) < OVERLAP_PAIR_THRESHOLD, \
         f"{protocol}: {len(pairs)} adjacent annotation pairs share contained text: {pairs}"
 
@@ -351,6 +366,14 @@ def test_legend_pattern_on_real_corpus_texts():
         "(mg/dL) = total Ca (mg/dL) + (4 – albumin (g/dL))*0.8. Corrected "
         "calcium results will inform dosing/dose withholding at the next "
         "hemodialysis treatment.")
+    # Must NOT match — NCT03283098 T3 annot-001, explanatory text quoting an abbreviation line (item 14):
+    assert not is_legend_annotation(
+        "Definition of footnote 'a' (on the 29/ET column header) is not printed in the source for "
+        "Table 1c; only the abbreviation line 'HD = hemodialysis; ET = early termination; SDA = Study "
+        "drug administration.' follows the table. Probable equivalent (NOT source content for this "
+        "table): Table 1b footnote a - 'If a treated subject withdraws from study before completion of "
+        "dosing, the investigator will make every effort to obtain day 29 samples as close to 2 days "
+        "after the last dose of investigational product as possible.'")
     # Must NOT match — NCT04557384 annot-010, a <= comparison:
     assert not is_legend_annotation(
         "During study treatment, perform <=3 days prior to treatment.")
@@ -446,7 +469,11 @@ def test_redacted_name_pattern_boundaries():
 # printed marker, and the location carries method "synthesized" — §6's rule for a notes-column
 # entry the source gives no marker, link it to the row it sits beside. All five, before and after,
 # are the same shape.
+# usdm_data/NCT03637764 (3, item 21e): Table 02 prints its footnote markers on the group bands
+# themselves — 'Pharmacokinetics a,i' and 'Immunogenicity (ADA) a,e,i' (doc p.22, checked on the
+# page) — so notes a, i bind both groups and e binds the ADA group.
 EXPECTED_HEADER_BOUND = {
+    "usdm_data/NCT03637764": 3,
     "usdm_data/NCT04557384": 1,
     "usdm_data/NCT04573309": 2,
     "usdm_data/NCT04677179": 1,

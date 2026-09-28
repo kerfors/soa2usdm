@@ -107,6 +107,11 @@ def distribute_merged_cell_values(schedule_grid: list[dict]) -> list[dict]:
 # one-symbol qualifying note, and the extractor already types the clear ones.
 LEGEND_SEGMENT_PATTERN = re.compile(r'^\s*[A-Za-z][A-Za-z0-9()+/–\-. ]{0,30}=')
 LEGEND_MIN_DEFINITIONS = 2
+# A legend is made of definitions. A segment that is neither a definition nor carries an '='
+# (a labelled first segment, 'Abbreviations: CRU = ...') is at most a short OCR-clipped remnant
+# ('Acid', 'Bs urface antigen'). A longer one is explanatory text that merely quotes an
+# abbreviation line — NCT03283098 T3 note a (item 14), the rule's only false positive.
+LEGEND_MAX_REMNANT_WORDS = 4
 
 
 def is_legend_annotation(text: str) -> bool:
@@ -118,6 +123,9 @@ def is_legend_annotation(text: str) -> bool:
     the retype is reproducible.
     """
     segments = text.split(";")
+    if any(not LEGEND_SEGMENT_PATTERN.match(s) and "=" not in s
+           and len(s.split()) > LEGEND_MAX_REMNANT_WORDS for s in segments):
+        return False
     definitions = sum(1 for s in segments if LEGEND_SEGMENT_PATTERN.match(s))
     if definitions >= LEGEND_MIN_DEFINITIONS:
         return True
