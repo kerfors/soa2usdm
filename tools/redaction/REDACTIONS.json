@@ -1,6 +1,6 @@
 {
   "note": "Sweep 2 redaction log. Apply with apply_redactions.py after EVERY prompt/taxonomy edit. Must never enter the blind tree.",
-  "prompt_version": "3.9.2",
+  "prompt_version": "3.9.3",
   "taxonomy_version": "v8",
   "copied_unchanged": [
     "schemas/soa-table-extraction.schema.json"
