@@ -1,5 +1,10 @@
 # Re-extraction Acceptance Checklist — usdm_data, sweep 2 (Opus 5.5, prompt v3.8.x)
 
+> **Status 2026-09-28.** Sweep 2 is done and on main (soa2usdm `0a3deb8`, collections `e720a4a`,
+> 2026-09-27); every review item has since been decided and the corpus corrected by sidecar
+> (inventory items 21a, 22i, 25, 26). §2, §4 and §7 describe the sweep-1 corpus the sweep was
+> judged against and stay as the record. §3, §5 and §8 are kept current.
+
 Criteria the re-extracted corpus is judged against. Written **before** any re-extraction, so a
 delta can be classified rather than rationalised. Every item is derived from work already done:
 the 22 uncertainty reports of the accepted corpus, the 29 live corrections, the row audit, and the
@@ -124,8 +129,11 @@ accepted corpus:
 proven otherwise. The 10 are listed in the baseline JSON (`row_audit.on_page_not_extracted_items`)
 and none is a dropped activity: NCT02107703 T2 header and Protocol Reference column text (4), NCT03283098
 T1–T3 footnote fragments (3), a wrapped NCT03817853 label read twice (2), and an NCT01847274 T2 note
-line (1). The one schedule page in no extraction is NCT03637764 PDF p.5, out of scope by decision
-(§5.1).
+line (1). NCT03637764 PDF pp.5–7 (flow charts) were then out of scope; item 19 extracted them as
+Tables 02/03.
+
+**Current figure (2026-09-28, 45 tables): 12** — 9 after sweep 2, plus 3 audit false positives on
+the NCT03637764 flow-chart pages (inventory item 20e).
 
 **Why the earlier figure was 33 over 45 tables.** 33 was measured on the pre-sweep-1 corpus
 (prompt v3.0.2–v3.1.0), which had 45 tables: sweep 1 merged CDISC_Pilot T2 and NCT04004988 T2 into
@@ -210,11 +218,9 @@ Each of these was investigated and closed in an earlier session. A fresh extract
 
 | Item | Study | Why it looks wrong | Why it is right |
 |---|---|---|---|
-| `xannot-023` | NCT04677179 | Identical PK note text on two rows reads as a cross-table binding conflict | The note genuinely prints twice — on *PK samples* and on the redacted *CCI* row below it, confirmed on doc p.22. A detector limitation, not a data defect. Still the only cross-table conflict in the corpus. |
+| PK note (`xannot-026` at collections `842867b`) | NCT04677179 | Identical PK note text on two rows reads as a cross-table binding conflict | The note genuinely prints twice — on *PK samples* and on the redacted *CCI* row below it, confirmed on doc p.22. A detector limitation, not a data defect. |
 | 4 section headers | NCT04677179 | Before sweep 1 the row audit reported them as on-page-not-extracted (23 of the then 33) | *Patient-Reported Outcomes (Electronic)*, *Clinician-Administered Questionnaires (Paper)*, *Laboratory Tests and Sample Collections*, *Stool Samples* are extracted as mark-free activity rows (indent 0) in T1–T4 — the convention since sweep 1 (decision 2026-08-17). Omitting them is a regression. |
-| `xannot-035` | NCT04677179 | Reported orphaned | T4 c1 is `schedule_property` scope and the consolidator deliberately does not expand property refs to columns. Benign. |
 | ±3 vs ±5 window | NCT03693430 | V33 visit window inconsistent | **Confirmed source defect.** Both values legibly printed on the repeated header — ±3 on doc p9, ±5 on doc p11, body never restates. No tiebreaker, so first occurrence (±3) stands. Not an extraction error. |
-| soa.pdf p.5 flow chart | NCT03637764 | Row audit keeps reporting the page | **Out of scope by decision.** Rows are sample types, cells carry sample IDs and dosing-relative windows ("SOI", "EOI +30 min"), not marks — study timing, which the three-layer model does not carry. |
 
 ### 5.2 Restorations that must survive
 
@@ -319,14 +325,16 @@ A re-extracted table is promoted into the corpus only when all of these pass. Nu
 check ids `tools/gate.py` prints; 8 and 11 run in `tools/dryrun.py`; 15 and 16 are review steps.
 Run in order — later checks assume earlier ones held.
 
-In the accepted corpus, checks 13 and 14 report CHECK rather than FAIL because it predates
-`review_items` and the provenance fields. **For sweep-2 output, either one at CHECK counts as a
-failure**: a v3.8.1 table must carry both.
+Checks 13 and 14 report CHECK on output that predates `review_items` and the provenance fields;
+**on v3.8.1+ output, either one at CHECK counts as a failure**. Check 14 FAILs when
+`prompt_version` differs from the repo prompt — true of every published (3.8.1) table since
+prompt 3.9.0 (inventory item 21c).
 
 `gate.py` (per staged study):
 
 1. **Schema valid** against `soa-table-extraction.schema.json`, `schema_version` 1.0,
    `extraction_status` `ready_for_resolution`.
+   **1c** — no private-use code point (U+E000–U+F8FF) in any text field (prompt §1c).
 2. **No orphan annotations** — every annotation has ≥1 `marker_locations` entry.
 3. **Markers agree both ways** — every marker in an annotation's `marker_locations` also appears in
    that row's `annotation_markers` (§5.4; the `resolve.py` detector, not eyeballing).
@@ -337,19 +345,24 @@ failure**: a v3.8.1 table must carry both.
 6. **Page coverage** — every page in `page_start..page_end` contributed activity rows, or the
    report says why not.
 7. **Counts vs §2** — the delta table `gate.py` prints for every staged table; every delta
-   bucketed (§2.1 / regression / new finding). A baseline table missing from staging FAILS.
-9. **Merged marks carry `source_range`.**
+   bucketed (§2.1 / regression / new finding). A baseline table missing from staging FAILS,
+   unless `--partial` (tables added to an accepted study: reported 'not staged').
+9. **Merged marks consistent** — the entry's column lies in its `source_range`, and every column of
+   the range carries the same value and range.
 10. **`track_label` only on `track` tables** (and a CHECK when it runs to more than 4 words).
-12. **Bindings did not vanish** — distinct markers on rows vs the baseline `bind`; FAIL when they
-    collapse while the rows are still there.
-13. **`review_items` agree one-to-one** with the report's `## Decisions needed (N)` block.
+12. **Bindings did not vanish** — distinct markers on rows vs the baseline `bind` (re-derived from
+    `SOA2USDM_CALIB` when set — use the published `.verified.json` copies, inventory item 25m);
+    FAIL when they collapse while the rows are still there.
+13. **`review_items` agree one-to-one** with the `## Decisions needed (N)` blocks of all the
+    study's reports.
 14. **Provenance** — `prompt_version` equals the repo prompt's, and `model` is stamped.
 - **Quote fidelity** — every quotation in the report is a verbatim substring of the PDF text or
-  the extraction; read each unverified one before trusting the rate.
+  the extraction (parts around '…' checked separately; spans quoted from the prompt or taxonomy
+  skipped); read each unverified one before trusting the rate.
 
 `dryrun.py` (scratch collection):
 
-8. **Row audit** — on-page-not-extracted must not rise above 10 (§3).
+8. **Row audit** — on-page-not-extracted must not rise above the current figure (§3).
 11. **Deterministic layers** — ApplyCorrections → Resolve → Consolidate runs with 0 errors.
 
 Review:

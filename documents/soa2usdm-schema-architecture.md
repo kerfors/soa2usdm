@@ -80,7 +80,7 @@ PDF Protocol Document
 
 **Schema:** `soa-table-extraction` v1.0
 
-**Implementation:** A single non-interactive Claude pass (PDF→JSON, `PDF_TO_JSON_PROMPT.md`). The model transcribes the table, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on rasters), and ends with an uncertainty report that surfaces every judgement call for human review against the resolved HTML. The two-conversation PDF→Excel→JSON path with a human-verified Excel checkpoint remains available when a human-editable intermediate is wanted.
+**Implementation:** A single non-interactive Claude pass (PDF→JSON, `PDF_TO_JSON_PROMPT.md`). The model transcribes the table, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on rasters), and ends with an uncertainty report whose open judgement calls are also carried as data (`review_items`) and decided on the review page. The two-conversation PDF→Excel→JSON path with a human-verified Excel checkpoint remains available when a human-editable intermediate is wanted.
 
 **Contains:**
 - Physical structure (rows, columns, positions)
@@ -121,7 +121,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 - Derived parent-child relationships from indentation/hierarchy levels
 - Explicit schedule columns with composite labels
 - Bidirectional annotation cross-references
-- Validation (structure, hierarchy, annotations)
+- Validation (structure, hierarchy, annotations); a table-wide note (marker on no element, only `schedule_property` locations) is table scope, not an orphan
 
 **Key Principle:** Everything derivable is now derived; every element is addressable.
 
@@ -137,10 +137,10 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 **Structural consolidation (implemented):**
 - Table type classification (main_soa, continuation, domain, subsidiary, track, reference) drives consolidation strategy — see `soa_table_type_definitions.md`
-- Unified activities with cross-table matching (exact, fuzzy, cross-parent)
+- Unified activities with cross-table matching (exact, fuzzy, cross-parent). Only the lowest-numbered `main_soa` table is the base; a further `main_soa` table is matched against it, and a fuzzy match needing review is not merged between main tables
 - Timeline segments (main, domain, track, subsidiary) with aligned columns
 - Schedule matrix mapping (xact_id, xcol_id) → cell values
-- Annotation deduplication with source occurrence tracking
+- Annotation deduplication with source occurrence tracking; table-wide notes carry `annotation_scope: "table"`
 - Validation of cross-references and structural integrity
 
 **Semantic interpretation (not yet implemented):**
@@ -182,11 +182,11 @@ Cross-table IDs (`xact-NNN`, `xcol-NNN`, `xannot-NNN`) link to per-table IDs (`a
 
 ## Independent Verification
 
-Two mechanical checks bracket the extraction, one inside the pass and one after the pipeline:
+Two mechanical checks bracket the extraction, one inside the pass and one after the pipeline; the review page puts both in front of the reviewer:
 
 - **Mark-check (inside the extraction pass):** re-derives the mark matrix from PDF geometry — bbox column-binning where a text layer exists, rule-line detection on rasters — and diffs it cell-for-cell against the model's visual read. Disagreements go to the uncertainty report.
 - **Row audit (after the pipeline):** `RowAuditStep` (`soa2usdm-row-audit`) compares every extracted activity row against the rows the SoA pages actually print, and writes `row_audit.json` per collection.
-- **Review page (per protocol):** `ReviewPageStep` renders the source pages and draws the extraction on them — row bands, a cell-by-cell mark check, annotation bindings, `review_items` as the reviewer's worklist, consolidation's cross-table folds — so every schema-level fact can be checked against the printed page. The page writes nothing; a decision drafts a corrections-sidecar entry, keeping the sidecar the only write path.
+- **Review page (per protocol):** `ReviewPageStep` renders the source pages and draws the extraction on them — row bands, a cell-by-cell mark check, annotation markers where printed (activity, mark, header row, header cell), `review_items` as the reviewer's worklist with the corrections that decided them, consolidation's cross-table folds — so every schema-level fact can be checked against the printed page. The page writes nothing; a decision drafts a corrections-sidecar entry, keeping the sidecar the only write path.
 
 Neither check trusts the model's read of the grid; both re-derive from the source PDF.
 
@@ -200,6 +200,9 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
 │   ├── *_Table_{NN}_extraction.json          # Raw model output — immutable
 │   ├── *_Table_{NN}_corrections.json         # Human corrections sidecar (where needed)
 │   ├── *_Table_{NN}_extraction.verified.json # Sidecar applied (where one exists)
+│   ├── *_Table_{NN}_extraction_viewer.html   # JSON viewer
+│   ├── {NCTID}[_<name>]_uncertainty_report.* # One or more extraction reports (.md, .html)
+│   ├── {NCTID}_review.html                   # Review page
 │   └── *_verified.xlsx                       # Excel(s) — two-conversation path only
 ├── resolved/
 │   ├── *_Table_{NN}_resolved.json   # One per table
@@ -228,6 +231,6 @@ The architecture acknowledges that SoA tables are lossy compressions of study lo
 
 ---
 
-**Version:** 4.0  
-**Date:** 2026-08-15  
+**Version:** 4.1  
+**Date:** 2026-09-28  
 **Schemas:** soa-table-extraction v1.0, soa-table-corrections v1.0, soa-table-resolved v1.0, soa-tables-consolidated v1.1

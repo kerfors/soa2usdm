@@ -2,7 +2,9 @@
 Index Generator
 
 Generates collection-level index.html with navigation to all protocol
-visualizations, source documents, and extraction artifacts.
+visualizations, source documents, and extraction artifacts. Also renders the
+extraction viewers and uncertainty reports to HTML, re-rendering any page whose
+navigation block would now differ (e.g. a sibling table or report added).
 
 Reads studies_protocols.xlsx for metadata (if available) and discovers
 which protocols have source files, extraction outputs, and visualizations.

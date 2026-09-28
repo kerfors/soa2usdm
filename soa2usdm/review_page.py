@@ -4,9 +4,10 @@ Review page — one per protocol: the extraction reviewed against its printed pa
 The page shows nothing that is not already in the pipeline's files. Every
 highlight is an existing field drawn where it refers to on the rendered source
 page: activity rows on their rule-line bands (page_grid), marks compared cell
-by cell with the page text layer, annotations on the rows they were bound to,
-review_items as the reviewer's worklist, and consolidation's cross-table folds
-as relations between two rows on two pages.
+by cell with the page text layer, annotation markers where they are printed
+(activity name, mark, header row, header cell), review_items as the reviewer's
+worklist with the corrections that decided them, and consolidation's
+cross-table folds as relations between two rows on two pages.
 
 The page writes nothing. A decision drafts a corrections-sidecar entry for the
 reviewer to paste into `*_corrections.json`; the sidecar remains the only

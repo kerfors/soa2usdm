@@ -1,7 +1,7 @@
 """Gate steps 8 and 11 — run the deterministic layers over the staged extraction, in a scratch
 collection that is a throwaway copy.
 
-Nothing here touches ~/ph2/soa2usdm-collections. The scratch tree is rebuilt from scratch on
+Nothing here touches the real collections tree. The scratch tree is rebuilt from scratch on
 every run, so a half-finished run cannot contaminate the next one.
 
 Per §4.4 of the acceptance checklist, every corrections sidecar belonging to a re-extracted

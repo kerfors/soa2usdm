@@ -4,9 +4,11 @@ Consolidate Step
 Consolidates multiple resolved SoA tables into a unified per-protocol structure.
 
 This is structural consolidation only:
-- Activity matching across tables (exact, fuzzy, cross-parent)
+- Activity matching across tables (exact, fuzzy, cross-parent); the lowest-numbered
+  main_soa table is the base, further main_soa tables match against it without
+  merging review-level fuzzy matches
 - Column alignment into timeline segments (main, domain, track, subsidiary)
-- Annotation consolidation with deduplication
+- Annotation consolidation with deduplication; table-wide notes get annotation_scope 'table'
 - Schedule matrix construction
 
 Semantic interpretation (USDM timeline patterns, annotation logic) is out of scope.

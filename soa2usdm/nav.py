@@ -4,14 +4,15 @@ Shared navigation for the generated HTML pages.
 Every page below a collection carries the same two-line navigation block:
 
     breadcrumb  Collections › {collection} › {protocol} › {page label}
-    siblings    extraction data: T1 T2 · resolved: T1 T2 · consolidated · review · extraction log
+    siblings    extraction data: T1 T2 · resolved: T1 T2 · consolidated · review · extraction log(s)
 
 The breadcrumb links every ancestor: "Collections" is the repository root
 index, the collection name is the collection index, and the protocol name
 links to the protocol's own row on the collection index (the rows carry
 id="{protocol_id}" anchors, highlighted via tr:target). The sibling strip
 is discovered from the protocol folder on disk, so a page never links to
-an artifact that does not exist; the current page is shown unlinked.
+an artifact that does not exist; the current page is shown unlinked. Every
+uncertainty report of the protocol gets its own entry, the protocol's own first.
 
 Directory layout the relative paths rely on (see config):
 

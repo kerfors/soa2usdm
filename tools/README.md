@@ -1,25 +1,27 @@
 # Re-extraction harness
 
 Tooling for re-extracting a collection's Layer 1 with fresh agents and deciding, mechanically,
-whether the result may replace what is already there. Written during the `usdm_data` sweep of
-2026-08-17 (22 studies, 43 tables, 29 agents) and calibrated against that corpus.
+whether the result may replace what is already there. Written for the `usdm_data` sweep of
+2026-08-17; used again for sweep 2 (2026-09-26/27) and the prompt 3.9.x acceptance runs.
 
 Nothing here decides whether a delta is *acceptable*. It reports what the delta is, and refuses to
 guess where guessing would be silent.
 
 | script | what it does |
 |---|---|
-| `page_map.py` | derives the PDF-page → document-page map per study; **refuses to guess** where the excerpt has extra pages |
-| `gate.py` | per-table promotion gate: schema, orphans, marker agreement, containment, typing, page coverage, baseline deltas, marker bindings, quote fidelity |
+| `page_map.py` | derives the PDF-page → document-page map per study; **refuses to guess** where the excerpt has extra pages; `--study` limits it to named studies |
+| `gate.py` | per-table promotion gate: schema, private-use characters, orphans, marker agreement, containment, typing, page coverage, merged ranges, baseline deltas, marker bindings, review items vs report, provenance, quote fidelity; `--partial` when only some tables of a study are staged |
 | `dryrun.py` | the two gate steps that need the corpus rather than the staging area — row audit, and the deterministic layers — in a throwaway scratch collection |
 | `promote_dryrun.py` | rehearses the whole promotion (install, retire/keep sidecars, rebuild, regenerate the published index pages) so it can be checked before anything real is touched |
 | `audit_blinding.py` | reads the subagent transcripts and reports tool calls that reached outside the blind tree, or into memory, Project knowledge or past chats |
 | `stamp_model.py` | writes `extraction_metadata.model` into staged extractions from the run setting; refuses to overwrite a different value |
 | `baseline.py` | regenerates `documents/re-extraction-baseline.json` from the accepted corpus with the gate's and the row audit's own code; same corpus, same bytes |
 | `verify_mined.py` | checks `documents/re-extraction-baseline-mined.json`: key sets, and every `evidence_quote` verbatim in its uncertainty report |
+| `redaction/` | `apply_redactions.py` + `REDACTIONS.json`: the redacted prompt and taxonomy for the blind tree (step 2) |
 
-Paths come from the environment: `SOA2USDM_COLLECTIONS`, `SOA2USDM_STAGING`, `SOA2USDM_BLIND`,
-`SOA2USDM_CALIB`, `SOA2USDM_SCRATCH`, `SOA2USDM_SIDECARS`.
+Paths come from the environment: `SOA2USDM_REPO`, `SOA2USDM_COLLECTIONS`, `SOA2USDM_COLLECTION`,
+`SOA2USDM_STAGING`, `SOA2USDM_BLIND`, `SOA2USDM_CALIB`, `SOA2USDM_SCRATCH`, `SOA2USDM_SIDECARS`,
+`SOA2USDM_BASELINE` (default `documents/re-extraction-baseline.json`; misc_studies has its own).
 
 ## The method, in the order it has to happen
 
@@ -34,9 +36,9 @@ prompt, taxonomy and schema. Where the agent transcripts are available, audit th
 **2. Redact the instructions.** The shipped prompt and taxonomy contain worked examples that name
 real protocols *and give away their answers* — a table's classification, a restoration's activity
 and mark counts, the verdict on a containment pair a gate check is about to re-ask. Generalise those
-spans: keep the rule, strip the study identity and the numbers. Keep the redaction log **outside**
-the agents' tree, re-apply it from that log after every prompt edit, and verify afterwards that no
-study identifier survives anywhere an agent can read.
+spans: keep the rule, strip the study identity and the numbers. The log and the script are in
+`tools/redaction/` (outside the agents' tree, step 1). Re-run `apply_redactions.py` after every
+prompt or taxonomy edit; it fails if a span does not match once or an identifier survives.
 
 **3. Compute the page map; do not derive it from footers.** See `page_map.py`'s docstring. Printed
 footers were measured running one lower than the document page in one protocol and one higher in
@@ -49,6 +51,9 @@ miscalibrated on first write and each was caught this way. But calibration only 
 not false-positive. Whether it fires at all needs the opposite test — point it at output you know
 is broken. A binding check written for a specific collapse passed silently *on that very collapse*
 because it read its expected value off the wrong object; only the negative control found it.
+Two caveats since prompt 3.9.0: check 14 FAILs on every table extracted under an older prompt
+version, and check 12 takes its binding baseline from CALIB's raw files — give it the published
+`.verified.json` copies renamed `*_extraction.json`, or tables fixed by sidecar FAIL.
 
 **5. Rehearse the promotion in a scratch collection** with `promote_dryrun.py`, then compare the
 real rebuild against the rehearsal by timestamp-scrubbed corpus hash. Identical hashes are what let

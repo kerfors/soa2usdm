@@ -69,7 +69,7 @@
       "items": {
         "$ref": "#/definitions/schedule_cell"
       },
-      "description": "Consolidated schedule data at (activity Ã— column) intersections. Only non-empty cells included."
+      "description": "Consolidated schedule data at (activity × column) intersections. Only non-empty cells included."
     },
     "unified_annotations": {
       "type": "array",
@@ -177,7 +177,7 @@
             },
             "fuzzy_review": {
               "type": "integer",
-              "description": "Fuzzy matches requiring review"
+              "description": "Fuzzy matches requiring review; not counted between main_soa tables, where such a match is not merged and the activity counts as new"
             },
             "new": {
               "type": "integer",
@@ -496,7 +496,7 @@
         "segment": {
           "type": "string",
           "enum": ["main", "domain", "track", "subsidiary"],
-          "description": "Timeline segment this column belongs to. 'main'=primary timeline; 'domain'=same timeline, different activity category; 'track'=separate timeline for different population/phase; 'subsidiary'=finer timing detail."
+          "description": "Timeline segment this column belongs to. 'main'=primary timeline; 'domain'=same timeline, different activity category; 'track'=a branch only some participants take; 'subsidiary'=finer timing detail."
         },
         "population_track": {
           "type": ["string", "null"],
@@ -665,7 +665,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Unified property IDs (from property_hierarchy) this annotation references, populated from schedule_property marker locations. Optional: absent in files consolidated before this field existed."
+          "description": "Unified property IDs (from property_hierarchy) this annotation references, from markers carried on property rows; empty for a table-wide note. Optional: absent in files consolidated before this field existed."
         },
         "cell_references": {
           "type": "array",
@@ -682,7 +682,7 @@
               }
             }
           },
-          "description": "Specific cell references (activity Ã— column)"
+          "description": "Specific cell references (activity × column)"
         },
         "occurrence_count": {
           "type": "integer",

@@ -1,6 +1,6 @@
 # SoA2USDM — Extraction Workflow Guide
 
-**Version:** 2.6
+**Version:** 2.7
 
 How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file (each carries its own version header) — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) can be run two ways: the **non-interactive single-pass path** (below) or the **two-conversation PDF→Excel→JSON path** (Conversations 1–2).
 
@@ -26,7 +26,7 @@ The default for most runs. Use `PDF_TO_JSON_PROMPT.md` in place of Conversations
 
 **Say:** "Please read and follow the attached prompt to extract the SoA tables from this protocol to JSON."
 
-The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (table types and why, merged-mark spans, synthesised names/markers, low-confidence calls, orphan-risk annotations), with exception-based method provenance recorded in the JSON for any value derived by a non-default method (prompt §1e). Review that report against the per-table resolved HTML instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch. For a wide table split into side-by-side column-block tiles (e.g. V10–V19 and a V20–V29 "(continued)" spread), run the mark-check across *all* tiles and take the per-row union — a recurring row usually appears in every tile, so checking only one tile silently drops the others' visits (see `PDF_TO_JSON_PROMPT.md` §5).
+The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (calls a stated rule decides under *Recorded, not open*; open judgement calls in a *Decisions needed* block, also carried as `review_items` in the JSON), with exception-based method provenance recorded in the JSON for any value derived by a non-default method (prompt §1e). Decide the open calls on the review page (`{NCTID}_review.html`) through the corrections sidecar instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch. For a wide table split into side-by-side column-block tiles (e.g. V10–V19 and a V20–V29 "(continued)" spread), run the mark-check across *all* tiles and take the per-row union — a recurring row usually appears in every tile, so checking only one tile silently drops the others' visits (see `PDF_TO_JSON_PROMPT.md` §5).
 
 **Prefer the two-conversation flow below when:** you want a human-editable Excel artifact, or a very large/complex table where reviewing an intermediate is worth the extra time.
 
@@ -70,7 +70,7 @@ The model runs start to finish and returns one extraction JSON per table plus an
 - JSON parses, `schema_name` is `soa-table-extraction`, `schema_version` is `1.0`
 - `extraction_status` is `ready_for_resolution`
 - All `property_comment` fields meaningful
-- `hierarchical_level` values sensible (1→2→3)
+- `hierarchical_level` values sensible (1→2→3; null for a row that does not tell columns apart, e.g. a window row)
 - All `cell_value` fields clean (markers in `annotation_markers`)
 - All annotations have `marker_locations`
 - `track_label` present for track tables
@@ -86,7 +86,7 @@ The model runs start to finish and returns one extraction JSON per table plus an
 | Missing `marker_locations` | Ask Claude to scan the table for that marker |
 | Wrong level values | Verify against PDF header structure / Excel indentation |
 | Missing `track_label` | Ask Claude to identify the population from the table title |
-| Unsure domain vs main_soa | Same columns as another table → domain. Different → main_soa |
+| Unsure of the table type | `soa_table_type_definitions.md`: same columns, other activity category → domain; finer timing for some activities → subsidiary; a branch only some participants take → track; a schedule every participant passes through → main_soa |
 
 **Time:** 15–30 min per table
 
@@ -96,7 +96,7 @@ The model runs start to finish and returns one extraction JSON per table plus an
 
 Once extraction JSON files are in `{NCTID}/SoA2USDM/extracted/`, run `01_batch.ipynb`. Set `COLLECTION` in the config cell and execute.
 
-The batch notebook runs five steps in sequence:
+The batch notebook runs six steps in sequence:
 
 | Step | Class | Layer | What it does |
 |------|-------|-------|-------------|
@@ -107,7 +107,7 @@ The batch notebook runs five steps in sequence:
 | 5 | `VisualizeStep` | — | Consolidated HTML for review |
 | 6 | `ReviewPageStep` | — | `{NCTID}_review.html`: the extraction against its rendered source pages — rows, marks, notes, review items and cross-table folds drawn where they refer to; drafts sidecar entries, writes nothing |
 
-After all protocols: `IndexGeneratorStep` builds the collection index page.
+After all protocols: `IndexGeneratorStep` builds the collection index and renders the reports (refreshing each page's navigation), `CollectionsIndexStep` the root index, `ActivityInventoryStep` the activity inventory.
 
 **Errors are collected, not raised** — partial success matters when one table out of four has issues. Check the batch output for error summaries.
 
@@ -127,6 +127,8 @@ from soa2usdm.consolidate import ConsolidateStep
 from soa2usdm.visualize import VisualizeStep
 from soa2usdm.review_page import ReviewPageStep
 from soa2usdm.index_generator import IndexGeneratorStep
+from soa2usdm.collections_index import CollectionsIndexStep
+from soa2usdm.activity_inventory import ActivityInventoryStep
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 
@@ -139,8 +141,10 @@ for step_cls in (ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep,
                  ConsolidateStep, VisualizeStep, ReviewPageStep):
     data[step_cls.step_name] = step_cls(errors, analytics).execute(data)
 
-# Rebuild the collection index after any protocol change
+# Rebuild the collection index, root index and activity inventory after any protocol change
 IndexGeneratorStep(Errors(), Analytics()).execute({'source': {'collection': COLLECTION}})
+CollectionsIndexStep(Errors(), Analytics()).execute({})
+ActivityInventoryStep(Errors(), Analytics()).execute({'source': {'collection': COLLECTION}})
 
 print(errors.has_errors(), errors.summary())
 ```
@@ -160,7 +164,10 @@ After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extr
 ```
 {NCTID}/SoA2USDM/
 ├── extracted/
-│   └── {NCTID}_Table_{NN}_extraction.json
+│   ├── {NCTID}_Table_{NN}_extraction.json            # raw, immutable
+│   ├── {NCTID}_Table_{NN}_corrections.json           # sidecar (where needed) → .verified.json
+│   ├── {NCTID}[_<name>]_uncertainty_report.md/.html  # one or more
+│   └── {NCTID}_review.html
 ├── resolved/
 │   ├── {NCTID}_Table_{NN}_resolved.json
 │   └── {NCTID}_Table_{NN}_resolved.html

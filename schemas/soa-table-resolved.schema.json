@@ -90,12 +90,12 @@
         "page_start": {
           "type": "integer",
           "minimum": 1,
-          "description": "Starting page in source PDF"
+          "description": "Starting document page (position in the full protocol PDF)"
         },
         "page_end": {
           "type": "integer",
           "minimum": 1,
-          "description": "Ending page in source PDF"
+          "description": "Ending document page"
         },
         "continuation_of": {
           "type": "string",

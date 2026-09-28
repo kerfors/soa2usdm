@@ -34,6 +34,7 @@ Usage:
     python3 tools/page_map.py --collection usdm_data --write         # write blind/<STUDY>/PAGEMAP.md
     python3 tools/page_map.py --collection usdm_data --render        # write <protocol>/<STUDY>_soa_pages/
     python3 tools/page_map.py --collection usdm_data --back NCT04184622 --back NCT03637764
+    python3 tools/page_map.py --collection usdm_data --study NCT03637764 --write   # named studies only
 """
 
 import argparse

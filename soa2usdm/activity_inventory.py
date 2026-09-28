@@ -6,6 +6,8 @@ every activity extracted from the SoA tables, at two granularities —
   * Consolidated  : one row per distinct activity per study (unified_activities),
                     with its source-table occurrences folded in as provenance.
   * Source-table  : every activity verbatim, one row per activity per table.
+Notes are listed under their activity: bound to the name, or to a mark (with its
+column); header-cell notes and legends are not.
 
 No cross-protocol clustering. Mirrors index_generator.py: a collection-level
 step that discovers per-protocol outputs and writes to the collection root.

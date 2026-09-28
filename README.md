@@ -60,7 +60,11 @@ soa2usdm/
 ├── documents/
 │   ├── soa2usdm-schema-architecture.md       # Three-layer design rationale
 │   ├── background-and-challenges.md          # Project history and key challenges
-│   └── soa_table_type_definitions.md         # Table classification
+│   ├── soa_table_type_definitions.md         # Table classification (taxonomy)
+│   ├── inventory-improvements.md             # Backlog: open and done items
+│   ├── re-extraction-acceptance-checklist.md # Re-extraction criteria and promotion gate
+│   ├── re-extraction-baseline*.json          # Machine baseline and mined claims (tools/)
+│   └── *.md                                  # Design notes (annotation model, identifiers, timeline anchors)
 │
 ├── soa2usdm/                         # Core Python package
 │   ├── config.py                    # Paths, collection discovery
@@ -72,10 +76,15 @@ soa2usdm/
 │   ├── consolidate.py               # ConsolidateStep (Layer 3)
 │   ├── visualize.py                 # Consolidated HTML
 │   ├── visualize_resolved.py        # Per-table HTML (debugging)
-│   ├── index_generator.py           # Collection index page
+│   ├── index_generator.py           # Collection index page; renders reports, refreshes nav
+│   ├── collections_index.py         # Root index across collections
+│   ├── activity_inventory.py        # Collection activity inventory (activities.json/.html)
+│   ├── nav.py                       # Shared navigation for all generated pages
 │   ├── page_grid.py                 # Rule-line cell geometry (vector + raster)
 │   ├── row_audit.py                 # RowAuditStep — extracted rows vs the pages
 │   └── review_page.py               # ReviewPageStep — the extraction on its source pages
+│
+├── tools/                           # Re-extraction harness: gate, page map, dry runs, redaction (tools/README.md)
 │
 ├── notebooks/
 │   ├── 00_download_extract.ipynb    # Download PDFs, extract SoA pages, scaffold folders
@@ -84,7 +93,9 @@ soa2usdm/
 ├── tests/
 │   ├── test_pipeline_regression.py  # Golden-output regression over discovered protocols
 │   ├── test_page_geometry.py        # Cell geometry + row audit, incl. negative controls
-│   └── fixtures/protocols/          # In-repo golden data (JSON only) — tests run standalone
+│   ├── test_review_items.py         # review_items; decided via sidecar
+│   ├── test_review_page.py          # Review page: model, tiled-table column map
+│   └── fixtures/                    # Golden protocols (JSON only), negative controls, pages — tests run standalone
 │
 └── pyproject.toml
 ```
@@ -101,7 +112,7 @@ The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to
 `soa2usdm-row-audit --collection <name>` compares every extracted activity row against the rows its SoA pages actually print, and writes `row_audit.json` to the collection root. Needs poppler (`pdftoppm`, `pdftotext`, `pdfinfo`) and the `bands` extra: `pip install -e '.[bands]'`.
 
 **Reviewing an extraction (HTML):**
-`ReviewPageStep` (run by `01_batch.ipynb`, or `soa2usdm-review-page <NCTID> --collection <name>`) writes `{NCTID}_review.html` next to the extraction report: the source pages (pre-rendered at ingest into `{NCTID}_soa_pages/` by `tools/page_map.py --render`, each stamped below the page bitmap with its document page number) with the extracted rows, marks, notes, open decisions (`review_items`) and cross-table folds drawn where they refer to, linked both ways with the extracted table. It shows nothing that is not already in the pipeline's files and writes nothing — a decision only drafts an entry for the corrections sidecar. Same requirements as the row audit.
+`ReviewPageStep` (run by `01_batch.ipynb`, or `soa2usdm-review-page <NCTID> --collection <name>`) writes `{NCTID}_review.html` in `extracted/`: the source pages (pre-rendered at ingest into `{NCTID}_soa_pages/` by `tools/page_map.py --render`, each stamped below the page bitmap with its document page number) with the extracted rows, marks, notes, decisions (`review_items`, open or decided with the corrections that decided them) and cross-table folds drawn where they refer to, linked both ways with the extracted table. It shows nothing that is not already in the pipeline's files and writes nothing — a decision only drafts an entry for the corrections sidecar. Same requirements as the row audit.
 
 The review page is a proof of concept with two aims: to envision what a user interface for a review user could look like — worklist (`review_items`), evidence, and the sidecar write path in one place — and to showcase the traceability the pipeline already carries: every highlight is an existing extraction field drawn at the position on the source page it refers to. It also lays groundwork for the semantic/USDM layer: any claim about what an SoA table expresses should be checkable against a printed page in seconds, which is why the page images are pre-rendered and stamped at ingest.
 

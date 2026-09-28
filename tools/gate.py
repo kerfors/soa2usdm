@@ -1,10 +1,13 @@
 """Per-table promotion gate — mechanical checks only, no judgement.
 
 Implements the checks of the acceptance checklist's promotion gate (§8) that run on freshly
-extracted tables in the staging area: 1-7, 9, 10, 12, 13, 14 and quote fidelity, under the
-ids printed here. Checks 8 (row audit) and 11 (deterministic layers) run in dryrun.py because
+extracted tables in the staging area: 1, 1c, 2-7, 9, 10, 12, 13, 14 and quote fidelity, under
+the ids printed here. Checks 8 (row audit) and 11 (deterministic layers) run in dryrun.py because
 they need the corpus, not the staging area; 15 (study criteria) and 16 (corrections) are
 review steps.
+
+Usage:  python3 tools/gate.py [--partial] [STUDY ...]    (default: every study in staging)
+        --partial: a baseline table absent from staging is reported 'not staged', not FAIL.
 
 Every check here is deterministic. Nothing in this file decides whether a delta is
 acceptable — it only reports what the delta is.
@@ -98,10 +101,11 @@ def check_table(path, schema, base):
     if pua:
         f.append(("1c characters", "FAIL", f"private-use code point(s) in text fields: {', '.join(pua)}"))
 
-    # 14 — provenance (prompt v3.8.1+). The accepted corpus predates both fields, so their joint
-    # absence is CHECK, not FAIL — otherwise calibration against calib/ would fail every table.
-    # Once either field is present the table is v3.8.1+ output: prompt_version must match the repo
-    # prompt, and model must have been stamped by tools/stamp_model.py.
+    # 14 — provenance (prompt v3.8.1+). Pre-v3.8.1 output carries neither field, so their joint
+    # absence is CHECK, not FAIL. Once either field is present the table is v3.8.1+ output:
+    # prompt_version must match the repo prompt, and model must have been stamped by
+    # tools/stamp_model.py. The published corpus is 3.8.1 output, so against a later repo prompt
+    # this FAILs on every published table (inventory item 21c).
     em = data.get("extraction_metadata", {})
     pv, mdl = em.get("prompt_version"), em.get("model")
     if pv is None and mdl is None:
@@ -133,13 +137,10 @@ def check_table(path, schema, base):
             continue
         declared = [l for l in a.get("marker_locations", []) if l.get("location_type") != "unresolved"]
         if declared and not on_rows.get(m):
-            # §6 table-scope exception: a note printed on the Notes-column HEADER has no modelled
-            # element, so the prompt mandates exactly this shape — one schedule_property location
-            # with method 'synthesized', and the marker deliberately NOT on any element's
-            # annotation_markers. Calibration against the accepted corpus found 8 of these across
-            # 6 studies (note1/note2/'c' in NCT03421379, NCT03817853, NCT04004988, NCT04320615,
-            # NCT04573309, NCT04730349) — the check as first written failed all 8, i.e. it would
-            # have failed a perfect re-extraction.
+            # §6 table-wide note: it names no element, so the prompt mandates exactly this shape —
+            # one schedule_property location with method 'synthesized', and the marker deliberately
+            # NOT on any element's annotation_markers. The check as first written failed the 8 such
+            # notes of the sweep-1 corpus, i.e. it would have failed a perfect re-extraction.
             scoped = all(l.get("location_type") == "schedule_property" for l in declared)
             if scoped and all(l.get("method") == "synthesized" for l in declared):
                 continue
@@ -374,7 +375,7 @@ DECISION_ROW = re.compile(r"^\|\s*(D\d+)\s*\|", re.M)
 
 
 def check_review_items(study):
-    """Check 13: the report's Decisions-needed block and the review_items arrays agree one-to-one.
+    """Check 13: the reports' Decisions-needed blocks and the review_items arrays agree one-to-one.
 
     Ids are protocol-unique by contract, so they are compared as sets across all tables of the
     study. An extraction with no review_items key at all (pre-v3.8.0) is reported once as CHECK,
@@ -477,8 +478,9 @@ def main():
     partial = "--partial" in argv
     studies = [a for a in argv if a != "--partial"] or sorted(p.name for p in STAGING.iterdir() if p.is_dir())
 
-    # The committed baseline JSON predates the binding metric, so derive it from the accepted corpus
-    # rather than editing a signed-off artefact. Absent CALIB, check 12 simply does not run.
+    # Check 12's binding baseline is re-derived from CALIB when present, overriding the baseline
+    # JSON's `bind`. Use the published .verified.json copies renamed *_extraction.json: sidecars do
+    # not change the raw files (inventory item 25m). Absent CALIB, the baseline JSON's `bind` is used.
     calib = Path(os.environ.get("SOA2USDM_CALIB", "calib"))
     if calib.is_dir():
         n_derived = 0
@@ -490,7 +492,7 @@ def main():
                 n_derived += 1
         print(f"binding baseline derived from the accepted corpus for {n_derived} table(s)")
     else:
-        print(f"NOTE: {calib} not found — check 12 (bindings) will not run")
+        print(f"NOTE: {calib} not found — check 12 (bindings) uses the baseline JSON's bind")
 
     KEYS = ["ttype", "pages", "acts", "bind", "marks", "props", "grid", "ann", "fn", "sn", "ab", "lg"]
     total_fail = 0
