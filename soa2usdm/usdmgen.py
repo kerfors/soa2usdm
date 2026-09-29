@@ -1,5 +1,5 @@
 """
-Layer 4 -- USDM generation.
+USDM Instantiation -- SoA to USDM v4.
 
 Lifts a Layer 3 consolidated SoA table into USDM v4 schedule objects and merges
 them into a study shell, producing one conformant USDM v4 document.
@@ -8,12 +8,12 @@ The shell and the SoA meet at exactly one attribute, ScheduledInstance.epochId.
 That edge is resolved here, from an epochAxis block in the manifest: which
 consolidated column property carries the epoch axis, and how its printed values
 map to declared epochs. The epoch axis is an interpretation of an extraction,
-so it is resolved at this layer and logged as a decision -- it is deliberately
+so it is resolved here and logged as a decision -- it is deliberately
 not marked in the Layer 1-3 consolidated schema.
 
 Nothing in the SoA-derived part of the output is invented. Anything the SoA does
 not state is either omitted with a decisions entry, or emitted as a flagged
-placeholder by soa2usdm.floor.
+not-stated object by soa2usdm.usdm_manifest.
 """
 
 import json
@@ -22,7 +22,7 @@ from pathlib import Path
 
 import yaml
 
-from . import floor as floor_module
+from . import usdm_manifest as manifest_module
 from .shellgen import Generator
 
 PROV = "https://kerfors.github.io/soa2usdm/sourceRef"
@@ -430,7 +430,7 @@ class SoaBuilder:
                 "single-timeline", "ScheduleTimeline",
                 f"This SoA has {len(segments)} segments ({', '.join(segments)}). They "
                 "are emitted as one timeline; splitting them into sub-timelines is a "
-                "separate reading and is not attempted at Level 1.")
+                "separate reading and is not attempted in the minimal build.")
 
         table_title = self.src["consolidation_metadata"]["source_tables"][0].get(
             "table_title")
@@ -446,7 +446,7 @@ class SoaBuilder:
             "instanceType": "ScheduleTimeline",
         }
         self.decide("not-derived", "ScheduleTimeline.entryCondition",
-                    "Mandatory (1). Not present in the SoA. Placeholder emitted.")
+                    "Mandatory (1). Not present in the SoA. Emitted as not stated.")
 
         return {"activities": activities, "encounters": encounters,
                 "scheduleTimelines": [timeline], "conditions": conditions}
@@ -518,20 +518,20 @@ def dangling_refs(doc):
 
 
 # ---- entry point ------------------------------------------------------
-def generate(floor_manifest_path, consolidated_path, outdir, protocol_id=None):
-    floor_manifest = yaml.safe_load(Path(floor_manifest_path).read_text())
+def generate(manifest_path, consolidated_path, outdir, protocol_id=None):
+    given = yaml.safe_load(Path(manifest_path).read_text())
     consolidated = json.loads(Path(consolidated_path).read_text())
     protocol_id = protocol_id or consolidated["protocol_id"]
 
-    manifest, placeholders = floor_module.expand(floor_manifest)
+    manifest, not_stated = manifest_module.expand(given)
     shell = Generator(manifest).build()
-    n_reflagged = floor_module.reflag(shell)
-    placeholders.append({
-        "kind": "floor-placeholder", "ref": "provenance",
-        "text": (f"{n_reflagged} floor objects carry the not-stated-in-protocol "
+    n_reflagged = manifest_module.reflag(shell)
+    not_stated.append({
+        "kind": "not-stated", "ref": "provenance",
+        "text": (f"{n_reflagged} not-stated objects carry the not-stated-in-protocol "
                  "flag instead of a source reference. shellgen attributes "
                  "everything it builds to the manifest's documentRef; a "
-                 "placeholder is not a reading of that document."),
+                 "not-stated object is not a reading of that document."),
     })
     shell_ids = collect_ids(shell, set())
     shell = prefix_ids(shell, SHELL_PREFIX, shell_ids)
@@ -549,10 +549,10 @@ def generate(floor_manifest_path, consolidated_path, outdir, protocol_id=None):
     design["encounters"] = core["encounters"]
     design["scheduleTimelines"] = core["scheduleTimelines"]
     shell["study"]["versions"][0]["conditions"] = core["conditions"]
-    shell["systemName"] = "soa2usdm Layer 4"
+    shell["systemName"] = "soa2usdm USDM Instantiation"
     shell["systemVersion"] = "0.1"
 
-    decisions = placeholders + builder.decisions
+    decisions = not_stated + builder.decisions
     dupes = duplicate_ids(shell)
     dangling = dangling_refs(shell)
     decisions.append({

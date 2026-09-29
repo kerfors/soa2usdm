@@ -18,7 +18,7 @@ bands = ["numpy"]
 # Collection index and activity inventory: the study manifest (studies_protocols.xlsx) and the
 # rendered extraction logs. Both fail loudly without these.
 index = ["openpyxl", "markdown"]
-# Layer 4 shell generation (soa2usdm.shellgen) reads a YAML manifest.
+# USDM Instantiation (soa2usdm.shellgen, soa2usdm.usdmgen) reads a YAML manifest.
 shell = ["pyyaml"]
 test = ["pytest"]
 

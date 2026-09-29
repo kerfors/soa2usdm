@@ -1,18 +1,21 @@
-# Layer 4 — USDM generation
+# USDM Instantiation
 
 The architecture in `README.md` has three layers: Extraction, Resolution, Consolidation.
-It stops at *USDM-ready data*. This document describes Layer 4 — turning the consolidated
-table into an actual USDM v4 document — and the study shell that has to exist around it.
+It stops at *USDM-ready data*. This document describes USDM Instantiation — turning the
+consolidated table into an actual USDM v4 document — and the study shell that has to exist
+around it. It is the USDM side the repo is named after, not a fourth SoA layer.
 
 Everything here was measured against DDF-RA `v4.0.0`, the 24 protocols in
 `soa2usdm-collections`, and three protocol PDFs. Claims are stated with the check that
 produced them, so they can be re-run rather than trusted.
 
-Written 2026-09-03.
+Written 2026-09-03 as "Layer 4 — USDM generation". Renamed 2026-09-29: Layer 4 → USDM
+Instantiation, Level 1 → minimal build, Level 2 → enriched build, floor/placeholder → not
+stated. Measurements and file names from 2026-09-03 are left as they were.
 
 ---
 
-## 1. What Layer 4 has to produce
+## 1. What USDM Instantiation has to produce
 
 A USDM v4 `Study` document that carries the Schedule of Activities and conforms to the
 published model.
@@ -22,7 +25,7 @@ under a `StudyDesign`, which hangs under a `StudyVersion`, which hangs under a `
 and `StudyDesign` mandates arms, cells, elements, population, eligibility criteria and a
 model, none of which a Schedule of Activities contains.
 
-So Layer 4 is two pieces:
+So USDM Instantiation is two pieces:
 
 - **the shell** — the study structure the SoA hangs inside, generated from a manifest
   of facts read off the protocol;
@@ -40,22 +43,22 @@ Not a single target. The levels differ in how much protocol reading they require
 | Level | Output | Protocol reading |
 |---|---|---|
 | 0 | SoA core alone | none — but not a standalone USDM document |
-| **1** | floor + real epochs + SoA | ~6 facts: identifier, title, sponsor, epoch list |
-| **2** | full shell + SoA | ~20–30 facts: real arms, cohorts, elements, interventions, population |
+| **minimal build** | not-stated objects + real epochs + SoA | ~6 facts: identifier, title, sponsor, epoch list |
+| **enriched build** | full shell + SoA | ~20–30 facts: real arms, cohorts, elements, interventions, population |
 | 3 | + objectives, endpoints, estimands, narrative content, amendments, BC bindings | the whole document |
 
-**Level 1** is a valid, conformant USDM document carrying a complete SoA, with nine
-placeholder objects clearly flagged. 37 shell objects plus the schedule.
+**The minimal build** is a valid, conformant USDM document carrying a complete SoA, with nine
+not-stated objects clearly flagged. 37 shell objects plus the schedule.
 
-**Level 2** is what the three worked examples produce. Better output, but enrichment
+**The enriched build** is what the three worked examples produce. Better output, but enrichment
 rather than a prerequisite — nothing in the SoA breaks without it.
 
 **Level 3 is out of scope.** Worth stating explicitly, because it is where comparable
 efforts have gone and not returned.
 
 The working goal: *a valid USDM document whose SoA is complete and whose study context is
-as real as the protocol cheaply allows.* Level 1 as the guaranteed floor, Level 2 as the
-default when someone does the reading.
+as real as the protocol cheaply allows.* The minimal build as the guaranteed baseline, the
+enriched build as the default when someone does the reading.
 
 ---
 
@@ -218,7 +221,7 @@ relying on the population's criterion list.
 
 ## 6. What USDM cannot hold
 
-Recorded here because it bounds what Layer 4 can promise. These are findings about USDM
+Recorded here because it bounds what USDM Instantiation can promise. These are findings about USDM
 v4.0.0, not about this pipeline.
 
 Each was re-verified against `dataStructure.yml` and the bound codelists after first being
@@ -382,7 +385,7 @@ Rough order. The first three are small and unblock the fourth.
    ```
    Open question worth deciding deliberately: should Layer 1–3 mark the epoch axis in
    `soa-tables-consolidated.schema.json` instead? Marking it at extraction is more correct
-   and benefits anything reading the consolidated table; resolving it at Layer 4 is
+   and benefits anything reading the consolidated table; resolving it in USDM Instantiation is
    cheaper and does not disturb a working pipeline.
 3. **id-allocation convention** (§7) plus a pre-lift uniqueness check.
 4. **The SoA profile.** Strictened `minCount` on the attributes that carry SoA meaning but
@@ -393,8 +396,8 @@ Rough order. The first three are small and unblock the fourth.
    happen to validate.
 
    A shell profile is worth considering alongside it: nothing currently checks that a
-   generated shell contains what its manifest declared, or that every placeholder carries
-   its `not-stated-in-protocol` extension.
+   generated shell contains what its manifest declared, or that every not-stated object
+   carries its `not-stated-in-protocol` extension.
 5. **The merge step** — shell + SoA into one document, with the usdm-rdf lifting as gate.
 6. **Cohort-to-schedule extension namespace** — needs a URL and a resolution convention,
    since USDM has no edge (§3).
@@ -467,7 +470,7 @@ Free of protocol content, verified by scan:
 |---|---|
 | `shellgen.py` | no product, indication or criterion text |
 | `schemas/shell-manifest.schema.json` | " |
-| `documents/layer4-usdm-generation.md` | " |
+| `documents/usdm-instantiation.md` | " |
 | `notebooks/70_soa_to_usdm.ipynb` | reads the consolidated JSON only |
 | `notebooks/95_track_soa_test.ipynb` | " |
 
