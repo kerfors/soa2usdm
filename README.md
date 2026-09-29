@@ -18,6 +18,8 @@ Three processing layers:
 
 Layer 1 runs as a single non-interactive Claude pass (PDF→JSON): the model extracts, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on scanned ones), and ends with an uncertainty report that surfaces every judgement call for human review. Human fixes flow through an auditable corrections sidecar — the raw extraction is never overwritten. A two-conversation PDF→Excel→JSON path with an Excel checkpoint remains available when a human-editable intermediate is wanted. Layers 2–3 are pure Python, producing consolidated structured data and HTML visualizations; an independent row audit compares extracted rows against what the source pages actually print.
 
+**USDM Instantiation** — the USDM side the repo is named after, not a fourth layer — turns one protocol's consolidated SoA and a short hand-written manifest into a USDM v4 document, checked by a gate against the pinned [usdm-rdf](https://github.com/kerfors/usdm-rdf) release and the NCI EVS codelists USDM borrows. It is a documented manual step, not a pipeline step: see [`documents/usdm-instantiation.md`](documents/usdm-instantiation.md).
+
 The core processing logic lives in the `soa2usdm/` package; a batch notebook (`01_batch.ipynb`) provides the execution wrapper across protocol collections.
 
 See [`documents/soa2usdm-schema-architecture.md`](documents/soa2usdm-schema-architecture.md) for the full design rationale and [`documents/background-and-challenges.md`](documents/background-and-challenges.md) for project history and the key extraction challenges that shaped this architecture.
@@ -49,7 +51,8 @@ soa2usdm/
 │   ├── soa-table-extraction.schema.json     # Layer 1
 │   ├── soa-table-corrections.schema.json    # Layer 1 corrections sidecar
 │   ├── soa-table-resolved.schema.json       # Layer 2
-│   └── soa-tables-consolidated.schema.json  # Layer 3
+│   ├── soa-tables-consolidated.schema.json  # Layer 3
+│   └── usdm-manifest.schema.json            # USDM Instantiation manifest
 │
 ├── prompts/
 │   ├── EXTRACTION_WORKFLOW_GUIDE.md          # How to run all conversations
@@ -59,6 +62,7 @@ soa2usdm/
 │
 ├── documents/
 │   ├── soa2usdm-schema-architecture.md       # Three-layer design rationale
+│   ├── usdm-instantiation.md                 # USDM Instantiation: procedure, design, decisions
 │   ├── background-and-challenges.md          # Project history and key challenges
 │   ├── soa_table_type_definitions.md         # Table classification (taxonomy)
 │   ├── inventory-improvements.md             # Backlog: open and done items
@@ -82,9 +86,15 @@ soa2usdm/
 │   ├── nav.py                       # Shared navigation for all generated pages
 │   ├── page_grid.py                 # Rule-line cell geometry (vector + raster)
 │   ├── row_audit.py                 # RowAuditStep — extracted rows vs the pages
-│   └── review_page.py               # ReviewPageStep — the extraction on its source pages
+│   ├── review_page.py               # ReviewPageStep — the extraction on its source pages
+│   ├── usdmgen.py                   # USDM Instantiation: consolidated SoA → USDM v4
+│   ├── usdm_manifest.py             # USDM Instantiation: objects the SoA does not state
+│   └── shellgen.py                  # Study shell generator, driven by the manifest
 │
-├── tools/                           # Re-extraction harness: gate, page map, dry runs, redaction (tools/README.md)
+├── tools/                           # Re-extraction harness and the USDM gate (tools/README.md)
+│
+├── ct/
+│   └── usdm-borrowed-codelists.tsv  # NCI EVS codelists USDM borrows (built by tools/build_ct_extract.py)
 │
 ├── notebooks/
 │   ├── 00_download_extract.ipynb    # Download PDFs, extract SoA pages, scaffold folders
@@ -107,6 +117,9 @@ Attach the prompt file + your data to a new Claude conversation. See [`prompts/E
 
 **Layers 2–3 — Resolution, Consolidation & Visualization (Python):**
 The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to run across a protocol collection — set `COLLECTION` in the config cell and execute.
+
+**USDM Instantiation (manual step):**
+Per protocol: write the manifest, run `python -m soa2usdm.usdmgen`, then `tools/usdm_gate.py` — the steps are in [`documents/usdm-instantiation.md`](documents/usdm-instantiation.md), *Running it*. Needs `pip install -e '.[shell,usdm-gate]'` and the usdm-rdf checkout next to this repo.
 
 **Checking extractions against the source pages (Python):**
 `soa2usdm-row-audit --collection <name>` compares every extracted activity row against the rows its SoA pages actually print, and writes `row_audit.json` to the collection root. Needs poppler (`pdftoppm`, `pdftotext`, `pdfinfo`) and the `bands` extra: `pip install -e '.[bands]'`.

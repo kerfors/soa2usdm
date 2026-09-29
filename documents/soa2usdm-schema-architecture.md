@@ -71,7 +71,7 @@ PDF Protocol Document
 └─────────────────────────────────────────┘
         │
         ▼
-    USDM Mapping (future)
+    USDM Instantiation (a documented manual step — see below)
 ```
 
 ---
@@ -154,13 +154,34 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 ---
 
+## USDM Instantiation
+
+Not a fourth layer: the USDM side the repo is named after. It turns one consolidated SoA into
+a USDM v4 document. `soa2usdm.usdmgen` lifts the consolidated table into timelines,
+instances, timings, activities and encounters and merges them into the study structure USDM
+requires; `soa2usdm.usdm_manifest` supplies the objects the SoA does not state, each flagged
+not stated. The only protocol reading is a short hand-written manifest
+(`schemas/usdm-manifest.schema.json`), and its load-bearing part is the epoch axis — an
+interpretation of the extraction, resolved and logged here, never marked in the Layer 1–3
+schemas.
+
+It is a documented manual step, not a pipeline step: a USDM document exists only for a
+protocol someone chose to build. `tools/usdm_gate.py` checks each build against the pinned
+usdm-rdf release and the NCI EVS codelists USDM borrows. The semantic items listed under
+Layer 3 remain future work. Procedure, decisions and limits:
+[`usdm-instantiation.md`](usdm-instantiation.md).
+
+**Output:** `{NCTID}_usdm.json` and `{NCTID}_usdm_decisions.json`, with the manifest
+
+---
+
 ## What Each Layer Excludes
 
 | Layer | Explicitly Excluded |
 |-------|---------------------|
 | **Extraction** | Generated IDs, derived relationships, cross-table integration |
 | **Resolution** | Multi-table integration, timeline structures |
-| **Consolidation** | USDM-specific semantics (StudyEpoch, Encounter, Activity mappings) |
+| **Consolidation** | USDM-specific semantics (StudyEpoch, Encounter, Activity mappings) — these belong to USDM Instantiation |
 
 ---
 
@@ -207,9 +228,13 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
 ├── resolved/
 │   ├── *_Table_{NN}_resolved.json   # One per table
 │   └── *_Table_{NN}_resolved.html   # Per-table visualization
-└── consolidated/
-    ├── {NCTID}_consolidated.json    # Single file per protocol
-    └── {NCTID}_consolidated.html    # Consolidated visualization
+├── consolidated/
+│   ├── {NCTID}_consolidated.json    # Single file per protocol
+│   └── {NCTID}_consolidated.html    # Consolidated visualization
+└── usdm/                            # Only where a USDM document was built
+    ├── {NCTID}_usdm_manifest.yaml   # Hand-written
+    ├── {NCTID}_usdm.json            # USDM v4 document
+    └── {NCTID}_usdm_decisions.json  # What was decided, derived or left out
 ```
 
 The index generator discovers files by suffix pattern, so naming variations
@@ -225,12 +250,12 @@ in the Excel files (e.g., table ranges, extra labels) are handled gracefully.
 | **Resolution** | What precisely is in it? | Programmatic | per-table |
 | **Consolidation** | What was the protocol expressing? | Programmatic | per-protocol |
 
-Between extraction and resolution, human adjudication enters through the corrections sidecar (Layer 1.5) without ever touching the raw extraction.
+Between extraction and resolution, human adjudication enters through the corrections sidecar (Layer 1.5) without ever touching the raw extraction. After consolidation, USDM Instantiation turns a protocol's consolidated SoA into a USDM v4 document, as a documented manual step.
 
 The architecture acknowledges that SoA tables are lossy compressions of study logic, and provides a systematic path to recover that logic while maintaining full traceability.
 
 ---
 
-**Version:** 4.1  
-**Date:** 2026-09-28  
+**Version:** 4.2  
+**Date:** 2026-09-29  
 **Schemas:** soa-table-extraction v1.0, soa-table-corrections v1.0, soa-table-resolved v1.0, soa-tables-consolidated v1.1
