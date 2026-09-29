@@ -1,0 +1,16 @@
+{
+ "printed": "A Schedule of Activities, <em>as printed</em>",
+ "extracted": "…rendered as a table <em>for review</em>",
+ "overview": "Source, extraction and checks — <em>side by side</em>",
+ "checks": "<em>Independent</em> checks re-read the PDF",
+ "row": "Click a row — <em>the printed row lights up</em>",
+ "header": "Header rows trace back <em>to the page</em> too",
+ "note": "Footnotes bound to <em>exactly what they apply to</em>",
+ "flags": "The AI flags its own <em>judgement calls</em>",
+ "decide": "<em>A human decides</em> — kept as a correction",
+ "raw": "The raw extraction <em>stays untouched</em>",
+ "index": "22 protocols — <em>every call decided</em>",
+ "ready": "USDM-ready — <em>not yet USDM</em>",
+ "json": "Extracted by AI as <em>JSON</em>, against a schema",
+ "consol": "After review: corrections applied, <em>tables consolidated</em>"
+}
