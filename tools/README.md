@@ -14,6 +14,7 @@ guess where guessing would be silent.
 | `dryrun.py` | the two gate steps that need the corpus rather than the staging area — row audit, and the deterministic layers — in a throwaway scratch collection |
 | `usdm_gate.py` | USDM Instantiation gate: manifest schema, usdm-rdf pin (content hashes), then usdm-rdf's notebook 60 run from the pinned checkout — context conformance, structural and terminology SHACL — and the codes on the codelists USDM borrows from NCI EVS, against `ct/usdm-borrowed-codelists.tsv`. `SOA2USDM_USDM_RDF` points at the checkout |
 | `build_ct_extract.py` | rebuilds `ct/usdm-borrowed-codelists.tsv` from the full NCI EVS files in `ct/downloads/` (not committed, named `<Package> Terminology <YYYY-MM-DD>.txt`); run only when re-pinning a CT package |
+| `anchor_survey.py` | read-only survey of what every consolidated SoA prints about its clock: anchor column, Day 1 / week 0 convention, restarts, anchoring event, second clocks; the numbers in `documents/anchor-survey.md` |
 | `promote_dryrun.py` | rehearses the whole promotion (install, retire/keep sidecars, rebuild, regenerate the published index pages) so it can be checked before anything real is touched |
 | `audit_blinding.py` | reads the subagent transcripts and reports tool calls that reached outside the blind tree, or into memory, Project knowledge or past chats |
 | `stamp_model.py` | writes `extraction_metadata.model` into staged extractions from the run setting; refuses to overwrite a different value |

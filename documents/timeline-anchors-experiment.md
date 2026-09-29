@@ -92,6 +92,7 @@ For the record of what "SoA-only" costs on this protocol: visit windows (±3/±4
 - Open `downloads/d4k/CDISC_Pilot_Study.json` (usdm-rdf) and compare: which instance carries the Fixed Reference Timing, whether V-to-V Timings are anchor-relative or chained, how ET/RT are connected, whether NPI-X telephone and the Ambulatory ECG appear as sub-timelines, instances, or not at all. This note is the blind prediction; the comparison is the experiment.
 - Prototype rule 6 (NPI-X telephone) as the first emitted sub-timing, since it is the one case fully evidenced by the consolidated data.
 - Run rules 1–2 across the other usdm_data protocols to see how often the anchor column is a zero on a DAY row versus a WEEK row, and how often the anchoring event is a single-mark milestone row versus absent (first dose folded into a "study drug administration" recurring row).
+  **Done 2026-09-29** across all 24 protocols: [`anchor-survey.md`](anchor-survey.md), reproducible with `tools/anchor_survey.py`.
 
 ---
 

@@ -68,7 +68,7 @@ soa2usdm/
 │   ├── inventory-improvements.md             # Backlog: open and done items
 │   ├── re-extraction-acceptance-checklist.md # Re-extraction criteria and promotion gate
 │   ├── re-extraction-baseline*.json          # Machine baseline and mined claims (tools/)
-│   └── *.md                                  # Design notes (annotation model, identifiers, timeline anchors)
+│   └── *.md                                  # Design notes (annotation model, identifiers, timeline anchors, anchor survey)
 │
 ├── soa2usdm/                         # Core Python package
 │   ├── config.py                    # Paths, collection discovery
