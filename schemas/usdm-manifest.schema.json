@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/usdm-manifest.json",
+  "title": "USDM Instantiation Manifest Schema",
+  "description": "The hand-written manifest for one USDM Instantiation minimal build (soa2usdm.usdmgen). It carries the few facts read off the protocol: study identity, organizations, identifiers, titles, the epoch list, the terminology codes those use, and the axis declarations that tell usdmgen how to read the consolidated SoA. Everything else USDM v4 requires is supplied by soa2usdm.usdm_manifest and flagged not stated. Written in YAML; validated as JSON. Unknown keys are rejected because the generator would drop them silently.",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "study", "organizations", "identifiers", "titles", "epochs", "terms", "epochAxis"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "usdm-manifest",
+      "description": "Schema identifier."
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Schema version."
+    },
+    "study": {
+      "type": "object",
+      "description": "Study identity and the protocol document every stated fact is read from.",
+      "required": ["id", "name", "version", "versionRationale", "documentRef", "ctVersion"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "description": "Study.id."},
+        "name": {"type": "string", "description": "Study.name."},
+        "label": {"type": ["string", "null"], "description": "Study.label."},
+        "description": {"type": ["string", "null"], "description": "Study.description."},
+        "version": {"type": "string", "description": "StudyVersion.versionIdentifier, as printed."},
+        "versionRationale": {"type": "string", "description": "StudyVersion.rationale."},
+        "documentRef": {"type": "string", "description": "The protocol document. Every sourceRef extension is written as documentRef followed by the fact's own ref."},
+        "ctVersion": {"type": "string", "description": "The CT package the codes in terms were verified against. Written to every Code.codeSystemVersion."}
+      }
+    },
+    "organizations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "description": "An Organization. Stated organizations carry ref; organizations not stated in the protocol carry flag instead.",
+        "required": ["slug", "name", "ct"],
+        "anyOf": [{"required": ["ref"]}, {"required": ["flag"]}],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {"type": "string", "description": "Local key; the Organization id is Organization_<slug>. Identifiers point here with org."},
+          "name": {"type": "string"},
+          "ct": {"type": "string", "description": "Key into terms for Organization.type."},
+          "ref": {"type": "string", "description": "Where in the protocol document the organization is stated."},
+          "flag": {"type": "string", "description": "Why the organization is not stated in the protocol, and where it was taken from."}
+        }
+      }
+    },
+    "identifiers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["slug", "text", "org", "ref"],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {"type": "string"},
+          "text": {"type": "string", "description": "StudyIdentifier.text."},
+          "org": {"type": "string", "description": "slug of the scoping organization."},
+          "ref": {"type": "string"}
+        }
+      }
+    },
+    "titles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["ct", "text", "ref"],
+        "additionalProperties": false,
+        "properties": {
+          "ct": {"type": "string", "description": "Key into terms for StudyTitle.type."},
+          "text": {"type": "string"},
+          "ref": {"type": "string"}
+        }
+      }
+    },
+    "epochs": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The declared epochs, in order. The one load-bearing protocol reading: ScheduledInstance.epochId is the single attribute joining the SoA to the shell.",
+      "items": {
+        "type": "object",
+        "required": ["slug", "name", "label", "ct", "ref"],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {"type": "string", "description": "Local key; the StudyEpoch id is StudyEpoch_<slug>. epochAxis.map values point here."},
+          "name": {"type": "string"},
+          "label": {"type": ["string", "null"]},
+          "description": {"type": ["string", "null"]},
+          "ct": {"type": "string", "description": "Key into terms for StudyEpoch.type."},
+          "ref": {"type": "string"}
+        }
+      }
+    },
+    "terms": {
+      "type": "object",
+      "description": "Terminology used by the manifest, keyed by a local name: [code, decode]. Keys starting notstated_ are reserved by soa2usdm.usdm_manifest and may only repeat its values.",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": [
+          {"type": "string", "pattern": "^C[0-9]+$"},
+          {"type": "string"}
+        ]
+      }
+    },
+    "epochAxis": {
+      "type": "object",
+      "description": "Which consolidated column property carries the epoch axis, and how its printed values map to declared epochs. An interpretation of the extraction, resolved here and logged as a decision; never marked in the consolidated schema.",
+      "required": ["property", "map"],
+      "additionalProperties": false,
+      "properties": {
+        "property": {"type": "string", "pattern": "^prop-[0-9]+$", "description": "property_id in the consolidated property_hierarchy."},
+        "map": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Printed value -> epoch slug. Printed values not in the map leave the column unbound and are logged.",
+          "additionalProperties": {"type": "string"}
+        }
+      }
+    },
+    "timingAxis": {
+      "type": "object",
+      "description": "Optional. The column property carrying study days, and the anchor column. Only plain study-day values are converted to Timing.",
+      "required": ["property", "anchor"],
+      "additionalProperties": false,
+      "properties": {
+        "property": {"type": "string", "pattern": "^prop-[0-9]+$"},
+        "anchor": {"type": "string", "pattern": "^xcol-[0-9]+$", "description": "xcol_id of the fixed-reference column."},
+        "sameValueOf": {"type": "string", "pattern": "^prop-[0-9]+$", "description": "Restrict derivation to columns sharing the anchor's value of this property, e.g. the cycle, because a day number that restarts each cycle is not a study day."}
+      }
+    },
+    "encounterAxis": {
+      "type": "object",
+      "description": "Optional. The column property carrying visits. Without it no Encounter is emitted, because emitting one per column would assert a classification the table does not print.",
+      "required": ["property", "ct"],
+      "additionalProperties": false,
+      "properties": {
+        "property": {"type": "string", "pattern": "^prop-[0-9]+$"},
+        "ct": {"type": "string", "description": "Key into terms for Encounter.type."}
+      }
+    }
+  }
+}
