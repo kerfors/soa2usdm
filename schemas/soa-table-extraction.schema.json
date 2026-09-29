@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://data4knowledge.org/schemas/soa-table-extraction.json",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa-table-extraction.json",
   "title": "SoA Table Extraction Schema",
   "description": "Schema for capturing Schedule of Activities tables as they appear in protocol documents. The SoA table is a presentation artifact - a 2D summary of underlying study logic constrained by paper format. This schema captures that presentation faithfully: observable structure plus basic domain interpretation that any clinical trial expert would agree on. Downstream schemas (soa-table-resolved, study-schedule-logic) progressively reconstruct the study logic the table was attempting to express. Key principle: Extract what you see + interpret what's obvious; leave derivation and semantic mapping to downstream layers.",
   "definitions": {

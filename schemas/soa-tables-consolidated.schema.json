@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://data4knowledge.org/schemas/soa-tables-consolidated.json",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa-tables-consolidated.json",
   "title": "SoA Tables Consolidated Schema",
   "description": "Schema for consolidated Schedule of Activities across multiple tables within a single protocol. Performs structural consolidation: unifies activities across tables via matching, aligns columns into timeline segments, and builds a schedule matrix. This is structural integration only - semantic interpretation (USDM timeline patterns, annotation logic) belongs to a future study-schedule-logic layer.",
   "type": "object",

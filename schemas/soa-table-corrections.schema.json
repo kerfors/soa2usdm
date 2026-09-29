@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://data4knowledge.org/schemas/soa-table-corrections.json",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa-table-corrections.json",
   "title": "SoA Table Corrections Schema",
   "description": "Human corrections to a raw soa-table-extraction. The raw extraction is immutable; corrections here are applied to produce the verified extraction that feeds resolution. Each correction is source-linked and self-describing, so the corrections corpus doubles as a provenance record and a feedback dataset for extraction-prompt refinement.",
   "type": "object",

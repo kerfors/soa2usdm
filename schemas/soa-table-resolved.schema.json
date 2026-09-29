@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://data4knowledge.org/schemas/soa-table-resolved.json",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa-table-resolved.json",
   "title": "SoA Table Resolved Schema",
   "description": "Schema for a validated, identified, and relationship-resolved SoA table. Takes extraction output and makes it precise: stable identifiers for every element, explicit parent-child relationships, resolved annotation cross-references, and validated structural integrity. Still represents the table as it appears in the protocol - not yet study logic semantics. Prepares the table for integration with other tables and eventual mapping to study-schedule-logic. Key principle: Everything derivable from extraction is now derived; everything that needs validation is validated; every element is addressable.",
   "definitions": {
