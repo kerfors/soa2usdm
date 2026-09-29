@@ -12,6 +12,7 @@ guess where guessing would be silent.
 | `page_map.py` | derives the PDF-page → document-page map per study; **refuses to guess** where the excerpt has extra pages; `--study` limits it to named studies |
 | `gate.py` | per-table promotion gate: schema, private-use characters, orphans, marker agreement, containment, typing, page coverage, merged ranges, baseline deltas, marker bindings, review items vs report, provenance, quote fidelity; `--partial` when only some tables of a study are staged |
 | `dryrun.py` | the two gate steps that need the corpus rather than the staging area — row audit, and the deterministic layers — in a throwaway scratch collection |
+| `usdm_gate.py` | USDM Instantiation gate: manifest schema, usdm-rdf pin (content hashes), then usdm-rdf's notebook 60 run from the pinned checkout — context conformance, structural and terminology SHACL. `SOA2USDM_USDM_RDF` points at the checkout |
 | `promote_dryrun.py` | rehearses the whole promotion (install, retire/keep sidecars, rebuild, regenerate the published index pages) so it can be checked before anything real is touched |
 | `audit_blinding.py` | reads the subagent transcripts and reports tool calls that reached outside the blind tree, or into memory, Project knowledge or past chats |
 | `stamp_model.py` | writes `extraction_metadata.model` into staged extractions from the run setting; refuses to overwrite a different value |

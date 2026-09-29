@@ -20,6 +20,8 @@ bands = ["numpy"]
 index = ["openpyxl", "markdown"]
 # USDM Instantiation (soa2usdm.shellgen, soa2usdm.usdmgen) reads a YAML manifest.
 shell = ["pyyaml"]
+# USDM Instantiation gate (tools/usdm_gate.py): usdm-rdf's notebook 60, run as a script.
+usdm-gate = ["pyyaml", "jsonschema", "rdflib", "pyshacl", "pandas"]
 test = ["pytest"]
 
 [project.scripts]
