@@ -79,7 +79,6 @@ soa2usdm/
 │   ├── resolve.py                   # ResolveStep (Layer 2)
 │   ├── consolidate.py               # ConsolidateStep (Layer 3)
 │   ├── visualize.py                 # Consolidated HTML
-│   ├── visualize_resolved.py        # Per-table HTML (debugging)
 │   ├── index_generator.py           # Collection index page; renders reports, refreshes nav
 │   ├── collections_index.py         # Root index across collections
 │   ├── activity_inventory.py        # Collection activity inventory (activities.json/.html)

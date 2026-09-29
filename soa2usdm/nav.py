@@ -4,7 +4,7 @@ Shared navigation for the generated HTML pages.
 Every page below a collection carries the same two-line navigation block:
 
     breadcrumb  Collections › {collection} › {protocol} › {page label}
-    siblings    extraction data: T1 T2 · resolved: T1 T2 · consolidated · review · extraction log(s)
+    siblings    extraction data: T1 T2 · resolved data: T1 T2 · consolidated · review · extraction log(s)
 
 The breadcrumb links every ancestor: "Collections" is the repository root
 index, the collection name is the collection index, and the protocol name
@@ -70,7 +70,9 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
 
     extraction: [(n, href)] JSON viewers (from the *_extraction.json files —
     the viewer HTML is regenerated with the index, in the same batch).
-    resolved: [(n, href)] per-table resolved pages. consolidated / review:
+    resolved: [(n, href)] JSON viewers of the per-table resolved data (from the
+    *_resolved.json files, rendered with the index like the extraction viewers).
+    consolidated / review:
     href or None. logs: [(infix, href)] one per uncertainty report (infix None
     for the protocol's own report), emitted when the report exists as .md or
     already-rendered .html (the .html is rendered with the index, same batch).
@@ -85,10 +87,10 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
             extraction.append((n, f"SoA2USDM/extracted/{f.stem}_viewer.html"))
 
     resolved = []
-    for f in sorted(res_dir.glob("*_resolved.html")) if res_dir.is_dir() else []:
+    for f in sorted(res_dir.glob("*_resolved.json")) if res_dir.is_dir() else []:
         n = _table_num(f.name)
         if n is not None:
-            resolved.append((n, f"SoA2USDM/resolved/{f.name}"))
+            resolved.append((n, f"SoA2USDM/resolved/{f.stem}_viewer.html"))
 
     cons = cons_dir / f"{protocol_id}_consolidated.html"
     review = ext_dir / f"{protocol_id}_review.html"
@@ -147,7 +149,7 @@ def nav_block(collection: str, protocol_id: str, page_label: str, depth: int,
     if sib["resolved"]:
         items = " ".join(link(h, f"T{n}", kind == "resolved" and n == cur_n)
                          for n, h in sib["resolved"])
-        groups.append(f'<span class="pnav-grp">resolved:</span> {items}')
+        groups.append(f'<span class="pnav-grp">resolved data:</span> {items}')
     if sib["consolidated"]:
         groups.append(link(sib["consolidated"], "consolidated", kind == "consolidated"))
     if sib["review"] or kind == "review":

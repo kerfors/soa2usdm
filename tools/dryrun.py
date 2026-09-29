@@ -87,12 +87,11 @@ import sys
 from soa2usdm.corrections import ApplyCorrectionsStep
 from soa2usdm.resolve import ResolveStep
 from soa2usdm.consolidate import ConsolidateStep
-from soa2usdm.visualize_resolved import VisualizeResolvedStep
 from soa2usdm.visualize import VisualizeStep
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 
-STEPS = [ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep, ConsolidateStep, VisualizeStep]
+STEPS = [ApplyCorrectionsStep, ResolveStep, ConsolidateStep, VisualizeStep]
 fail = 0
 for pid in {studies!r}:
     errors, analytics = Errors(), Analytics()

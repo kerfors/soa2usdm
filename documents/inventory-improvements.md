@@ -137,7 +137,7 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 ## 13 — Silent `except Exception: pass` in the page generators
 
-**Motivation.** `220c6fd` made the index fail loudly on a missing dependency. Three blocks still hide an unreadable file rather than a missing package: the consolidated-JSON read in `index_generator.discover_protocol_outputs` (tables, activities, compression, redaction count go missing from the index row), and the resolved-file scans for the nav table list in `visualize.py` and `visualize_resolved.py` (a table drops out of the per-table navigation). None has fired in the corpus as far as known; the point is that nothing would say so if it did.
+**Motivation.** `220c6fd` made the index fail loudly on a missing dependency. Three blocks still hide an unreadable file rather than a missing package: the consolidated-JSON read in `index_generator.discover_protocol_outputs` (tables, activities, compression, redaction count go missing from the index row), and the resolved-file scan for the nav table list in `visualize.py` (a table drops out of the per-table navigation; `visualize_resolved.py`, which had the same scan, is retired). None has fired in the corpus as far as known; the point is that nothing would say so if it did.
 
 **Sketch.** Let the exception propagate, or log it as a step error. No fallback.
 

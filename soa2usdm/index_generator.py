@@ -187,26 +187,22 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                                   title=f"Extraction log ({infix})", current="log", current_n=infix)
             result['extra_reports'].append((infix, str(report_html.relative_to(collection_path))))
 
-    # Resolved HTMLs + JSONs
+    # Resolved JSONs, shown through their JSON viewers (the per-table resolved HTML is retired)
     resolved_dir = soa_folder / "resolved"
     if resolved_dir.exists():
-        html_files = sorted(resolved_dir.glob("*_resolved.html"))
-        if html_files:
+        json_files = sorted(resolved_dir.glob("*_resolved.json"))
+        if json_files:
             result['has_resolved'] = True
-            for hf in html_files:
-                name = hf.name
-                label = name.replace(f'{protocol_id}_', '').replace('_resolved.html', '').replace('Table_', 'T')
-                json_name = name.replace('_resolved.html', '_resolved.json')
-                json_viewer = None
-                json_file = resolved_dir / json_name
-                if json_file.exists():
-                    json_viewer = _render_json_html(json_file, collection_path, protocol_id,
-                                                    collection, f"Table {int(label[1:])} resolved data")
+            for jf in json_files:
+                label = jf.name.replace(f'{protocol_id}_', '').replace('_resolved.json', '').replace('Table_', 'T')
+                tnum = int(label[1:])
+                viewer_rel = _render_json_html(jf, collection_path, protocol_id, collection,
+                                               f"Table {tnum} resolved data",
+                                               current=('resolved', tnum))
                 result['resolved_files'].append({
-                    'filename': name,
-                    'path': f"{protocol_id}/SoA2USDM/resolved/{name}",
+                    'filename': jf.name,
+                    'path': viewer_rel,
                     'label': label,
-                    'json_path': json_viewer,
                 })
     
     # Consolidated HTML
@@ -620,7 +616,7 @@ def generate_index_html(collection: str) -> str:
         if p.get('resolved_files'):
             resolved_parts = []
             for rf in p['resolved_files']:
-                part = f'<a href="{rf["path"]}" class="link-table" title="Per-table view — Table {rf["label"]} with IDs and relationships">{rf["label"]}</a>'
+                part = f'<a href="{rf["path"]}" class="link-table" title="Resolved JSON viewer — {esc(rf["filename"])}">{rf["label"]}</a>'
                 resolved_parts.append(part)
             resolved_html = ' '.join(resolved_parts)
         
@@ -786,7 +782,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — per-table resolved: IDs, hierarchy, relationships (HTML + JSON)">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
             </tr></thead>
             <tbody>
                 {ready_rows}

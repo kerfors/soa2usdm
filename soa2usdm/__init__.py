@@ -6,7 +6,6 @@ Steps:
     resolve             Layer 2 — IDs, hierarchy, validation (ResolveStep)
     consolidate         Layer 3 — cross-table integration (ConsolidateStep)
     visualize           Consolidated HTML generation (VisualizeStep)
-    visualize_resolved  Per-table resolved HTML, debugging (VisualizeResolvedStep)
     index_generator     Collection index page (IndexGeneratorStep)
 
 Checks against the source pages (need poppler + numpy):
@@ -22,7 +21,6 @@ from .corrections import ApplyCorrectionsStep, apply_corrections
 from .resolve import ResolveStep
 from .consolidate import ConsolidateStep
 from .visualize import VisualizeStep
-from .visualize_resolved import VisualizeResolvedStep
 from .index_generator import IndexGeneratorStep
 from .row_audit import RowAuditStep
 
@@ -38,7 +36,6 @@ __all__ = [
     "ResolveStep",
     "ConsolidateStep",
     "VisualizeStep",
-    "VisualizeResolvedStep",
     "IndexGeneratorStep",
     "RowAuditStep",
 ]

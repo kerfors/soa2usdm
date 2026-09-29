@@ -227,7 +227,7 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
 │   └── *_verified.xlsx                       # Excel(s) — two-conversation path only
 ├── resolved/
 │   ├── *_Table_{NN}_resolved.json   # One per table
-│   └── *_Table_{NN}_resolved.html   # Per-table visualization
+│   └── *_Table_{NN}_resolved_viewer.html   # JSON viewer
 ├── consolidated/
 │   ├── {NCTID}_consolidated.json    # Single file per protocol
 │   └── {NCTID}_consolidated.html    # Consolidated visualization

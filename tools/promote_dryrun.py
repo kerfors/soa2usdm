@@ -114,7 +114,6 @@ import sys
 from soa2usdm.corrections import ApplyCorrectionsStep
 from soa2usdm.resolve import ResolveStep
 from soa2usdm.consolidate import ConsolidateStep
-from soa2usdm.visualize_resolved import VisualizeResolvedStep
 from soa2usdm.visualize import VisualizeStep
 from soa2usdm.review_page import ReviewPageStep
 from soa2usdm.index_generator import IndexGeneratorStep
@@ -123,12 +122,12 @@ from soa2usdm.activity_inventory import ActivityInventoryStep
 from soa2usdm.errors import Errors
 from soa2usdm.analytics import Analytics
 
-STEPS = [ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep, ConsolidateStep, VisualizeStep,
+STEPS = [ApplyCorrectionsStep, ResolveStep, ConsolidateStep, VisualizeStep,
          ReviewPageStep]
 # The nav strip is discovered from disk when a page is rendered. build() cleared consolidated/, so
-# on the first pass the resolved pages find no consolidated or review sibling. Render the pages
-# again once every artefact exists, so their nav matches a rebuild over a populated tree.
-RERENDER = [VisualizeResolvedStep, VisualizeStep]
+# on the first pass the consolidated page finds no review sibling. Render it
+# again once every artefact exists, so its nav matches a rebuild over a populated tree.
+RERENDER = [VisualizeStep]
 fail = 0
 for pid in {studies!r}:
     errors, analytics = Errors(), Analytics()

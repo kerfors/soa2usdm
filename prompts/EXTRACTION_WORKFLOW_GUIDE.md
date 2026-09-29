@@ -102,10 +102,9 @@ The batch notebook runs six steps in sequence:
 |------|-------|-------|-------------|
 | 1 | `ApplyCorrectionsStep` | 1.5 | Applies `*_corrections.json` sidecars → `*_extraction.verified.json`; raw never overwritten |
 | 2 | `ResolveStep` | 2 | Adds IDs, validates hierarchy, derives relationships — per table |
-| 3 | `VisualizeResolvedStep` | — | Per-table HTML for debugging |
-| 4 | `ConsolidateStep` | 3 | Cross-table integration, activity matching, annotation dedup |
-| 5 | `VisualizeStep` | — | Consolidated HTML for review |
-| 6 | `ReviewPageStep` | — | `{NCTID}_review.html`: the extraction against its rendered source pages — rows, marks, notes, review items and cross-table folds drawn where they refer to; drafts sidecar entries, writes nothing |
+| 3 | `ConsolidateStep` | 3 | Cross-table integration, activity matching, annotation dedup |
+| 4 | `VisualizeStep` | — | Consolidated HTML: the unified SoA, with its notes marked where they apply |
+| 5 | `ReviewPageStep` | — | `{NCTID}_review.html`: the extraction against its rendered source pages — rows, marks, notes, review items and cross-table folds drawn where they refer to; drafts sidecar entries, writes nothing |
 
 After all protocols: `IndexGeneratorStep` builds the collection index and renders the reports (refreshing each page's navigation), `CollectionsIndexStep` the root index, `ActivityInventoryStep` the activity inventory.
 
@@ -122,7 +121,6 @@ sys.path.insert(0, str(Path.cwd()))
 
 from soa2usdm.corrections import ApplyCorrectionsStep
 from soa2usdm.resolve import ResolveStep
-from soa2usdm.visualize_resolved import VisualizeResolvedStep
 from soa2usdm.consolidate import ConsolidateStep
 from soa2usdm.visualize import VisualizeStep
 from soa2usdm.review_page import ReviewPageStep
@@ -137,7 +135,7 @@ pid = 'NCT00000000'
 
 errors, analytics = Errors(), Analytics()
 data = {'source': {'protocol_id': pid, 'collection': COLLECTION}}
-for step_cls in (ApplyCorrectionsStep, ResolveStep, VisualizeResolvedStep,
+for step_cls in (ApplyCorrectionsStep, ResolveStep,
                  ConsolidateStep, VisualizeStep, ReviewPageStep):
     data[step_cls.step_name] = step_cls(errors, analytics).execute(data)
 
@@ -170,7 +168,7 @@ After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extr
 │   └── {NCTID}_review.html
 ├── resolved/
 │   ├── {NCTID}_Table_{NN}_resolved.json
-│   └── {NCTID}_Table_{NN}_resolved.html
+│   └── {NCTID}_Table_{NN}_resolved_viewer.html
 └── consolidated/
     ├── {NCTID}_consolidated.json
     └── {NCTID}_consolidated.html
