@@ -15,6 +15,32 @@ stated. Measurements and file names from 2026-09-03 are left as they were.
 
 ---
 
+## Running it
+
+USDM Instantiation is a documented manual step, not a pipeline step (decided 2026-09-29).
+A USDM document exists only for a protocol someone chose to build, and every build is
+reviewed by the person who wrote its manifest.
+
+1. **Pick a protocol** whose consolidated SoA carries an epoch property (§4).
+2. **Write the manifest**, `<ID>_usdm_manifest.yaml`, against
+   `schemas/usdm-manifest.schema.json`: study identity, organizations (each with a `ref`
+   if stated in the protocol, a `flag` if not), identifiers, titles, epochs, terms and
+   `epochAxis`; `timingAxis` and `encounterAxis` only where the SoA supports them. Every
+   judgement goes in a comment next to the value. Terminology codes are checked against the
+   CT package named in `study.ctVersion`.
+3. **Generate**:
+   `python -m soa2usdm.usdmgen <manifest> <consolidated.json> <outdir>` writes
+   `<ID>_usdm.json` and `<ID>_usdm_decisions.json`.
+4. **Gate**: `python3 tools/usdm_gate.py <manifest> <outdir>/<ID>_usdm.json`. Needs the
+   `usdm-gate` extra and the usdm-rdf checkout at the pinned release (§7).
+5. **Read what the gate cannot judge**: the decisions log (`epoch-unbound` and
+   `timing-skipped` entries above all), terminology warnings, and any code the gate reports
+   as a non-member of an extensible codelist (§11).
+6. **Commit** manifest, document and decisions log together, in the collection under
+   `<ID>/SoA2USDM/usdm/`.
+
+---
+
 ## 1. What USDM Instantiation has to produce
 
 A USDM v4 `Study` document that carries the Schedule of Activities and conforms to the
@@ -298,7 +324,9 @@ Check the DDF-RA issue tracker first. As of 2026-09-03:
 
 ### usdm-rdf is a pinned dependency, never a write target
 
-Deliverables at `v0.7.0` via w3id; checker at commit `d7bb3e3`. It changes only when this
+Pinned at release `v0.7.1` — the checker notebook and the four deliverables, by content
+hash, in `tools/usdm_gate.py`. (Until 2026-09-29: deliverables `v0.7.0`, checker `d7bb3e3`;
+v0.7.1 has the same shapes and context.) It changes only when this
 work finds a defect in what it publishes. That direction of traffic is what makes this an
 independent consumer — which is what the "no false positives across 6,620 triples from an
 independent generator" line in the usdm-rdf dossier rests on.
@@ -508,3 +536,34 @@ All four are the same failure mode: assuming that an absence in the place you lo
 an absence in the model. It is the reason the manifest schema was tested against a third
 protocol rather than two, and the reason §6 was re-verified before anything was written up
 for CDISC.
+
+---
+
+## 11. Decisions recorded
+
+Three open points from the first minimal build (NCT03637764, 2026-09-05), recorded as
+decisions rather than fixed. Codes verified against SDTM CT 2026-03-27.
+
+- **`InterventionalStudyDesign.model` is written as C82639 (Parallel Study), flagged not
+  stated.** The attribute is mandatory (1) and the SoA does not state the design model, so
+  some code must be written. C82639 is a member of C99076, so the document conforms — but
+  it is not a reading of the protocol, and the not-stated flag on the design object is what
+  says so. A reader must not take it as the study's model. An enriched build would take the
+  model from the protocol; `usdm_manifest.py` reserves the `notstated_model` term today, so
+  that needs a code change when it is wanted.
+- **`StudyArm.type` C174266 (Investigational Arm) is checked against Protocol
+  Terminology.** Its codelist, C174222, is not in SDTM CT; it is published in the NCI EVS
+  CDISC Protocol Terminology package, where C174266 is a member (submission value
+  "Experimental Arm", NCI preferred term "Investigational Arm"). The arm itself is flagged
+  not stated.
+- **Codes on the 20 codelists USDM borrows are checked by the gate (step B), not by hand.**
+  usdm-rdf leaves these bindings `sh:deactivated` because their members are published in
+  NCI EVS packages, not in the DDF deliverables. soa2usdm keeps its own extract of exactly
+  those codelists, `ct/usdm-borrowed-codelists.tsv` (1,542 members), built by
+  `tools/build_ct_extract.py` from SDTM CT 2026-03-27 and Protocol Terminology 2025-09-26;
+  the extract's header names both files with their SHA-256. A non-member fails the gate on a
+  non-extensible codelist and is reported on an extensible one. Eight of the 20 codelists
+  are published in both packages; they are identical in these releases, and the build stops
+  if they ever differ. `study.ctVersion` remains a single date per document and is written
+  to every `Code.codeSystemVersion`, so C174266 carries the SDTM date although it comes from
+  Protocol Terminology — known, left as is.

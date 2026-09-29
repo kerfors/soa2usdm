@@ -12,11 +12,14 @@ Checks, in order:
       every object has an id, every id-based cross-reference resolves
   S   structural SHACL (usdm_v4.shapes.ttl) conforms
   T   terminology SHACL (usdm_v4.shapes-ct.ttl) has no Violation
+  B   coded values on the codelists USDM borrows from NCI EVS CDISC packages (the bindings
+      usdm-rdf leaves sh:deactivated) are members, per ct/usdm-borrowed-codelists.tsv; a
+      non-member fails on a non-extensible codelist and is reported on an extensible one
 
 C, S and T are usdm-rdf's notebooks/60_validate_study.ipynb, executed from the pinned checkout
 with only STUDY_JSON and BASE_IRI set — not a copy of it. Duplicate ids and subjects outside the
 base IRI stop the notebook before any shape runs. Terminology Warnings (extensible codelists) and
-coded values on codelists the checker does not check are reported, not judged.
+non-members of extensible borrowed codelists are reported, not judged.
 
 Exit 0 when every check passes, 1 otherwise.
 
@@ -37,6 +40,7 @@ import yaml
 REPO = Path(os.environ.get("SOA2USDM_REPO", Path(__file__).resolve().parents[1]))
 USDM_RDF = Path(os.environ.get("SOA2USDM_USDM_RDF", REPO.parent / "usdm-rdf"))
 MANIFEST_SCHEMA = REPO / "schemas" / "usdm-manifest.schema.json"
+CT_EXTRACT = REPO / "ct" / "usdm-borrowed-codelists.tsv"
 INSTANCE_BASE = "https://kerfors.github.io/soa2usdm/instances/"
 
 # usdm-rdf v0.7.1. Same shapes and context as v0.7.0; notebook 60 adds occurrence and distinct-
@@ -73,6 +77,28 @@ def check_pin():
         elif hashlib.sha256(f.read_bytes()).hexdigest() != expected:
             wrong.append(f"{rel}: content differs from {USDM_RDF_TAG}")
     return wrong
+
+
+def check_borrowed(unchecked):
+    """Membership of the codes notebook 60 could not check, against the committed extract."""
+    lines = CT_EXTRACT.read_text(encoding="utf-8").splitlines()
+    sources = [l.split("\t")[1:3] for l in lines if l.startswith("# source\t")]
+    table = [l.split("\t") for l in lines if not l.startswith("#")]
+    cols = table[0]
+    lists = {}
+    for r in (dict(zip(cols, row)) for row in table[1:]):
+        lists.setdefault(r["codelist"], (r["codelist_extensible"], set()))[1].add(r["code"])
+    fails, warnings = [], []
+    for r in unchecked.itertuples():
+        if r.codelist not in lists:
+            fails.append(f"{r.property}: codelist {r.codelist} not in {CT_EXTRACT.name}")
+            continue
+        extensible, members = lists[r.codelist]
+        for code in r.codes.split():
+            if code not in members:
+                msg = f"{r.property}: {code} not in {r.codelist} (extensible={extensible})"
+                (fails if extensible == "No" else warnings).append(msg)
+    return fails, warnings, sources
 
 
 def run_notebook_60(study_json, base_iri):
@@ -136,11 +162,18 @@ def main():
     results.append(("T", "terminology SHACL, violations", [
         f"{r.constraint} {r.path} on {r.focus}: {r.value}" for r in violations.itertuples()]))
 
-    warnings = terminology[terminology["severity"] != "Violation"]
     unchecked = ns["unchecked"]
-    print(f"\nreported, not judged: {len(warnings)} terminology warning(s); "
-          f"{int(unchecked['occurrences'].sum())} coded value(s) on "
-          f"{len(unchecked)} unchecked binding(s)")
+    borrowed_fails, borrowed_warnings, sources = check_borrowed(unchecked)
+    results.append(("B", "borrowed codelists, " + ", ".join(f"{p} {r}" for p, r in sources),
+                    borrowed_fails))
+
+    warnings = terminology[terminology["severity"] != "Violation"]
+    print(f"\nborrowed codelists: {int(unchecked['distinct_codes'].sum())} distinct code(s) on "
+          f"{len(unchecked)} binding(s) checked against {CT_EXTRACT.relative_to(REPO)}")
+    print(f"reported, not judged: {len(warnings)} terminology warning(s); "
+          f"{len(borrowed_warnings)} non-member(s) of extensible borrowed codelists")
+    for w in borrowed_warnings:
+        print(f"        {w}")
 
     report(results)
     sys.exit(0 if all(not errs for _, _, errs in results) else 1)

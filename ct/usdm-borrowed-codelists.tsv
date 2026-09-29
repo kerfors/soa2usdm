@@ -1,0 +1,1547 @@
+# Members of the codelists USDM v4 borrows from NCI EVS CDISC packages: the bindings usdm-rdf v0.7.1 publishes as sh:deactivated.
+# Built by tools/build_ct_extract.py from the files below. Do not edit by hand.
+# source	Protocol Terminology	2025-09-26	sha256:af6aae6cbc5ba82812470b138c463483d635bb8b4f22088adb9153583bf6dbd4
+# source	SDTM Terminology	2026-03-27	sha256:bf463677654171d701d09ffcb0a122e9523029b42d542269f45fb496a35ecef9
+codelist	codelist_extensible	codelist_name	code	submission_value	nci_preferred_term	package
+C127259	Yes	Observational Study Model	C127779	CASE CROSSOVER	Observational Case-Crossover Study	Protocol/SDTM
+C127259	Yes	Observational Study Model	C127780	ECOLOGIC OR COMMUNITY	Ecologic or Community Based Study	Protocol/SDTM
+C127259	Yes	Observational Study Model	C15197	CASE CONTROL	Case-Control Study	Protocol/SDTM
+C127259	Yes	Observational Study Model	C15208	COHORT	Cohort Study	Protocol/SDTM
+C127259	Yes	Observational Study Model	C15362	CASE ONLY	Case Study	Protocol/SDTM
+C127259	Yes	Observational Study Model	C15407	FAMILY BASED	Family Study	Protocol/SDTM
+C127260	Yes	Observational Study Sampling Method	C127781	NON-PROBABILITY SAMPLE	Non-Probability Sampling Method	SDTM
+C127260	Yes	Observational Study Sampling Method	C71517	PROBABILITY SAMPLE	Equal Probability Sampling Method	SDTM
+C127261	Yes	Observational Study Time Perspective	C15273	PROSPECTIVE	Longitudinal Study	SDTM
+C127261	Yes	Observational Study Time Perspective	C53310	CROSS SECTIONAL	Cross-Sectional Study	SDTM
+C127261	Yes	Observational Study Time Perspective	C53312	RETROSPECTIVE	Retrospective Study	SDTM
+C127262	Yes	Environmental Setting	C102647	HOUSEHOLD ENVIRONMENT	Household Environment	SDTM
+C127262	Yes	Environmental Setting	C102650	FIELD	In the Field	SDTM
+C127262	Yes	Environmental Setting	C102679	NON-HOUSEHOLD ENVIRONMENT	Non-household Environment	SDTM
+C127262	Yes	Environmental Setting	C102712	SOCIAL SETTING	Social Setting	SDTM
+C127262	Yes	Environmental Setting	C127785	CHILD CARE CENTER	Childcare Center	SDTM
+C127262	Yes	Environmental Setting	C16281	OUTPATIENT CLINIC	Ambulatory Care Facility	SDTM
+C127262	Yes	Environmental Setting	C16696	HOSPITAL	Hospital	SDTM
+C127262	Yes	Environmental Setting	C17118	SCHOOL	School	SDTM
+C127262	Yes	Environmental Setting	C17556	WORKSITE	Worksite	SDTM
+C127262	Yes	Environmental Setting	C18002	HOME	Home	SDTM
+C127262	Yes	Environmental Setting	C181529	MOTOR VEHICLE	Motor Vehicle	SDTM
+C127262	Yes	Environmental Setting	C181530	NOT IN CLINIC	Not In Clinic	SDTM
+C127262	Yes	Environmental Setting	C211570	CLINIC	Clinic	SDTM
+C127262	Yes	Environmental Setting	C21541	HEALTH FACILITY	Healthcare Facility	SDTM
+C127262	Yes	Environmental Setting	C41206	INSTITUTION	Institution	SDTM
+C127262	Yes	Environmental Setting	C48953	FARM	Farm	SDTM
+C127262	Yes	Environmental Setting	C85862	PRISON	Correctional Institution	SDTM
+C127262	Yes	Environmental Setting	C85863	SHELTER	Shelter	SDTM
+C171445	Yes	Mode of Subject Contact	C157352	TEXT MESSAGE	Text Message	SDTM
+C171445	Yes	Mode of Subject Contact	C171524	REMOTE AUDIO	Audioconferencing	SDTM
+C171445	Yes	Mode of Subject Contact	C171525	REMOTE AUDIO VIDEO	Audio-Videoconferencing	SDTM
+C171445	Yes	Mode of Subject Contact	C171533	SHIPMENT CONFIRMED BY SIGNATURE	Shipment Confirmed by Signature	SDTM
+C171445	Yes	Mode of Subject Contact	C171537	TELEPHONE CALL	Telephone Call	SDTM
+C171445	Yes	Mode of Subject Contact	C175574	IN PERSON	In Person	SDTM
+C171445	Yes	Mode of Subject Contact	C177933	IVRS	Interactive Voice Response System	SDTM
+C171445	Yes	Mode of Subject Contact	C25170	E-MAIL	E-mail	SDTM
+C171445	Yes	Mode of Subject Contact	C70805	LETTER	Letter	SDTM
+C174222	Yes	Study Arm Type Value Set Terminology	C15538	Treatment Arm	Protocol Treatment Arm	Protocol
+C174222	Yes	Study Arm Type Value Set Terminology	C174226	Control Arm	Control Arm	Protocol
+C174222	Yes	Study Arm Type Value Set Terminology	C174266	Experimental Arm	Investigational Arm	Protocol
+C174222	Yes	Study Arm Type Value Set Terminology	C174267	Active Comparator Arm	Active Comparator Arm	Protocol
+C174222	Yes	Study Arm Type Value Set Terminology	C174268	Placebo Comparator Arm	Placebo Control Arm	Protocol
+C174222	Yes	Study Arm Type Value Set Terminology	C174269	Sham Comparator Arm	Sham Comparator Arm	Protocol
+C174222	Yes	Study Arm Type Value Set Terminology	C174270	No Intervention Arm	No Intervention Arm	Protocol
+C66726	Yes	Dosage Form	C106178	DEPOT	Extended Release Depot Dosage Form	SDTM
+C66726	Yes	Dosage Form	C134876	GEL, CHEWABLE	Chewable Gel Dosage Form	SDTM
+C66726	Yes	Dosage Form	C142247	CAPSULE, IMMEDIATE RELEASE	Immediate Release Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C142248	TABLET, IMMEDIATE RELEASE	Immediate Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C148551	GRANULE, COATED	Coated Granules Dosage Form	SDTM
+C66726	Yes	Dosage Form	C149582	INHALATION VAPOR, CAPSULE	Inhalation Vapor, Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C150001	UNKNOWN	Unknown Dosage Form Category	SDTM
+C66726	Yes	Dosage Form	C158214	CAPSULE, HARD, EXTENDED RELEASE	Extended Release Capsule, Hard Dosage Form	SDTM
+C66726	Yes	Dosage Form	C158215	CAPSULE, SOFTGEL, EXTENDED RELEASE	Extended Release Capsule, Softgel Dosage Form	SDTM
+C66726	Yes	Dosage Form	C162112	TABLET, IMMEDIATE RELEASE, SOLID DISPERSION	Solid Dispersion Immediate Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C170453	TABLET, MODIFIED RELEASE	Modified Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C170573	TABLET, MODIFIED RELEASE, LONG DURATION	Long Modified Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C170574	TABLET, MODIFIED RELEASE, SHORT DURATION	Short Modified Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C17423	DRUG DELIVERY SYSTEM	Drug Delivery System	SDTM
+C66726	Yes	Dosage Form	C184506	CAPSULE, SOFTGEL	Capsule Softgel Pharmaceutical Dosage Form	SDTM
+C66726	Yes	Dosage Form	C202340	TABLET, CRUSHED	Crushed Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C202345	TABLET, FILM COATED, IMMEDIATE RELEASE, CRUSHED	Film Coated Immediate Release Crushed Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C202346	TABLET, FILM COATED, IMMEDIATE RELEASE	Film Coated Immediate Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C214529	TABLET, MODIFIED RELEASE, BILAYER	Modified Release Bilayer Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C214660	TABLET, GASTRORETENTIVE	Gastroretentive Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C214661	TABLET, MODIFIED RELEASE, MATRIX	Modified Release Matrix Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C214662	TABLET, MODIFIED RELEASE, EXTRUDABLE CORE SYSTEM	Modified Release Extrudable Core System Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C214663	TABLET, MODIFIED RELEASE, BILAYER (1:2)	Modified Release Bilayer Tablet 1:2 Dosage Form	SDTM
+C66726	Yes	Dosage Form	C214664	TABLET, MODIFIED RELEASE, BILAYER (1:1)	Modified Release Bilayer Tablet 1:1 Dosage Form	SDTM
+C66726	Yes	Dosage Form	C214665	NANOSUSPENSION	Nanosuspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C25158	CAPSULE	Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C25394	PILL	Pill Dosage Form	SDTM
+C66726	Yes	Dosage Form	C28944	CREAM	Cream Dosage Form	SDTM
+C66726	Yes	Dosage Form	C29167	LOTION	Lotion Dosage Form	SDTM
+C66726	Yes	Dosage Form	C29269	MOUTHWASH	Mouthwash Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42678	CIGARETTE	Cigarette Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42679	DOUCHE	Douche Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42763	DRESSING	Dressing Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42887	AEROSOL	Aerosol Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42888	AEROSOL, FOAM	Aerosol Foam Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42889	AEROSOL, SPRAY	Aerosol Spray Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42890	BEAD	Bead Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42891	BLOCK	Block Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42892	BAR, CHEWABLE	Chewable Bar Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42893	TABLET, CHEWABLE	Chewable Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42894	GUM, CHEWING	Chewing Gum Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42895	CAPSULE, COATED	Coated Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42896	CAPSULE, COATED PELLETS	Coated Pellet in Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42897	TABLET, COATED	Coated Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42898	SOLUTION, CONCENTRATE	Concentrated Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42899	INJECTION, SOLUTION, CONCENTRATE	Concentrated Injectable Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42900	CONE	Cone Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42901	CRYSTAL	Crystal Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42902	CAPSULE, DELAYED RELEASE	Delayed Release Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42903	GRANULE, DELAYED RELEASE	Delayed Release Granules Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42904	CAPSULE, DELAYED RELEASE PELLETS	Delayed Release Pellet in Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42905	TABLET, DELAYED RELEASE	Delayed Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42906	GEL, DENTIFRICE	Dentifrice Gel Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42907	PASTE, DENTIFRICE	Dentifrice Paste Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42908	POWDER, DENTIFRICE	Dentifrice Powder Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42909	GRANULE, EFFERVESCENT	Effervescent Granules Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42910	TABLET, EFFERVESCENT	Effervescent Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42911	PATCH, EXTENDED RELEASE, ELECTRICALLY CONTROLLED	Electrically Controlled Extended Release Patch Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42912	ELIXIR	Elixir Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42913	EMULSION	Emulsion Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42914	INJECTION, EMULSION	Emulsion for Injection Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42915	ENEMA	Enema Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42916	CAPSULE, EXTENDED RELEASE	Extended Release Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42917	CAPSULE, COATED, EXTENDED RELEASE	Extended Release Coated Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42918	PELLETS, COATED, EXTENDED RELEASE	Extended Release Coated Pellet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42919	CORE, EXTENDED RELEASE	Extended Release Core Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42920	FILM, EXTENDED RELEASE	Extended Release Film Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42921	GRANULE, FOR SUSPENSION, EXTENDED RELEASE	Extended Release Granule for Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42922	INSERT, EXTENDED RELEASE	Extended Release Insert Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42923	PATCH, EXTENDED RELEASE	Extended Release Patch Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42924	SUPPOSITORY, EXTENDED RELEASE	Extended Release Suppository Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42925	SUSPENSION, EXTENDED RELEASE	Extended Release Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42926	INJECTION, SUSPENSION, EXTENDED RELEASE	Injectable Extended Release Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42927	TABLET, EXTENDED RELEASE	Extended Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42928	CAPSULE, FILM COATED, EXTENDED RELEASE	Extended Release Film Coated Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42929	EXTRACT	Extract Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42930	TABLET, FILM COATED, EXTENDED RELEASE	Film Coated Extended Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42931	TABLET, FILM COATED	Film Coated Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42932	FILM	Film Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42933	GAS	Gas Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42934	GEL	Gel Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42935	SOLUTION, GEL FORMING, EXTENDED RELEASE	Extended Release Gel Forming Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42936	CAPSULE, GELATIN COATED	Gelatin Coated Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42937	GLOBULE	Globule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42938	GRANULE	Granule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42939	GRANULE, FOR SOLUTION	Granule for Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42940	GRANULE, FOR SUSPENSION	Granule for Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42941	GUM	Gum Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42942	IMPLANT	Implant Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42943	PELLET, IMPLANTABLE	Implantable Pellet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42944	INHALANT	Inhalant Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42945	INJECTION, SOLUTION	Injectable Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42946	INJECTION	Injectable Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42947	IRRIGANT	Irrigant Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42948	JELLY	Jelly Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42949	LINIMENT	Liniment Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42950	INJECTION, LIPID COMPLEX	Injectable Lipid Complex Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42951	INJECTION, SUSPENSION, LIPOSOMAL	Injectable Liposomal Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42952	LIPSTICK	Lipstick Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42953	LIQUID	Liquid Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42954	CAPSULE, LIQUID FILLED	Liquid Filled Capsule Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42955	LOZENGE	Lozenge Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42956	INJECTION, POWDER, LYOPHILIZED, FOR SUSPENSION, EXTENDED RELEASE	Lyophilized Powder for Extended Release Injectable Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42957	INJECTION, POWDER, LYOPHILIZED, FOR SOLUTION	Lyophilized Powder for Injectable Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42958	INJECTION, POWDER, LYOPHILIZED, FOR SUSPENSION	Lyophilized Powder for Injectable Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42959	INJECTION, POWDER, LYOPHILIZED, FOR LIPOSOMAL SUSPENSION	Lyophilized Powder for Injectable Liposomal Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42960	AEROSOL, METERED	Metered Aerosol Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42961	POWDER, METERED	Metered Powder Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42962	SPRAY, METERED	Metered Spray Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42963	TABLET, MULTILAYER, EXTENDED RELEASE	Multilayered Extended Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42964	TABLET, MULTILAYER	Multilayered Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42965	OIL	Oil Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42966	OINTMENT	Ointment Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42967	PASTE	Paste Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42968	PATCH	Patch Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42969	PELLET	Pellet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42970	PLASTER	Plaster Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42971	AEROSOL, POWDER	Powder Aerosol Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42972	POWDER	Powder Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42973	POWDER, FOR SOLUTION	Powder for Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42974	INJECTION, POWDER, FOR SOLUTION	Powder for Injectable Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42975	POWDER, FOR SUSPENSION	Powder for Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42976	INJECTION, POWDER, FOR SUSPENSION	Powder for Injectable Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42977	INJECTION, POWDER, FOR SUSPENSION, EXTENDED RELEASE	Powder for Injectable Extended Release Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42978	GUM, RESIN	Resin Gum Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42979	RINSE	Rinse Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42980	SALVE	Salve Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42981	SHAMPOO	Shampoo Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42982	SHAMPOO, SUSPENSION	Shampoo Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42983	SOAP	Soap Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42984	FILM, SOLUBLE	Soluble Film Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42985	TABLET, SOLUBLE	Soluble Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42986	SOLUTION	Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42987	SOLUTION, FOR SLUSH	Solution for Slush Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42988	INJECTION, SUSPENSION, SONICATED	Injectable Sonicated Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42989	SPRAY	Spray Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42990	SPRAY, SUSPENSION	Spray Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42991	STICK	Stick Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42992	TABLET, SUGAR COATED	Sugar Coated Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42993	SUPPOSITORY	Suppository Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42994	SUSPENSION	Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42995	INJECTION, SUSPENSION	Injectable Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42996	SYRUP	Syrup Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42997	TABLET, DELAYED RELEASE PARTICLES	Delayed Release Particle Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42998	TABLET	Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C42999	TABLET, ORALLY DISINTEGRATING	Orally Disintegrating Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C43000	TINCTURE	Tincture Dosage Form	SDTM
+C66726	Yes	Dosage Form	C43001	TROCHE	Troche Dosage Form	SDTM
+C66726	Yes	Dosage Form	C43002	UNASSIGNED	Unassigned Dosage Form	SDTM
+C66726	Yes	Dosage Form	C43003	WAFER	Wafer Dosage Form	SDTM
+C66726	Yes	Dosage Form	C43451	BEAD, IMPLANT, EXTENDED RELEASE	Extended Release Bead Implant Dosage Form	SDTM
+C66726	Yes	Dosage Form	C43525	DISC	Disc Dosage Form	SDTM
+C66726	Yes	Dosage Form	C45235	SOLID	Solid Dosage Form	SDTM
+C66726	Yes	Dosage Form	C45413	LINER, DENTAL	Dental Liner Dosage Form	SDTM
+C66726	Yes	Dosage Form	C45414	CEMENT	Cement Dosage Form	SDTM
+C66726	Yes	Dosage Form	C45415	CULTURE	Culture Dosage Form	SDTM
+C66726	Yes	Dosage Form	C45416	GRAFT	Graft Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47887	PACKING	Packing Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47889	SUTURE	Suture Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47890	DIAPHRAGM	Vaginal Diaphragm Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47892	TAMPON	Tampon Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47897	TAPE	Tape Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47898	SWAB	Swab Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47912	SPONGE	Sponge Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47913	POULTICE	Poultice Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47914	STRIP	Strip Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47915	INTRAUTERINE DEVICE	Intrauterine Device Dosage Form	SDTM
+C66726	Yes	Dosage Form	C47916	KIT	Kit Dosage Form	SDTM
+C66726	Yes	Dosage Form	C48193	GENERATOR	Generator Dosage Form	SDTM
+C66726	Yes	Dosage Form	C48624	NOT APPLICABLE	Dosage Form Not Applicable	SDTM
+C66726	Yes	Dosage Form	C60884	CLOTH	Cloth Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60891	CONCENTRATE	Concentrated Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60897	CREAM, AUGMENTED	Augmented Cream Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60926	FIBER, EXTENDED RELEASE	Extended Release Fiber Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60927	FOR SOLUTION	Dosage Form for Solution	SDTM
+C66726	Yes	Dosage Form	C60928	FOR SUSPENSION	Dosage Form for Suspension	SDTM
+C66726	Yes	Dosage Form	C60929	FOR SUSPENSION, EXTENDED RELEASE	Extended Release Dosage Form for Suspension	SDTM
+C66726	Yes	Dosage Form	C60930	GEL, METERED	Metered Gel Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60931	INJECTABLE, LIPOSOMAL	Liposomal Injection Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60933	INSERT	Insert Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60934	LIQUID, EXTENDED RELEASE	Extended Release Liquid Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60957	LOTION, AUGMENTED	Augmented Lotion Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60958	LOTION/SHAMPOO	Lotion Shampoo Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60984	OINTMENT, AUGMENTED	Augmented Ointment Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60985	PASTILLE	Pastille Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60988	RING	Ring Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60992	SOLUTION/ DROPS	Drop Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60994	SOLUTION, GEL FORMING / DROPS	Gel Forming Drop Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60995	SUSPENSION/DROPS	Drop Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C60997	TABLET, COATED PARTICLES	Tablet Coated Particle Dosage Form	SDTM
+C66726	Yes	Dosage Form	C61004	TABLET, FOR SOLUTION	Tablet for Solution Dosage Form	SDTM
+C66726	Yes	Dosage Form	C61005	TABLET, FOR SUSPENSION	Tablet for Suspension Dosage Form	SDTM
+C66726	Yes	Dosage Form	C61006	TABLET, ORALLY DISINTEGRATING, DELAYED RELEASE	Orally Disintegrating Delayed Release Tablet Dosage Form	SDTM
+C66726	Yes	Dosage Form	C87541	POWDER, LYOPHILIZED	Lyophilized Powder Dosage Form	SDTM
+C66726	Yes	Dosage Form	C91199	VAGINAL RING	Vaginal Ring Dosage Form	SDTM
+C66726	Yes	Dosage Form	C97197	CAPLET	Caplet Dosage Form	SDTM
+C66729	Yes	Route of Administration Response	C102399	INTRAJEJUNAL	Intrajejunal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C102400	INTRAPALATAL	Intrapalatal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C111326	TRANSMAMMARY	Transmammary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C112396	PERIVENOUS	Perivenous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C119548	INTRAPARENCHYMAL	Intraparenchymal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C128995	INTRATHALAMIC	Intrathalamic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C128996	INTRAVAGINAL	Intravaginal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C128997	SUPRACHOROIDAL	Suprachoroidal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C142365	INTRASURGICAL SITE	Intrasurgical Site Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C150889	MICRODIALYSIS	Microdialysis Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C156590	INTRAMANDIBULAR	Intramandibular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C172600	PHARYNGEAL	Pharyngeal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C181523	SUBDURAL	Subdural Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C184707	INTRACOCHLEAR	Intracochlear Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C188189	NASODUODENAL	Nasoduodenal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C188195	OROGASTRIC	Orogastric Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C191350	NASOJEJUNAL	Nasojejunal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C202447	GASTROJEJUNAL	Gastrojejunal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C221683	TRANSFORAMINAL	Transforaminal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C28161	INTRAMUSCULAR	Intramuscular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38192	AURICULAR (OTIC)	Auricular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38193	BUCCAL	Buccal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38194	CONJUNCTIVAL	Conjunctival Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38197	DENTAL	Dental Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38198	SOFT TISSUE	Soft Tissue Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38200	HEMODIALYSIS	Administration via Hemodialysis	SDTM
+C66729	Yes	Route of Administration Response	C38203	IONTOPHORESIS	Iontophoresis Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38205	ENDOCERVICAL	Endocervical Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38206	ENDOSINUSIAL	Endosinusial Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38207	INTRATHORACIC	Endothoracic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38208	ENDOTRACHEAL	Endotracheal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38209	ENTERAL	Enteral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38210	EPIDURAL	Epidural Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38211	EXTRA-AMNIOTIC	Extraamniotic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38212	EXTRACORPOREAL	Extracorporeal Circulation Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38215	INFILTRATION	Infiltration Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38216	RESPIRATORY (INHALATION)	Inhalation Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38217	INTRACORONAL, DENTAL	Intracoronal Dental Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38218	INTRACORONARY	Intracoronary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38219	INTERSTITIAL	Interstitial Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38220	INTRA-ABDOMINAL	Intraabdominal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38221	INTRA-AMNIOTIC	Intraamniotic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38222	INTRA-ARTERIAL	Intraarterial Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38223	INTRA-ARTICULAR	Intraarticular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38224	INTRABILIARY	Intrabiliary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38225	INTRABRONCHIAL	Intrabronchial Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38226	INTRABURSAL	Intrabursal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38227	INTRACARDIAC	Intracardiac Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38228	INTRACARTILAGINOUS	Intracartilaginous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38229	INTRACAUDAL	Intracaudal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38230	INTRACAVERNOUS	Intracavernous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38231	INTRACAVITARY	Intracavitary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38232	INTRACEREBRAL	Intracerebral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38233	INTRACISTERNAL	Intracisternal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38234	INTRACORNEAL	Intracorneal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38235	INTRACORPORUS CAVERNOSUM	Intracorpus Cavernosum Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38238	INTRADERMAL	Intradermal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38239	INTRADISCAL	Intradiscal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38240	INTRADUCTAL	Intraductal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38241	INTRADUODENAL	Intraduodenal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38242	INTRADURAL	Intradural Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38243	INTRAEPIDERMAL	Intraepidermal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38245	INTRAESOPHAGEAL	Intraesophageal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38246	INTRAGASTRIC	Intragastric Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38247	INTRAGINGIVAL	Intragingival Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38248	INTRAHEPATIC	Intrahepatic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38249	INTRAILEAL	Intraileal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38250	INTRALESIONAL	Intralesional Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38251	INTRALUMINAL	Intraluminal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38252	INTRALYMPHATIC	Intralymphatic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38253	INTRAMEDULLARY	Intramedullary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38254	INTRAMENINGEAL	Intrameningeal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38255	INTRAOCULAR	Intraocular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38256	INTRAOVARIAN	Intraovarian Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38257	INTRAPERICARDIAL	Intrapericardial Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38258	INTRAPERITONEAL	Intraperitoneal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38259	INTRAPLEURAL	Intrapleural Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38260	INTRAPROSTATIC	Intraprostatic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38261	INTRAPULMONARY	Intrapulmonary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38262	INTRASINAL	Intrasinal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38263	INTRASPINAL	Intraspinal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38264	INTRASYNOVIAL	Intrasynovial Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38265	INTRATENDINOUS	Intratendinous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38266	INTRATESTICULAR	Intratesticular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38267	INTRATHECAL	Intrathecal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38268	INTRATUBULAR	Intratubular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38269	INTRATUMOR	Intratumoral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38270	INTRATYMPANIC	Intratympanic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38271	URETHRAL	Intraurethral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38272	INTRAUTERINE	Intrauterine Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38273	INTRAVASCULAR	Intravascular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38274	INTRAVENOUS BOLUS	Intravenous Bolus	SDTM
+C66729	Yes	Route of Administration Response	C38276	INTRAVENOUS	Intravenous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38277	INTRAVENTRICULAR	Intraventricular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38278	INTRAVESICAL	Intravesical Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38279	INTRAVENOUS DRIP	Intravenous Drip	SDTM
+C66729	Yes	Route of Administration Response	C38280	INTRAVITREAL	Intravitreal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38281	IRRIGATION	Irrigation Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38282	LARYNGEAL	Laryngeal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38283	TRANSMUCOSAL	Mucosal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38284	NASAL	Nasal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38285	NASOGASTRIC	Nasogastric Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38286	OCCLUSIVE DRESSING TECHNIQUE	Occlusive Dressing Technique	SDTM
+C66729	Yes	Route of Administration Response	C38287	OPHTHALMIC	Ophthalmic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38288	ORAL	Oral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38289	OROPHARYNGEAL	Oropharyngeal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38291	PARENTERAL	Parenteral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38292	PERIARTICULAR	Periarticular Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38293	PERINEURAL	Perineural Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38294	PERIODONTAL	Periodontal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38295	RECTAL	Rectal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38296	RETROBULBAR	Retrobulbar Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38297	SUBARACHNOID	Subarachnoid Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38298	SUBCONJUNCTIVAL	Subconjunctival Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38299	SUBCUTANEOUS	Subcutaneous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38300	SUBLINGUAL	Sublingual Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38301	SUBMUCOSAL	Submucosal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38304	TOPICAL	Topical Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38305	TRANSDERMAL	Transdermal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38307	TRANSPLACENTAL	Transplacental Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38308	TRANSTRACHEAL	Transtracheal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38309	TRANSTYMPANIC	Transtympanic Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38310	UNASSIGNED	Unassigned Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38311	UNKNOWN	Unknown Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38312	URETERAL	Ureteral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38313	VAGINAL	Vaginal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38633	ELECTRO-OSMOSIS	Electro-osmosis Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38675	CUTANEOUS	Cutaneous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38676	PERCUTANEOUS	Percutaneous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C38677	PERIDURAL	Peridural Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C48623	NOT APPLICABLE	Route of Administration Not Applicable	SDTM
+C66729	Yes	Route of Administration Response	C64906	OROMUCOSAL	Oromucosal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C64984	INTRACAMERAL	Intracameral Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C64987	INTRAOSSEOUS	Intraosseous Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C65138	INTRASTOMAL	Administration via Stoma	SDTM
+C66729	Yes	Route of Administration Response	C78373	DIETARY	Dietary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C78374	ORAL GAVAGE	Oral Gavage Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C79137	INTRAMAMMARY	Intramammary Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C79139	INTRARUMINAL	Intraruminal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C79141	INTRANODAL	Intranodal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C79143	SUBRETINAL	Subretinal Route of Administration	SDTM
+C66729	Yes	Route of Administration Response	C85516	IMMERSION	Immersion Route of Exposure	SDTM
+C66729	Yes	Route of Administration Response	C94636	SUBTENON	Subtenon Route of Administration	SDTM
+C66732	No	Sex of Participants Response	C16576	F	Female	SDTM
+C66732	No	Sex of Participants Response	C20197	M	Male	SDTM
+C66732	No	Sex of Participants Response	C49636	BOTH	Both	SDTM
+C66735	Yes	Trial Blinding Schema Response	C15228	DOUBLE BLIND	Double Blind Study	Protocol/SDTM
+C66735	Yes	Trial Blinding Schema Response	C156592	OPEN LABEL TO TREATMENT AND DOUBLE BLIND TO IMP DOSE	Open Label for Treatment And Double Blind to Dose	Protocol/SDTM
+C66735	Yes	Trial Blinding Schema Response	C187674	OBSERVER BLIND	Observer Blind Study	Protocol/SDTM
+C66735	Yes	Trial Blinding Schema Response	C28233	SINGLE BLIND	Single Blind Study	Protocol/SDTM
+C66735	Yes	Trial Blinding Schema Response	C49659	OPEN LABEL	Open Label Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C139174	DEVICE FEASIBILITY	Device Feasibility Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C15245	HEALTH SERVICES RESEARCH	Health Services Research	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C15714	BASIC SCIENCE	Basic Research	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C170629	DISEASE MODIFYING	Disease Modifying Treatment Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C49653	DIAGNOSIS	Diagnosis Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C49654	CURE	Cure Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C49655	MITIGATION	Adverse Effect Mitigation Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C49656	TREATMENT	Treatment Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C49657	PREVENTION	Prevention Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C71485	SCREENING	Screening Study	Protocol/SDTM
+C66736	Yes	Trial Intent Type Response	C71486	SUPPORTIVE CARE	Supportive Care Study	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C15600	PHASE I TRIAL	Phase I Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C15601	PHASE II TRIAL	Phase II Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C15602	PHASE III TRIAL	Phase III Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C15603	PHASE IV TRIAL	Phase IV Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C15693	PHASE I/II TRIAL	Phase I/II Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C15694	PHASE II/III TRIAL	Phase II/III Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C198366	PHASE I/II/III TRIAL	Phase I/II/III Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C198367	PHASE I/III TRIAL	Phase I/III Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C199989	PHASE IB TRIAL	Phase Ib Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C199990	PHASE IA TRIAL	Phase Ia Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C47865	PHASE V TRIAL	Phase V Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C48660	NOT APPLICABLE	Not Applicable	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C49686	PHASE IIA TRIAL	Phase IIa Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C49687	PHASE IIIA TRIAL	Phase IIIa Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C49688	PHASE IIB TRIAL	Phase IIb Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C49689	PHASE IIIB TRIAL	Phase IIIb Trial	Protocol/SDTM
+C66737	Yes	Trial Phase Response	C54721	EARLY PHASE I	Early Phase 1 Trial	Protocol/SDTM
+C66739	Yes	Trial Type Response	C120842	IMMUNOGENICITY	Immunogenicity Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C127803	DOSE RESPONSE	Dose Response Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C129001	PHARMACOGENETIC	Pharmacogenetic Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158283	ADHESION PERFORMANCE	Adhesion Performance Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158284	ALCOHOL EFFECT	Alcohol Effect Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158285	DEVICE-DRUG INTERACTION	Device-Drug Interaction Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158286	DRUG-DRUG INTERACTION	Drug-Drug Interaction Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158287	THOROUGH QT	Thorough QT Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158288	BIOSIMILARITY	Biosimilarity Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158289	DOSE FINDING	Dose Finding Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C158290	DOSE PROPORTIONALITY	Dose Proportionality Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C161477	POSITION EFFECT	Position Effect Trial	Protocol/SDTM
+C66739	Yes	Trial Type Response	C161478	SWALLOWING FUNCTION	Swallowing Function Trial	Protocol/SDTM
+C66739	Yes	Trial Type Response	C161479	USABILITY TESTING	Usability Testing Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C161480	WATER EFFECT	Water Effect Trial	Protocol/SDTM
+C66739	Yes	Trial Type Response	C174366	REACTOGENICITY	Reactogenicity Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C178057	ECG	Electrocardiographic Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C201484	MASS BALANCE	Mass Balance Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C39493	PHARMACOECONOMIC	Pharmacoeconomic Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49653	DIAGNOSIS	Diagnosis Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49656	TREATMENT	Treatment Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49657	PREVENTION	Prevention Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49661	PHARMACOGENOMIC	Pharmacogenomic Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49662	PHARMACODYNAMIC	Pharmacodynamic Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49663	PHARMACOKINETIC	Pharmacokinetic Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49664	BIO-AVAILABILITY	Bioavailability Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49665	BIO-EQUIVALENCE	Therapeutic Equivalency Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49666	EFFICACY	Efficacy Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C49667	SAFETY	Safety Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C98729	FOOD EFFECT	Food Effect Study	Protocol/SDTM
+C66739	Yes	Trial Type Response	C98791	TOLERABILITY	Tolerability Study	Protocol/SDTM
+C66797	No	Category of Inclusion/Exclusion	C25370	EXCLUSION	Exclusion Criteria	SDTM
+C66797	No	Category of Inclusion/Exclusion	C25532	INCLUSION	Inclusion Criteria	SDTM
+C71113	Yes	Frequency	C103389	EVERY 8 WEEKS	Every Eight Weeks	SDTM
+C71113	Yes	Frequency	C103390	EVERY 5 WEEKS	Every Five Weeks	SDTM
+C71113	Yes	Frequency	C116149	EVERY 7 WEEKS	Every Seven Weeks	SDTM
+C71113	Yes	Frequency	C139177	Q7D	Every Seven Days	SDTM
+C71113	Yes	Frequency	C139178	QN	Every Night	SDTM
+C71113	Yes	Frequency	C139179	10 DAYS PER MONTH	Ten Days Per Month	SDTM
+C71113	Yes	Frequency	C139180	7 TIMES PER DAY	Seven Times Per Day	SDTM
+C71113	Yes	Frequency	C139181	8 TIMES PER DAY	Eight Times Per Day	SDTM
+C71113	Yes	Frequency	C139182	9 TIMES PER DAY	Nine Times Per Day	SDTM
+C71113	Yes	Frequency	C139183	Q45MIN	Every Forty-Five Minutes	SDTM
+C71113	Yes	Frequency	C154484	EVERY AFTERNOON	Every Afternoon	SDTM
+C71113	Yes	Frequency	C156502	THRICE	Thrice	SDTM
+C71113	Yes	Frequency	C160957	EVERY EVENING	Every Evening	SDTM
+C71113	Yes	Frequency	C161332	EVERY 12 WEEKS	Every Twelve Weeks	SDTM
+C71113	Yes	Frequency	C161333	EVERY 3 YEARS	Every Three Years	SDTM
+C71113	Yes	Frequency	C161334	EVERY 5 YEARS	Every Five Years	SDTM
+C71113	Yes	Frequency	C161335	Q6D	Every Six Days	SDTM
+C71113	Yes	Frequency	C161336	EVERY 16 WEEKS	Every Sixteen Weeks	SDTM
+C71113	Yes	Frequency	C174288	Q72H	Every Seventy Two Hours	SDTM
+C71113	Yes	Frequency	C176288	2 TIMES PER CYCLE	Two Times Per Cycle	SDTM
+C71113	Yes	Frequency	C176289	3 TIMES PER CYCLE	Three Times Per Cycle	SDTM
+C71113	Yes	Frequency	C17998	UNKNOWN	Unknown	SDTM
+C71113	Yes	Frequency	C189432	EVERY 4 YEARS	Every Four Years	SDTM
+C71113	Yes	Frequency	C189433	EVERY 10 WEEKS	Every Ten Weeks	SDTM
+C71113	Yes	Frequency	C189434	EVERY 13 WEEKS	Every Thirteen Weeks	SDTM
+C71113	Yes	Frequency	C189435	EVERY 10 YEARS	Every Ten Years	SDTM
+C71113	Yes	Frequency	C189436	Q96H	Every Ninety-Six Hours	SDTM
+C71113	Yes	Frequency	C201379	EVERY 8 YEARS	Every Eight Years	SDTM
+C71113	Yes	Frequency	C25473	QD	Daily	SDTM
+C71113	Yes	Frequency	C53279	CONTINUOUS	Continue	SDTM
+C71113	Yes	Frequency	C64496	BID	Twice Daily	SDTM
+C71113	Yes	Frequency	C64497	2 TIMES PER WEEK	Twice Weekly	SDTM
+C71113	Yes	Frequency	C64498	QM	Monthly	SDTM
+C71113	Yes	Frequency	C64499	PRN	As Needed	SDTM
+C71113	Yes	Frequency	C64500	Q10H	Every Ten Hours	SDTM
+C71113	Yes	Frequency	C64501	Q11H	Every Eleven Hours	SDTM
+C71113	Yes	Frequency	C64502	Q12H	Every Twelve Hours	SDTM
+C71113	Yes	Frequency	C64503	Q13H	Every Thirteen Hours	SDTM
+C71113	Yes	Frequency	C64504	Q14H	Every Fourteen Hours	SDTM
+C71113	Yes	Frequency	C64505	Q15H	Every Fifteen Hours	SDTM
+C71113	Yes	Frequency	C64506	Q16H	Every Sixteen Hours	SDTM
+C71113	Yes	Frequency	C64507	Q17H	Every Seventeen Hours	SDTM
+C71113	Yes	Frequency	C64508	Q18H	Every Eighteen Hours	SDTM
+C71113	Yes	Frequency	C64509	Q19H	Every Nineteen Hours	SDTM
+C71113	Yes	Frequency	C64510	QH	Every Hour	SDTM
+C71113	Yes	Frequency	C64511	Q20H	Every Twenty Hours	SDTM
+C71113	Yes	Frequency	C64512	Q21H	Every Twenty-One Hours	SDTM
+C71113	Yes	Frequency	C64513	Q22H	Every Twenty-Two Hours	SDTM
+C71113	Yes	Frequency	C64514	Q23H	Every Twenty-Three Hours	SDTM
+C71113	Yes	Frequency	C64515	Q24H	Every Twenty-Four Hours	SDTM
+C71113	Yes	Frequency	C64516	Q2H	Every Two Hours	SDTM
+C71113	Yes	Frequency	C64517	Q3H	Every Three Hours	SDTM
+C71113	Yes	Frequency	C64518	Q4H	Every Four Hours	SDTM
+C71113	Yes	Frequency	C64519	Q5H	Every Five Hours	SDTM
+C71113	Yes	Frequency	C64520	Q6H	Every Six Hours	SDTM
+C71113	Yes	Frequency	C64521	Q7H	Every Seven Hours	SDTM
+C71113	Yes	Frequency	C64523	Q8H	Every Eight Hours	SDTM
+C71113	Yes	Frequency	C64524	Q9H	Every Nine Hours	SDTM
+C71113	Yes	Frequency	C64525	QOD	Every Other Day	SDTM
+C71113	Yes	Frequency	C64526	1 TIME PER WEEK	Once Weekly	SDTM
+C71113	Yes	Frequency	C64527	TID	Three Times Daily	SDTM
+C71113	Yes	Frequency	C64528	3 TIMES PER WEEK	Three Times Weekly	SDTM
+C71113	Yes	Frequency	C64529	EVERY 4 WEEKS	Every Four Weeks	SDTM
+C71113	Yes	Frequency	C64530	QID	Four Times Daily	SDTM
+C71113	Yes	Frequency	C64531	4 TIMES PER WEEK	Four Times Weekly	SDTM
+C71113	Yes	Frequency	C64533	Q3D	Every Three Days	SDTM
+C71113	Yes	Frequency	C64534	Q4D	Every Four Days	SDTM
+C71113	Yes	Frequency	C64535	EVERY 3 WEEKS	Every Three Weeks	SDTM
+C71113	Yes	Frequency	C64536	Q2M	Every Two Months	SDTM
+C71113	Yes	Frequency	C64537	Q3M	Every Three Months	SDTM
+C71113	Yes	Frequency	C64538	Q4M	Every Four Months	SDTM
+C71113	Yes	Frequency	C64576	ONCE	Once	SDTM
+C71113	Yes	Frequency	C64593	QHS	Hour of Sleep	SDTM
+C71113	Yes	Frequency	C64595	QAM	QAM	SDTM
+C71113	Yes	Frequency	C64596	QPM	QPM	SDTM
+C71113	Yes	Frequency	C64636	AD LIBITUM	As Much as Desired	SDTM
+C71113	Yes	Frequency	C64954	OCCASIONAL	Infrequent	SDTM
+C71113	Yes	Frequency	C65134	TWICE	Twice	SDTM
+C71113	Yes	Frequency	C67069	EVERY WEEK	Weekly	SDTM
+C71113	Yes	Frequency	C71124	Q5D	Every Five Days	SDTM
+C71113	Yes	Frequency	C71127	EVERY 2 WEEKS	Every Two Weeks	SDTM
+C71113	Yes	Frequency	C71129	BIM	Twice Per Month	SDTM
+C71113	Yes	Frequency	C71325	INTERMITTENT	Intermittent	SDTM
+C71113	Yes	Frequency	C74924	PA	Per Year	SDTM
+C71113	Yes	Frequency	C85552	5 TIMES PER WEEK	Five Times Weekly	SDTM
+C71113	Yes	Frequency	C89788	EVERY 6 WEEKS	Every Six Weeks	SDTM
+C71113	Yes	Frequency	C89789	Q6M	Every Six Months	SDTM
+C71113	Yes	Frequency	C89790	Q48H	Every Forty-eight Hours	SDTM
+C71113	Yes	Frequency	C89791	Q36H	Every Thirty-six Hours	SDTM
+C71113	Yes	Frequency	C98849	5 TIMES PER DAY	Five Times Daily	SDTM
+C71113	Yes	Frequency	C98850	5 TIMES PER MONTH	Five Times Monthly	SDTM
+C71113	Yes	Frequency	C98851	5 TIMES PER YEAR	Five Times Yearly	SDTM
+C71113	Yes	Frequency	C98852	4 TIMES PER MONTH	Four Times Monthly	SDTM
+C71113	Yes	Frequency	C98853	4 TIMES PER YEAR	Four Times Yearly	SDTM
+C71113	Yes	Frequency	C98854	7 TIMES PER WEEK	Seven Times Weekly	SDTM
+C71113	Yes	Frequency	C98855	6 TIMES PER DAY	Six Times Daily	SDTM
+C71113	Yes	Frequency	C98856	6 TIMES PER MONTH	Six Times Monthly	SDTM
+C71113	Yes	Frequency	C98857	6 TIMES PER WEEK	Six Times Weekly	SDTM
+C71113	Yes	Frequency	C98858	6 TIMES PER YEAR	Six Times Yearly	SDTM
+C71113	Yes	Frequency	C98859	3 TIMES PER MONTH	Three Times Monthly	SDTM
+C71113	Yes	Frequency	C98860	3 TIMES PER YEAR	Three Times Yearly	SDTM
+C71113	Yes	Frequency	C98861	2 TIMES PER YEAR	Two Times Yearly	SDTM
+C71620	Yes	Unit	C100897	10^3 copies/mL	Thousand Copies per Milliliter	SDTM
+C71620	Yes	Unit	C100898	10^6 copies/mL	Million Copies per Milliliter	SDTM
+C71620	Yes	Unit	C100899	DIOPTER	Diopter	SDTM
+C71620	Yes	Unit	C100900	copies/mL	Copies per Milliliter	SDTM
+C71620	Yes	Unit	C102405	CAPFUL	Capful Dosing Unit	SDTM
+C71620	Yes	Unit	C102406	cm/s	Centimeter per Second	SDTM
+C71620	Yes	Unit	C102407	dB	Decibel	SDTM
+C71620	Yes	Unit	C102658	log10 CFU/g	Log10 Colony Forming Units per Gram	SDTM
+C71620	Yes	Unit	C102659	log10 CFU/mL	Log10 Colony Forming Units per Milliliter	SDTM
+C71620	Yes	Unit	C102695	/100 HPFs	Per 100 High Powered Fields	SDTM
+C71620	Yes	Unit	C105481	cm/min	Centimeter Per Minute	SDTM
+C71620	Yes	Unit	C105482	cs	Centisecond	SDTM
+C71620	Yes	Unit	C105483	damol/L	Decamole Per Liter	SDTM
+C71620	Yes	Unit	C105484	fraction of 1	Fraction of 1	SDTM
+C71620	Yes	Unit	C105487	hPa	Hectopascal	SDTM
+C71620	Yes	Unit	C105488	10^11/L	Hundred Billion Per Liter	SDTM
+C71620	Yes	Unit	C105489	10^8/L	Hundred Million Per Liter	SDTM
+C71620	Yes	Unit	C105490	10^5/L	Hundred Thousand Per Liter	SDTM
+C71620	Yes	Unit	C105491	kDa	Kilodalton	SDTM
+C71620	Yes	Unit	C105492	kPa/L/s	Kilopascal Per Liter Per Second	SDTM
+C71620	Yes	Unit	C105493	ks	Kilosecond	SDTM
+C71620	Yes	Unit	C105494	L/h/m2	Liter Per Hour Per Square Meter	SDTM
+C71620	Yes	Unit	C105495	L/L	Liter Per Liter	SDTM
+C71620	Yes	Unit	C105496	L/min/m2	Liter Per Minute Per Square Meter	SDTM
+C71620	Yes	Unit	C105497	ugEq	Microgram Equivalent	SDTM
+C71620	Yes	Unit	C105498	umol/L/s	Micromole Per Liter Per Second	SDTM
+C71620	Yes	Unit	C105499	uV*s	Microvolt Second	SDTM
+C71620	Yes	Unit	C105500	mph	Mile Per Hour	SDTM
+C71620	Yes	Unit	C105503	mL/cm	Milliliter per Centimeter	SDTM
+C71620	Yes	Unit	C105504	mL/dL	Milliliter per Deciliter	SDTM
+C71620	Yes	Unit	C105505	mL/s/1.73 m2	Milliliter Per Second Per 1.73 Meter Squared	SDTM
+C71620	Yes	Unit	C105506	mmHg/L/min	Millimeter Mercury Per Liter Per Minute	SDTM
+C71620	Yes	Unit	C105507	mm/min	Millimeter Per Minute	SDTM
+C71620	Yes	Unit	C105508	mm/s	Millimeter Per Second	SDTM
+C71620	Yes	Unit	C105509	mm/2h	Millimeter per Two Hours	SDTM
+C71620	Yes	Unit	C105511	mmol/mol CREATININE	Millimole Per Mole of Creatinine	SDTM
+C71620	Yes	Unit	C105512	mV*min	Millivolt Minute	SDTM
+C71620	Yes	Unit	C105513	nU/cL	Nanounit Per Centiliter	SDTM
+C71620	Yes	Unit	C105516	/VF	Per Visual Field	SDTM
+C71620	Yes	Unit	C105517	10^10/L	Ten Billion Per Liter	SDTM
+C71620	Yes	Unit	C105518	10^12 IU/L	Tera International Unit Per Liter	SDTM
+C71620	Yes	Unit	C105519	10^3/L	Thousand Per Liter	SDTM
+C71620	Yes	Unit	C105520	U/cL	Unit Per Centiliter	SDTM
+C71620	Yes	Unit	C105521	U/dL	Unit Per Deciliter	SDTM
+C71620	Yes	Unit	C105522	U/g Hb	Unit Per Gram Hemoglobin	SDTM
+C71620	Yes	Unit	C105524	V/s	Volt Per Second	SDTM
+C71620	Yes	Unit	C106524	Frames/s	Frames Per Second	SDTM
+C71620	Yes	Unit	C106542	mL/mmHg	Milliliters Per Millimeter of Mercury	SDTM
+C71620	Yes	Unit	C111129	Antibody Unit	Antibody Unit	SDTM
+C71620	Yes	Unit	C111139	BISCUIT	Biscuit Dosing Unit	SDTM
+C71620	Yes	Unit	C111140	BLOCKS	Block Unit of Distance	SDTM
+C71620	Yes	Unit	C111253	mmol/mol	Millimole per Mole	SDTM
+C71620	Yes	Unit	C111318	STEPS	Step Unit of Distance	SDTM
+C71620	Yes	Unit	C111984	PUMP	Pump Dosing Unit	SDTM
+C71620	Yes	Unit	C112423	Torr	Torr	SDTM
+C71620	Yes	Unit	C112433	Shock Wave	Shockwave Dosing Unit	SDTM
+C71620	Yes	Unit	C113499	POINT	Point	SDTM
+C71620	Yes	Unit	C114237	VIRTUAL PIXEL	Virtual Pixel	SDTM
+C71620	Yes	Unit	C114238	PIXELS/cm	Pixels per Centimeter	SDTM
+C71620	Yes	Unit	C114239	PIXELS/in	Pixels per Inch	SDTM
+C71620	Yes	Unit	C114240	%/min	Percent per Minute	SDTM
+C71620	Yes	Unit	C114241	mV2/Hz	Millivolt Squared per Hertz	SDTM
+C71620	Yes	Unit	C114242	cy/cm	Grating Cycles per Centimeter	SDTM
+C71620	Yes	Unit	C116231	BE/mL	Biological Allergy Unit per Milliliter	SDTM
+C71620	Yes	Unit	C116232	HEP	Histamine Equivalent Prick Unit	SDTM
+C71620	Yes	Unit	C116233	SBE/mL	Standardized Allergy Biological Unit per Milliliter	SDTM
+C71620	Yes	Unit	C116234	SQU/mL	Standardized Allergy Quality Unit per Milliliter	SDTM
+C71620	Yes	Unit	C116235	BAU/mL	Bioequivalent Allergy Unit per Milliliter	SDTM
+C71620	Yes	Unit	C116236	PNU/mL	Allergenic Protein Nitrogen Unit per Milliliter	SDTM
+C71620	Yes	Unit	C116237	copies/uL	Copies per Microliter	SDTM
+C71620	Yes	Unit	C116238	log10 IU/mL	Log10 International Units per Milliliter	SDTM
+C71620	Yes	Unit	C116241	mJoule/cm2	Millijoules per Square Centimeter	SDTM
+C71620	Yes	Unit	C116242	mmol/min/kPa	Millimoles per Minute per Kilopascal	SDTM
+C71620	Yes	Unit	C116244	CIGAR	Cigar Dosing Unit	SDTM
+C71620	Yes	Unit	C116245	CIGARETTE	Cigarette Dosing Unit	SDTM
+C71620	Yes	Unit	C116246	PIPE	Pipe Dosing Unit	SDTM
+C71620	Yes	Unit	C117963	% INHIBITION	Percent Inhibition	SDTM
+C71620	Yes	Unit	C117965	APL U/mL	Immunoglobin A Phospholipid Unit per Milliliter	SDTM
+C71620	Yes	Unit	C117966	BU	Bethesda Unit	SDTM
+C71620	Yes	Unit	C117967	BU/mL	Bethesda Unit per Milliliter	SDTM
+C71620	Yes	Unit	C117968	dpm/100 mg	Disintegration per Minute per 100 milligrams	SDTM
+C71620	Yes	Unit	C117969	dpm/mg	Disintegration per Minute per Milligram	SDTM
+C71620	Yes	Unit	C117970	dpm/mL	Disintegration per Minute per Milliliter	SDTM
+C71620	Yes	Unit	C117971	GPL U/mL	Immunoglobin G Phospholipid Unit per Milliliter	SDTM
+C71620	Yes	Unit	C117972	log10 copies/mL	Log10 Copies per Milliliter	SDTM
+C71620	Yes	Unit	C117973	MPL U/mL	Immunoglobin M Phospholipid Unit per Milliliter	SDTM
+C71620	Yes	Unit	C117974	nmol BCE/L	Nanomole Bone Collagen Equivalent per Liter	SDTM
+C71620	Yes	Unit	C117975	uEq/L	Microequivalent per Liter	SDTM
+C71620	Yes	Unit	C118137	nmol BCE/mmol	Nanomole Bone Collagen Equivalent per Millimole	SDTM
+C71620	Yes	Unit	C120843	mg/mol	Milligram per Mole	SDTM
+C71620	Yes	Unit	C120844	/kg	Per Kilogram	SDTM
+C71620	Yes	Unit	C120845	CCID 50/mL	50 Percent Cell Culture Infective Dose per Milliliter	SDTM
+C71620	Yes	Unit	C120846	dpm/0.5 mL	Disintegrations per Minute per 0.5 Milliliter	SDTM
+C71620	Yes	Unit	C120847	EID 50/mL	50 Percent Embryo Infective Dose per Milliliter	SDTM
+C71620	Yes	Unit	C120848	IU/dL	International Unit per Deciliter	SDTM
+C71620	Yes	Unit	C120849	kg/cm	Kilogram per Centimeter	SDTM
+C71620	Yes	Unit	C120850	SFC/10^6 PBMC	Spot Forming Units Per Million Peripheral Blood Mononuclear Cells	SDTM
+C71620	Yes	Unit	C120851	U.CARR	Carratelli Unit	SDTM
+C71620	Yes	Unit	C120852	umol/L/min	Micromole per Liter per Minute	SDTM
+C71620	Yes	Unit	C122197	/4.0 mL	per 4.0 Milliliters	SDTM
+C71620	Yes	Unit	C122198	/7.5 mL	per 7.5 Milliliters	SDTM
+C71620	Yes	Unit	C122199	/mm2	per Square Millimeter	SDTM
+C71620	Yes	Unit	C122200	10^9/g	Billion per Gram	SDTM
+C71620	Yes	Unit	C122201	Anson U	Anson Unit	SDTM
+C71620	Yes	Unit	C122202	APL U	IgA Phospholipid Unit	SDTM
+C71620	Yes	Unit	C122203	cd*s/m2	Candela Second per Square Meter	SDTM
+C71620	Yes	Unit	C122204	cd/m2	Candela per Square Meter	SDTM
+C71620	Yes	Unit	C122205	EIA unit	Enzyme Immunoassay Unit	SDTM
+C71620	Yes	Unit	C122206	fmol/L/s	Femtomole per Liter per Second	SDTM
+C71620	Yes	Unit	C122207	IU/g Hb	International Unit per Gram Hemoglobin	SDTM
+C71620	Yes	Unit	C122208	IU/mmol	International Unit per Millimole	SDTM
+C71620	Yes	Unit	C122209	ka_u/dL	King-Armstrong Unit per Deciliter	SDTM
+C71620	Yes	Unit	C122210	kg/mol	Kilogram per Mole	SDTM
+C71620	Yes	Unit	C122211	mAnson U/mL	Milli-Anson Unit per Milliliter	SDTM
+C71620	Yes	Unit	C122212	mg2/dL2	Square Milligram per Square Deciliter	SDTM
+C71620	Yes	Unit	C122213	mmol2/L2	Square Millimole per Square Liter	SDTM
+C71620	Yes	Unit	C122214	mOsm/L	Milliosmole per Liter	SDTM
+C71620	Yes	Unit	C122215	mU/g	Milliunit per Gram	SDTM
+C71620	Yes	Unit	C122216	mV/s	Millivolt per Second	SDTM
+C71620	Yes	Unit	C122217	nmol BCE/nmol	Nanomole Bone Collagen Equivalents per Nanomole	SDTM
+C71620	Yes	Unit	C122218	nmol/L/h	Nanomole per Liter per Hour	SDTM
+C71620	Yes	Unit	C122219	nmol/L/min	Nanomole per Liter per Minute	SDTM
+C71620	Yes	Unit	C122220	nmol/mol	Nanomole per Mole	SDTM
+C71620	Yes	Unit	C122221	PFU/animal	Plaque Forming Units per Animal	SDTM
+C71620	Yes	Unit	C122222	pkat/L	Picokatal per Liter	SDTM
+C71620	Yes	Unit	C122223	pmol/10^10 cells	Picomole per Ten Billion Cells	SDTM
+C71620	Yes	Unit	C122224	pmol/10^9 cells	Picomole per Billion Cells	SDTM
+C71620	Yes	Unit	C122225	pmol/day	Picomole per Day	SDTM
+C71620	Yes	Unit	C122226	pmol/dL	Picomole per Deciliter	SDTM
+C71620	Yes	Unit	C122227	pmol/L/h	Picomole per Liter per Hour	SDTM
+C71620	Yes	Unit	C122228	U/10^12 RBC	Unit per Trillion Red Blood Cells	SDTM
+C71620	Yes	Unit	C122229	ug/L/h	Microgram per Liter per Hour	SDTM
+C71620	Yes	Unit	C122230	ugEq/L	Microgram Equivalent per Liter	SDTM
+C71620	Yes	Unit	C122231	umol/mol	Micromole per Mole	SDTM
+C71620	Yes	Unit	C122629	ACTUATION	Actuation Dosing Unit	SDTM
+C71620	Yes	Unit	C122632	INJECTION	Injection Dosing Unit	SDTM
+C71620	Yes	Unit	C122634	PILL	Pill Dosing Unit	SDTM
+C71620	Yes	Unit	C123634	/10^3	Per Thousand	SDTM
+C71620	Yes	Unit	C124456	mg/cm2	Milligram per Squared Centimeter	SDTM
+C71620	Yes	Unit	C124457	mg/dose	Milligram per Dose	SDTM
+C71620	Yes	Unit	C124458	mg/kg/dose	Milligram per Kilogram per Dose	SDTM
+C71620	Yes	Unit	C124459	mL/dose	Milliliter per Dose	SDTM
+C71620	Yes	Unit	C124460	TRANSDUCING UNIT	Transducing Unit	SDTM
+C71620	Yes	Unit	C124461	TRANSDUCING UNIT/mL	Transducing Unit per Milliliter	SDTM
+C71620	Yes	Unit	C124462	ug/dose	Microgram per Dose	SDTM
+C71620	Yes	Unit	C124463	uIU/dL	Micro-International Unit per Deciliter	SDTM
+C71620	Yes	Unit	C124464	uIU/L	Micro-International Unit per Liter	SDTM
+C71620	Yes	Unit	C124465	ukat/10^12 RBC	Microkatal per Trillion Erythrocytes	SDTM
+C71620	Yes	Unit	C124466	uL/dose	Microliter per Dose	SDTM
+C71620	Yes	Unit	C124467	umol/h/mmol	Micromole per Hour per Millimole	SDTM
+C71620	Yes	Unit	C124468	umol/L/h	Micromole per Liter per Hour	SDTM
+C71620	Yes	Unit	C124469	uU/dL	Micro-Unit per Deciliter	SDTM
+C71620	Yes	Unit	C124470	uU/L	Micro-Unit per Liter	SDTM
+C71620	Yes	Unit	C124471	vg/dose	Vector Genomes per Dose	SDTM
+C71620	Yes	Unit	C124472	vg/mL	Vector Genomes per Milliliter	SDTM
+C71620	Yes	Unit	C124473	vp/dose	Viral Particles per Dose	SDTM
+C71620	Yes	Unit	C124474	vp/mL	Viral Particles per Milliliter	SDTM
+C71620	Yes	Unit	C126078	Absorbance U/mL	Absorbance Unit per Milliliter	SDTM
+C71620	Yes	Unit	C126079	copies/ug	Copies per Microgram	SDTM
+C71620	Yes	Unit	C126080	mm3/mm2/year	Cubic Millimeter per Square Millimeter per Year	SDTM
+C71620	Yes	Unit	C126081	um/day	Micrometer per Day	SDTM
+C71620	Yes	Unit	C126082	umol/kg/min	Micromole per Kilogram per Minute	SDTM
+C71620	Yes	Unit	C127804	1/(s*kPa)	One per Second Times Kilopascal	SDTM
+C71620	Yes	Unit	C127805	MET	Metabolic Equivalent of Task Unit	SDTM
+C71620	Yes	Unit	C127806	MET*h	Metabolic Equivalent of Task Hours	SDTM
+C71620	Yes	Unit	C127807	MET*min	Metabolic Equivalent of Task Minute	SDTM
+C71620	Yes	Unit	C127808	mL/beat	Milliliter per Heartbeat	SDTM
+C71620	Yes	Unit	C127809	mN	Millinewton	SDTM
+C71620	Yes	Unit	C127810	PHERESIS UNIT	Pheresis Unit	SDTM
+C71620	Yes	Unit	C128269	CGE	Cobalt Gray Equivalent	SDTM
+C71620	Yes	Unit	C129002	BEAM BREAKS	Beam Break Unit	SDTM
+C71620	Yes	Unit	C130046	Ejaculate U	Ejaculate Unit	SDTM
+C71620	Yes	Unit	C130187	/LSQN	Per Large Square Neubauer Chamber	SDTM
+C71620	Yes	Unit	C130188	/mm	Per Millimeter	SDTM
+C71620	Yes	Unit	C130189	10^6/Ejaculate U	Million Per Ejaculate Unit	SDTM
+C71620	Yes	Unit	C130190	gpELISA unit/mL	Glycoprotein-ELISA Unit Per Milliliter	SDTM
+C71620	Yes	Unit	C130191	mL/(min*100mL)	Milliliter Per Minute Times One Hundred Milliliters	SDTM
+C71620	Yes	Unit	C130192	ngEq/L	Nanogram Equivalents Per Liter	SDTM
+C71620	Yes	Unit	C130193	OI50	Opsonization Index 50%	SDTM
+C71620	Yes	Unit	C130194	s^-1(%O2)^-1	Reciprocal of Seconds Times Percent O2 Concentration	SDTM
+C71620	Yes	Unit	C132472	/200 HPFs	Per 200 High Powered Fields	SDTM
+C71620	Yes	Unit	C132473	/2000 RBC	Per 2000 Red Blood Cells	SDTM
+C71620	Yes	Unit	C132474	/2500 WBC	Per 2500 White Blood Cells	SDTM
+C71620	Yes	Unit	C132475	/40 HPFs	Per 40 High Powered Fields	SDTM
+C71620	Yes	Unit	C132476	/500 WBC	Per 500 White Blood Cells	SDTM
+C71620	Yes	Unit	C132477	BP	Base Pair Unit	SDTM
+C71620	Yes	Unit	C132478	log10 TCID 50/mL	Log10 50 Percent Tissue Culture Infective Dose per Milliliter	SDTM
+C71620	Yes	Unit	C132479	log10 TCID 50/uL	Log10 50 Percent Tissue Culture Infective Dose per Microliter	SDTM
+C71620	Yes	Unit	C132480	mMU/mL	MilliMerck Unit per Milliliter	SDTM
+C71620	Yes	Unit	C132481	uL/kg/day	Microliter per Kilogram per Day	SDTM
+C71620	Yes	Unit	C135515	/10^4	Per Ten Thousand	SDTM
+C71620	Yes	Unit	C135516	/10^5	Per Hundred Thousand	SDTM
+C71620	Yes	Unit	C135517	/cmH2O	Per Centimeter of Water	SDTM
+C71620	Yes	Unit	C135518	cmH2O*s/mL	Centimeter of Water Times Second per Milliliter	SDTM
+C71620	Yes	Unit	C135519	cmH2O*s2/mL	Centimeter of Water Times Second Squared per Milliliter	SDTM
+C71620	Yes	Unit	C135520	cmH2O/mL	Centimeter of Water per Milliliter	SDTM
+C71620	Yes	Unit	C135521	mL*cmH2O	Milliliter Times Centimeter of Water	SDTM
+C71620	Yes	Unit	C139130	MAC50	Minimum Alveolar Concentration 50 Percent	SDTM
+C71620	Yes	Unit	C139131	h*%	Hour Times Percent	SDTM
+C71620	Yes	Unit	C139132	s*kPa	Second Times Kilopascal	SDTM
+C71620	Yes	Unit	C139133	L/s/kPa	Liter per Second per Kilopascal	SDTM
+C71620	Yes	Unit	C139134	Linear ft*LB	Linear Foot Pound	SDTM
+C71620	Yes	Unit	C139135	kcal/day	Kilocalorie per Day	SDTM
+C71620	Yes	Unit	C147129	cmHg	Centimeters of Mercury	SDTM
+C71620	Yes	Unit	C147130	Enzyme U/L	Enzyme Unit per Liter	SDTM
+C71620	Yes	Unit	C149763	PLUG	Plug Dosing Unit	SDTM
+C71620	Yes	Unit	C150415	10^6 TCID 50/dose	Million Tissue Culture Infectious Dose 50%	SDTM
+C71620	Yes	Unit	C150416	10^7 TCID 50/dose	Ten Million Tissue Culture Infectious Dose 50%	SDTM
+C71620	Yes	Unit	C150417	10^8 TCID 50/dose	Hundred Million Tissue Culture Infectious Dose 50%	SDTM
+C71620	Yes	Unit	C150898	mmAL	Millimeters of Aluminum Equivalents	SDTM
+C71620	Yes	Unit	C150899	s/h	Seconds Per Hour	SDTM
+C71620	Yes	Unit	C150900	mmHg*min/L	Hybrid Resistance Units	SDTM
+C71620	Yes	Unit	C150901	EVENTS	Event Unit	SDTM
+C71620	Yes	Unit	C151970	BOWL	Bowl Dosing Unit	SDTM
+C71620	Yes	Unit	C152057	MeV	Megaelectronvolt	SDTM
+C71620	Yes	Unit	C154680	NFIU	Normalized Fluorescence Intensity Unit	SDTM
+C71620	Yes	Unit	C154854	Hz/s	Hertz Per Second	SDTM
+C71620	Yes	Unit	C154855	mL/100g/min	Milliliter per 100 Grams per Minute	SDTM
+C71620	Yes	Unit	C154856	Enzyme U/g Hb	Enzyme Unit per Gram Hemoglobin	SDTM
+C71620	Yes	Unit	C154857	P	Poise	SDTM
+C71620	Yes	Unit	C154858	um/s	Micrometer per Second	SDTM
+C71620	Yes	Unit	C154859	uSiemens	Microsiemens	SDTM
+C71620	Yes	Unit	C156119	10^8 IU	Hundred Million International Units	SDTM
+C71620	Yes	Unit	C156467	Enzyme U/m2	Enzyme Unit per Meter Squared	SDTM
+C71620	Yes	Unit	C156468	mgEq	Milligram Equivalent	SDTM
+C71620	Yes	Unit	C158291	mg/L FEU	Milligram per Liter Fibrinogen Equivalent Units	SDTM
+C71620	Yes	Unit	C158292	ug/L FEU	Microgram per Liter Fibrinogen Equivalent Units	SDTM
+C71620	Yes	Unit	C158293	10^4 CFU	Ten Thousand Colony Forming Units	SDTM
+C71620	Yes	Unit	C158294	10^7 CFU	Ten Million Colony Forming Units	SDTM
+C71620	Yes	Unit	C158295	Gy/h	Gray per Hour	SDTM
+C71620	Yes	Unit	C158296	Gy/min	Gray per Minute	SDTM
+C71620	Yes	Unit	C158699	/10 HPFs	Per 10 High Powered Fields	SDTM
+C71620	Yes	Unit	C161486	mg/kg/week	Milligram Per Kilogram Per Week	SDTM
+C71620	Yes	Unit	C161487	DRINK	Drink Dosing Unit	SDTM
+C71620	Yes	Unit	C161488	deg/mm	Degree Per Millimeter	SDTM
+C71620	Yes	Unit	C161489	ms2	Square Millisecond	SDTM
+C71620	Yes	Unit	C161490	/ms	Per Millisecond	SDTM
+C71620	Yes	Unit	C161491	ECL unit	Electrochemiluminescence Unit	SDTM
+C71620	Yes	Unit	C161492	genEq/mL	Genomic Equivalents per Milliliter	SDTM
+C71620	Yes	Unit	C161493	genEq	Genomic Equivalents	SDTM
+C71620	Yes	Unit	C161494	DDU	D-Dimer Unit	SDTM
+C71620	Yes	Unit	C161495	ug/L DDU	Micrograms DDU Per Liter	SDTM
+C71620	Yes	Unit	C161496	MPS U	Phosphatidylserine IgM Antibody Unit	SDTM
+C71620	Yes	Unit	C161497	GPS U	Phosphatidylserine IgG Antibody Unit	SDTM
+C71620	Yes	Unit	C161498	APS U	Phosphatidylserine IgA Antibody Unit	SDTM
+C71620	Yes	Unit	C163045	FIU	Fluorescence Intensity Unit	SDTM
+C71620	Yes	Unit	C163046	MnFI	Mean Fluorescence Intensity Unit	SDTM
+C71620	Yes	Unit	C163560	%/s	Percent per Second	SDTM
+C71620	Yes	Unit	C163561	10^9/dose	Billion per Dose	SDTM
+C71620	Yes	Unit	C163562	aMFI	Arithmetic Mean Fluorescence Intensity Unit	SDTM
+C71620	Yes	Unit	C163563	gMFI	Geometric Mean Fluorescence Intensity Unit	SDTM
+C71620	Yes	Unit	C163564	mL/cm3/min	Milliliter per Cubic Centimeter per Minute	SDTM
+C71620	Yes	Unit	C163565	ms/mmHg	Millisecond per Millimeter Mercury	SDTM
+C71620	Yes	Unit	C163566	vg/kg	Vector Genomes per Kilogram	SDTM
+C71620	Yes	Unit	C166082	ngEq/g	Nanogram Equivalents Per Gram	SDTM
+C71620	Yes	Unit	C166087	ugEq/g	Microgram Equivalents Per Gram	SDTM
+C71620	Yes	Unit	C166095	10^4 CFU/mL	Ten Thousand Colony Forming Units Per Liter	SDTM
+C71620	Yes	Unit	C166096	10^7 CFU/mL	Ten Million Colony Forming Units Per Liter	SDTM
+C71620	Yes	Unit	C166097	deg/s	Degrees Per Second	SDTM
+C71620	Yes	Unit	C166098	deg2	Degrees Squared	SDTM
+C71620	Yes	Unit	C166099	g/U	Gram Per Unit	SDTM
+C71620	Yes	Unit	C166100	mL/s/m2	Milliliter Per Second Per Square Meter	SDTM
+C71620	Yes	Unit	C166101	steps/min	Steps Per Minute	SDTM
+C71620	Yes	Unit	C166102	uV2	Microvolts Squared	SDTM
+C71620	Yes	Unit	C170630	kV	Kilovolt	SDTM
+C71620	Yes	Unit	C170631	log10 PFU/mL	log10 Plaque Forming Units Per Milliliter	SDTM
+C71620	Yes	Unit	C170632	DNA copies/ug	DNA Copies Per Microgram	SDTM
+C71620	Yes	Unit	C170633	days/wk	Days Per Week	SDTM
+C71620	Yes	Unit	C170634	days/month	Days Per Month	SDTM
+C71620	Yes	Unit	C170635	h/wk	Hours Per Week	SDTM
+C71620	Yes	Unit	C170636	/5x10^4 WBC	Per 50,000 White Blood Cells	SDTM
+C71620	Yes	Unit	C170637	MASK	Mask Dosing Unit	SDTM
+C71620	Yes	Unit	C170638	LENS	Lens Dosing Unit	SDTM
+C71620	Yes	Unit	C172587	ugEq/mL	Microgram Equivalents Per Milliliter	SDTM
+C71620	Yes	Unit	C172603	tsp eq	Teaspoon Equivalent	SDTM
+C71620	Yes	Unit	C172604	cup eq	Cup Equivalent	SDTM
+C71620	Yes	Unit	C172605	oz eq	Ounce Equivalent	SDTM
+C71620	Yes	Unit	C172606	JDF Unit	Juvenile Diabetes Foundation Unit	SDTM
+C71620	Yes	Unit	C176377	pg/cell	Picogram Per Cell	SDTM
+C71620	Yes	Unit	C176378	mg/mL/day	Gram per Liter per Day	SDTM
+C71620	Yes	Unit	C176379	nmol/kg/day	Nanomole per Kilogram per Day	SDTM
+C71620	Yes	Unit	C176380	hr/day	Hour per Day	SDTM
+C71620	Yes	Unit	C176381	min/day	Minute per Day	SDTM
+C71620	Yes	Unit	C176382	breaths/30 s	Breaths per Thirty Seconds	SDTM
+C71620	Yes	Unit	C176383	nkat/g Hb	Nanokatal per Gram Hemoglobin	SDTM
+C71620	Yes	Unit	C176384	EP U	European Pharmacopoeia Unit	SDTM
+C71620	Yes	Unit	C176385	ug/mol	Microgram per Mole	SDTM
+C71620	Yes	Unit	C176386	ng/mol	Nanogram per Mole	SDTM
+C71620	Yes	Unit	C176387	/MBP	Per Megabase Pair	SDTM
+C71620	Yes	Unit	C176388	MBP	Megabase Pair	SDTM
+C71620	Yes	Unit	C178058	Lipase Units/kg	Lipase Units per Kilogram	SDTM
+C71620	Yes	Unit	C178059	Lipase Units	Lipase Unit	SDTM
+C71620	Yes	Unit	C18063	Gy	Gray	SDTM
+C71620	Yes	Unit	C18064	Rad	Rad	SDTM
+C71620	Yes	Unit	C181551	10^5 CFU/mL	Hundred Thousand Colony Forming Units per Milliliter	SDTM
+C71620	Yes	Unit	C184705	ngEq	Nanogram Equivalents	SDTM
+C71620	Yes	Unit	C184713	m*%	Meters Times Percent	SDTM
+C71620	Yes	Unit	C184714	rad/s	Radians Per Second	SDTM
+C71620	Yes	Unit	C184715	10^5/kg	Hundred Thousand Per Kilogram	SDTM
+C71620	Yes	Unit	C184717	10^7/kg	Ten Million Per Kilogram	SDTM
+C71620	Yes	Unit	C184719	/10^6	Per Million	SDTM
+C71620	Yes	Unit	C184720	SERVING	Serving Dosing Unit	SDTM
+C71620	Yes	Unit	C184721	tuberculin unit/0.1mL	Tuberculin Unit per 100 Microliters	SDTM
+C71620	Yes	Unit	C184722	RLU	Relative Luminescence Unit	SDTM
+C71620	Yes	Unit	C184723	mg/breath	Milligram Per Breath	SDTM
+C71620	Yes	Unit	C186219	APS U/mL	Phosphatidylserine IgA Antibody Unit per Milliliter	SDTM
+C71620	Yes	Unit	C186220	ENVELOPE	Envelope Dosing Unit	SDTM
+C71620	Yes	Unit	C186221	GPS U/mL	Phosphatidylserine IgG Antibody Unit per Milliliter	SDTM
+C71620	Yes	Unit	C186222	GUMMY	Chewable Gel Dosing Unit	SDTM
+C71620	Yes	Unit	C186223	MPS U/mL	Phosphatidylserine IgM Antibody Unit per Milliliter	SDTM
+C71620	Yes	Unit	C186224	Therapeutic Cells/m2	Therapeutic Cells per Square Meter	SDTM
+C71620	Yes	Unit	C187669	Therapeutic Cells	Therapeutic Cells Dosing Unit	SDTM
+C71620	Yes	Unit	C187969	dpm/g	Disintegration per Minute per Gram	SDTM
+C71620	Yes	Unit	C187971	10^5 Therapeutic Cells	Hundred Thousand Therapeutic Cells Dosing Unit	SDTM
+C71620	Yes	Unit	C187972	mmHg*beats/min	Millimeters of Mercury times Beats per Minute	SDTM
+C71620	Yes	Unit	C187973	10^6 Therapeutic Cells	Million Therapeutic Cells Dosing Unit	SDTM
+C71620	Yes	Unit	C187975	10^3 Therapeutic Cells	Thousand Therapeutic Cells Dosing Unit	SDTM
+C71620	Yes	Unit	C187981	%*min/h	Percentage times Minute per Hour	SDTM
+C71620	Yes	Unit	C187982	g/m2*h	Gram per Hour times Square Meter	SDTM
+C71620	Yes	Unit	C187998	10^9 Therapeutic Cells	Billion Therapeutic Cells Dosing Unit	SDTM
+C71620	Yes	Unit	C189120	Binding Ab Unit	Binding Antibody Unit	SDTM
+C71620	Yes	Unit	C189642	ARMOUR UNIT	Armour Unit	SDTM
+C71620	Yes	Unit	C189643	mkat/L	Millikatal per Liter	SDTM
+C71620	Yes	Unit	C189644	mmol/L/h	Millimole per Liter per Hour	SDTM
+C71620	Yes	Unit	C189645	nmol/L/s	Nanomole per Liter per Second	SDTM
+C71620	Yes	Unit	C189646	/2 mm2	Per Two Square Millimeters	SDTM
+C71620	Yes	Unit	C189647	Binding Ab Unit/mL	Binding Antibody Unit per Milliliter	SDTM
+C71620	Yes	Unit	C189648	mmol/L/day	Millimole per Liter per Day	SDTM
+C71620	Yes	Unit	C189649	mm2/us	Square Millimeter per Microsecond	SDTM
+C71620	Yes	Unit	C189650	FFU/mL	Focus Forming Unit per Milliliter	SDTM
+C71620	Yes	Unit	C189651	ukat/g Hb	Microkatal per Gram Hemoglobin	SDTM
+C71620	Yes	Unit	C191355	/400 Cells	Per 400 Cells	SDTM
+C71620	Yes	Unit	C191356	SFC/10^5 PBMC	Spot Forming Units Per Ten Thousand Peripheral Blood Mononuclear Cells	SDTM
+C71620	Yes	Unit	C191357	SFC/2x10^5 PBMC	Spot Forming Units Per Twenty Thousand Peripheral Blood Mononuclear Cells	SDTM
+C71620	Yes	Unit	C191358	/100 RBC	Per 100 Red Blood Cells	SDTM
+C71620	Yes	Unit	C191359	/10^3 RBC	Per Thousand Red Blood Cells	SDTM
+C71620	Yes	Unit	C191360	daPa	Decapascal	SDTM
+C71620	Yes	Unit	C191361	Arbitrary U/mL	Arbitrary Unit per Milliliter	SDTM
+C71620	Yes	Unit	C191362	nm/min	Nanometer Per Minute	SDTM
+C71620	Yes	Unit	C198211	day*ng/mL/(mg/kg)	Day Times Nanogram Per Milliliter Per Milligram Per Kilogram	SDTM
+C71620	Yes	Unit	C198368	/animal	Per Animal	SDTM
+C71620	Yes	Unit	C198369	/g	Per Gram	SDTM
+C71620	Yes	Unit	C198370	10^10 copies/mL	Ten Billion Copies per Milliliter	SDTM
+C71620	Yes	Unit	C198371	10^10 IU/mL	Ten Billion International Units per Milliliter	SDTM
+C71620	Yes	Unit	C198372	10^10 vp/dose	Ten Billion Viral Particles per Dose	SDTM
+C71620	Yes	Unit	C198373	10^10 vp/mL	Ten Billion Viral Particles per Milliliter	SDTM
+C71620	Yes	Unit	C198374	10^3 IU/mL	Thousand International Units per Milliliter	SDTM
+C71620	Yes	Unit	C198375	10^4 copies/mL	Ten Thousand Copies per Milliliter	SDTM
+C71620	Yes	Unit	C198376	10^4 IU/mL	Ten Thousand International Units per Milliliter	SDTM
+C71620	Yes	Unit	C198377	10^5 CFU	Hundred Thousand Colony Forming Units	SDTM
+C71620	Yes	Unit	C198378	10^5 copies/mL	Hundred Thousand Copies per Milliliter	SDTM
+C71620	Yes	Unit	C198379	10^5 IU/mL	Hundred Thousand International Units	SDTM
+C71620	Yes	Unit	C198380	10^6/kg	Million per Kilogram	SDTM
+C71620	Yes	Unit	C198381	10^7 copies/mL	Ten Million Copies per Milliliter	SDTM
+C71620	Yes	Unit	C198382	10^7 IU/mL	Ten Million International Units per Milliliter	SDTM
+C71620	Yes	Unit	C198383	10^8 CFU	Hundred Million Colony Forming Units	SDTM
+C71620	Yes	Unit	C198384	10^8 copies/mL	One Hundred Million Copies per Milliliter	SDTM
+C71620	Yes	Unit	C198385	10^8 IU/mL	One Hundred Million International Units per Milliliter	SDTM
+C71620	Yes	Unit	C198386	10^9 copies/mL	Billion Copies per Milliliter	SDTM
+C71620	Yes	Unit	C198387	10^9 IU/mL	Billion International Units per Milliliter	SDTM
+C71620	Yes	Unit	C198388	10^9/uL	Billion per Microliter	SDTM
+C71620	Yes	Unit	C198389	copies/cell	Copies per Cell	SDTM
+C71620	Yes	Unit	C198390	g/ston_av	Gram per Short Ton	SDTM
+C71620	Yes	Unit	C198391	GLASS	Glass Dosing Unit	SDTM
+C71620	Yes	Unit	C198392	log10 minutes of arc	Log10 Arcminutes	SDTM
+C71620	Yes	Unit	C198393	log10 U/mL	Log10 Arbitrary Units per Milliliter	SDTM
+C71620	Yes	Unit	C198394	lton_av	Long Ton	SDTM
+C71620	Yes	Unit	C198395	nmol/dL	Nanomole per Deciliter	SDTM
+C71620	Yes	Unit	C198396	nmol/mg/h	Nanomole per Milligram per Hour	SDTM
+C71620	Yes	Unit	C198397	nmol/mg/min	Nanomole per Milligram per Minute	SDTM
+C71620	Yes	Unit	C198398	Organisms/g	Organism Per Gram	SDTM
+C71620	Yes	Unit	C198399	Organisms/mL	Organism Per Milliliter	SDTM
+C71620	Yes	Unit	C198400	ston_av	Short Ton	SDTM
+C71620	Yes	Unit	C199992	10 copies/mL	Ten Copies per Milliliter	SDTM
+C71620	Yes	Unit	C199993	10 IU/mL	Ten International Units per Milliliter	SDTM
+C71620	Yes	Unit	C199994	100 copies/mL	Hundred Copies per Milliliter	SDTM
+C71620	Yes	Unit	C199995	/100x FIELD	Per 100x Field	SDTM
+C71620	Yes	Unit	C201485	pmol/punch/h	Picomole per Punch Observational Unit per Hour	SDTM
+C71620	Yes	Unit	C201486	(mmHg*min/L)*m2	Millimeter Mercury times Minute per Liter times Square Meter	SDTM
+C71620	Yes	Unit	C201487	cmH2O/mL/s	Centimeter of Water per Milliliter per Second	SDTM
+C71620	Yes	Unit	C202451	uL/L	Microliter per Liter	SDTM
+C71620	Yes	Unit	C202452	/50 Cells	Per 50 Cells	SDTM
+C71620	Yes	Unit	C202453	/100 Cells	Per 100 Cells	SDTM
+C71620	Yes	Unit	C202454	/Cell	Per Cell	SDTM
+C71620	Yes	Unit	C204701	/PLATE	Per Plate	SDTM
+C71620	Yes	Unit	C204702	CUTS/in	Cuts per Inch	SDTM
+C71620	Yes	Unit	C204703	Cu	Coresta Unit	SDTM
+C71620	Yes	Unit	C204704	cm2/s	Square Centimeter per Second	SDTM
+C71620	Yes	Unit	C204705	g/9000m	Gram per 9000 Meters	SDTM
+C71620	Yes	Unit	C204706	g/cm3	Gram per Cubic Centimeter	SDTM
+C71620	Yes	Unit	C204707	mAh	Milliampere Hour	SDTM
+C71620	Yes	Unit	C204708	mPa/s	Millipascal per Second	SDTM
+C71620	Yes	Unit	C204709	/cm3	Per Cubic Centimeter	SDTM
+C71620	Yes	Unit	C204710	L/m2/s	Liter per Square Meter per Second	SDTM
+C71620	Yes	Unit	C209458	nmolEq	Nanomole Equivalents	SDTM
+C71620	Yes	Unit	C209700	/100 Enterocytes	per 100 Enterocytes	SDTM
+C71620	Yes	Unit	C209701	/EXOME	Per Exome	SDTM
+C71620	Yes	Unit	C209702	AGGREGATION UNIT	Aggregation Unit	SDTM
+C71620	Yes	Unit	C209703	Ci/mmol	Curie per Millimole	SDTM
+C71620	Yes	Unit	C209704	FINGERTIP LENGTH UNIT	Fingertip Unit of Length	SDTM
+C71620	Yes	Unit	C209705	GBq/umol	Gigabecquerel per Micromole	SDTM
+C71620	Yes	Unit	C209706	log10 copies	log10 Copy	SDTM
+C71620	Yes	Unit	C209707	RELATIVE U	Relative Unit	SDTM
+C71620	Yes	Unit	C209708	RELATIVE U/mL	Relative Unit per Milliliter	SDTM
+C71620	Yes	Unit	C210326	mg/CIGARETTE	Milligram per Cigarette	SDTM
+C71620	Yes	Unit	C210327	mg/PUFF	Milligram per Puff	SDTM
+C71620	Yes	Unit	C210340	ng/CIGARETTE	Nanogram per Cigarette	SDTM
+C71620	Yes	Unit	C210341	ng/PUFF	Nanogram per Puff	SDTM
+C71620	Yes	Unit	C210390	PUFF/min	Puffs per Minute	SDTM
+C71620	Yes	Unit	C210419	ug/CIGARETTE	Microgram per Cigarette	SDTM
+C71620	Yes	Unit	C214756	mmHg*m2/L/min	Millimeter Mercury times Square Meter per Liter per Minute	SDTM
+C71620	Yes	Unit	C214757	SFC/WELL	Spot Forming Cells per Well	SDTM
+C71620	Yes	Unit	C214758	/WELL	Per Culture Plate Well	SDTM
+C71620	Yes	Unit	C214759	/um2	per Square Micrometer	SDTM
+C71620	Yes	Unit	C214760	mmol/kg/s	Millimole per Kilogram per Second	SDTM
+C71620	Yes	Unit	C214761	ABC	Antibody Binding Capacity Unit	SDTM
+C71620	Yes	Unit	C221685	dyn*s/cm5	Dyne Second per Centimeter to the Fifth Power	SDTM
+C71620	Yes	Unit	C221686	mg/L DDU	Milligram per Liter D-Dimer Unit	SDTM
+C71620	Yes	Unit	C221687	Log10 Titer	Log10 Titer	SDTM
+C71620	Yes	Unit	C221688	Endotoxin U	Endotoxin Unit	SDTM
+C71620	Yes	Unit	C221689	Endotoxin U/mL	Endotoxin Unit per Milliliter	SDTM
+C71620	Yes	Unit	C222688	g/100g	Gram per One Hundred Grams	SDTM
+C71620	Yes	Unit	C225759	E-CIGARETTE	Electronic Cigarette Dosing Unit	SDTM
+C71620	Yes	Unit	C225760	Enzyme U/mg Protein	Enzyme Unit per Milligram of Protein	SDTM
+C71620	Yes	Unit	C225761	g IODINE	Grams Iodine	SDTM
+C71620	Yes	Unit	C225762	g IODINE/L	Grams Iodine Per Liter	SDTM
+C71620	Yes	Unit	C225763	gEq/L	Milligram Equivalents Per Milliliter	SDTM
+C71620	Yes	Unit	C225764	mg IODINE	Milligrams Iodine	SDTM
+C71620	Yes	Unit	C225765	mg/TABLET	Milligram Per Tablet	SDTM
+C71620	Yes	Unit	C225766	RNA copies/ug	RNA Copies per Microgram	SDTM
+C71620	Yes	Unit	C225767	SAU	Standard IgA Anti-Beta 2 Glycoprotein 1 Unit	SDTM
+C71620	Yes	Unit	C225768	SGU	Standard IgG Anti-Beta 2 Glycoprotein 1 Unit	SDTM
+C71620	Yes	Unit	C225769	SMU	Standard IgM Anti-Beta 2 Glycoprotein 1 Unit	SDTM
+C71620	Yes	Unit	C25301	DAYS	Day	SDTM
+C71620	Yes	Unit	C25397	APPLICATION	Application Unit	SDTM
+C71620	Yes	Unit	C25473	/day	Daily	SDTM
+C71620	Yes	Unit	C25529	HOURS	Hour	SDTM
+C71620	Yes	Unit	C25613	%	Percentage	SDTM
+C71620	Yes	Unit	C28251	mm	Millimeter	SDTM
+C71620	Yes	Unit	C28252	kg	Kilogram	SDTM
+C71620	Yes	Unit	C28253	mg	Milligram	SDTM
+C71620	Yes	Unit	C28254	mL	Milliliter	SDTM
+C71620	Yes	Unit	C29844	WEEKS	Week	SDTM
+C71620	Yes	Unit	C29846	MONTHS	Month	SDTM
+C71620	Yes	Unit	C29848	YEARS	Year	SDTM
+C71620	Yes	Unit	C41139	m	Meter	SDTM
+C71620	Yes	Unit	C41140	ms	Millisecond	SDTM
+C71620	Yes	Unit	C42535	s	Second	SDTM
+C71620	Yes	Unit	C42536	amp	Ampere	SDTM
+C71620	Yes	Unit	C42537	K	Kelvin	SDTM
+C71620	Yes	Unit	C42538	cd	Candela	SDTM
+C71620	Yes	Unit	C42539	mol	Mole	SDTM
+C71620	Yes	Unit	C42545	Hz	Hertz	SDTM
+C71620	Yes	Unit	C42546	Newton	Newton	SDTM
+C71620	Yes	Unit	C42547	Pa	Pascal	SDTM
+C71620	Yes	Unit	C42548	Joule	Joule	SDTM
+C71620	Yes	Unit	C42549	Watt	Watt	SDTM
+C71620	Yes	Unit	C42550	Coulomb	Coulomb	SDTM
+C71620	Yes	Unit	C42551	V	Volt	SDTM
+C71620	Yes	Unit	C42552	Farad	Farad	SDTM
+C71620	Yes	Unit	C42553	Sv	Sievert	SDTM
+C71620	Yes	Unit	C42554	ohm	Ohm	SDTM
+C71620	Yes	Unit	C42555	Siemens	Siemens	SDTM
+C71620	Yes	Unit	C42556	Weber	Weber	SDTM
+C71620	Yes	Unit	C42557	Tesla	Tesla	SDTM
+C71620	Yes	Unit	C42558	Henry	Henry	SDTM
+C71620	Yes	Unit	C42559	C	Degree Celsius	SDTM
+C71620	Yes	Unit	C42560	lm	Lumen	SDTM
+C71620	Yes	Unit	C42561	lx	Lux	SDTM
+C71620	Yes	Unit	C42562	Bq	Becquerel	SDTM
+C71620	Yes	Unit	C42566	kat	Katal	SDTM
+C71620	Yes	Unit	C42569	m2	Square Meter	SDTM
+C71620	Yes	Unit	C42570	m3	Cubic Meter	SDTM
+C71620	Yes	Unit	C42571	m/s	Meter per Second	SDTM
+C71620	Yes	Unit	C42572	m/s2	Meter per Second Squared	SDTM
+C71620	Yes	Unit	C42576	g/L	Kilogram per Cubic Meter	SDTM
+C71620	Yes	Unit	C44256	RATIO	Ratio	SDTM
+C71620	Yes	Unit	C44277	F	Degree Fahrenheit	SDTM
+C71620	Yes	Unit	C44278	U	Unit	SDTM
+C71620	Yes	Unit	C48152	ug	Microgram	SDTM
+C71620	Yes	Unit	C48153	uL	Microliter	SDTM
+C71620	Yes	Unit	C48154	min	Minute	SDTM
+C71620	Yes	Unit	C48155	g	Gram	SDTM
+C71620	Yes	Unit	C48367	PIXEL	Pixel	SDTM
+C71620	Yes	Unit	C48460	cm2	Square Centimeter	SDTM
+C71620	Yes	Unit	C48461	ft2	Square Foot	SDTM
+C71620	Yes	Unit	C48466	Ci	Curie	SDTM
+C71620	Yes	Unit	C48469	USP U	United States Pharmacopeia Unit	SDTM
+C71620	Yes	Unit	C48473	AMPULE	Ampule Dosing Unit	SDTM
+C71620	Yes	Unit	C48474	BAG	Bag Dosing Unit	SDTM
+C71620	Yes	Unit	C48475	BAR	Bar Dosing Unit	SDTM
+C71620	Yes	Unit	C48476	BOLUS	Bolus Dosing Unit	SDTM
+C71620	Yes	Unit	C48477	BOTTLE	Bottle Dosing Unit	SDTM
+C71620	Yes	Unit	C48478	BOX	Box Dosing Unit	SDTM
+C71620	Yes	Unit	C48479	CAN	Can Dosing Unit	SDTM
+C71620	Yes	Unit	C48480	CAPSULE	Capsule Dosing Unit	SDTM
+C71620	Yes	Unit	C48481	CARTRIDGE	Cartridge Dosing Unit	SDTM
+C71620	Yes	Unit	C48483	COAT	Coat Dosing Unit	SDTM
+C71620	Yes	Unit	C48484	CONTAINER	Container Dosing Unit	SDTM
+C71620	Yes	Unit	C48489	CYLINDER	Cylinder Dosing Unit	SDTM
+C71620	Yes	Unit	C48490	DISK	Disk Dosing Unit	SDTM
+C71620	Yes	Unit	C48491	gtt	Metric Drop	SDTM
+C71620	Yes	Unit	C48492	DRUM	Drum Dosing Unit	SDTM
+C71620	Yes	Unit	C48494	foz_us	Fluid Ounce US	SDTM
+C71620	Yes	Unit	C48497	grain	Grain	SDTM
+C71620	Yes	Unit	C48498	HOMEOPATHIC DILUTION	Homeopathic Dilution Unit	SDTM
+C71620	Yes	Unit	C48499	IMPLANT	Implant Dosing Unit	SDTM
+C71620	Yes	Unit	C48500	in	Inch	SDTM
+C71620	Yes	Unit	C48501	INHALATION	Inhalation Dosing Unit	SDTM
+C71620	Yes	Unit	C48502	JAR	Jar Dosing Unit	SDTM
+C71620	Yes	Unit	C48503	KALLIKREIN INHIBITOR UNIT	Kallikrein Inhibitor Unit	SDTM
+C71620	Yes	Unit	C48504	KIT	Kit Dosing Unit	SDTM
+C71620	Yes	Unit	C48505	L	Liter	SDTM
+C71620	Yes	Unit	C48506	LOZENGE	Lozenge Dosing Unit	SDTM
+C71620	Yes	Unit	C48507	uCi	Microcurie	SDTM
+C71620	Yes	Unit	C48508	umol/L	Micromole per Liter	SDTM
+C71620	Yes	Unit	C48509	umol	Micromole	SDTM
+C71620	Yes	Unit	C48510	um	Micron	SDTM
+C71620	Yes	Unit	C48511	mCi	Millicurie	SDTM
+C71620	Yes	Unit	C48512	mEq	Milliequivalent	SDTM
+C71620	Yes	Unit	C48513	mmol	Millimole	SDTM
+C71620	Yes	Unit	C48516	ng	Nanogram	SDTM
+C71620	Yes	Unit	C48517	nmol	Nanomole	SDTM
+C71620	Yes	Unit	C48519	oz	Ounce	SDTM
+C71620	Yes	Unit	C48520	PACKAGE	Package Dosing Unit	SDTM
+C71620	Yes	Unit	C48521	PACKET	Packet Dosing Unit	SDTM
+C71620	Yes	Unit	C48523	ppm	Part Per Million	SDTM
+C71620	Yes	Unit	C48524	PATCH	Patch Dosing Unit	SDTM
+C71620	Yes	Unit	C48525	PELLET	Pellet Dosing Unit	SDTM
+C71620	Yes	Unit	C48527	%(w/v)	Percent Mass per Volume	SDTM
+C71620	Yes	Unit	C48528	%(w/w)	Percent Mass per Mass	SDTM
+C71620	Yes	Unit	C48529	pt_us	Pint	SDTM
+C71620	Yes	Unit	C48530	POUCH	Pouch Dosing Unit	SDTM
+C71620	Yes	Unit	C48531	LB	Pound	SDTM
+C71620	Yes	Unit	C48532	PRESSOR UNITS	Pressor Unit	SDTM
+C71620	Yes	Unit	C48536	SCOOPFUL	Scoopful Dosing Unit	SDTM
+C71620	Yes	Unit	C48537	SPRAY	Spray Dosing Unit	SDTM
+C71620	Yes	Unit	C48538	STRIP	Strip Dosing Unit	SDTM
+C71620	Yes	Unit	C48539	SUPPOSITORY	Suppository Dosing Unit	SDTM
+C71620	Yes	Unit	C48540	SYRINGE	Syringe Dosing Unit	SDTM
+C71620	Yes	Unit	C48541	Tbsp	Tablespoon Dosing Unit	SDTM
+C71620	Yes	Unit	C48542	TABLET	Tablet Dosing Unit	SDTM
+C71620	Yes	Unit	C48543	TAMPON	Tampon Dosing Unit	SDTM
+C71620	Yes	Unit	C48544	tsp	Teaspoon Dosing Unit	SDTM
+C71620	Yes	Unit	C48546	tonne	Ton	SDTM
+C71620	Yes	Unit	C48547	TRACE	Trace Dosing Unit	SDTM
+C71620	Yes	Unit	C48548	TROCHE	Troche Dosing Unit	SDTM
+C71620	Yes	Unit	C48549	TUBE	Tube Dosing Unit	SDTM
+C71620	Yes	Unit	C48551	VIAL	Vial Dosing Unit	SDTM
+C71620	Yes	Unit	C48552	WAFER	Wafer Dosing Unit	SDTM
+C71620	Yes	Unit	C48553	yd	Yard	SDTM
+C71620	Yes	Unit	C48555	mol/L	Mole per Liter	SDTM
+C71620	Yes	Unit	C48571	%(v/v)	Percent Volume per Volume	SDTM
+C71620	Yes	Unit	C48577	foz_br	Fluid Ounce British	SDTM
+C71620	Yes	Unit	C48579	IU	International Unit	SDTM
+C71620	Yes	Unit	C48590	QUANTITY SUFFICIENT	Quantity Sufficient	SDTM
+C71620	Yes	Unit	C49668	cm	Centimeter	SDTM
+C71620	Yes	Unit	C49670	mmHg	Millimeter of Mercury	SDTM
+C71620	Yes	Unit	C49671	kg/m2	Kilogram per Square Meter	SDTM
+C71620	Yes	Unit	C49673	beats/min	Beats per Minute	SDTM
+C71620	Yes	Unit	C49674	breaths/min	Breaths per Minute	SDTM
+C71620	Yes	Unit	C53499	FILM	Film Dosing Unit	SDTM
+C71620	Yes	Unit	C54703	CUP	Cup Dosing Unit	SDTM
+C71620	Yes	Unit	C54711	atm	Atmosphere	SDTM
+C71620	Yes	Unit	C62609	RING	Ring Dosing Unit	SDTM
+C71620	Yes	Unit	C62653	PACK	Pack Dosage Form	SDTM
+C71620	Yes	Unit	C64387	mmol/L	Millimole per Liter	SDTM
+C71620	Yes	Unit	C64498	/month	Monthly	SDTM
+C71620	Yes	Unit	C64551	pg	Picogram	SDTM
+C71620	Yes	Unit	C64552	fg	Femtogram	SDTM
+C71620	Yes	Unit	C64553	ag	Attogram	SDTM
+C71620	Yes	Unit	C64554	cg	Centigram	SDTM
+C71620	Yes	Unit	C64559	amu	Atomic Mass Unit	SDTM
+C71620	Yes	Unit	C64564	dram	Dram Mass Unit	SDTM
+C71620	Yes	Unit	C64566	kg/L	Kilogram per Liter	SDTM
+C71620	Yes	Unit	C64572	mg/L	Microgram per Milliliter	SDTM
+C71620	Yes	Unit	C64693	cGy	Centigray	SDTM
+C71620	Yes	Unit	C64696	CAPLET	Caplet Dosing Unit	SDTM
+C71620	Yes	Unit	C64697	dL	Deciliter	SDTM
+C71620	Yes	Unit	C64777	mL/min	Milliliter per Minute	SDTM
+C71620	Yes	Unit	C64778	Enzyme U	Enzyme Unit	SDTM
+C71620	Yes	Unit	C64780	fL	Femtoliter	SDTM
+C71620	Yes	Unit	C64783	g/dL	Gram per Deciliter	SDTM
+C71620	Yes	Unit	C65045	pmol	Picomole	SDTM
+C71620	Yes	Unit	C65060	PUFF	Puff Dosing Unit	SDTM
+C71620	Yes	Unit	C65104	mm2	Square Millimeter	SDTM
+C71620	Yes	Unit	C65132	tuberculin unit	Tuberculin Unit	SDTM
+C71620	Yes	Unit	C66962	mL/h	Milliliter per Hour	SDTM
+C71620	Yes	Unit	C66965	/s	Per Second	SDTM
+C71620	Yes	Unit	C66966	/h	Per Hour	SDTM
+C71620	Yes	Unit	C66967	/min	Per Minute	SDTM
+C71620	Yes	Unit	C66969	mg/h	Milligram per Hour	SDTM
+C71620	Yes	Unit	C66970	U/h	Unit per Hour	SDTM
+C71620	Yes	Unit	C66974	mg/m2/day	Milligram per Square Meter per Day	SDTM
+C71620	Yes	Unit	C66975	g/kg/day	Gram per Kilogram per Day	SDTM
+C71620	Yes	Unit	C66976	mg/kg/day	Milligram per Kilogram per Day	SDTM
+C71620	Yes	Unit	C66977	mL/m2/day	Milliliter per Square Meter per Day	SDTM
+C71620	Yes	Unit	C67015	mg/dL	Milligram per Deciliter	SDTM
+C71620	Yes	Unit	C67069	/wk	Weekly	SDTM
+C71620	Yes	Unit	C67193	cal	calorie	SDTM
+C71620	Yes	Unit	C67194	kcal	Calorie	SDTM
+C71620	Yes	Unit	C67219	/100 WBC	Per 100 White Blood Cells	SDTM
+C71620	Yes	Unit	C67255	10^9/L	Billion per Liter	SDTM
+C71620	Yes	Unit	C67264	PFU	Plaque Forming Unit	SDTM
+C71620	Yes	Unit	C67265	10^7 PFU	Ten Million Plaque Forming Units	SDTM
+C71620	Yes	Unit	C67266	10^8 PFU	Hundred Million Plaque Forming Units	SDTM
+C71620	Yes	Unit	C67267	10^9 PFU	Billion Plaque Forming Units	SDTM
+C71620	Yes	Unit	C67268	10^6 PFU	Million Plaque Forming Units	SDTM
+C71620	Yes	Unit	C67270	CAE Unit	Complement Activity Enzyme Unit	SDTM
+C71620	Yes	Unit	C67273	eq	Equivalent Weight	SDTM
+C71620	Yes	Unit	C67276	keV	Kiloelectronvolt	SDTM
+C71620	Yes	Unit	C67279	kHz	Kilohertz	SDTM
+C71620	Yes	Unit	C67282	g/m2	Gram per Square Meter	SDTM
+C71620	Yes	Unit	C67284	kPa	Kilopascal	SDTM
+C71620	Yes	Unit	C67305	ug/dL	Microgram per Deciliter	SDTM
+C71620	Yes	Unit	C67306	ug/L	Microgram per Liter	SDTM
+C71620	Yes	Unit	C67308	10^12/L	Million per Microliter	SDTM
+C71620	Yes	Unit	C67310	10^6 U	Million Units	SDTM
+C71620	Yes	Unit	C67311	ug/cm2	Microgram per Square Centimeter	SDTM
+C71620	Yes	Unit	C67312	ug/m2	Microgram per Square Meter	SDTM
+C71620	Yes	Unit	C67314	MHz	Megahertz	SDTM
+C71620	Yes	Unit	C67315	mU	Milliunit	SDTM
+C71620	Yes	Unit	C67318	mOsm	Milliosmole	SDTM
+C71620	Yes	Unit	C67324	mV	Millivolt	SDTM
+C71620	Yes	Unit	C67326	ng/dL	Nanogram per Deciliter	SDTM
+C71620	Yes	Unit	C67327	ng/L	Nanogram per Liter	SDTM
+C71620	Yes	Unit	C67328	nm	Nanometer	SDTM
+C71620	Yes	Unit	C67330	Osm	Osmole	SDTM
+C71620	Yes	Unit	C67331	pg/dL	Picogram per Deciliter	SDTM
+C71620	Yes	Unit	C67334	psi	Pound per Square Inch	SDTM
+C71620	Yes	Unit	C67335	10^6 IU	Million International Units	SDTM
+C71620	Yes	Unit	C67347	GPL U	IgG Phospholipid Unit	SDTM
+C71620	Yes	Unit	C67348	MPL U	IgM Phospholipid Unit	SDTM
+C71620	Yes	Unit	C67349	Mrad	Megarad	SDTM
+C71620	Yes	Unit	C67352	nCi	Nanocurie	SDTM
+C71620	Yes	Unit	C67357	J/cm2	Joule per Square Centimeter	SDTM
+C71620	Yes	Unit	C67372	g/day	Gram per 24 Hours	SDTM
+C71620	Yes	Unit	C67376	IU/L	International Unit per Liter	SDTM
+C71620	Yes	Unit	C67377	IU/mL	International Unit per Milliliter	SDTM
+C71620	Yes	Unit	C67379	IU/kg	International Unit per Kilogram	SDTM
+C71620	Yes	Unit	C67380	IU/mg	International Unit per Milligram	SDTM
+C71620	Yes	Unit	C67388	L/min	Liter per Minute	SDTM
+C71620	Yes	Unit	C67390	L/s	Liter per Second	SDTM
+C71620	Yes	Unit	C67394	ug/h	Microgram per Hour	SDTM
+C71620	Yes	Unit	C67396	ug/kg	Microgram per Kilogram	SDTM
+C71620	Yes	Unit	C67397	ukat/L	Microkatal per Liter	SDTM
+C71620	Yes	Unit	C67399	mg/day	Milligram per 24 Hours	SDTM
+C71620	Yes	Unit	C67401	mg/kg	Milligram per Kilogram	SDTM
+C71620	Yes	Unit	C67402	mg/m2	Milligram per Square Meter	SDTM
+C71620	Yes	Unit	C67403	mg/mL/min	Milligram per Milliliter per Minute	SDTM
+C71620	Yes	Unit	C67404	mg/wk	Milligram per Week	SDTM
+C71620	Yes	Unit	C67405	mIU/L	Microinternational Unit per Milliliter	SDTM
+C71620	Yes	Unit	C67406	umol/day	Micromole per 24 Hours	SDTM
+C71620	Yes	Unit	C67407	umol/dL	Micromole per Deciliter	SDTM
+C71620	Yes	Unit	C67408	mU/L	Microunit per Milliliter	SDTM
+C71620	Yes	Unit	C67409	mIU/m2	Milliinternational Unit per Square Meter	SDTM
+C71620	Yes	Unit	C67410	mL/day	Milliliter per 24 Hours	SDTM
+C71620	Yes	Unit	C67411	mL/kg	Milliliter per Kilogram	SDTM
+C71620	Yes	Unit	C67412	mL/min/1.73 m2	Milliliter per Minute per 1.73 m2 of Body Surface Area	SDTM
+C71620	Yes	Unit	C67417	mL/min/mmHg	Milliliter per Minute per Millimeters of Mercury	SDTM
+C71620	Yes	Unit	C67418	mL/mmHg/min/L	Milliliter per Minute per Millimeters of Mercury per Liter	SDTM
+C71620	Yes	Unit	C67419	mm/h	Millimeter per Hour	SDTM
+C71620	Yes	Unit	C67420	mmol/day	Millimole per 24 Hours	SDTM
+C71620	Yes	Unit	C67423	mmol/min/kPa/L	Millimole per Minute per Thousand Pascal per Liter	SDTM
+C71620	Yes	Unit	C67427	mOsm/kg	Milliosmole per Kilogram	SDTM
+C71620	Yes	Unit	C67429	ng/kg	Nanogram per Kilogram	SDTM
+C71620	Yes	Unit	C67432	nmol/L	Nanomole per Liter	SDTM
+C71620	Yes	Unit	C67434	pmol/L	Picomole per Liter	SDTM
+C71620	Yes	Unit	C67436	RAE	Retinol Equivalent	SDTM
+C71620	Yes	Unit	C67441	RNA copies/mL	RNA Copy per Milliliter	SDTM
+C71620	Yes	Unit	C67446	RADIOACTIVE SEED IMPLANT	Radioactive Seed Implant Dosing Unit	SDTM
+C71620	Yes	Unit	C67452	10^6/L	Thousand per Milliliter	SDTM
+C71620	Yes	Unit	C67454	titer	Titer	SDTM
+C71620	Yes	Unit	C67456	U/L	Unit per Liter	SDTM
+C71620	Yes	Unit	C67465	U/kg	Unit per Kilogram	SDTM
+C71620	Yes	Unit	C67467	U/m2	Unit per Square Meter	SDTM
+C71620	Yes	Unit	C67471	mEq/day	Milliequivalent per 24 Hours	SDTM
+C71620	Yes	Unit	C67472	meq/h	Milliequivalent per Hour	SDTM
+C71620	Yes	Unit	C67473	mEq/dL	Milliequivalent per Deciliter	SDTM
+C71620	Yes	Unit	C67474	mEq/L	Milliequivalent per Liter	SDTM
+C71620	Yes	Unit	C67475	mEq/kg	Milliequivalent per Kilogram	SDTM
+C71620	Yes	Unit	C68667	deg	Degree Unit of Plane Angle	SDTM
+C71620	Yes	Unit	C68685	dmol	Decimole	SDTM
+C71620	Yes	Unit	C68687	cmol	Centimole	SDTM
+C71620	Yes	Unit	C68740	mmol/g	Mole per Kilogram	SDTM
+C71620	Yes	Unit	C68854	fmol	Femtomole	SDTM
+C71620	Yes	Unit	C68855	amol	Attomole	SDTM
+C71620	Yes	Unit	C68858	scm	Standard Cubic Meter	SDTM
+C71620	Yes	Unit	C68859	ft3	Standard Cubic Foot	SDTM
+C71620	Yes	Unit	C68871	in2	Square Inch	SDTM
+C71620	Yes	Unit	C68875	ELISA unit	Enzyme-Linked Immunosorbent Assay Unit	SDTM
+C71620	Yes	Unit	C68876	ELISA unit/dose	Enzyme-Linked Immunosorbent Assay Unit per Dose	SDTM
+C71620	Yes	Unit	C68877	ELISA unit/mL	Enzyme-Linked Immunosorbent Assay Unit per Milliliter	SDTM
+C71620	Yes	Unit	C68878	Log10 ELISA unit	Log10 Enzyme-Linked Immunosorbent Assay Unit	SDTM
+C71620	Yes	Unit	C68879	Log10 ELISA unit/dose	Log10 Enzyme-Linked Immunosorbent Assay Unit per Dose	SDTM
+C71620	Yes	Unit	C68886	cmol/L	Centimole per Liter	SDTM
+C71620	Yes	Unit	C68887	fmol/L	Femtomole per Liter	SDTM
+C71620	Yes	Unit	C68891	mol/mL	Mole per Milliliter	SDTM
+C71620	Yes	Unit	C68892	mmol/kg	Millimole per Kilogram	SDTM
+C71620	Yes	Unit	C68893	mol/g	Mole per Gram	SDTM
+C71620	Yes	Unit	C68894	mol/mg	Mole per Milligram	SDTM
+C71620	Yes	Unit	C68895	10^3 CFU	Thousand Colony Forming Units	SDTM
+C71620	Yes	Unit	C68896	10^6 CFU	Million Colony Forming Units	SDTM
+C71620	Yes	Unit	C68897	10^9 CFU	Billion Colony Forming Units	SDTM
+C71620	Yes	Unit	C68898	CFU/g	Colony Forming Unit per Gram	SDTM
+C71620	Yes	Unit	C68899	10^3 CFU/g	Thousand Colony Forming Units per Gram	SDTM
+C71620	Yes	Unit	C68900	10^6 CFU/g	Million Colony Forming Units per Gram	SDTM
+C71620	Yes	Unit	C68901	10^9 CFU/g	Billion Colony Forming Units per Gram	SDTM
+C71620	Yes	Unit	C68902	CFU/mL	Colony Forming Unit per Milliliter	SDTM
+C71620	Yes	Unit	C68903	10^3 CFU/mL	Thousand Colony Forming Units per Milliliter	SDTM
+C71620	Yes	Unit	C68904	10^6 CFU/mL	Million Colony Forming Units per Milliliter	SDTM
+C71620	Yes	Unit	C68905	10^9 CFU/mL	Billion Colony Forming Units per Milliliter	SDTM
+C71620	Yes	Unit	C68906	m2/s	Meter Squared per Second	SDTM
+C71620	Yes	Unit	C68915	Gauss	Gauss	SDTM
+C71620	Yes	Unit	C69073	mL/s	Milliliter per Second	SDTM
+C71620	Yes	Unit	C69087	cL	Centiliter	SDTM
+C71620	Yes	Unit	C69092	cP	Centipoise	SDTM
+C71620	Yes	Unit	C69094	kg/cm2	Kilogram per Square Centimeter	SDTM
+C71620	Yes	Unit	C69104	g/kg	Gram per Kilogram	SDTM
+C71620	Yes	Unit	C69107	mm H2O	Millimeter of Water Column	SDTM
+C71620	Yes	Unit	C69110	L/day	Liter per Day	SDTM
+C71620	Yes	Unit	C69112	ppth	Part per Thousand	SDTM
+C71620	Yes	Unit	C69114	pt_br	Pint British	SDTM
+C71620	Yes	Unit	C69148	pm	Picometer	SDTM
+C71620	Yes	Unit	C69149	us	Microsecond	SDTM
+C71620	Yes	Unit	C69160	L/h	Liter per Hour	SDTM
+C71620	Yes	Unit	C69175	uL/mL	Microliter per Milliliter	SDTM
+C71620	Yes	Unit	C69188	nL	Nanoliter	SDTM
+C71620	Yes	Unit	C69189	pL	Picoliter	SDTM
+C71620	Yes	Unit	C69441	DROP	Drop	SDTM
+C71620	Yes	Unit	C70453	g/g	Gram per Gram	SDTM
+C71620	Yes	Unit	C70455	mol/mol	Mole per Mole	SDTM
+C71620	Yes	Unit	C70469	rpm	Revolution per Minute	SDTM
+C71620	Yes	Unit	C70470	dyn	Dyne	SDTM
+C71620	Yes	Unit	C70480	log10 EID 50/dose	Log10 50 Percent Embryo Infective Dose per Dose	SDTM
+C71620	Yes	Unit	C70485	log10 CCID 50/dose	Log10 50 Percent Cell Culture Infective Dose per Dose	SDTM
+C71620	Yes	Unit	C70488	log10 TCID 50	Log10 50 Percent Tissue Culture Infective Dose	SDTM
+C71620	Yes	Unit	C70489	log10 TCID 50/dose	Log10 50 Percent Tissue Culture Infective Dose per Dose	SDTM
+C71620	Yes	Unit	C70492	kIU	Kilointernational Unit	SDTM
+C71620	Yes	Unit	C70493	IU/g	International Unit per Gram	SDTM
+C71620	Yes	Unit	C70497	anti-Xa IU	Anti-Xa Activity International Unit	SDTM
+C71620	Yes	Unit	C70498	anti-Xa IU/mL	Anti-Xa Activity International Unit per Milliliter	SDTM
+C71620	Yes	Unit	C70500	AgU/mL	Antigen Unit per Milliliter	SDTM
+C71620	Yes	Unit	C70501	DAgU	D Antigen Unit	SDTM
+C71620	Yes	Unit	C70502	DAgU/mL	D Antigen Unit per Milliliter	SDTM
+C71620	Yes	Unit	C70504	AU/mL	Allergy Unit per Milliliter	SDTM
+C71620	Yes	Unit	C70505	BAU	Bioequivalent Allergy Unit	SDTM
+C71620	Yes	Unit	C70506	tuberculin unit/mL	Tuberculin Unit per Milliliter	SDTM
+C71620	Yes	Unit	C70507	mkat	Millikatal	SDTM
+C71620	Yes	Unit	C70508	nkat	Nanokatal	SDTM
+C71620	Yes	Unit	C70509	pkat	Picokatal	SDTM
+C71620	Yes	Unit	C70510	nkat/L	Nanokatal per Liter	SDTM
+C71620	Yes	Unit	C70511	kBq	Kilobecquerel	SDTM
+C71620	Yes	Unit	C70512	MBq	Megabecquerel	SDTM
+C71620	Yes	Unit	C70513	GBq	Gigabecquerel	SDTM
+C71620	Yes	Unit	C70521	Bq/kg	Becquerel per Kilogram	SDTM
+C71620	Yes	Unit	C70522	Bq/g	Becquerel per Gram	SDTM
+C71620	Yes	Unit	C70523	Bq/ug	Becquerel per Microgram	SDTM
+C71620	Yes	Unit	C70524	Bq/mg	Becquerel per Milligram	SDTM
+C71620	Yes	Unit	C70525	GBq/g	Gigabecquerel per Gram	SDTM
+C71620	Yes	Unit	C70526	GBq/ug	Gigabecquerel per Microgram	SDTM
+C71620	Yes	Unit	C70527	GBq/mg	Gigabecquerel per Milligram	SDTM
+C71620	Yes	Unit	C70528	Ci/g	Curie per Gram	SDTM
+C71620	Yes	Unit	C70529	Ci/kg	Curie per Kilogram	SDTM
+C71620	Yes	Unit	C70530	Ci/ug	Curie per Microgram	SDTM
+C71620	Yes	Unit	C70531	Ci/mg	Curie per Milligram	SDTM
+C71620	Yes	Unit	C70533	EID 50/dose	50 Percent Embryo Infective Dose per Dose	SDTM
+C71620	Yes	Unit	C70535	CCID 50/dose	50 Percent Cell Culture Infective Dose per Dose	SDTM
+C71620	Yes	Unit	C70537	TCID 50/dose	50 Percent Tissue Culture Infective Dose per Dose	SDTM
+C71620	Yes	Unit	C70562	ukat	Microkatal	SDTM
+C71620	Yes	Unit	C70565	ppb	Part Per Billion	SDTM
+C71620	Yes	Unit	C70566	pptr	Part Per Trillion	SDTM
+C71620	Yes	Unit	C70570	mCi/kg	Millicurie per Kilogram	SDTM
+C71620	Yes	Unit	C70571	uCi/kg	Microcurie per Kilogram	SDTM
+C71620	Yes	Unit	C70575	Roentgen	Roentgen	SDTM
+C71620	Yes	Unit	C70578	mEq/uL	Milliequivalent per Microliter	SDTM
+C71620	Yes	Unit	C70580	mEq/g	Milliequivalent per Gram	SDTM
+C71620	Yes	Unit	C70581	mEq/ug	Milliequivalent per Microgram	SDTM
+C71620	Yes	Unit	C71165	Bq/L	Becquerel per Liter	SDTM
+C71620	Yes	Unit	C71166	Bq/uL	Becquerel per Microliter	SDTM
+C71620	Yes	Unit	C71167	Bq/mL	Becquerel per Milliliter	SDTM
+C71620	Yes	Unit	C71168	kBq/uL	Kilobecquerel per Microliter	SDTM
+C71620	Yes	Unit	C71169	MBq/uL	Megabecquerel per Microliter	SDTM
+C71620	Yes	Unit	C71170	Ci/L	Curie per Liter	SDTM
+C71620	Yes	Unit	C71171	Ci/uL	Curie per Microliter	SDTM
+C71620	Yes	Unit	C71172	Ci/mL	Curie per Milliliter	SDTM
+C71620	Yes	Unit	C71173	uCi/L	Microcurie per Liter	SDTM
+C71620	Yes	Unit	C71174	mCi/L	Millicurie per Liter	SDTM
+C71620	Yes	Unit	C71175	uV	Microvolt	SDTM
+C71620	Yes	Unit	C71176	cycle/min	Cycle per Minute	SDTM
+C71620	Yes	Unit	C71177	km	Kilometer	SDTM
+C71620	Yes	Unit	C71183	Mile	Mile	SDTM
+C71620	Yes	Unit	C71185	100 IU/mL	100 International Units per Milliliter	SDTM
+C71620	Yes	Unit	C71186	Organisms	Organism-Based Unit	SDTM
+C71620	Yes	Unit	C71187	10^3 organisms	Thousand Organisms	SDTM
+C71620	Yes	Unit	C71188	10^6 organisms	Million Organisms	SDTM
+C71620	Yes	Unit	C71189	10^9 organisms	Billion Organisms	SDTM
+C71620	Yes	Unit	C71190	10^3 organisms/g	Thousand Organisms per Gram	SDTM
+C71620	Yes	Unit	C71191	10^6 organisms/g	Million Organisms per Gram	SDTM
+C71620	Yes	Unit	C71192	10^9 organisms/g	Billion Organisms per Gram	SDTM
+C71620	Yes	Unit	C71193	10^6 organisms/mg	Million Organisms per Milligram	SDTM
+C71620	Yes	Unit	C71194	10^9 organisms/mg	Billion Organisms per Milligram	SDTM
+C71620	Yes	Unit	C71195	10^3 organisms/mL	Thousand Organisms per Milliliter	SDTM
+C71620	Yes	Unit	C71196	10^6 organisms/mL	Million Organisms per Milliliter	SDTM
+C71620	Yes	Unit	C71197	10^9 organisms/mL	Billion Organisms per Milliliter	SDTM
+C71620	Yes	Unit	C71198	PFU/dose	Plaque Forming Unit per Dose	SDTM
+C71620	Yes	Unit	C71199	PFU/mL	Plaque Forming Unit per Milliliter	SDTM
+C71620	Yes	Unit	C71200	bel	Bel	SDTM
+C71620	Yes	Unit	C71201	g/cm2	Gram per Square Centimeter	SDTM
+C71620	Yes	Unit	C71202	kUSP	Kilo United States Pharmacopeia Unit	SDTM
+C71620	Yes	Unit	C71203	km/h	Kilometer per Hour	SDTM
+C71620	Yes	Unit	C71204	NEBULE	Nebule Dosing Unit	SDTM
+C71620	Yes	Unit	C71205	ug/day	Microgram per Day	SDTM
+C71620	Yes	Unit	C71207	mg/kg/min	Milligram per Kilogram per Minute	SDTM
+C71620	Yes	Unit	C71209	IU/kg/h	International Unit per Kilogram per Hour	SDTM
+C71620	Yes	Unit	C71210	ug/kg/min	Microgram per Kilogram per Minute	SDTM
+C71620	Yes	Unit	C71211	ug/min	Microgram per Minute	SDTM
+C71620	Yes	Unit	C71216	HAND UNIT	Hand Unit of Length	SDTM
+C71620	Yes	Unit	C71253	ft	International Foot	SDTM
+C71620	Yes	Unit	C71321	FINGERTIP UNIT	Fingertip Dosing Unit	SDTM
+C71620	Yes	Unit	C71324	SACHET	Sachet Dosing Unit	SDTM
+C71620	Yes	Unit	C71362	mg/kg/h	Milligram per Kilogram per Hour	SDTM
+C71620	Yes	Unit	C73568	log10 PFU	Log10 Plaque Forming Unit	SDTM
+C71620	Yes	Unit	C73681	OD Unit	Unit of Optical Density	SDTM
+C71620	Yes	Unit	C73686	Absorbance U	Absorbance Unit	SDTM
+C71620	Yes	Unit	C73687	Absorbance U/min	Absorbance Unit per Minute	SDTM
+C71620	Yes	Unit	C73688	cpm	Count per Minute	SDTM
+C71620	Yes	Unit	C73710	DPM	Disintegration per Minute	SDTM
+C71620	Yes	Unit	C73711	fmol/g	Femtomole per Gram	SDTM
+C71620	Yes	Unit	C73713	g/animal	Gram per Animal	SDTM
+C71620	Yes	Unit	C73714	g/animal/day	Gram per Animal per Day	SDTM
+C71620	Yes	Unit	C73715	g/animal/wk	Gram per Animal per Week	SDTM
+C71620	Yes	Unit	C73716	g/cage	Gram per Cage	SDTM
+C71620	Yes	Unit	C73717	g/cage/day	Gram per Cage per Day	SDTM
+C71620	Yes	Unit	C73718	g/cage/wk	Gram per Cage per Week	SDTM
+C71620	Yes	Unit	C73720	g/g/day	Gram per Gram per Day	SDTM
+C71620	Yes	Unit	C73721	g/mol	Gram per Mole	SDTM
+C71620	Yes	Unit	C73722	g/m2/day	Gram per Square Meter per Day	SDTM
+C71620	Yes	Unit	C73725	L/kg	Liter per Kilogram	SDTM
+C71620	Yes	Unit	C73726	uEq	Microequivalent	SDTM
+C71620	Yes	Unit	C73727	ug/m2/h	Microgram per Square Meter per Hour	SDTM
+C71620	Yes	Unit	C73728	ug/animal	Microgram per Animal	SDTM
+C71620	Yes	Unit	C73729	ug/kg/day	Microgram per Kilogram per Day	SDTM
+C71620	Yes	Unit	C73730	ug/kg/h	Microgram per Kilogram per Hour	SDTM
+C71620	Yes	Unit	C73733	ug/m2/min	Microgram per Square Meter per Minute	SDTM
+C71620	Yes	Unit	C73735	umol/mg/min	Micromole per Milligram per Minute	SDTM
+C71620	Yes	Unit	C73736	uOsm	Microosmole	SDTM
+C71620	Yes	Unit	C73737	mEq/mL	Milliequivalent per Milliliter	SDTM
+C71620	Yes	Unit	C73738	mg/animal	Milligram per Animal	SDTM
+C71620	Yes	Unit	C73739	mg/CAPSULE	Milligram per Capsule	SDTM
+C71620	Yes	Unit	C73740	mg/g/h	Milligram per Gram per Hour	SDTM
+C71620	Yes	Unit	C73741	mg/g/min	Milligram per Gram per Minute	SDTM
+C71620	Yes	Unit	C73742	mg/min	Milligram per Minute	SDTM
+C71620	Yes	Unit	C73743	mg/m2/h	Milligram per Square Meter per Hour	SDTM
+C71620	Yes	Unit	C73744	mg/m2/min	Milligram per Square Meter per Minute	SDTM
+C71620	Yes	Unit	C73746	mL/animal	Milliliter per Animal	SDTM
+C71620	Yes	Unit	C73747	mL/animal/day	Milliliter per Animal per Day	SDTM
+C71620	Yes	Unit	C73748	mL/animal/wk	Milliliter per Animal per Week	SDTM
+C71620	Yes	Unit	C73749	mL/breath	Milliliter per Breath	SDTM
+C71620	Yes	Unit	C73750	mL/cage	Milliliter per Cage	SDTM
+C71620	Yes	Unit	C73751	mL/cage/day	Milliliter per Cage per Day	SDTM
+C71620	Yes	Unit	C73752	mL/cage/wk	Milliliter per Cage per Week	SDTM
+C71620	Yes	Unit	C73755	mL/g/day	Milliliter per Gram per Day	SDTM
+C71620	Yes	Unit	C73756	mL/g/h	Milliliter per Gram per Hour	SDTM
+C71620	Yes	Unit	C73757	mL/g/min	Milliliter per Gram per Minute	SDTM
+C71620	Yes	Unit	C73758	mL/kg/day	Milliliter per Kilogram per Day	SDTM
+C71620	Yes	Unit	C73759	mL/kg/h	Milliliter per Kilogram per Hour	SDTM
+C71620	Yes	Unit	C73760	mL/kg/min	Milliliter per Kilogram per Minute	SDTM
+C71620	Yes	Unit	C73761	mL/m2	Milliliter per Square Meter	SDTM
+C71620	Yes	Unit	C73762	mL/m2/h	Milliliter per Square Meter per Hour	SDTM
+C71620	Yes	Unit	C73763	mL/m2/min	Milliliter per Square Meter per Minute	SDTM
+C71620	Yes	Unit	C73764	mmHg/s	Millimeter of Mercury per Second	SDTM
+C71620	Yes	Unit	C73765	mPa	Millipascal	SDTM
+C71620	Yes	Unit	C73767	ns	Nanosecond	SDTM
+C71620	Yes	Unit	C73768	ps	Picosecond	SDTM
+C71620	Yes	Unit	C73770	um2	Square Micrometer	SDTM
+C71620	Yes	Unit	C73771	10^4/L	Thousand per Deciliter	SDTM
+C71620	Yes	Unit	C73772	Gravitational Unit	Unit of Gravity	SDTM
+C71620	Yes	Unit	C73773	U/animal	Unit per Animal	SDTM
+C71620	Yes	Unit	C73774	U/g/day	Unit per Gram per Day	SDTM
+C71620	Yes	Unit	C73775	U/g/h	Unit per Gram per Hour	SDTM
+C71620	Yes	Unit	C73776	U/g/min	Unit per Gram per Minute	SDTM
+C71620	Yes	Unit	C73777	U/kg/day	Unit per Kilogram per Day	SDTM
+C71620	Yes	Unit	C73778	U/kg/h	Unit per Kilogram per Hour	SDTM
+C71620	Yes	Unit	C73779	U/kg/min	Unit per Kilogram per Minute	SDTM
+C71620	Yes	Unit	C73780	U/mg	Unit per Milligram	SDTM
+C71620	Yes	Unit	C73783	U/m2/day	Unit per Square Meter per Day	SDTM
+C71620	Yes	Unit	C73784	U/m2/h	Unit per Square Meter per Hour	SDTM
+C71620	Yes	Unit	C73785	U/m2/min	Unit per Square Meter per Minute	SDTM
+C71620	Yes	Unit	C73787	ug/m2/day	Microgram per Square Meter per Day	SDTM
+C71620	Yes	Unit	C73993	Pack Year	Pack Year	SDTM
+C71620	Yes	Unit	C74921	ug/g/day	Microgram per Gram per Day	SDTM
+C71620	Yes	Unit	C74922	ug/g/h	Microgram per Gram per Hour	SDTM
+C71620	Yes	Unit	C74923	ug/g/min	Microgram per Gram per Minute	SDTM
+C71620	Yes	Unit	C74924	PA	Per Year	SDTM
+C71620	Yes	Unit	C75303	FFU	Focus Forming Unit	SDTM
+C71620	Yes	Unit	C75765	Arbitrary U	Arbitrary Unit	SDTM
+C71620	Yes	Unit	C75905	ug/mL/h	Microgram per Milliliter per Hour	SDTM
+C71620	Yes	Unit	C77534	AFU	Arbitrary Fluorescence Units	SDTM
+C71620	Yes	Unit	C77535	RFU	Relative Fluorescence Intensity Unit	SDTM
+C71620	Yes	Unit	C77606	U/g	Unit per Gram	SDTM
+C71620	Yes	Unit	C77607	U/mL	Unit per Milliliter	SDTM
+C71620	Yes	Unit	C79424	VOXEL	Voxel	SDTM
+C71620	Yes	Unit	C82483	DIP	Dip Dosing Unit	SDTM
+C71620	Yes	Unit	C85597	pg/L	Femtogram per Milliliter	SDTM
+C71620	Yes	Unit	C85624	h*ng/mL	Hour Times Nanogram per Milliliter	SDTM
+C71620	Yes	Unit	C85640	h*nmol/L	Hour Times Picomole per Milliliter	SDTM
+C71620	Yes	Unit	C85645	IU/day	International Unit per Day	SDTM
+C71620	Yes	Unit	C85646	IU/h	International Unit per Hour	SDTM
+C71620	Yes	Unit	C85704	ug/PUFF	Microgram per Puff	SDTM
+C71620	Yes	Unit	C85708	umol/min	Micromole per Minute	SDTM
+C71620	Yes	Unit	C85715	mL/s/kg	Milliliter per Kilogram per Second	SDTM
+C71620	Yes	Unit	C85720	mmol/h	Millimole per Hour	SDTM
+C71620	Yes	Unit	C85723	mmol/s	Millimole per Second	SDTM
+C71620	Yes	Unit	C85729	min*mg/mL	Minute Times Milligram per Milliliter	SDTM
+C71620	Yes	Unit	C85737	mol/day	Mole per Day	SDTM
+C71620	Yes	Unit	C85741	ng/day	Nanogram per Day	SDTM
+C71620	Yes	Unit	C85751	nmol/day	Nanomole per Day	SDTM
+C71620	Yes	Unit	C85752	nmol/g	Nanomole per Gram	SDTM
+C71620	Yes	Unit	C85754	pmol/g	Nanomole per Kilogram	SDTM
+C71620	Yes	Unit	C88148	mg/m2/wk	Milligram per Square Meter per Week	SDTM
+C71620	Yes	Unit	C89829	g/wk	Gram per Week	SDTM
+C71620	Yes	Unit	C89830	ug/kg/wk	Microgram per Kilogram per Week	SDTM
+C71620	Yes	Unit	C91060	cm H2O	Centimeters of Water	SDTM
+C71620	Yes	Unit	C91803	GLOBULE	Globule Unit	SDTM
+C71620	Yes	Unit	C92613	nmol/mL/min	Nanomole per Minute per Milliliter	SDTM
+C71620	Yes	Unit	C92615	kN/cm2	Kilonewton per Centimeter Squared	SDTM
+C71620	Yes	Unit	C92616	mEq/mmol	Milliequivalent per Millimole	SDTM
+C71620	Yes	Unit	C92618	U/mmol	Unit per Millimole	SDTM
+C71620	Yes	Unit	C94908	Hounsfield Unit	Hounsfield Unit	SDTM
+C71620	Yes	Unit	C96599	EU	Ehrlich Unit	SDTM
+C71620	Yes	Unit	C96619	/HPF	Per High Powered Field	SDTM
+C71620	Yes	Unit	C96620	/LPF	Per Low Powered Field	SDTM
+C71620	Yes	Unit	C96649	FEU	Fibrinogen Equivalent Unit	SDTM
+C71620	Yes	Unit	C96687	MdFI	Median Fluorescence Intensity Unit	SDTM
+C71620	Yes	Unit	C96691	MESF	Molecule of Equivalent Soluble Fluorochrome	SDTM
+C71620	Yes	Unit	C97343	mAmp	Milliampere	SDTM
+C71620	Yes	Unit	C98719	DNA copies/mL	DNA Copies per Milliliter	SDTM
+C71620	Yes	Unit	C98743	10^5/hpf	Hundred Thousand per High Powered Field	SDTM
+C71620	Yes	Unit	C98755	mL/cm H2O	Milliliter per Centimeter of Water	SDTM
+C71620	Yes	Unit	C98756	10^6 DNA copies/mL	Million DNA Copies per Milliliter	SDTM
+C71620	Yes	Unit	C98757	10^6 IU/mL	Million International Units per Milliliter	SDTM
+C71620	Yes	Unit	C98758	10^6/g	Million per Gram	SDTM
+C71620	Yes	Unit	C98759	10^6/hpf	Million per High Powered Field	SDTM
+C71620	Yes	Unit	C98760	10^6 RNA copies/mL	Million RNA Copies per Milliliter	SDTM
+C71620	Yes	Unit	C98786	10^7/L	Ten Million per Liter	SDTM
+C71620	Yes	Unit	C98787	10^4/hpf	Ten Thousand per High Powered Field	SDTM
+C71620	Yes	Unit	C98788	10^3 DNA copies/mL	Thousand DNA Copies per Milliliter	SDTM
+C71620	Yes	Unit	C98789	10^3/hpf	Thousand per High Powered Field	SDTM
+C71620	Yes	Unit	C98790	10^3 RNA copies/mL	Thousand RNA Copies per Milliliter	SDTM
+C99076	Yes	Intervention Model Response	C142568	SEQUENTIAL	Group Sequential Design	Protocol/SDTM
+C99076	Yes	Intervention Model Response	C82637	CROSS-OVER	Crossover Study	Protocol/SDTM
+C99076	Yes	Intervention Model Response	C82638	FACTORIAL	Factorial Study	Protocol/SDTM
+C99076	Yes	Intervention Model Response	C82639	PARALLEL	Parallel Study	Protocol/SDTM
+C99076	Yes	Intervention Model Response	C82640	SINGLE GROUP	Single Group Study	Protocol/SDTM
+C99077	No	Study Type Response	C129000	PATIENT REGISTRY	Patient Registry Study	Protocol/SDTM
+C99077	No	Study Type Response	C16084	OBSERVATIONAL	Observational Study	Protocol/SDTM
+C99077	No	Study Type Response	C98388	INTERVENTIONAL	Interventional Study	Protocol/SDTM
+C99077	No	Study Type Response	C98722	EXPANDED ACCESS	Expanded Access Study	Protocol/SDTM
+C99078	No	Intervention Type Response	C1505	DIETARY SUPPLEMENT	Dietary Supplement	Protocol/SDTM
+C99078	No	Intervention Type Response	C15184	BEHAVIORAL THERAPY	Behavioral Intervention	Protocol/SDTM
+C99078	No	Intervention Type Response	C15238	GENETIC	Gene Therapy	Protocol/SDTM
+C99078	No	Intervention Type Response	C15313	RADIATION	Radiation Therapy	Protocol/SDTM
+C99078	No	Intervention Type Response	C15329	SURGERY	Surgical Procedure	Protocol/SDTM
+C99078	No	Intervention Type Response	C16830	DEVICE	Medical Device	Protocol/SDTM
+C99078	No	Intervention Type Response	C18020	DIAGNOSTIC TEST	Diagnostic Procedure	Protocol/SDTM
+C99078	No	Intervention Type Response	C1909	DRUG	Pharmacologic Substance	Protocol/SDTM
+C99078	No	Intervention Type Response	C218507	NON-SURGICAL PROCEDURE	Non-Surgical Procedure	Protocol/SDTM
+C99078	No	Intervention Type Response	C307	BIOLOGIC	Biological Agent	Protocol/SDTM
+C99078	No	Intervention Type Response	C54696	COMBINATION PRODUCT	Combination Product	Protocol/SDTM
+C99078	No	Intervention Type Response	C923	VACCINE	Vaccine	Protocol/SDTM
+C99078	No	Intervention Type Response	C98769	PROCEDURE	Physical Medical Procedure	Protocol/SDTM
+C99079	Yes	Epoch	C101526	TREATMENT	Treatment Epoch	SDTM
+C99079	Yes	Epoch	C102255	BLINDED TREATMENT	Blinded Treatment Epoch	SDTM
+C99079	Yes	Epoch	C102256	OPEN LABEL TREATMENT	Open Label Treatment Epoch	SDTM
+C99079	Yes	Epoch	C123452	CONTINUATION TREATMENT	Continuation Therapy Epoch	SDTM
+C99079	Yes	Epoch	C123453	INDUCTION TREATMENT	Induction Therapy Epoch	SDTM
+C99079	Yes	Epoch	C125938	BASELINE	Baseline Epoch	SDTM
+C99079	Yes	Epoch	C165873	OBSERVATION	Observation Study Epoch	SDTM
+C99079	Yes	Epoch	C199844	PRE-SCREENING	Pre-Screening Epoch	SDTM
+C99079	Yes	Epoch	C202487	SCREENING	Screening Epoch	SDTM
+C99079	Yes	Epoch	C202577	LONG-TERM FOLLOW-UP	Long-term Follow-up Epoch	SDTM
+C99079	Yes	Epoch	C202578	FOLLOW-UP	Follow-Up Epoch	SDTM
+C99079	Yes	Epoch	C209541	INTERVENTION	Investigational Intervention Epoch	SDTM
+C99079	Yes	Epoch	C210380	PRODUCT EXPOSURE	Product Exposure Epoch	SDTM
+C99079	Yes	Epoch	C42872	WASHOUT	Washout Period	SDTM
+C99079	Yes	Epoch	C98779	RUN-IN	Run-in Period	SDTM

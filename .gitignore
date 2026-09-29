@@ -56,3 +56,6 @@ coverage.xml
 # the test suite off-device.
 _to_delete/
 *.tgz
+
+# === Full NCI EVS CT packages (tools/build_ct_extract.py reads them; only the extract is committed) ===
+ct/downloads/
