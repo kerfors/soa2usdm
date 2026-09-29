@@ -586,7 +586,7 @@ def generate_index_html(collection: str) -> str:
     pending = [p for p in protocols if not p['has_resolved'] and not p['has_consolidated']]
     
     generated_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
-    excl_meta = f' | {len(excluded)} excluded' if excluded else ''
+    excl_meta = f' · {len(excluded)} excluded' if excluded else ''
     
     def protocol_row(p: dict) -> str:
         nct = p['nct_id']
@@ -646,7 +646,7 @@ def generate_index_html(collection: str) -> str:
         if p.get('review_items_total'):
             n_open, n_total = p['review_items_open'], p['review_items_total']
             state = f'{n_open} open of {n_total}' if n_open else f'all {n_total} decided'
-            review_html += (f' <span class="decisions" title="Judgement calls raised by the extraction, and how many still await a reviewer">'
+            review_html += (f' <span class="decisions{" open" if n_open else ""}" title="Judgement calls raised by the extraction, and how many still await a reviewer">'
                             f'{state}</span>')
         report_html = ''
         if p.get('report_file'):
@@ -706,70 +706,60 @@ def generate_index_html(collection: str) -> str:
     prov_th = f'<th>{esc(provenance["label"])}</th>' if provenance else ''
     
     css = """
+        :root { --blue:#1F4788; --blue2:#2E75B6; --ink:#1f2933; --muted:#5f6b7a; --line:#d9dee5;
+                --bg:#f5f7fa; --head:#fafbfc; --ok:#2e7d32; --warn:#c77700; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; padding: 20px; color: #333; }
-        
-        .header { background: linear-gradient(135deg, #1F4788, #2E75B6); color: white; padding: 24px 30px; border-radius: 12px; margin-bottom: 20px; }
-        .header .back { font-size: 11px; margin-bottom: 6px; }
-        .header .back a { color: rgba(255,255,255,0.85); text-decoration: none; }
-        .header .back a:hover { text-decoration: underline; }
-        .header h1 { font-size: 20px; margin-bottom: 4px; }
-        .header .sub { font-size: 12px; opacity: 0.8; }
-        .header .meta { font-size: 11px; opacity: 0.7; margin-top: 8px; }
-        .header .activities-link { display: inline-block; margin-top: 10px; padding: 6px 12px;
-            border: 1px solid rgba(255,255,255,0.55); border-radius: 6px; color: #fff;
-            background: rgba(255,255,255,0.08); text-decoration: none; font-size: 13px; font-weight: 600; }
-        .header .activities-link:hover { background: rgba(255,255,255,0.18); }
+        body { font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+               background: var(--bg); color: var(--ink); }
 
-        .section { background: white; border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .section-header { padding: 12px 20px; font-size: 13px; font-weight: 600; color: white; }
-        
+        .header { background: var(--blue); color: #fff; padding: 14px 22px;
+                  display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .header h1 { font-size: 20px; font-weight: 600; }
+        .header .sub { font-size: 13px; opacity: .85; margin-top: 3px; }
+        .header .activities-link { padding: 5px 11px; border: 1px solid rgba(255,255,255,0.55); border-radius: 4px;
+            color: #fff; text-decoration: none; font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .header .activities-link:hover { background: rgba(255,255,255,0.12); }
+        .crumbs { background: #fff; border-bottom: 1px solid var(--line); padding: 8px 22px; font-size: 12px; color: var(--muted); }
+        .crumbs a { color: var(--blue2); text-decoration: none; }
+        .crumbs a:hover { text-decoration: underline; }
+        .crumbs .cur { font-weight: 600; color: var(--ink); }
+        .crumbs .sep { color: #9aa4af; margin: 0 4px; }
+        .content { padding: 14px 22px 20px; }
+
+        .section { background: #fff; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+        .section-header { padding: 9px 12px; font-size: 13px; font-weight: 600; color: var(--ink);
+                          background: var(--head); border-bottom: 1px solid var(--line); }
+
         .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { background: #f0f0f0; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 600; color: #666; border-bottom: 2px solid #ddd; white-space: nowrap; }
-        td { padding: 6px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
-        tr.ready:hover { background: #f8f9fa; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: var(--head); padding: 6px 10px; text-align: left; font-size: 11px; font-weight: 600;
+             color: var(--muted); border-bottom: 1px solid var(--line); white-space: nowrap; }
+        td { padding: 6px 10px; border-bottom: 1px solid #eef1f4; vertical-align: top; }
+        tr.ready:hover td { background: #eef4fb; }
         /* The row a protocol page's breadcrumb points back to (#NCT... anchor). */
-        tr:target td { background: #fff3b0; }
-        
-        .nct { font-family: monospace; font-weight: 600; white-space: nowrap; }
-        .nct a { color: #1F4788; text-decoration: none; }
-        .nct a:hover { text-decoration: underline; }
-        .study-code { font-family: monospace; font-size: 10px; color: #555; white-space: nowrap; }
-        .prov-ref { font-family: monospace; font-size: 10px; color: #777; white-space: nowrap; }
-        .acronym { font-weight: 500; color: #444; white-space: nowrap; }
-        .soa-pages { white-space: nowrap; color: #888; font-family: monospace; font-size: 10px; }
-        .stats { white-space: nowrap; font-family: monospace; font-size: 10px; color: #666; }
-        
-        .sources a, .viz a {
-            display: inline-block; padding: 2px 7px; border-radius: 4px; 
-            text-decoration: none; font-size: 10px; margin: 1px 2px; font-weight: 500; 
-        }
-        
-        .link-pdf { background: #fce4ec; color: #c62828; }
-        .link-pdf:hover { background: #f8bbd0; }
-        .link-soa { background: #fff3e0; color: #e65100; }
-        .link-soa:hover { background: #ffe0b2; }
-        .link-md { background: #e8eaf6; color: #283593; }
-        .link-md:hover { background: #c5cae9; }
+        tr:target td { background: #fff3d6; }
 
-        .link-table { background: #e8f0fe; color: #1F4788; }
-        .link-table:hover { background: #d0e2fc; }
-        .link-json { background: #f5f5f5; color: #888; font-size: 9px; font-family: monospace; }
-        .link-json:hover { background: #e0e0e0; color: #555; }
-        .link-report { background: #fff8e1; color: #8d6e00; }
-        .link-report:hover { background: #ffecb3; }
-        .decisions { font-size: 11px; color: #8d6e00; white-space: nowrap; }
-        .link-review { background: #e8f0fa; color: #1F4788; font-weight: 600; }
-        .link-review:hover { background: #d2e1f5; }
-        .link-usdm { background: #f3e5f5; color: #6a1b9a; }
-        .link-usdm:hover { background: #e1bee7; }
-        
-        .resolved-group { white-space: nowrap; color: #666; font-size: 10px; }
-        .pending { color: #aaa; font-style: italic; font-size: 10px; }
+        .nct { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 600; white-space: nowrap; }
+        .nct a { color: var(--blue); text-decoration: none; }
+        .nct a:hover { text-decoration: underline; }
+        .study-code, .prov-ref, .soa-pages, .stats { font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            font-size: 11px; color: var(--muted); white-space: nowrap; }
+        .prov-ref a { color: var(--muted); text-decoration: none; }
+        .prov-ref a:hover { color: var(--blue2); text-decoration: underline; }
+        .acronym { white-space: nowrap; }
+
+        /* one link style for every artifact: the column says what it is, the link says which */
+        .sources a, .viz a { color: var(--blue2); text-decoration: none; margin-right: 7px; white-space: nowrap; }
+        .sources a:hover, .viz a:hover { text-decoration: underline; }
+        .link-json { color: var(--muted) !important; font-size: 11px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+        .link-review { font-weight: 600; }
+        .decisions { font-size: 11px; color: var(--ok); white-space: nowrap; }
+        .decisions.open { color: var(--warn); font-weight: 600; }
+
+        .pending { color: #9aa4af; font-style: italic; font-size: 11px; }
         .pending-row { opacity: 0.55; }
-        .excluded-row { opacity: 0.5; background: #fafafa; }
-        .excluded-reason { color: #999; font-style: italic; font-size: 10px; }
+        .excluded-row td { color: #9aa4af; background: var(--head); }
+        .excluded-reason { font-style: italic; font-size: 11px; }
     """
     
     return f'''<!DOCTYPE html>
@@ -782,15 +772,17 @@ def generate_index_html(collection: str) -> str:
 </head>
 <body>
     <div class="header">
-        <div class="back"><a href="../../../index.html">Collections</a> <span style="opacity:.6">›</span> {esc(collection)}</div>
-        <h1>{esc(collection)}</h1>
-        <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline</div>
-        <div class="meta">{len(protocols)} protocols | {len(ready)} processed | {len(pending)} pending{excl_meta} | Generated {generated_at}</div>
-        <div><a href="activities.html" class="activities-link">&#9636; All extracted activities &mdash; consolidated / source-table inventory &rarr;</a></div>
+        <div>
+            <h1>{esc(collection)}</h1>
+            <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline · {len(protocols)} protocols · {len(ready)} processed · {len(pending)} pending{excl_meta} · generated {generated_at}</div>
+        </div>
+        <a href="activities.html" class="activities-link">All extracted activities &mdash; consolidated / source-table inventory &rarr;</a>
     </div>
-    
+    <div class="crumbs"><a href="../../../index.html">Collections</a><span class="sep">›</span><span class="cur">{esc(collection)}</span></div>
+
+    <div class="content">
     <div class="section">
-        <div class="section-header" style="background: #1F4788;">Protocols</div>
+        <div class="section-header">Protocols</div>
         <div class="table-wrap">
         <table>
             <thead><tr>
@@ -803,6 +795,7 @@ def generate_index_html(collection: str) -> str:
             </tbody>
         </table>
         </div>
+    </div>
     </div>
 </body>
 </html>'''

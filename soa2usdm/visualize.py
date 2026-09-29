@@ -25,7 +25,7 @@ from .nav import NAV_CSS, nav_block, page_title
 # Color Scheme
 # =============================================================================
 
-LEVEL_COLORS = ['#375623', '#548235', '#70AD47', '#A9D08E', '#C6E0B4', '#E2EFDA']
+LEVEL_COLORS = ['#1F4788', '#2E75B6', '#6A9BD1', '#A9C6E6', '#D2E1F2', '#EBF2FA']
 
 POPULATION_PALETTE = [
     ('#28a745', '#d4edda', '#28a745'),  # Green
@@ -46,10 +46,10 @@ COLORS = {
     'pop_default': '#6c757d',
     'cell_common': '#BDD7EE',
     'cell_data': '#BDD7EE',
-    'match_exact': '#d4edda',
-    'match_fuzzy': '#cce5ff',
-    'match_cross': '#e1bee7',
-    'match_single': '#f0f0f0',
+    'match_exact': '#ffffff',
+    'match_fuzzy': '#e1f2fb',
+    'match_cross': '#f1e7f7',
+    'match_single': '#ffffff',
     'qualifier_bg': '#f5f5f5',
     'qualifier_text': '#666',
 }
@@ -117,6 +117,19 @@ def get_level_color(level: int) -> str:
 
 def get_level_text_color(level: int) -> str:
     return 'white' if level <= 2 else '#333'
+
+MATCH_LABELS = {
+    'exact': 'same name',
+    'fuzzy_auto': 'near match, accepted',
+    'fuzzy_review': 'near match, to review',
+    'fuzzy_cross_parent': 'near match, different parent',
+    'new': 'one table',
+}
+
+
+def get_match_label(status: str) -> str:
+    return MATCH_LABELS[status]
+
 
 def get_match_color(status: str, table_count: int) -> str:
     if table_count == 1:
@@ -417,10 +430,10 @@ def gen_activities_component(data: dict) -> str:
             <td class="id">{ua.get('xact_id', '')}</td>
             <td class="text-full">{name_display}</td>
             <td class="trace">{esc(ua.get('parent_name', '')[:40])}</td>
-            <td class="type">{ua.get('match_status', '')}</td>
+            <td class="type" title="match_status: {esc(ua.get('match_status', ''))}">{get_match_label(ua.get('match_status', 'new'))}</td>
             <td class="trace">{ua.get('table_count', 1)}</td>
             <td class="trace">{tables}</td>
-            <td class="bool">{str(ua.get('is_section_header', False)).lower()}</td>
+            <td class="type">{'section' if ua.get('is_section_header', False) else ''}</td>
         </tr>''')
     
     return f'''
@@ -432,7 +445,7 @@ def gen_activities_component(data: dict) -> str:
         <div class="comp-body">
             <table class="comp-table">
                 <thead><tr>
-                    <th>xact_id</th><th>activity_name (variations)</th><th>parent</th><th>match</th><th>#</th><th>tables</th><th>header</th>
+                    <th>xact_id</th><th>activity_name (variations)</th><th>parent</th><th>match</th><th>#</th><th>tables</th><th>row kind</th>
                 </tr></thead>
                 <tbody>{''.join(rows)}</tbody>
             </table>
@@ -469,6 +482,10 @@ def gen_annotations_component(data: dict) -> str:
                 label = col.get('composite_label', '')[:20]
             col_lookup[xcol_id] = label
 
+    # Annotations that have a marker in the grid get a way back to it
+    notes = build_note_index(data)
+    in_grid = {x for k in ('cells', 'acts', 'cols', 'props') for xs in notes[k].values() for x in xs}
+
     # Property lookup for displaying referenced_props by name
     prop_lookup = {p.get('property_id', ''): p.get('property_name', '')
                    for p in data.get('property_hierarchy', [])}
@@ -495,8 +512,8 @@ def gen_annotations_component(data: dict) -> str:
             occ_count = ua.get('occurrence_count', 1)
             text = ua.get('annotation_text', '')
             
-            # Truncate long text for display
-            text_display = text if len(text) <= 120 else text[:117] + '...'
+            # Full text: the grid's note markers link here, so this is where a note is read
+            text_display = text
             
             # Determine scope and build references display
             ref_xacts = ua.get('referenced_xacts', [])
@@ -533,16 +550,18 @@ def gen_annotations_component(data: dict) -> str:
             else:
                 refs_display = ' '.join(scope_parts)
             
-            # Highlight: green for multi-table, light purple for property-level
-            if occ_count > 1:
-                bg = '#e8f4e8'  # green tint
-            elif ref_xcols and not ref_xacts:
+            # Highlight: multi-table is the common case (no tint), light purple for property-level,
+            # single-table grey - the same convention as the activity rows
+            if ref_xcols and not ref_xacts:
                 bg = '#f3e8f8'  # purple tint - property/timeline annotation
             else:
                 bg = '#fff'
             
-            rows.append(f'''<tr style="background: {bg};">
-                <td class="id">{xannot_id}</td>
+            back_link = (f'<br/><a class="ingrid" href="#" onclick="showInGrid(&quot;{xannot_id}&quot;); return false;" '
+                         f'title="Highlight where this note is anchored in the schedule">show in grid</a>'
+                         if xannot_id in in_grid else '')
+            rows.append(f'''<tr id="{xannot_id}" style="background: {bg};">
+                <td class="id">{xannot_id} <span class="mk">{note_label(xannot_id)}</span>{back_link}</td>
                 <td class="trace">{esc(display_markers)}</td>
                 <td class="trace">{occ_count}</td>
                 <td class="text-full" title="{esc(text)}">{esc(text_display)}</td>
@@ -577,6 +596,55 @@ def gen_annotations_component(data: dict) -> str:
             {''.join(sections)}
         </div>
     </div>'''
+
+
+# =============================================================================
+# Note markers in the grid
+# =============================================================================
+
+def note_label(xannot_id: str) -> str:
+    """Grid marker for a unified annotation: its sequence number (xannot-003 -> 3)."""
+    return str(int(xannot_id.rsplit('-', 1)[1]))
+
+
+def build_note_index(data: dict) -> dict:
+    """Where each unified annotation lands in the grid, from the consolidated references.
+
+    cells: (xact, xcol) -> [xannot]    the annotation names specific cells
+    acts:  xact -> [xannot]            an activity row, where no cell of that row is named
+    cols:  xcol -> [xannot]            a timeline column (property-level annotation)
+    props: (property_type, level) -> [xannot]   a schedule property row
+    Annotations with none of these are table-level and stay in the Unified Annotations list.
+    """
+    prop_key = {p['property_id']: (p.get('property_type', ''), p.get('hierarchical_level'))
+                for p in data.get('property_hierarchy', [])}
+    idx = {'cells': defaultdict(list), 'acts': defaultdict(list), 'cols': defaultdict(list),
+           'props': defaultdict(list), 'text': {}}
+    for ua in data.get('unified_annotations', []):
+        xid = ua['xannot_id']
+        idx['text'][xid] = ua.get('annotation_text', '')
+        cell_acts = set()
+        for cr in ua.get('cell_references', []):
+            idx['cells'][(cr['xact_id'], cr['xcol_id'])].append(xid)
+            cell_acts.add(cr['xact_id'])
+        for xact in ua.get('referenced_xacts', []):
+            if xact not in cell_acts:
+                idx['acts'][xact].append(xid)
+        if not ua.get('referenced_xacts'):
+            for xcol in ua.get('referenced_xcols', []):
+                idx['cols'][xcol].append(xid)
+        for pid in ua.get('referenced_props', []):
+            idx['props'][prop_key[pid]].append(xid)
+    return idx
+
+
+def note_marks(xids: list, idx: dict) -> str:
+    """Superscript note markers, each linking to its row in Unified Annotations."""
+    if not xids:
+        return ''
+    links = ','.join(
+        f'<a href="#{x}" title="{esc(idx["text"][x][:300])}">{note_label(x)}</a>' for x in xids)
+    return f'<sup class="mk">{links}</sup>'
 
 
 # =============================================================================
@@ -641,6 +709,7 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
     """Generate schedule grid for a segment."""
     if not columns:
         return ""
+    notes = build_note_index(data)
     
     activities = data.get('unified_activities', [])
     matrix = {(m['xact_id'], m['xcol_id']): m['consolidated_value'] 
@@ -713,10 +782,15 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
         return ' table-border' if idx in boundaries else ''
     
     rows.append(f'<tr><th class="frozen-col1 activity-header">Activity</th><th class="frozen-col2">In</th>')
+    runs = []  # [start index, table_num, span] per run of consecutive columns from one table
     for i, col in enumerate(columns):
-        src = col.get('source_columns', [{}])[0]
-        tnum = src.get('table_num', '')
-        rows.append(f'<th class="{border_class(i).strip()}" style="background: {COLORS["header"]}; color: white; font-size: 9px;">T{tnum}</th>')
+        tnum = col.get('source_columns', [{}])[0].get('table_num', '')
+        if runs and runs[-1][1] == tnum and i not in boundaries:
+            runs[-1][2] += 1
+        else:
+            runs.append([i, tnum, 1])
+    for start, tnum, span in runs:
+        rows.append(f'<th colspan="{span}" class="table-run{border_class(start)}">Table {tnum}</th>')
     rows.append('</tr>')
     
     if segment == 'track':
@@ -732,14 +806,16 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
     qualifier_props = [p for p in props if p.get('hierarchical_level') is None]
     
     # Render hierarchical properties
+    col_mark_level = hierarchical_props[0].get('hierarchical_level') if hierarchical_props else None
     for prop in hierarchical_props:
         level = prop.get('hierarchical_level')
         bg = get_level_color(level)
         text_color = get_level_text_color(level)
         prop_name = prop.get('property_name', '')
         prop_type = prop.get('property_type', '')
+        pmarks = note_marks(notes['props'].get((prop_type, level), []), notes)
         
-        rows.append(f'<tr><th class="frozen-col1" style="background: {bg}; color: {text_color}; text-align: left; font-size: 9px;">{esc(prop_name)}<br/><span style="font-size: 8px; opacity: 0.8;">[{prop_type}] L{level}</span></th>')
+        rows.append(f'<tr><th class="frozen-col1" style="background: {bg}; color: {text_color}; text-align: left; font-size: 9px;">{esc(prop_name)}{pmarks}<br/><span style="font-size: 8px; opacity: 0.8;">[{prop_type}] L{level}</span></th>')
         rows.append(f'<th class="frozen-col2" style="background: {bg};"></th>')
         
         for i, col in enumerate(columns):
@@ -748,7 +824,8 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
                 if pv.get('level') == level:
                     value = pv.get('value', '')
                     break
-            rows.append(f'<td class="{border_class(i).strip()}" style="background: {bg}; color: {text_color}; text-align: center; font-size: 9px;">{esc(value)}</td>')
+            cmarks = note_marks(notes['cols'].get(col['xcol_id'], []), notes) if level == col_mark_level else ''
+            rows.append(f'<td class="{border_class(i).strip()}" style="background: {bg}; color: {text_color}; text-align: center; font-size: 9px;">{esc(value)}{cmarks}</td>')
         rows.append('</tr>')
     
     # Render qualifier properties with neutral styling
@@ -758,7 +835,8 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
         bg = COLORS['qualifier_bg']
         text_color = COLORS['qualifier_text']
         
-        rows.append(f'<tr><th class="frozen-col1" style="background: {bg}; color: {text_color}; text-align: left; font-size: 9px;">{esc(prop_name)}<br/><span style="font-size: 8px; opacity: 0.8;">[{prop_type}]</span></th>')
+        pmarks = note_marks(notes['props'].get((prop_type, None), []), notes)
+        rows.append(f'<tr><th class="frozen-col1" style="background: {bg}; color: {text_color}; text-align: left; font-size: 9px;">{esc(prop_name)}{pmarks}<br/><span style="font-size: 8px; opacity: 0.8;">[{prop_type}]</span></th>')
         rows.append(f'<th class="frozen-col2" style="background: {bg};"></th>')
         
         for i, col in enumerate(columns):
@@ -792,13 +870,15 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
         
         tables = ','.join(f"T{sr['table_num']}" for sr in ua.get('source_refs', []))
         
-        rows.append(f'<tr><td class="frozen-col1 activity-name {name_cls}" style="background: {match_bg};" title="{esc(ua.get("qualified_key", ""))}">{esc(ua.get("activity_name", ""))}</td>')
+        amarks = note_marks(notes['acts'].get(xact_id, []), notes)
+        rows.append(f'<tr><td class="frozen-col1 activity-name {name_cls}" style="background: {match_bg};" title="{esc(ua.get("qualified_key", ""))}">{esc(ua.get("activity_name", ""))}{amarks}</td>')
         rows.append(f'<td class="frozen-col2" style="background: {match_bg}; font-size: 8px;">{tables}</td>')
         
         for i, col in enumerate(columns):
             xcol_id = col['xcol_id']
             value = matrix.get((xact_id, xcol_id), '')
             bc = border_class(i)
+            xmarks = note_marks(notes['cells'].get((xact_id, xcol_id), []), notes)
             
             if value:
                 if segment == 'track' and len(all_tracks) > 1:
@@ -817,9 +897,9 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
                     cell_bg = COLORS['cell_data']
                     text_color = COLORS['header']
                 
-                rows.append(f'<td class="{bc.strip()}" style="background: {cell_bg}; color: {text_color}; font-weight: bold; text-align: center;">{esc(value)}</td>')
+                rows.append(f'<td class="{bc.strip()}" style="background: {cell_bg}; color: {text_color}; font-weight: bold; text-align: center;">{esc(value)}{xmarks}</td>')
             else:
-                rows.append(f'<td class="{bc.strip()}"></td>')
+                rows.append(f'<td class="{bc.strip()}">{xmarks}</td>')
         rows.append('</tr>')
     
     return f'''
@@ -867,138 +947,136 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
             pop_colors.get_colors(track)
     
     css = f"""
+        :root {{ --blue:#1F4788; --blue2:#2E75B6; --ink:#1f2933; --muted:#5f6b7a;
+                 --line:#d9dee5; --bg:#f5f7fa; --head:#fafbfc; }}
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-                body {{ 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #f5f5f5; padding: 20px; font-size: 11px;
-            max-width: 1800px; margin: 0 auto;
+        body {{
+            font: 13px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            color: var(--ink); background: var(--bg);
         }}
-        
-        {NAV_CSS}
 
-        .header {{
-            background: linear-gradient(135deg, {COLORS['header']} 0%, #2E5EA8 100%);
-            color: white; padding: 25px 30px; border-radius: 8px; margin-bottom: 20px;
-        }}
-        .header h1 {{ font-size: 22px; margin-bottom: 8px; }}
-        .header .sub {{ font-size: 12px; opacity: 0.9; margin-bottom: 4px; }}
-        .header .meta {{ font-size: 11px; opacity: 0.8; }}
-        
+        {NAV_CSS}
+        /* nav: the review page's full-bleed bar (markup shared, skin local) */
+        .pnav {{ border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none;
+                 margin: 0; padding: 8px 22px; color: var(--muted); }}
+        .pnav a {{ color: var(--blue2); }}
+        .pnav-cur {{ color: var(--ink); }}
+        .pnav-sep {{ color: #9aa4af; }}
+        .pnav-grp {{ color: #8a94a0; }}
+
+        .header {{ background: var(--blue); color: #fff; padding: 14px 22px; }}
+        .header h1 {{ font-size: 20px; font-weight: 600; }}
+        .header .sub {{ font-size: 13px; opacity: .85; margin-top: 3px; }}
+        .content {{ padding: 14px 22px 20px; }}
+
         .toolbar {{
-            background: white; border-radius: 8px; padding: 10px 20px;
-            margin-bottom: 15px; display: flex; gap: 10px;
+            background: #fff; border: 1px solid var(--line); border-radius: 6px;
+            padding: 8px 12px; margin-bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
         }}
         .toolbar button {{
-            padding: 6px 12px; border: 1px solid #ddd; border-radius: 4px;
-            background: #f5f5f5; cursor: pointer; font-size: 11px;
+            font: inherit; font-size: 12px; padding: 3px 9px; border: 1px solid var(--line);
+            border-radius: 4px; background: #fff; color: var(--ink); cursor: pointer;
         }}
-        .toolbar button:hover {{ background: #e0e0e0; }}
-        
-        .comp {{
-            background: white; border-radius: 8px; margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;
+        .toolbar button:hover {{ border-color: var(--blue2); }}
+
+        .comp, .section {{
+            background: #fff; border: 1px solid var(--line); border-radius: 6px;
+            margin-bottom: 14px; overflow: hidden;
         }}
-        .comp-header {{
-            color: white; padding: 12px 20px; display: flex;
-            justify-content: space-between; align-items: center;
-            cursor: pointer; user-select: none;
+        /* section bars: one neutral panel heading (inline per-section colours are overridden) */
+        .comp-header, .section-title {{
+            background: var(--head) !important; color: var(--ink);
+            border-bottom: 1px solid var(--line); padding: 9px 12px; cursor: pointer; user-select: none;
         }}
-        .comp-header:hover {{ filter: brightness(1.1); }}
-        .comp-title {{ font-weight: bold; font-size: 14px; }}
-        .comp-desc {{ font-size: 11px; opacity: 0.9; }}
-        .toggle-icon {{ display: inline-block; transition: transform 0.2s; margin-right: 8px; }}
+        .comp-header {{ display: flex; justify-content: space-between; align-items: center; }}
+        .comp-header:hover, .section-title:hover {{ background: #f0f4f9 !important; }}
+        .comp-title, .section-title {{ font-weight: 600; font-size: 13px; }}
+        .comp-desc {{ font-size: 12px; color: var(--muted); }}
+        .toggle-icon {{ display: inline-block; transition: transform 0.2s; margin-right: 8px; color: var(--muted); }}
         .comp.collapsed .toggle-icon {{ transform: rotate(-90deg); }}
+        .comp.collapsed .comp-header {{ border-bottom: 0; }}
         .comp-body {{ overflow: hidden; transition: max-height 0.3s; padding: 0; }}
         .comp.collapsed .comp-body {{ max-height: 0 !important; }}
-        .comp-note {{ padding: 12px 15px; color: #444; font-size: 11px; border-bottom: 1px solid #eee; background: #f9f9f9; }}
-        
-        .comp-table {{ width: 100%; border-collapse: collapse; font-size: 11px; }}
+        .comp-note {{ padding: 10px 12px; color: var(--muted); font-size: 12px; border-bottom: 1px solid var(--line); background: var(--head); }}
+
+        .comp-table {{ width: 100%; border-collapse: collapse; font-size: 12px; }}
         .comp-table th {{
-            background: #f5f5f5; padding: 8px 10px; text-align: left;
-            font-weight: 600; border-bottom: 2px solid #ddd; white-space: nowrap;
+            background: var(--head); padding: 6px 10px; text-align: left;
+            font-weight: 600; border-bottom: 1px solid var(--line); white-space: nowrap;
         }}
         .comp-table td {{
-            padding: 6px 10px; border-bottom: 1px solid #eee;
+            padding: 5px 10px; border-bottom: 1px solid #eef1f4;
             vertical-align: top; word-wrap: break-word;
         }}
-        .comp-table tr:hover {{ background: #fafafa; }}
-        
+        .comp-table tr:hover {{ background: #eef4fb; }}
+
         .prop-comparison th.table-col {{ text-align: center; min-width: 320px; }}
-        .prop-comparison .track-small {{ font-size: 9px; font-weight: normal; color: #666; }}
-        .prop-comparison .level-cell {{ font-weight: bold; text-align: center; width: 60px; font-size: 11px; }}
+        .prop-comparison .track-small {{ font-size: 10px; font-weight: normal; color: var(--muted); }}
+        .prop-comparison .level-cell {{ font-weight: 600; text-align: center; width: 60px; font-size: 12px; }}
         .prop-comparison .prop-data {{ text-align: left; vertical-align: top; padding: 10px 12px !important; }}
-        .prop-comparison .prop-empty {{ text-align: center; color: #ccc; background: #fafafa; font-size: 11px; }}
+        .prop-comparison .prop-empty {{ text-align: center; color: #ccc; background: var(--head); font-size: 12px; }}
         .prop-cell-content {{ }}
-        .prop-cell-content .prop-name {{ font-weight: bold; font-size: 11px; margin-bottom: 2px; }}
-        .prop-cell-content .prop-type {{ font-size: 10px; opacity: 0.85; margin-bottom: 6px; }}
-        .prop-cell-content .prop-comment {{ font-size: 10px; opacity: 0.9; font-style: normal; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px; margin-top: 4px; }}
-        
+        .prop-cell-content .prop-name {{ font-weight: 600; font-size: 12px; margin-bottom: 2px; }}
+        .prop-cell-content .prop-type {{ font-size: 11px; opacity: 0.85; margin-bottom: 6px; }}
+        .prop-cell-content .prop-comment {{ font-size: 11px; opacity: 0.9; font-style: normal; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 6px; margin-top: 4px; }}
+
         .title-full {{ max-width: 600px; }}
-        .purpose-text {{ font-size: 9px; color: #666; font-style: italic; }}
-        
+        .purpose-text {{ font-size: 11px; color: var(--muted); font-style: italic; }}
+
         .conclusion-col {{ min-width: 120px; text-align: center; }}
-        .conclusion-cell {{ text-align: center; font-size: 11px; background: #fafafa; padding: 10px !important; }}
-        .conc-match {{ color: #28a745; font-weight: bold; }}
-        .conc-similar {{ color: #17a2b8; font-weight: bold; }}
-        .conc-differ {{ color: #dc3545; font-weight: bold; }}
-        .conc-partial {{ color: #fd7e14; font-weight: bold; }}
+        .conclusion-cell {{ text-align: center; font-size: 12px; background: var(--head); padding: 10px !important; }}
+        .conc-match {{ color: #2e7d32; font-weight: 600; }}
+        .conc-similar {{ color: #0277bd; font-weight: 600; }}
+        .conc-differ {{ color: #c62828; font-weight: 600; }}
+        .conc-partial {{ color: #c77700; font-weight: 600; }}
         .conc-empty {{ color: #ccc; }}
-        
-        .id {{ font-family: 'SF Mono', Monaco, monospace; font-size: 10px; color: {COLORS['header']}; font-weight: bold; }}
-        .field {{ font-weight: 600; color: #333; white-space: nowrap; }}
-        .type {{ font-size: 10px; color: #666; }}
-        .trace {{ color: #999; font-size: 10px; }}
-        .bool {{ font-size: 10px; }}
+
+        .id {{ font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; color: var(--blue); }}
+        .field {{ font-weight: 600; color: var(--ink); white-space: nowrap; }}
+        .type {{ font-size: 11px; color: var(--muted); }}
+        .trace {{ color: #8a94a0; font-size: 11px; }}
+        .bool {{ font-size: 11px; }}
         .text-full {{ max-width: 400px; }}
-        .variations {{ font-size: 9px; color: #666; font-style: italic; }}
-        .track-label {{ padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: 500; }}
-        .data.null {{ color: #999; font-style: italic; }}
-        .data.bool {{ color: #0066cc; }}
-        
-        .annot-section {{ margin-bottom: 15px; }}
+        .variations {{ font-size: 10px; color: var(--muted); font-style: italic; }}
+        .track-label {{ padding: 1px 7px; border-radius: 9px; font-size: 11px; font-weight: 500; }}
+        .data.null {{ color: #8a94a0; font-style: italic; }}
+        .data.bool {{ color: var(--blue2); }}
+
+        .annot-section {{ margin: 0 0 12px; }}
         .annot-type-header {{
-            color: white; padding: 8px 15px; font-size: 12px; font-weight: bold;
-            border-radius: 4px 4px 0 0;
+            background: var(--head) !important; color: var(--ink); padding: 7px 12px;
+            font-size: 12px; font-weight: 600; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
         }}
-        .annot-section .comp-table {{ border-radius: 0 0 4px 4px; }}
-        
+
         .scope-acts {{ color: {COLORS['activities']}; }}
-        .scope-cols {{ color: #17a2b8; font-style: italic; }}
-        .scope-props {{ color: #7030A0; font-style: italic; }}
-        .scope-cells {{ color: #538135; }}
-        .scope-table {{ color: #999; font-style: italic; }}
-        
-        .section {{
-            background: white; border-radius: 8px; margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;
-        }}
-        .section-title {{
-            color: white; padding: 12px 20px; font-size: 13px; font-weight: bold;
-            cursor: pointer; user-select: none;
-        }}
-        .section-title:hover {{ filter: brightness(1.1); }}
-        .section-title .toggle-icon {{ 
-            display: inline-block; transition: transform 0.2s; margin-right: 8px; 
+        .scope-cols {{ color: #0277bd; font-style: italic; }}
+        .scope-props {{ color: #6a1b9a; font-style: italic; }}
+        .scope-cells {{ color: #2e7d32; }}
+        .scope-table {{ color: #8a94a0; font-style: italic; }}
+
+        .section-title .toggle-icon {{
+            display: inline-block; transition: transform 0.2s; margin-right: 8px;
         }}
         .collapsible-section.collapsed .toggle-icon {{ transform: rotate(-90deg); }}
+        .collapsible-section.collapsed .section-title {{ border-bottom: 0; }}
         .collapsible-section.collapsed .grid-container {{ display: none; }}
         .grid-container {{ overflow-x: auto; padding: 10px; }}
-        
-        .table-border {{ border-left: 3px solid #333 !important; }}
-        
-        .grid-table {{ border-collapse: separate; border-spacing: 0; font-size: 10px; }}
-        .grid-table th, .grid-table td {{ border: 1px solid #ddd; padding: 3px 5px; }}
-        .grid-table th {{ background: #f0f0f0; font-weight: bold; font-size: 9px; }}
+
+        .table-border {{ border-left: 2px solid var(--muted) !important; }}
+
+        .grid-table {{ border-collapse: separate; border-spacing: 0; font-size: 12px; }}
+        .grid-table th, .grid-table td {{ border: 1px solid #e4e8ed; padding: 2px 6px; }}
+        .grid-table th {{ background: var(--head); font-weight: 600; font-size: 11px; }}
         .grid-table th.activity-header {{ text-align: left; }}
-        
+
         .frozen-col1 {{
             position: sticky;
             left: 0;
             z-index: 2;
             min-width: {FROZEN_COL1_WIDTH}px;
             max-width: {FROZEN_COL1_WIDTH}px;
-            background: #f0f0f0;
-            border-right: 2px solid #999 !important;
+            background: var(--head);
+            border-right: 1px solid var(--line) !important;
         }}
         .frozen-col2 {{
             position: sticky;
@@ -1006,8 +1084,8 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
             z-index: 2;
             min-width: {FROZEN_COL2_WIDTH}px;
             max-width: {FROZEN_COL2_WIDTH}px;
-            background: #f0f0f0;
-            border-right: 2px solid #999 !important;
+            background: var(--head);
+            border-right: 1px solid var(--line) !important;
             text-align: center;
         }}
         .grid-table th.frozen-col1,
@@ -1021,23 +1099,38 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
             right: -6px;
             bottom: 0;
             width: 6px;
-            background: linear-gradient(to right, rgba(0,0,0,0.1), transparent);
+            background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
             pointer-events: none;
         }}
-        
-        .activity-name {{ text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
-        .activity-name.section-header {{ font-weight: bold; }}
+
+        .activity-name {{ text-align: left; white-space: normal; }}
+        .grid-table th.table-run {{ background: var(--blue); color: #fff; font-size: 11px; text-align: center; }}
+        sup.mk {{ font-size: 9px; margin-left: 2px; font-weight: 600; }}
+        sup.mk a {{ color: #6a1b9a; text-decoration: none; }}
+        sup.mk a:hover {{ text-decoration: underline; }}
+        .grid-table th[style*="color: white"] sup.mk a, .grid-table td[style*="color: white"] sup.mk a {{ color: #f3e5ff; }}
+        span.mk {{ color: #6a1b9a; font-weight: 600; margin-left: 4px; }}
+        tr:target td {{ background: #fff3d6 !important; }}
+        a.ingrid {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px;
+                    color: var(--blue2); text-decoration: none; }}
+        a.ingrid:hover {{ text-decoration: underline; }}
+        .grid-table .hit {{ outline: 2px solid #ffb300; outline-offset: -2px; box-shadow: inset 0 0 0 40px rgba(255,179,0,.25); }}
+        .activity-name.section-header {{ font-weight: 600; }}
         .activity-name.child {{ padding-left: 15px; }}
-        
+
         .legend {{
-            background: white; border-radius: 8px; padding: 12px 20px;
-            margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; font-size: 10px;
+            background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px;
+            margin-bottom: 14px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+            font-size: 12px; color: var(--muted);
         }}
         .legend-item {{ display: flex; align-items: center; gap: 6px; }}
-        .legend-color {{ width: 16px; height: 12px; border-radius: 2px; border: 1px solid #ddd; }}
-        .legend-section {{ font-weight: bold; color: #666; margin-left: 10px; }}
+        .legend-color {{ width: 16px; height: 12px; border-radius: 2px; border: 1px solid var(--line); }}
+        .legend-section {{ font-weight: 600; color: var(--ink); margin-left: 6px; }}
     """
     
+    grids = ''.join(gen_schedule_grid(data, segment, segments[segment], pop_colors)
+                    for segment in ['main', 'domain', 'track', 'subsidiary'] if segments.get(segment))
+
     html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1047,12 +1140,12 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
     <style>{css}</style>
 </head>
 <body>
-    {gen_navigation(nav)}
     <div class="header">
-        <h1>{protocol_id} - Consolidated Schedule of Activities</h1>
-        <div class="sub">study-schedule-consolidated v1.0 | Layer 3</div>
-        <div class="meta">{num_tables} tables | {num_activities} activities ({compression}% compression) | {total_cols} columns</div>
+        <h1>{protocol_id} — consolidated Schedule of Activities</h1>
+        <div class="sub">{esc(nav.collection) + ' · ' if nav else ''}{num_tables} tables · {num_activities} activities ({compression}% compression) · {total_cols} columns · study-schedule-consolidated v1.0 · Layer 3</div>
     </div>
+    {gen_navigation(nav)}
+    <div class="content">
     
     <div class="toolbar">
         <button onclick="expandAll()">▼ Expand All</button>
@@ -1061,16 +1154,18 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
     
     <div class="legend">
         <span class="legend-section">Activities:</span>
-        <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_exact']};"></div>Multi-table exact</div>
-        <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_fuzzy']};"></div>Multi-table fuzzy</div>
-        <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_cross']};"></div>Cross-parent</div>
-        <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_single']};"></div>Single table</div>
+        <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_fuzzy']};"></div>Near match across tables</div>
+        <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_cross']};"></div>Near match, different parent</div>
+        <span class="legend-section">|</span>
+        <span class="legend-section">Notes:</span>
+        <div class="legend-item"><sup class="mk"><a>3</a></sup>&nbsp;unified annotation, click for the text</div>
         <span class="legend-section">|</span>
         <span class="legend-section">Cells:</span>
         <div class="legend-item"><div class="legend-color" style="background:{COLORS['cell_common']};"></div>Common</div>
         {" ".join(f'<div class="legend-item"><div class="legend-color" style="background:{cell_col}; border-color:{hdr_col};"></div>{esc(track[:20])} only</div>' for track, hdr_col, cell_col in pop_colors.get_track_list())}
     </div>
     
+    {grids}
     {gen_metadata_component(data)}
     {gen_tables_component(data, pop_colors)}
     {gen_property_comparison_component(data)}
@@ -1078,12 +1173,8 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
     {gen_annotations_component(data)}
 '''
     
-    for segment in ['main', 'domain', 'track', 'subsidiary']:
-        cols = segments.get(segment, [])
-        if cols:
-            html += gen_schedule_grid(data, segment, cols, pop_colors)
-    
     html += '''
+    </div>
     <script>
         function toggleSection(header) {
             const comp = header.closest('.comp');
@@ -1101,6 +1192,28 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
         }
         // Start with component sections collapsed, grids expanded
         document.querySelectorAll('.comp').forEach(c => c.classList.add('collapsed'));
+        // Note markers link to #xannot-NNN: open its section, then scroll to the row
+        function showNote() {
+            const row = location.hash && document.getElementById(location.hash.slice(1));
+            if (!row) return;
+            const comp = row.closest('.comp');
+            if (comp) comp.classList.remove('collapsed');
+            row.scrollIntoView({block: 'center'});
+        }
+        window.addEventListener('hashchange', showNote);
+        showNote();
+        // And back: highlight every grid place carrying this note's marker, scroll to the first
+        function showInGrid(xid) {
+            document.querySelectorAll('.hit').forEach(e => e.classList.remove('hit'));
+            const places = [...document.querySelectorAll('.grid-table sup.mk a[href="#' + xid + '"]')]
+                .map(a => a.closest('td, th'));
+            places.forEach(e => {
+                e.classList.add('hit');
+                const sec = e.closest('.collapsible-section');
+                if (sec) sec.classList.remove('collapsed');
+            });
+            if (places.length) places[0].scrollIntoView({block: 'center', inline: 'center'});
+        }
     </script>
 </body>
 </html>'''
