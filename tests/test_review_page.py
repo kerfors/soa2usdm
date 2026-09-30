@@ -104,3 +104,45 @@ def test_full_build_places_every_page_and_references_prerendered_images():
             assert (SOA_PAGES / f"p{p['pdf_page']:02d}.png").exists()
             assert 0.9 < p["page_frac"] < 1.0
     assert "</script>" in html and "<\\/" not in html.split("<script>")[0]
+
+
+@needs_pdf
+@needs_pages
+def test_mark_check_catches_a_removed_and_an_added_mark(monkeypatch):
+    """Negative control: the mark check must flag a mark the extraction lost and a mark it
+    invented. NCT04677179 T1 'Informed consent' (row 6) is marked in column 2 only."""
+    from soa2usdm import review_page
+    real_load = review_page._load
+
+    def tampered(path):
+        doc = real_load(path)
+        if "Table_01_extraction" in path.name:
+            cells = doc["activity_schedule"]
+            cells[:] = [c for c in cells if (c["row_position"], c["column_position"]) != (6, 2)]
+            cells.append({"table_number": 1, "row_position": 6, "column_position": 3,
+                          "cell_value": "X", "source_range": ""})
+            # A span with nothing printed under it is a difference too.
+            for col in (5, 6):
+                cells.append({"table_number": 1, "row_position": 6, "column_position": col,
+                              "cell_value": "X", "source_range": "5:6"})
+        return doc
+
+    monkeypatch.setattr(review_page, "_load", tampered)
+    model = build_review_model("NCT04677179", "usdm_data")
+    t1 = [t for t in model["tables"] if t["number"] == 1][0]
+    diffs = {(d["row"], d["col"]): (d["extracted"], d["on_page"]) for d in t1["checks"]["mark_disagreements"]}
+    assert diffs == {(6, 2): (False, True), (6, 3): (True, False), (6, 5): (True, False), (6, 6): (True, False)}
+
+
+needs_nct01847274 = pytest.mark.skipif(
+    not (shutil.which("pdftoppm") and "usdm_data" in config.COLLECTIONS
+         and config.find_soa_pdf("NCT01847274", "usdm_data")),
+    reason="needs poppler and the NCT01847274 SoA PDF")
+
+
+@needs_nct01847274
+def test_mark_check_compares_a_merged_mark_once_over_its_span():
+    """'Bone marrow aspirate and biopsy' prints one X across a merged cell; the extraction
+    repeats it over the covered columns with source_range. That agrees with the page."""
+    model = build_review_model("NCT01847274", "usdm_data")
+    assert [d for t in model["tables"] for d in t["checks"]["mark_disagreements"]] == []

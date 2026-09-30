@@ -31,6 +31,7 @@ page fraction so the overlay maps onto the page region only.
 """
 import html as html_lib
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -115,8 +116,21 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
     # A marker that is the cell's own symbol is left out: the 'X' legend bound to every 'X' mark
     # would only repeat the mark ('Xa' keeps its 'a').
     cell_markers: dict[int, dict[int, list]] = {}
+    # A value distributed from a merged cell carries its original column range; the page
+    # prints it once, so the mark check compares such a span as one mark.
+    spans: dict[int, set[tuple[int, int]]] = {}
+    # Marks the extraction read from the rendered page (pixels or by eye). Where the text layer
+    # shows nothing in such a cell — a drawn arrow, a line between two X's — the text check
+    # cannot see the mark, so it is set aside and counted rather than reported as a difference.
+    read_from_image: set[tuple[int, int]] = set()
+    set_aside = 0
     for c in extraction["activity_schedule"]:
         marks.setdefault(c["row_position"], set()).add(c["column_position"])
+        if c.get("method") in ("raster_pixel_detection", "visual_read"):
+            read_from_image.add((c["row_position"], c["column_position"]))
+        if c.get("source_range"):  # optional in the schema; empty string = not from a merge
+            a, b = (int(v) for v in c["source_range"].split(":"))
+            spans.setdefault(c["row_position"], set()).add((a, b))
         ms = [m for m in _markers(c.get("annotation_markers")) if m != (c.get("cell_value") or "").strip()]
         if ms:
             cell_markers.setdefault(c["row_position"], {})[c["column_position"]] = ms
@@ -131,6 +145,14 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
     # Table-pane columns: every header-grid column and every column carrying a mark. Built from
     # the visit / week rows alone, a column present only in another header row was dropped (item 23c).
     data_cols = sorted({c for vals in grid.values() for c in vals} | {c for cols in marks.values() for c in cols})
+
+    # Words of the annotations bound to each row. An instruction printed inside the row, under its
+    # marks (NCT05051579 '12-Lead ECG'), is annotation text in the extraction, not marks.
+    note_words: dict[int, set[str]] = {}
+    for an in extraction["annotations"]:
+        for loc in an["marker_locations"]:
+            if loc.get("row_position") is not None:
+                note_words.setdefault(loc["row_position"], set()).update(re.findall(r"\w+", an["annotation_text"].lower()))
 
     annotations = []
     for an in extraction["annotations"]:
@@ -194,24 +216,43 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
             # Marks are read from the band rectangle, NOT the merged-cell extent:
             # a dashed rule is missed in the data columns and page_grid then records
             # two rows as one merged cell, which would pull the neighbour's marks in.
-            page_marks = []
+            # A cell is marked when it prints anything other than a note marker: an X, a code
+            # ('P02'), a time ('24 h'), a dash, an arrow glyph. Superscripts are dropped first.
+            # Words that belong to the row's annotation text are not marks; a cell holding an X
+            # counts even where the superscript filter dropped a small X.
+            page_marks, page_x = [], []
             for c in range(1, len(g.columns)):
                 cx0, cx1 = g.columns[c]
-                page_marks.append(1 if "x" in normalise(join_words(words_in(words, cx0, y0, cx1, y1))) else 0)
+                in_cell = words_in(labels, cx0, y0, cx1, y1)
+                cell = join_words(in_cell)
+                tokens = {t for w in in_cell for t in re.findall(r"\w+", w.text.lower())}
+                note_only = bool(tokens) and tokens <= note_words.get(row, set())
+                x_mark = "x" in normalise(join_words(words_in(words, cx0, y0, cx1, y1)))
+                page_marks.append(1 if (bool(cell.strip()) and not note_only) or x_mark else 0)
+                page_x.append(1 if x_mark else 0)
             band = {"i": i, "y0": round(y0, 1), "y1": round(y1, 1), "text": text,
                     "kind": "header" if is_header else "activity", "row": row,
                     "prop": header_bands.get(i),
                     "status": ("matched" if row is not None else "header" if is_header
-                               else "blank" if not text.strip() and not any(page_marks) else "unmatched")}
+                               else "blank" if not text.strip() and not any(page_x) else "unmatched")}
             if not is_header:
-                page_mark_total += sum(page_marks)
+                page_mark_total += sum(page_x)
             if row is not None and col_method != "none":
                 # Compare only the columns this page carries and the mapping could read.
                 on_page = {col_map[c]: v for c, v in zip(range(1, len(g.columns)), page_marks)
                            if col_map[c] is not None}
                 page_cols = {cp for cp, v in on_page.items() if v}
                 ext_cols = {cp for cp in marks.get(row, set()) if cp in on_page}
-                diff = sorted(ext_cols ^ page_cols)
+                # A span agrees when the page prints its mark anywhere under it.
+                agreed = set()
+                for a, b in spans.get(row, ()):
+                    under = {cp for cp in on_page if a <= cp <= b}
+                    if under & page_cols and under & ext_cols:
+                        agreed |= under
+                unseen = {cp for cp in ext_cols - page_cols if (row, cp) in read_from_image}
+                set_aside += len(unseen - agreed)
+                agreed |= unseen
+                diff = sorted((ext_cols ^ page_cols) - agreed)
                 band["mark_diff"] = [c for c in range(1, len(g.columns)) if col_map[c] in diff]
                 for cp in diff:
                     disagreements.append({"page": pdf_page, "row": row, "col": cp,
@@ -256,6 +297,7 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
             "audit_note": audit_table.get("note"),
             "mark_disagreements": disagreements,
             "marks": len(extraction["activity_schedule"]),
+            "marks_not_in_text": set_aside,
             "page_marks": page_mark_total,
             # What the checks above could actually see. A table whose every
             # page is unreadable has 0 missed rows and 0 mark differences
@@ -805,10 +847,10 @@ function buildChecks(){
  h+=c.on_page_not_extracted.length? `<ul class="plain">${c.on_page_not_extracted.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '<p class="small">None — every row band with a label the checker could read matches an extracted row.</p>';
  h+=`<h3 style="font-size:13px;margin:12px 0 4px">Extracted rows the checker could not place (${c.extracted_not_on_page.length})</h3><p class="small">Usually section headings printed as full-width shaded bands, names composed from two cells, or tightly packed rows the band detector merged. Click to locate in the table.</p><ul class="plain">${c.extracted_not_on_page.map(r=>`<li><a href="#" data-row="${r}">${esc(rowLabel(r))}</a>${m[r]&&m[r].doc_page?` <span class="small">p.${m[r].doc_page}</span>`:''}</li>`).join('')}</ul>`;
  const nb=Object.keys(badByRow).length;
- h+=`<h3 style="font-size:13px;margin:12px 0 4px">Mark check (${nb} row${nb!==1?'s':''})</h3><p class="small">Every ✕ in the page's text layer, binned into the detected row band and column, compared with the extracted marks. A difference is either an extraction error or a band drawn at the wrong rule — look at the page before deciding.</p>`;
+ h+=`<h3 style="font-size:13px;margin:12px 0 4px">Mark check (${nb} row${nb!==1?'s':''})</h3><p class="small">Every mark printed in the page's text layer — an X, a code, a time, a dash — binned into the detected row band and column, compared with the extracted marks. A value printed once across merged columns is compared once over its span; words of the row's annotations are not marks. A difference is either an extraction error or a band drawn at the wrong rule — look at the page before deciding.</p>`;
  Object.entries(badByRow).forEach(([r,ds])=>{ h+=`<div><a href="#" data-row="${r}">${esc(rowLabel(+r))}</a>: ${ds.length} cells — ${ds.filter(d=>d.on_page).length} on page only, ${ds.filter(d=>d.extracted).length} extracted only</div>`; });
  if(!nb) h+='<p class="small">No differences.</p>';
- h+=`<p class="small" style="margin-top:12px">${c.marks} extracted marks in this table. Column identity per page: ${t.pages.map(p=>`p.${p.doc_page} ${p.col_method==='header'?'read from the header row':p.col_method==='position'?'by position':'<b>could not be read — marks unchecked</b>'}`).join('; ')}.</p>`;
+ h+=`<p class="small" style="margin-top:12px">${c.marks} extracted marks in this table${c.marks_not_in_text?`; ${c.marks_not_in_text} of them were read from the rendered page (pixels or by eye) where the text layer shows nothing, and are not checked`:''}. Column identity per page: ${t.pages.map(p=>`p.${p.doc_page} ${p.col_method==='header'?'read from the header row':p.col_method==='position'?'by position':'<b>could not be read — marks unchecked</b>'}`).join('; ')}.</p>`;
  el.innerHTML=h;
  el.querySelectorAll('a[data-row]').forEach(a=>a.onclick=e=>{e.preventDefault(); S.noteRows=[];S.altRows=[];S.foldRows=[]; clearHighlights(); selectRow(+a.dataset.row,false); const tr=document.querySelector(`#soa tr[data-row="${a.dataset.row}"]`); if(tr) scrollRowIntoView(tr);});
 }
