@@ -557,8 +557,9 @@ def gen_annotations_component(data: dict) -> str:
             else:
                 bg = '#fff'
             
-            back_link = (f'<br/><a class="ingrid" href="#" onclick="showInGrid(&quot;{xannot_id}&quot;); return false;" '
-                         f'title="Highlight where this note is anchored in the schedule">show in grid</a>'
+            back_link = (f' <a class="ingrid" href="#" onclick="showInGrid(&quot;{xannot_id}&quot;); return false;" '
+                         f'title="Show where this annotation applies in the schedule" '
+                         f'aria-label="Show where this annotation applies in the schedule"><svg class="ico" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg></a>'
                          if xannot_id in in_grid else '')
             rows.append(f'''<tr id="{xannot_id}" style="background: {bg};">
                 <td class="id">{xannot_id} <span class="mk">{note_label(xannot_id)}</span>{back_link}</td>
@@ -1118,9 +1119,9 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
         .grid-table th[style*="color: white"] sup.mk a, .grid-table td[style*="color: white"] sup.mk a {{ color: #f3e5ff; }}
         span.mk {{ color: #6a1b9a; font-weight: 600; margin-left: 4px; }}
         tr:target td {{ background: #fff3d6 !important; }}
-        a.ingrid {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px;
-                    color: var(--blue2); text-decoration: none; }}
-        a.ingrid:hover {{ text-decoration: underline; }}
+        .ingrid {{ color: var(--blue2); text-decoration: none; }}
+        .ingrid .ico {{ vertical-align: -2px; }}
+        a.ingrid:hover {{ color: var(--blue); }}
         .grid-table .hit {{ outline: 2px solid #ffb300; outline-offset: -2px; box-shadow: inset 0 0 0 40px rgba(255,179,0,.25); }}
         .activity-name.section-header {{ font-weight: 600; }}
         .activity-name.child {{ padding-left: 15px; }}
@@ -1165,8 +1166,9 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
         <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_fuzzy']};"></div>Near match across tables</div>
         <div class="legend-item"><div class="legend-color" style="background:{COLORS['match_cross']};"></div>Near match, different parent</div>
         <span class="legend-section">|</span>
-        <span class="legend-section">Notes:</span>
-        <div class="legend-item"><sup class="mk"><a>3</a></sup>&nbsp;unified annotation, click for the text</div>
+        <span class="legend-section">Annotations:</span>
+        <div class="legend-item"><sup class="mk"><a>3</a></sup>&nbsp;click for the text</div>
+        <div class="legend-item"><span class="ingrid"><svg class="ico" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg></span>&nbsp;in Unified Annotations: show where it applies</div>
         <span class="legend-section">|</span>
         <span class="legend-section">Cells:</span>
         <div class="legend-item"><div class="legend-color" style="background:{COLORS['cell_common']};"></div>Common</div>

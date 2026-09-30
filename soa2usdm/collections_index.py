@@ -110,7 +110,7 @@ def generate_collections_index_html() -> str:
     <li><strong>Layer&nbsp;2 &mdash; Resolve:</strong> IDs, hierarchy, and relationships derived per table.</li>
     <li><strong>Layer&nbsp;3 &mdash; Consolidate:</strong> cross-table integration, activity matching, annotation dedup.</li>
     <li><strong>Review page:</strong> the extraction drawn on its source pages, with the open decisions as a worklist.</li>
-    <li><strong>Consolidated view:</strong> the unified SoA across tables, with each note marked where it applies.</li>
+    <li><strong>Consolidated view:</strong> the unified SoA across tables, with each annotation marked where it applies.</li>
   </ul>
   </div>
   <p class="note"><strong>USDM Instantiation</strong> &mdash; turning one protocol's consolidated SoA into a USDM v4

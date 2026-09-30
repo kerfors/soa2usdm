@@ -6,8 +6,8 @@ one row per distinct activity per study (unified_activities of the consolidated
 layer), with its source-table occurrences folded in as provenance. The page is
 for searching activities across the collection's protocols; each row links to
 its row in the protocol's consolidated view.
-Notes are listed under their activity: bound to the name, or to a mark (with its
-column); header-cell notes and legends are not.
+Annotations are listed under their activity: bound to the name, or to a mark (with
+its column); header-cell annotations and legends are not.
 
 activities.json (schema_name soa2usdm-activity-inventory, schema_version 1.0):
   collection, generated_at, counts, activities[] — one entry per unified
@@ -16,7 +16,7 @@ activities.json (schema_name soa2usdm-activity-inventory, schema_version 1.0):
   match_status, table_count, tables, any_marks, variants (verbatim wordings),
   occurrences[] (table_number, table_title, table_type after corrections,
   track_label, row_position, verbatim_name, has_schedule_data) and
-  annotations[] (marker, table_number, text, columns for a note bound to a mark).
+  annotations[] (marker, table_number, text, columns for an annotation bound to a mark).
 
 No cross-protocol clustering. Mirrors index_generator.py: a collection-level
 step that discovers per-protocol outputs and writes to the collection root.
@@ -307,7 +307,7 @@ footer{padding:12px 22px 20px;color:var(--muted);font-size:11.5px}
 <div class="crumbs"><a href="../../../index.html">Collections</a><span class="sep">›</span><a href="index.html">__COLLECTION__</a><span class="sep">›</span><span class="cur">Activities</span></div>
 <div class="content"><div class="section">
 <div class="controls">
-<input id="q" placeholder="Search activity, parent, wording, note, protocol, sponsor…" autocomplete="off">
+<input id="q" placeholder="Search activity, parent, wording, annotation, protocol, sponsor…" autocomplete="off">
 <select id="sponsorf"><option value="">all sponsors</option>__SPOPTS__</select>
 <select id="protof"><option value="">all protocols</option>__PROPTS__</select>
 <label class="chk"><input type="checkbox" id="showsec" checked> section headers</label>
@@ -322,7 +322,7 @@ let sortk='__default__', asc=true;
 const $=id=>document.getElementById(id);
 const q=$('q'),sponsorf=$('sponsorf'),protof=$('protof'),showsec=$('showsec'),tb=$('tb'),thead=$('thead'),cnt=$('count');
 function eh(s){return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-const HEAD=[['protocol_id','Protocol'],['sponsor','Sponsor'],['activity_name','Activity'],['parent_name','Parent'],['table_count','Tables'],['n_notes','Notes']];
+const HEAD=[['protocol_id','Protocol'],['sponsor','Sponsor'],['activity_name','Activity'],['parent_name','Parent'],['table_count','Tables'],['n_notes','Annotations']];
 thead.innerHTML='<tr>'+HEAD.map(([k,l])=>`<th data-k="${k}">${l}<span class="ar"></span></th>`).join('')+'</tr>';
 thead.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortk===k)asc=!asc;else{sortk=k;asc=true;}
  thead.querySelectorAll('.ar').forEach(a=>a.textContent='');th.querySelector('.ar').textContent=asc?' ▲':' ▼';render();});
@@ -353,8 +353,8 @@ function row(r,i,term){
  const flags=(r.is_redacted?'<span class="flag red">redacted</span>':'')+((r.variants||[]).length>1?`<span class="flag">${r.variants.length} wordings</span>`:'');
  const seen=new Set(),tl=[];(r.occurrences||[]).forEach(o=>{if(!seen.has(o.table_number)){seen.add(o.table_number);tl.push(tableLine(o));}});
  const canExp=r.n_notes>0||(r.variants||[]).length>1||r.table_count>1;
- const nhit=term&&(r.annotations||[]).some(a=>(a.text||'').toLowerCase().includes(term))?'<span class="nhit" title="The search term is in a note of this activity">in note</span>':'';
- const nb=canExp?`<span class="nbtn" data-i="${i}">${r.n_notes?r.n_notes+' note'+(r.n_notes>1?'s':''):'details'} ▸</span>${nhit}`:'';
+ const nhit=term&&(r.annotations||[]).some(a=>(a.text||'').toLowerCase().includes(term))?'<span class="nhit" title="The search term is in an annotation of this activity">in annotation</span>':'';
+ const nb=canExp?`<span class="nbtn" data-i="${i}">${r.n_notes?r.n_notes+' annotation'+(r.n_notes>1?'s':''):'details'} ▸</span>${nhit}`:'';
  return `<tr class="r${r.is_section_header?' sec':''}"><td class="pid"><a href="index.html#${eh(r.protocol_id)}" title="${eh(r.d4k_folder)} — this protocol's row on the collection index">${eh(r.protocol_id)}</a></td>`+
   `<td class="sp">${eh(r.sponsor)}</td>`+
   `<td class="act"><a href="${cv}" title="Show in the consolidated view"${ind}>${hl(r.activity_name,term)}</a>${flags}</td>`+
@@ -363,7 +363,7 @@ function row(r,i,term){
 function detail(r){const term=q.value.trim().toLowerCase();
  const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(v=>hl(v,term)).join('</b> · <b>')}</b></div>`:'';
  const occ=`<div class="dh">As printed</div><table class="otab">`+(r.occurrences||[]).map(o=>`<tr><td class="mono">T${eh(o.table_number)} row ${eh(o.row_position)}</td><td>${hl(o.verbatim_name,term)}</td><td class="mono">${o.has_schedule_data===false?'no marks':''}</td></tr>`).join('')+'</table>';
- const fns=r.n_notes?`<div class="dh">Notes</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${hl(a.text,term)}</div>`).join(''):'';
+ const fns=r.n_notes?`<div class="dh">Annotations</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${hl(a.text,term)}</div>`).join(''):'';
  return `<tr class="detail"><td colspan="6">${vars}${occ}${fns}</td></tr>`;
 }
 let ARR=[];

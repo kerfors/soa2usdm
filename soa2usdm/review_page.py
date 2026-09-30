@@ -546,7 +546,7 @@ __NAV__
  <aside class="panel" id="side">
   <h2><span class="tabs" id="sidetabs">
    <button class="on" data-t="dec">Decisions (<span id="ndec"></span>)</button>
-   <button data-t="notes">Notes (<span id="nnotes"></span>)</button>
+   <button data-t="notes">Annotations (<span id="nnotes"></span>)</button>
    <button data-t="check">Checks</button>
    <button data-t="across">Across tables (<span id="nacross"></span>)</button>
   </span></h2>
@@ -593,7 +593,7 @@ const tableIndex = num => D.tables.findIndex(t=>t.number===num);
    ? ['', 'Mark check', 'not checked', reasons(marksUnchecked, true)]
    : [badRows.size||marksUnchecked.length?'warn':'ok', 'Mark check', badRows.size ? `${badRows.size} row${badRows.size!==1?'s':''}` : 'agrees', partial(marksUnchecked, badRows.size ? `${badCells} cells differ between page text and extraction — open the row to judge` : 'page text and extraction agree on every mark', true)];
  document.getElementById('tiles').innerHTML = [
-  ['', 'Extracted', `${acts} activities`, `${D.tables.length} table${D.tables.length!==1?'s':''} · ${marks} marks · ${notes} notes`],
+  ['', 'Extracted', `${acts} activities`, `${D.tables.length} table${D.tables.length!==1?'s':''} · ${marks} marks · ${notes} annotations`],
   rowsTile,
   [unplaced?'warn':'ok', 'Rows the checker could not place', unplaced, 'extracted rows with no matching page band (section headings, composed names, packed rows)'],
   marksTile,
@@ -659,7 +659,7 @@ function gotoRow(tableNum, row, cls){
 
 // ---------- table pane
 // Note markers as clickable superscripts, wherever they are printed: activity name, mark, header row, header cell.
-function sup(ms){ return (ms||[]).map(m=>`<sup class="mk" data-m="${esc(m)}" title="note ${esc(m)}">${esc(m)}</sup>`).join(''); }
+function sup(ms){ return (ms||[]).map(m=>`<sup class="mk" data-m="${esc(m)}" title="annotation ${esc(m)}">${esc(m)}</sup>`).join(''); }
 // A column named by its header values, empty and lone-dash values left out ('ETV', 'Screening / -28 to -1').
 function colLabel(c){ return T().props.map(p=>p.values[c]).filter(v=>v&&!/^[—–-]$/.test(v.trim())).join(' / ')||('column '+c); }
 function buildTable(){
@@ -762,7 +762,7 @@ function renderDraft(){
 function buildNotes(){
  const t=T(), el=document.getElementById('tab-notes');
  document.getElementById('nnotes').textContent=t.annotations.length;
- let h='<p class="small">Footnotes and instruction blocks bound to rows. Click one to see which rows it governs. An asterisk marks a binding the extractor inferred rather than read from a printed marker; "by name" means the note names the row rather than marking it.</p>';
+ let h='<p class="small">Footnotes and instruction blocks bound to rows. Click one to see which rows it governs. An asterisk marks a binding the extractor inferred rather than read from a printed marker; "by name" means the annotation names the row rather than marking it.</p>';
  t.annotations.forEach(a=>{
   const rows=a.rows.map(r=>`${esc(rowLabel(r.row))}${r.method==='text_match'?' (by name)':(r.method&&r.method!=='proximity'?'*':'')}`);
   const props=a.prop_rows.map(r=>`${esc(t.props.find(p=>p.row===r.row).name)}*`);
