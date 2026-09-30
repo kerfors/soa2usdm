@@ -357,12 +357,12 @@ function row(r,i,term){
  const nb=canExp?`<span class="nbtn" data-i="${i}">${r.n_notes?r.n_notes+' note'+(r.n_notes>1?'s':''):'details'} ▸</span>${nhit}`:'';
  return `<tr class="r${r.is_section_header?' sec':''}"><td class="pid"><a href="index.html#${eh(r.protocol_id)}" title="${eh(r.d4k_folder)} — this protocol's row on the collection index">${eh(r.protocol_id)}</a></td>`+
   `<td class="sp">${eh(r.sponsor)}</td>`+
-  `<td class="act"><a href="${cv}" title="Show in the consolidated view"${ind}>${eh(r.activity_name)}</a>${flags}</td>`+
-  `<td class="par">${eh(r.parent_name)}</td><td class="tables">${tl.join('')}</td><td class="nt">${nb}</td></tr>`;
+  `<td class="act"><a href="${cv}" title="Show in the consolidated view"${ind}>${hl(r.activity_name,term)}</a>${flags}</td>`+
+  `<td class="par">${hl(r.parent_name,term)}</td><td class="tables">${tl.join('')}</td><td class="nt">${nb}</td></tr>`;
 }
 function detail(r){const term=q.value.trim().toLowerCase();
- const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(eh).join('</b> · <b>')}</b></div>`:'';
- const occ=`<div class="dh">As printed</div><table class="otab">`+(r.occurrences||[]).map(o=>`<tr><td class="mono">T${eh(o.table_number)} row ${eh(o.row_position)}</td><td>${eh(o.verbatim_name)}</td><td class="mono">${o.has_schedule_data===false?'no marks':''}</td></tr>`).join('')+'</table>';
+ const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(v=>hl(v,term)).join('</b> · <b>')}</b></div>`:'';
+ const occ=`<div class="dh">As printed</div><table class="otab">`+(r.occurrences||[]).map(o=>`<tr><td class="mono">T${eh(o.table_number)} row ${eh(o.row_position)}</td><td>${hl(o.verbatim_name,term)}</td><td class="mono">${o.has_schedule_data===false?'no marks':''}</td></tr>`).join('')+'</table>';
  const fns=r.n_notes?`<div class="dh">Notes</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${hl(a.text,term)}</div>`).join(''):'';
  return `<tr class="detail"><td colspan="6">${vars}${occ}${fns}</td></tr>`;
 }
