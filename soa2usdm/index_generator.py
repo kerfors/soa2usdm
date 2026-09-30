@@ -707,8 +707,8 @@ def generate_index_html(collection: str) -> str:
             <td class="acronym">{acronym}</td>
             <td class="soa-pages">{soa}</td>
             <td class="sources">{source_html}</td>
-            <td class="viz">{ext_json_html}</td>
-            <td class="viz">{resolved_html}</td>
+            <td class="viz tables">{ext_json_html}</td>
+            <td class="viz tables">{resolved_html}</td>
             <td class="viz">{cons_html}</td>
             <td class="stats">{red_html}</td>
             <td class="viz">{review_html}</td>
@@ -777,6 +777,7 @@ def generate_index_html(collection: str) -> str:
         .sources a, .viz a { color: var(--blue2); text-decoration: none; margin-right: 7px; white-space: nowrap; }
         .sources a:hover, .viz a:hover { text-decoration: underline; }
         .ttype { color: var(--muted); font-size: 11px; }
+        .tables a { display: block; }  /* one table per line, so Extraction and Resolution line up */
         .link-json { color: var(--muted) !important; font-size: 11px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
         .link-review { font-weight: 600; }
         .decisions { font-size: 11px; color: var(--ok); white-space: nowrap; }
