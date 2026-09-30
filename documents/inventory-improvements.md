@@ -357,9 +357,33 @@ Order: collections sidecars (a, g, h) · prompt 3.9.2 text (b, c, d, e, f, g, h,
 
 **Size.** (a) small (test list or detector filter); (b) small to medium; (c) one sentence.
 
+## 28 — Consolidation: stop merging below the auto threshold, and review cross-table matches in a view of their own
+
+**Observation (2026-09-30).** NCT01847274: the review page's *Decisions open* tile reads "1 — 7 of 7 extraction calls decided · 1 consolidation match to review"; the collection index reads "all 7 decided". The index counts the extraction's `review_items` only. The review page also counts consolidation's `review_queue` and shows each entry as a "Consolidation match" card, although it has no way to record a decision on it (item 7b).
+
+**What consolidation merges today** (usdm_data + misc_studies, 24 protocols): 310 exact matches; 13 fuzzy matches at or above `AUTO_MATCH_THRESHOLD` (0.85) and 2 cross-parent at or above 0.90, merged without review; 7 `review_queue` entries between `REVIEW_THRESHOLD` (0.60) and 0.85, merged and queued. Between `main_soa` tables a match below 0.85 is already kept separate (item 10 / 26g: "a consolidation merge cannot be corrected later"); between a main and a non-main table it is merged. The 7 queue entries are 4 pairs:
+- NCT02107703 `xact-019`: 'Adverse Events Collection/CTCAE Grading' (T2, track) into 'Adverse Event Collection/CTCAE Grading' (T1), 0.75 — the same activity (plural).
+- NCT01847274 `xact-014`: 'Hematology/serum chemistry' (T2, track) into 'Coagulation/serum chemistry' (T1), 0.60 — different panels.
+- NCT02291289 `xact-001`: 'Cohort-specific informed consent' into 'Informed consent' (T1), 0.80 — a separate consent event; four entries, one per cohort track table (T2–T5), and the entry carries no table number, so the page shows four identical cards.
+- NCT04557384 `xact-021`: 'Sample 1' (T3, subsidiary) into 'Sample collection' (T1), 0.80 — a specific sample folded into its parent heading.
+
+Three of four are not the same activity. String similarity cannot tell a wording variant from different content; below 0.85 the merge is an identity judgement, which belongs to the consumer, not to consolidation. At or above 0.85 most merges are wording variants ('study-drug' / 'study drug', 'AE collection' / 'AE Collection'), but a few carry a content difference: 'Vital signs, height, weight' / 'Vital signs, weight' (0.90), 'AEs (from time of consent)' / 'AEs' (1.00), 'Serious Adverse Events (SAE) Assessment' / 'Adverse Events Assessment (including Serious Adverse Events)' (0.90).
+
+**Two parts.**
+(a) *Tighter threshold.* Extend 26g to every table pair: below the auto threshold, keep the activity separate (`merge_review_matches=False` throughout) and record the near match on the unified activity as a hint (candidate `xact_id`, score) — information, not a decision. `review_queue` then empties. Cost: a few more unified activities, among them a false split (the AE plural pair), visible and correctable under (b).
+(b) *A consolidation review of its own.* Every cross-table match consolidation makes (exact excepted) or nearly makes needs a place to be reviewed, decided and corrected: keep a merge, split it, or merge a near match. Not the extraction review page — its scope test (item 7) is a fact reviewable against the source page, and a cross-table match is not printed on any page. Candidate host: the consolidated view, which already shows matches ("Near match across tables") and the unified activities. Write path: item 7b's per-protocol consolidation sidecar (keep / split / merge per pair, with `reason`, `by`, `at`), read by `consolidate` before matching — the Layer 3 analogue of the Layer 1 corrections sidecar. Once (b) exists, the consolidation cards and count leave the review page, and the collection index can show consolidation decisions next to extraction decisions as two separate states.
+
+**Also.** A queue or hint entry should carry its source table number (small change in `consolidate.py`; changes the consolidated JSON).
+
+**Decision 2026-09-30.** Direction agreed (both parts); nothing changed yet. The collection index does not count consolidation matches until (b) exists; a draft index change was prepared and not applied. Revisits 7b, which was deferred "until the first real reject exists" — NCT01847274, NCT02291289 and NCT04557384 above are three.
+
+**Size.** (a) small (one flag, the hint field, a rebuild; unified-activity counts change in the affected protocols). (b) medium to large (sidecar schema, consolidate reading it, the view).
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment), item 28 added 2026-09-30 (collection index / activity inventory session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+
+**Status 2026-09-30:** item 28 added — consolidation stops merging below the auto threshold, and cross-table matches get a review of their own; direction agreed, no code or data changed.
 
 **Status 2026-09-28 (3.9.2 acceptance session, 13:50–):** prompt 3.9.2 / taxonomy v8 acceptance test run blind on the same 4 studies / 10 tables, output discarded. Gate 0 FAIL; marks, grids and rows equal to published; item 25 (a)–(i) hold; no rule-decided item raised, no silent contrary call. Three recorded deltas against the published record need a call (item 26).
 
