@@ -213,10 +213,14 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 viewer_rel = _render_json_html(jf, collection_path, protocol_id, collection,
                                                f"Table {tnum} resolved data",
                                                current=('resolved', tnum))
+                tmeta = json.loads(jf.read_text(encoding='utf-8'))['table_metadata']
                 result['resolved_files'].append({
                     'filename': jf.name,
                     'path': viewer_rel,
                     'label': label,
+                    'table_type': tmeta['table_type'],
+                    'table_title': tmeta['table_title'],
+                    'track_label': tmeta.get('track_label', ''),
                 })
     
     # Consolidated HTML
@@ -633,8 +637,15 @@ def generate_index_html(collection: str) -> str:
         resolved_html = ''
         if p.get('resolved_files'):
             resolved_parts = []
+            extracted_type = {ef['label']: ef['table_type'] for ef in p.get('extraction_json_files', [])}
             for rf in p['resolved_files']:
-                part = f'<a href="{rf["path"]}" class="link-table" title="Resolved JSON viewer — {esc(rf["filename"])}">{rf["label"]}</a>'
+                # Effective table type after corrections; hover says when a sidecar changed it.
+                ttype = rf['table_type']
+                type_html = f' <span class="ttype">{TABLE_TYPE_SHORT[ttype]}</span>' if ttype != 'main_soa' else ''
+                hover = ttype + (f': {rf["track_label"]}' if rf['track_label'] else '') + f' — {rf["table_title"]}'
+                if ttype != extracted_type[rf['label']]:
+                    hover += f' (corrected; extracted as {extracted_type[rf["label"]]})'
+                part = f'<a href="{rf["path"]}" class="link-table" title="{esc(hover)}">{rf["label"]}{type_html}</a>'
                 resolved_parts.append(part)
             resolved_html = ' '.join(resolved_parts)
         
@@ -801,7 +812,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer); table type shown where not main_soa">1. Extraction</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer); table type shown where not main_soa">1. Extraction</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections, shown where not main_soa">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
             </tr></thead>
             <tbody>
                 {ready_rows}
