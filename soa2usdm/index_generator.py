@@ -803,7 +803,7 @@ def generate_index_html(collection: str) -> str:
             <h1>{esc(collection)}</h1>
             <div class="sub">SoA2USDM — Schedule of Activities Extraction Pipeline · {len(protocols)} protocols · {len(ready)} processed · {len(pending)} pending{excl_meta} · generated {generated_at}</div>
         </div>
-        <a href="activities.html" class="activities-link">All extracted activities &mdash; consolidated / source-table inventory &rarr;</a>
+        <a href="activities.html" class="activities-link">Activities &mdash; search across protocols &rarr;</a>
     </div>
     <div class="crumbs"><a href="../../../index.html">Collections</a><span class="sep">›</span><span class="cur">{esc(collection)}</span></div>
 
@@ -813,7 +813,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer); table type shown where not main_soa">1. Extraction</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections, shown where not main_soa">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer); table type shown where not main_soa">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections, shown where not main_soa">2. Resolution (JSON)</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation (view, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
             </tr></thead>
             <tbody>
                 {ready_rows}

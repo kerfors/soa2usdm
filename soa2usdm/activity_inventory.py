@@ -2,12 +2,21 @@
 SoA2USDM Activity Inventory (collection-scoped)
 
 Generates a self-contained activities.html + activities.json for a collection:
-every activity extracted from the SoA tables, at two granularities —
-  * Consolidated  : one row per distinct activity per study (unified_activities),
-                    with its source-table occurrences folded in as provenance.
-  * Source-table  : every activity verbatim, one row per activity per table.
+one row per distinct activity per study (unified_activities of the consolidated
+layer), with its source-table occurrences folded in as provenance. The page is
+for searching activities across the collection's protocols; each row links to
+its row in the protocol's consolidated view.
 Notes are listed under their activity: bound to the name, or to a mark (with its
 column); header-cell notes and legends are not.
+
+activities.json (schema_name soa2usdm-activity-inventory, schema_version 1.0):
+  collection, generated_at, counts, activities[] — one entry per unified
+  activity: protocol_id, sponsor, d4k_folder, therapeutic_area, xact_id,
+  activity_name, parent_name, hierarchy_level, is_section_header, is_redacted,
+  match_status, table_count, tables, any_marks, variants (verbatim wordings),
+  occurrences[] (table_number, table_title, table_type after corrections,
+  track_label, row_position, verbatim_name, has_schedule_data) and
+  annotations[] (marker, table_number, text, columns for a note bound to a mark).
 
 No cross-protocol clustering. Mirrors index_generator.py: a collection-level
 step that discovers per-protocol outputs and writes to the collection root.
@@ -18,7 +27,7 @@ from datetime import datetime, timezone
 
 from .base import PipelineStepBase
 from . import config
-from .index_generator import load_study_metadata, esc
+from .index_generator import load_study_metadata, esc, TABLE_TYPE_SHORT
 
 
 def _first_token(value: str) -> str:
@@ -209,18 +218,16 @@ def generate_activity_inventory(collection: str):
     """Build (html, payload) for the collection activity inventory."""
     cons, src = _collect(collection)
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    protocols = sorted({r["protocol_id"] for r in src})
+    protocols = sorted({r["protocol_id"] for r in cons})
     counts = {
         "protocols": len(protocols),
-        "consolidated_activities": len(cons),
-        "source_table_rows": len(src),
-        "folded": len(src) - len(cons),
+        "activities": len(cons),
         "multi_table_activities": sum(1 for c in cons if c["table_count"] > 1),
         "activities_with_wording_variants": sum(1 for c in cons if len(c["variants"]) > 1),
         "redacted_activities": sum(1 for c in cons if c["is_redacted"]),
     }
     sp_counts = {}
-    prot_sponsor = {r["protocol_id"]: r["sponsor"] for r in src}
+    prot_sponsor = {r["protocol_id"]: r["sponsor"] for r in cons}
     for s in prot_sponsor.values():
         if s:
             sp_counts[s] = sp_counts.get(s, 0) + 1
@@ -228,191 +235,152 @@ def generate_activity_inventory(collection: str):
                      for s, n in sorted(sp_counts.items()))
     propts = "".join(f'<option value="{esc(p)}">{esc(p)}</option>' for p in protocols)
 
-    payload = {"collection": collection, "generated_at": generated_at,
-               "counts": counts, "consolidated": cons, "source": src}
-    data_json = json.dumps({"consolidated": cons, "source": src}, ensure_ascii=False).replace("</", "<\\/")
+    payload = {"schema_name": "soa2usdm-activity-inventory", "schema_version": "1.0",
+               "collection": collection, "generated_at": generated_at,
+               "counts": counts, "activities": cons}
+    data_json = json.dumps(cons, ensure_ascii=False).replace("</", "<\\/")
+    types_json = json.dumps(TABLE_TYPE_SHORT)
 
     html = _TEMPLATE
-    rep = {"__DATA__": data_json, "__SPOPTS__": spopts, "__PROPTS__": propts,
+    rep = {"__DATA__": data_json, "__TYPES__": types_json, "__SPOPTS__": spopts, "__PROPTS__": propts,
            "__COLLECTION__": esc(collection), "__GENERATED__": generated_at,
-           "__PROT__": counts["protocols"], "__CON__": counts["consolidated_activities"],
-           "__SRC__": counts["source_table_rows"], "__FOLD__": counts["folded"],
-           "__MT__": counts["multi_table_activities"],
-           "__WV__": counts["activities_with_wording_variants"],
-           "__RED__": counts["redacted_activities"]}
+           "__PROT__": counts["protocols"], "__CON__": counts["activities"]}
     for k, v in rep.items():
         html = html.replace(k, str(v))
     return html, payload
 
 
 _TEMPLATE = r'''<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>__COLLECTION__ · activities inventory · SoA2USDM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>__COLLECTION__ · activities · SoA2USDM</title>
 <style>
-:root{--fg:#333;--pri:#1F4788;--sec:#2E75B6;--muted:#888;--line:#e0e0e0;--bg:#f8f9fa;--panel:#fff;--secrow:#fbf7e8;--secfg:#8d6e00}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:13.5px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-header{padding:16px 22px;background:var(--panel);border-bottom:1px solid var(--line)}
-.back{font-size:12px;margin-bottom:8px}.back a{color:var(--pri);text-decoration:none}.back a:hover{text-decoration:underline}
-h1{margin:0 0 3px;font-size:18px;color:var(--pri)}
-.sub{color:var(--muted);font-size:12px}.sub code{background:#f4f4f4;padding:1px 5px;border-radius:3px}
-.stats{margin-top:9px;display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted)}.stats b{color:var(--fg)}
-.controls{padding:10px 22px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:9px;align-items:center;background:var(--panel);position:sticky;top:0;z-index:6}
-.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{padding:8px 12px;background:#fff;color:var(--sec);border:0;border-right:1px solid var(--line);cursor:pointer;font-size:12.5px}
-.seg button:last-child{border-right:0}.seg button.on{background:var(--pri);color:#fff;font-weight:600}
-#q{flex:1;min-width:210px;padding:8px 12px;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:7px;font-size:14px}
-#q:focus{outline:none;border-color:var(--sec);box-shadow:0 0 0 2px rgba(46,117,182,.15)}
-select{padding:8px 10px;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:7px;font-size:12px;cursor:pointer}
+:root{--blue:#1F4788;--blue2:#2E75B6;--ink:#1f2933;--muted:#5f6b7a;--line:#d9dee5;--bg:#f5f7fa;--head:#fafbfc;--red:#c62828}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.header{background:var(--blue);color:#fff;padding:14px 22px}
+.header h1{font-size:20px;font-weight:600}
+.header .sub{font-size:13px;opacity:.85;margin-top:3px}
+.crumbs{background:#fff;border-bottom:1px solid var(--line);padding:8px 22px;font-size:12px;color:var(--muted)}
+.crumbs a{color:var(--blue2);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+.crumbs .cur{font-weight:600;color:var(--ink)}.crumbs .sep{color:#9aa4af;margin:0 4px}
+.content{padding:14px 22px 20px}
+.section{background:#fff;border:1px solid var(--line);border-radius:6px}
+.controls{padding:9px 12px;background:var(--head);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:sticky;top:0;z-index:6;border-radius:6px 6px 0 0}
+#q{flex:1;min-width:220px;padding:6px 10px;border:1px solid var(--line);border-radius:4px;font-size:13px;background:#fff;color:var(--ink)}
+#q:focus{outline:none;border-color:var(--blue2)}
+select{padding:5px 8px;border:1px solid var(--line);border-radius:4px;font-size:12px;background:#fff;color:var(--ink)}
 label.chk{font-size:12px;color:var(--muted);display:flex;gap:5px;align-items:center;cursor:pointer}
 #count{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap}
-.wrap{padding:0 22px 40px}
-table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--panel)}
-thead th{position:sticky;top:53px;background:#f0f0f0;color:#555;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none;z-index:5}
-thead th:hover{color:var(--pri)}.ar{opacity:.6;font-size:9px}
-tbody td{padding:6px 9px;border-bottom:1px solid #eee;vertical-align:top}
-tbody tr.r:hover{background:#f8f9fa}
-tr.sec td{color:var(--secfg);font-weight:600;background:var(--secrow)}
-td.pid,td.pid a{color:var(--pri);font-family:ui-monospace,Menlo,monospace;white-space:nowrap;text-decoration:none}
-td .d4k{display:block;color:var(--muted);font-size:10px}
-.spb{font-size:10.5px;padding:1px 6px;border-radius:20px;border:1px solid #c7d2fe;color:#3730a3;background:#eef2ff;white-space:nowrap}
-td.tbl{color:var(--muted)}td.tbl b{color:var(--fg);font-family:ui-monospace,Menlo,monospace}
-.tt{display:block;max-width:320px;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rp{color:var(--muted);font-family:ui-monospace,Menlo,monospace}
-.act{color:var(--fg)}
-.exp{cursor:pointer}.exp .chev{color:var(--muted);display:inline-block;width:12px;transition:transform .12s}
-tr.open .chev{transform:rotate(90deg)}
-.nT{font-size:10.5px;padding:1px 7px;border:1px solid #cfe0fc;background:#e8f0fe;color:var(--pri);border-radius:20px;white-space:nowrap}
-.nT.one{color:var(--muted);border-color:#e0e0e0;background:#f5f5f5}
-.fnb{font-size:10.5px;padding:1px 7px;border:1px solid #c8e6c9;background:#e8f5e9;color:#1b5e20;border-radius:20px;white-space:nowrap;margin-left:6px}
-.mt{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px;text-transform:uppercase;margin-left:6px}
-.mt.fuzzy_auto{color:#8d6e00;background:#fff8e1;border:1px solid #ffe0a3}
-.mt.fuzzy_review{color:#c62828;background:#fce4ec;border:1px solid #f8bbd0}
-.mt.fuzzy_cross_parent{color:#6a1b9a;background:#f3e5f5;border:1px solid #e1bee7}
-.flag{font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid var(--line);color:var(--muted);margin-left:6px;background:#fafafa}
-.flag.nod{color:#aaa}
-.flag.red{color:#c62828;border-color:#f8bbd0;background:#fce4ec}
-.detail td{background:#fbfcfe;padding:8px 12px 10px 30px}
-.detail .var{color:#555;font-size:11.5px;margin-bottom:6px}.detail .var b{color:var(--secfg)}
-.detail .fn{color:#555;font-size:11.5px;margin:4px 0}.detail .fn b{color:var(--pri);font-family:ui-monospace,Menlo,monospace;margin-right:4px}
-.detail .fnh{font-size:9.5px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.03em;margin:9px 0 2px;border-bottom:1px solid var(--line);padding-bottom:3px}
-.otab{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:2px;background:transparent}
-.otab th{position:static;background:transparent;border-bottom:1px solid var(--line);padding:4px 8px;font-size:9.5px;color:#888}
-.otab td{border-bottom:1px solid #eee;padding:4px 8px}
-footer{padding:16px 22px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--line);background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{position:sticky;top:0;background:var(--head);padding:6px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;z-index:5}
+thead th:hover{color:var(--blue)}.ar{font-size:9px}
+tbody td{padding:6px 10px;border-bottom:1px solid #eef1f4;vertical-align:top}
+tr.r:hover td{background:#eef4fb}
+tr.sec td{background:var(--head)}tr.sec .act{font-weight:600}
+td.pid{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-weight:600;white-space:nowrap}
+td.pid a{color:var(--blue);text-decoration:none}td.pid a:hover{text-decoration:underline}
+td.sp{white-space:nowrap;color:var(--muted)}
+.act a{color:var(--ink);text-decoration:none}.act a:hover{color:var(--blue2);text-decoration:underline}
+td.par{color:var(--muted)}
+td.tables>span{display:block;white-space:nowrap}
+.ttype{color:var(--muted);font-size:11px}
+.flag{font-size:10.5px;color:var(--muted);margin-left:6px}
+.flag.red{color:var(--red)}
+td.nt{white-space:nowrap}
+.nbtn{font-size:11px;color:var(--blue2);cursor:pointer;white-space:nowrap}
+.nbtn:hover{text-decoration:underline}
+tr.open .nbtn{font-weight:600}
+.detail td{background:#fbfcfe;padding:8px 12px 10px 28px}
+.detail .var{color:var(--muted);font-size:11.5px;margin-bottom:6px}.detail .var b{color:var(--ink);font-weight:600}
+.detail .dh{font-size:11px;font-weight:600;color:var(--muted);margin:8px 0 3px;border-bottom:1px solid var(--line);padding-bottom:2px}
+.detail .dh:first-child{margin-top:0}
+.otab{width:auto;border-collapse:collapse;font-size:11.5px}
+.otab td{border:0;padding:2px 14px 2px 0;background:transparent}
+.fn{font-size:11.5px;margin:3px 0}.fn b{color:#6a1b9a;font-family:ui-monospace,Menlo,monospace;margin-right:4px}
+.fn .where{color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-right:6px}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--muted)}
+footer{padding:12px 22px 20px;color:var(--muted);font-size:11.5px}
 </style></head><body>
-<header>
-<div class="back"><a href="../../../index.html">Collections</a> <span style="opacity:.6">›</span> <a href="index.html">__COLLECTION__</a> <span style="opacity:.6">›</span> Activities inventory</div>
-<h1>Schedule-of-Activities — Activities inventory</h1>
-<div class="sub"><b>Consolidated</b> = one row per distinct activity per study (source-table rows folded in as provenance; intra-protocol, mostly exact). <b>Source-table</b> = every activity exactly as it sits in each SoA table. No cross-protocol clustering. Built from the <code>consolidated/</code> and <code>resolved/</code> pipeline layers.</div>
-<div class="stats"><span><b>__PROT__</b> protocols</span><span><b>__CON__</b> consolidated activities</span><span><b>__SRC__</b> source-table rows</span><span><b>__FOLD__</b> folded</span><span><b>__MT__</b> span &gt;1 table</span><span><b>__WV__</b> folded across differing wording</span><span><b>__RED__</b> redacted (CCI)</span></div>
-</header>
+<div class="header"><h1>Activities — __COLLECTION__</h1>
+<div class="sub">__CON__ activities across __PROT__ protocols · one row per activity per protocol, as consolidated · no matching across protocols · generated __GENERATED__</div></div>
+<div class="crumbs"><a href="../../../index.html">Collections</a><span class="sep">›</span><a href="index.html">__COLLECTION__</a><span class="sep">›</span><span class="cur">Activities</span></div>
+<div class="content"><div class="section">
 <div class="controls">
-<div class="seg"><button id="mCon" class="on">Consolidated (per study)</button><button id="mSrc">Source-table (every row)</button></div>
-<input id="q" placeholder="Search activity, parent, protocol, sponsor, table…" autocomplete="off">
+<input id="q" placeholder="Search activity, parent, wording, note, protocol, sponsor…" autocomplete="off">
 <select id="sponsorf"><option value="">all sponsors</option>__SPOPTS__</select>
 <select id="protof"><option value="">all protocols</option>__PROPTS__</select>
-<label class="chk"><input type="checkbox" id="hidesec"> hide section headers</label>
-<label class="chk"><input type="checkbox" id="onlydata"> only with marks</label>
-<label class="chk"><input type="checkbox" id="hidered"> hide redacted</label>
+<label class="chk"><input type="checkbox" id="showsec" checked> section headers</label>
 <span id="count"></span>
 </div>
-<div class="wrap"><table><thead id="thead"></thead><tbody id="tb"></tbody></table></div>
-<footer>Generated __GENERATED__ by <code>soa2usdm.activity_inventory</code>. Built iteratively with Claude (Anthropic). Content under CC-BY-4.0.</footer>
+<table><thead id="thead"></thead><tbody id="tb"></tbody></table>
+</div></div>
+<footer>Generated __GENERATED__ by <code>soa2usdm.activity_inventory</code> · data: <a href="activities.json">activities.json</a> · Built iteratively with Claude (Anthropic). Content under CC-BY-4.0.</footer>
 <script>
-const D=__DATA__;
-let MODE='con', sortk='__default__', asc=true;
-const q=document.getElementById('q'),sponsorf=document.getElementById('sponsorf'),protof=document.getElementById('protof'),
- hidesec=document.getElementById('hidesec'),onlydata=document.getElementById('onlydata'),hidered=document.getElementById('hidered'),tb=document.getElementById('tb'),
- thead=document.getElementById('thead'),cnt=document.getElementById('count'),mCon=document.getElementById('mCon'),mSrc=document.getElementById('mSrc');
+const D=__DATA__, TT=__TYPES__;
+let sortk='__default__', asc=true;
+const $=id=>document.getElementById(id);
+const q=$('q'),sponsorf=$('sponsorf'),protof=$('protof'),showsec=$('showsec'),tb=$('tb'),thead=$('thead'),cnt=$('count');
 function eh(s){return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-const HEAD={con:[['protocol_id','Protocol'],['sponsor','Sponsor'],['activity_name','Activity (consolidated)'],['parent_name','Parent'],['table_count','Tables'],['match_status','Fold']],
- src:[['protocol_id','Protocol'],['sponsor','Sponsor'],['table_number','Table'],['row_position','Row'],['activity_name','Activity (verbatim)'],['parent_name','Parent'],['annotation_markers','Fn']]};
-function setHead(){thead.innerHTML='<tr>'+HEAD[MODE].map(([k,l])=>`<th data-k="${k}">${l}<span class="ar"></span></th>`).join('')+'</tr>';
- thead.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortk===k)asc=!asc;else{sortk=k;asc=true;}
-  thead.querySelectorAll('.ar').forEach(a=>a.textContent='');th.querySelector('.ar').textContent=asc?' ▲':' ▼';render();});}
-function firstOcc(r){return r.occurrences&&r.occurrences.length?r.occurrences[0]:{table_number:0,row_position:0};}
+const HEAD=[['protocol_id','Protocol'],['sponsor','Sponsor'],['activity_name','Activity'],['parent_name','Parent'],['table_count','Tables'],['n_notes','Notes']];
+thead.innerHTML='<tr>'+HEAD.map(([k,l])=>`<th data-k="${k}">${l}<span class="ar"></span></th>`).join('')+'</tr>';
+thead.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortk===k)asc=!asc;else{sortk=k;asc=true;}
+ thead.querySelectorAll('.ar').forEach(a=>a.textContent='');th.querySelector('.ar').textContent=asc?' ▲':' ▼';render();});
+D.forEach(r=>{r.n_notes=(r.annotations||[]).length;
+ const o=r.occurrences&&r.occurrences.length?r.occurrences[0]:{table_number:0,row_position:0};r._t=o.table_number||0;r._p=o.row_position||0;
+ r._h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+(r.variants||[]).join(' ')+' '+(r.occurrences||[]).map(o=>o.table_title).join(' ')+' '+(r.annotations||[]).map(a=>a.text).join(' ')).toLowerCase();});
 function cmp(a,b){
- if(sortk==='__default__'){
-  if(MODE==='con'){const fa=firstOcc(a),fb=firstOcc(b);return a.protocol_id.localeCompare(b.protocol_id)||((fa.table_number||0)-(fb.table_number||0))||((fa.row_position||0)-(fb.row_position||0));}
-  return a.protocol_id.localeCompare(b.protocol_id)||(a.table_number-b.table_number)||(a.row_position-b.row_position);
- }
+ if(sortk==='__default__')return a.protocol_id.localeCompare(b.protocol_id)||(a._t-b._t)||(a._p-b._p);
  let x=a[sortk],y=b[sortk];
- if(sortk==='table_count'){return (x||0)-(y||0);}
- if(typeof x==='number'||typeof y==='number'){x=x==null?-1:x;y=y==null?-1:y;return x-y;}
+ if(typeof x==='number'||typeof y==='number')return (x||0)-(y||0);
  return String(x||'').toLowerCase().localeCompare(String(y||'').toLowerCase());
 }
-function passes(r){
- const term=q.value.trim().toLowerCase(),sp=sponsorf.value,pr=protof.value,hs=hidesec.checked,od=onlydata.checked,hr=hidered.checked;
- if(sp&&r.sponsor!==sp)return false; if(pr&&r.protocol_id!==pr)return false;
- if(hs&&r.is_section_header)return false;
- if(hr&&r.is_redacted)return false;
- if(od){ if(MODE==='con'){if(!r.any_marks)return false;} else if(r.has_schedule_data!==true)return false; }
- if(term){let h;
-  if(MODE==='con')h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+(r.variants||[]).join(' ')+' '+(r.occurrences||[]).map(o=>o.table_title).join(' ')+' '+(r.annotations||[]).map(a=>a.text).join(' ')).toLowerCase();
-  else h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+r.table_title+' '+(r.annotations||[]).map(a=>a.text).join(' ')).toLowerCase();
-  if(!h.includes(term))return false;}
- return true;
+function passes(r,term){
+ if(sponsorf.value&&r.sponsor!==sponsorf.value)return false;
+ if(protof.value&&r.protocol_id!==protof.value)return false;
+ if(!showsec.checked&&r.is_section_header)return false;
+ return !term||r._h.includes(term);
 }
-function conRow(r,i){
- const ind=r.hierarchy_level?('padding-left:'+(r.hierarchy_level*16)+'px'):'';
- const nT=`<span class="nT ${r.table_count>1?'':'one'}">×${r.table_count}${r.table_count>1?' · '+r.tables.map(t=>'T'+t).join(','):''}</span>`;
- const mt=(['fuzzy_auto','fuzzy_review','fuzzy_cross_parent'].includes(r.match_status))?`<span class="mt ${r.match_status}">${r.match_status.replace('fuzzy_','')}</span>`:'';
- const sec=(r.is_section_header?'<span class="flag">section</span>':'')+(r.is_redacted?'<span class="flag red">redacted</span>':'');
- const canExp=r.table_count>1||(r.variants||[]).length>1||(r.annotations||[]).length>0;
- return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
-  `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
-  `<td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${sec}${(r.variants||[]).length>1?'<span class="flag">'+r.variants.length+' wordings</span>':''}${(r.annotations||[]).length?'<span class="fnb">'+r.annotations.length+' annotation'+(r.annotations.length>1?'s':'')+'</span>':''}</td>`+
-  `<td>${eh(r.parent_name)}</td><td>${nT}</td><td>${mt||'<span class="rp">—</span>'}</td></tr>`;
+function tableLine(o){
+ const t=o.table_type!=='main_soa'?` <span class="ttype">${eh(TT[o.table_type])}</span>`:'';
+ const hover=o.table_type+(o.track_label?': '+o.track_label:'')+' — '+o.table_title;
+ return `<span title="${eh(hover)}">T${eh(o.table_number)}${t}</span>`;
 }
-function detailRow(r){
- const vars=(r.variants||[]).length>1?`<div class="var">wording variants folded: <b>${r.variants.map(eh).join('</b> · <b>')}</b></div>`:'';
- const orows=(r.occurrences||[]).map(o=>`<tr><td class="tbl"><b>T${eh(o.table_number)}</b>${o.track_label?' · '+eh(o.track_label):''} <span class="tt" style="display:inline" title="${eh(o.table_title)}">${eh(o.table_title)}</span></td><td class="rp">${eh(o.row_position)}</td><td>${eh(o.verbatim_name)}</td><td class="rp">${o.has_schedule_data===false?'no marks':(o.has_schedule_data===true?'✓':'')}</td></tr>`).join('');
- const fns=(r.annotations||[]).length?`<div class="fnh">Linked annotations — deduplicated by text across source tables (marker · first table · column(s) for a note bound to a mark)</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="rp">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span> ${eh(a.text)}</div>`).join(''):'';
- return `<tr class="detail"><td colspan="6">${vars}<table class="otab"><thead><tr><th>Source table</th><th>Row</th><th>As extracted (verbatim)</th><th>Marks</th></tr></thead><tbody>${orows}</tbody></table>${fns}</td></tr>`;
+function row(r,i){
+ const cv=`${encodeURIComponent(r.protocol_id)}/SoA2USDM/consolidated/${encodeURIComponent(r.protocol_id)}_consolidated.html#${r.xact_id}`;
+ const ind=r.hierarchy_level?` style="padding-left:${r.hierarchy_level*14}px"`:'';
+ const flags=(r.is_redacted?'<span class="flag red">redacted</span>':'')+((r.variants||[]).length>1?`<span class="flag">${r.variants.length} wordings</span>`:'');
+ const seen=new Set(),tl=[];(r.occurrences||[]).forEach(o=>{if(!seen.has(o.table_number)){seen.add(o.table_number);tl.push(tableLine(o));}});
+ const canExp=r.n_notes>0||(r.variants||[]).length>1||r.table_count>1;
+ const nb=canExp?`<span class="nbtn" data-i="${i}">${r.n_notes?r.n_notes+' note'+(r.n_notes>1?'s':''):'details'} ▸</span>`:'';
+ return `<tr class="r${r.is_section_header?' sec':''}"><td class="pid"><a href="index.html#${eh(r.protocol_id)}" title="${eh(r.d4k_folder)} — this protocol's row on the collection index">${eh(r.protocol_id)}</a></td>`+
+  `<td class="sp">${eh(r.sponsor)}</td>`+
+  `<td class="act"><a href="${cv}" title="Show in the consolidated view"${ind}>${eh(r.activity_name)}</a>${flags}</td>`+
+  `<td class="par">${eh(r.parent_name)}</td><td class="tables">${tl.join('')}</td><td class="nt">${nb}</td></tr>`;
 }
-function srcDetailRow(r){
- const fns=`<div class="fnh">Linked annotations — this table row (column(s) for a note bound to a mark)</div>`+(r.annotations||[]).map(a=>`<div class="fn"><b>${eh(a.marker)}</b>${a.columns?'<span class="rp">'+eh(a.columns.join('; '))+'</span>':''} ${eh(a.text)}</div>`).join('');
- return `<tr class="detail"><td colspan="7">${fns}</td></tr>`;
+function detail(r){
+ const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(eh).join('</b> · <b>')}</b></div>`:'';
+ const occ=`<div class="dh">As printed</div><table class="otab">`+(r.occurrences||[]).map(o=>`<tr><td class="mono">T${eh(o.table_number)} row ${eh(o.row_position)}</td><td>${eh(o.verbatim_name)}</td><td class="mono">${o.has_schedule_data===false?'no marks':''}</td></tr>`).join('')+'</table>';
+ const fns=r.n_notes?`<div class="dh">Notes</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${eh(a.text)}</div>`).join(''):'';
+ return `<tr class="detail"><td colspan="6">${vars}${occ}${fns}</td></tr>`;
 }
-function srcRow(r,i){
- const ind=r.hierarchy_level?('padding-left:'+(r.hierarchy_level*16)+'px'):'';
- const flags=(r.is_section_header?'<span class="flag">section</span>':'')+(r.is_redacted?'<span class="flag red">redacted</span>':'')+(r.has_schedule_data===false?'<span class="flag nod">no marks</span>':'');
- const canExp=(r.annotations||[]).length>0;
- return `<tr class="r ${r.is_section_header?'sec':''} ${canExp?'exp':''}" data-i="${i}"><td class="pid">${canExp?'<span class="chev">▸</span> ':'<span class="chev" style="visibility:hidden">▸</span> '}${eh(r.protocol_id)}<span class="d4k">${eh(r.d4k_folder)}</span></td>`+
-  `<td><span class="spb">${eh(r.sponsor)}</span></td>`+
-  `<td class="tbl"><b>T${eh(r.table_number)}</b>${r.track_label?' · '+eh(r.track_label):''}<span class="tt" title="${eh(r.table_title)}">${eh(r.table_title)}</span></td>`+
-  `<td class="rp">${eh(r.row_position)}</td><td><span class="act" style="${ind}">${eh(r.activity_name)}</span>${flags}</td>`+
-  `<td>${eh(r.parent_name)}</td><td class="rp">${eh(r.annotation_markers)}</td></tr>`;
-}
+let ARR=[];
+function toggle(i,tr){const nx=tr.nextElementSibling;
+ if(nx&&nx.classList.contains('detail')){nx.remove();tr.classList.remove('open');}
+ else{tr.classList.add('open');tr.insertAdjacentHTML('afterend',detail(ARR[i]));}}
 function render(){
- const arr=(MODE==='con'?D.consolidated:D.source).filter(passes);
- arr.sort((a,b)=>{const c=cmp(a,b);return asc?c:-c;});
- let html='';
- if(MODE==='con'){arr.forEach((r,i)=>{html+=conRow(r,i);});}
- else{arr.forEach((r,i)=>{html+=srcRow(r,i);});}
- window.__arr=arr;
- tb.innerHTML=html;
- tb.querySelectorAll('tr.exp').forEach(tr=>tr.onclick=()=>{
-  const i=+tr.dataset.i; const nx=tr.nextElementSibling;
-  if(nx&&nx.classList.contains('detail')){nx.remove();tr.classList.remove('open');}
-  else{tr.classList.add('open');tr.insertAdjacentHTML('afterend',MODE==='con'?detailRow(window.__arr[i]):srcDetailRow(window.__arr[i]));}
- });
  const term=q.value.trim().toLowerCase();
- if(term){
-  tb.querySelectorAll('tr.exp').forEach(tr=>{
-   const r=window.__arr[+tr.dataset.i];
-   if((r.annotations||[]).some(a=>(a.text||'').toLowerCase().includes(term))){
-    tr.classList.add('open');
-    tr.insertAdjacentHTML('afterend',MODE==='con'?detailRow(r):srcDetailRow(r));
-   }
-  });
- }
- cnt.textContent=`${arr.length} of ${MODE==='con'?D.consolidated.length:D.source.length} ${MODE==='con'?'activities':'rows'}`;
+ ARR=D.filter(r=>passes(r,term));
+ ARR.sort((a,b)=>{const c=cmp(a,b);return asc?c:-c;});
+ tb.innerHTML=ARR.map(row).join('');
+ tb.querySelectorAll('.nbtn').forEach(b=>b.onclick=()=>toggle(+b.dataset.i,b.closest('tr')));
+ if(term)tb.querySelectorAll('.nbtn').forEach(b=>{const r=ARR[+b.dataset.i];
+  if((r.annotations||[]).some(a=>(a.text||'').toLowerCase().includes(term)))toggle(+b.dataset.i,b.closest('tr'));});
+ cnt.textContent=`${ARR.length} of ${D.length} activities`;
 }
-function setMode(m){MODE=m;sortk='__default__';asc=true;mCon.classList.toggle('on',m==='con');mSrc.classList.toggle('on',m==='src');setHead();render();}
-mCon.onclick=()=>setMode('con');mSrc.onclick=()=>setMode('src');
-q.oninput=render;[sponsorf,protof,hidesec,onlydata,hidered].forEach(e=>e.onchange=render);
-setHead();render();
+q.oninput=render;[sponsorf,protof,showsec].forEach(e=>e.onchange=render);
+// Column headings stick just below the sticky search bar, whatever its wrapped height.
+function stick(){const h=document.querySelector('.controls').offsetHeight;thead.querySelectorAll('th').forEach(th=>th.style.top=h+'px');}
+window.addEventListener('resize',stick);stick();
+render();
 </script></body></html>'''
 
 
@@ -454,7 +422,7 @@ def main():
         json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
     c = payload["counts"]
     print(f"Wrote {collection_path / 'activities.html'}")
-    print(f"  {c['consolidated_activities']} consolidated / {c['source_table_rows']} source rows / {c['protocols']} protocols")
+    print(f"  {c['activities']} activities / {c['protocols']} protocols")
 
 
 if __name__ == "__main__":

@@ -705,7 +705,8 @@ def get_cell_population_info(data: dict) -> tuple:
     return dict(cell_pops), col_tp_map
 
 
-def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors: PopulationColorMapper) -> str:
+def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors: PopulationColorMapper,
+                      anchored: set = None) -> str:
     """Generate schedule grid for a segment."""
     if not columns:
         return ""
@@ -871,7 +872,13 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
         tables = ','.join(f"T{sr['table_num']}" for sr in ua.get('source_refs', []))
         
         amarks = note_marks(notes['acts'].get(xact_id, []), notes)
-        rows.append(f'<tr><td class="frozen-col1 activity-name {name_cls}" style="background: {match_bg};" title="{esc(ua.get("qualified_key", ""))}">{esc(ua.get("activity_name", ""))}{amarks}</td>')
+        # The first grid row of an activity carries its xact_id as anchor (target of the
+        # activity inventory's links); an activity shown in several segments is anchored once.
+        row_id = ''
+        if anchored is not None and xact_id not in anchored:
+            anchored.add(xact_id)
+            row_id = f' id="{xact_id}"'
+        rows.append(f'<tr{row_id}><td class="frozen-col1 activity-name {name_cls}" style="background: {match_bg};" title="{esc(ua.get("qualified_key", ""))}">{esc(ua.get("activity_name", ""))}{amarks}</td>')
         rows.append(f'<td class="frozen-col2" style="background: {match_bg}; font-size: 8px;">{tables}</td>')
         
         for i, col in enumerate(columns):
@@ -1128,7 +1135,8 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
         .legend-section {{ font-weight: 600; color: var(--ink); margin-left: 6px; }}
     """
     
-    grids = ''.join(gen_schedule_grid(data, segment, segments[segment], pop_colors)
+    anchored = set()
+    grids = ''.join(gen_schedule_grid(data, segment, segments[segment], pop_colors, anchored)
                     for segment in ['main', 'domain', 'track', 'subsidiary'] if segments.get(segment))
 
     html = f'''<!DOCTYPE html>
