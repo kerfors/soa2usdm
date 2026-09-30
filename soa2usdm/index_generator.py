@@ -22,6 +22,16 @@ from .corrections import review_status
 from .nav import NAV_CSS, nav_block, page_title
 
 
+# Short labels for table_type on the collection index (main_soa is unlabelled).
+TABLE_TYPE_SHORT = {
+    'continuation': 'cont.',
+    'domain': 'domain',
+    'subsidiary': 'subsid.',
+    'track': 'track',
+    'reference': 'ref.',
+}
+
+
 def esc(text) -> str:
     return html_lib.escape(str(text)) if text else ""
 
@@ -150,10 +160,14 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
             viewer_rel = _render_json_html(ejson, collection_path, protocol_id, collection,
                                            f"Table {tnum} extraction data",
                                            current=('extraction', tnum))
+            tmeta = json.loads(ejson.read_text(encoding='utf-8'))['table_metadata']
             result['extraction_json_files'].append({
                 'filename': ejson.name,
                 'path': viewer_rel,
                 'label': label,
+                'table_type': tmeta['table_type'],
+                'table_title': tmeta['table_title'],
+                'track_label': tmeta.get('track_label', ''),
             })
         review = extracted_dir / f"{protocol_id}_review.html"
         if review.exists():
@@ -606,8 +620,12 @@ def generate_index_html(collection: str) -> str:
         # Extraction JSON column
         ext_json_parts = []
         for ef in p.get('extraction_json_files', []):
+            # Table type shown only where it is not main_soa; hover gives type, track label and title.
+            ttype = ef['table_type']
+            type_html = f' <span class="ttype">{TABLE_TYPE_SHORT[ttype]}</span>' if ttype != 'main_soa' else ''
+            hover = ttype + (f': {ef["track_label"]}' if ef['track_label'] else '') + f' — {ef["table_title"]}'
             ext_json_parts.append(
-                f'<a href="{ef["path"]}" class="link-table" title="Extraction JSON viewer — {esc(ef["filename"])}">{ef["label"]}</a>'
+                f'<a href="{ef["path"]}" class="link-table" title="{esc(hover)}">{ef["label"]}{type_html}</a>'
             )
         ext_json_html = ' '.join(ext_json_parts)
         
@@ -747,6 +765,7 @@ def generate_index_html(collection: str) -> str:
         /* one link style for every artifact: the column says what it is, the link says which */
         .sources a, .viz a { color: var(--blue2); text-decoration: none; margin-right: 7px; white-space: nowrap; }
         .sources a:hover, .viz a:hover { text-decoration: underline; }
+        .ttype { color: var(--muted); font-size: 11px; }
         .link-json { color: var(--muted) !important; font-size: 11px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
         .link-review { font-weight: 600; }
         .decisions { font-size: 11px; color: var(--ok); white-space: nowrap; }
@@ -782,7 +801,7 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer)">1. Extraction</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer); table type shown where not main_soa">1. Extraction</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships">2. Resolution</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
             </tr></thead>
             <tbody>
                 {ready_rows}
