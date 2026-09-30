@@ -379,9 +379,22 @@ Three of four are not the same activity. String similarity cannot tell a wording
 
 **Size.** (a) small (one flag, the hint field, a rebuild; unified-activity counts change in the affected protocols). (b) medium to large (sidecar schema, consolidate reading it, the view).
 
+## 29 — Review page mark check: what the text-layer check still cannot see
+
+**Context.** Shipped 2026-09-30 (`e853ebb`): the mark check counts any printed mark (not only an x), compares a value with a `source_range` once over its span, ignores words of the annotations bound to the row, and sets aside — counted, not reported — a mark the extraction read from the rendered page where the text layer shows nothing. Across the 47 published tables: 100 differences in 10 tables before, 3 in 2 after, none of them an extraction error. Tests: a negative control (removed mark, invented mark, empty span all flagged) and NCT01847274's merged 'Bone marrow aspirate and biopsy' X agreeing.
+
+(a) *Drawn marks are not checked.* 39 marks are arrows drawn as graphics, not text (NCT04573309 T1 35, NCT05259917 T1 4); the extraction read them by pixels or by eye. The Checks tab counts them as not checked. Candidate: the same dark-pixel test the extraction uses (`raster_pixel_detection`), on the band × column rectangle of the rendered page.
+(b) *Column mapping on NCT03637764 document p.22.* The header read maps several page columns to the same column position and none to 17, so the Isatuximab 'X-----X' over Cycle 4 (columns 17–18) is only half compared: 1 reported difference, extraction correct. Candidate: detect a column position mapped more than once, or missing between mapped neighbours, and fall back to position for that page.
+(c) *Presence only, not value.* The check compares mark against no mark. A different value in the same cell ('P02' against 'P03', '24 h' against '24h') is not reported. Candidate: a separate, lower-level note for normalised value differences, kept out of the tile count.
+The remaining two differences are NCT04677179 T3 row 38, the CCI band of item 7d (pinned in `tests/test_review_page.py`).
+
+**Size.** (a) small to medium; (b) small; (c) small.
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment), item 28 added 2026-09-30 (collection index / activity inventory session). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment), item 28 added 2026-09-30 (collection index / activity inventory session), item 29 added 2026-09-30 (mark check). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+
+**Status 2026-09-30 (evening):** mark check fixed (`e853ebb`, 24 review pages regenerated in collections `768ddb5`): 100 differences in 10 tables become 3 in 2, all known checker limits; follow-ups in item 29.
 
 **Status 2026-09-30:** item 28 added — consolidation stops merging below the auto threshold, and cross-table matches get a review of their own; direction agreed, no code or data changed.
 
