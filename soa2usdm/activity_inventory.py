@@ -288,6 +288,8 @@ td.tables>span{display:block;white-space:nowrap}
 td.nt{white-space:nowrap}
 .nbtn{font-size:11px;color:var(--blue2);cursor:pointer;white-space:nowrap}
 .nbtn:hover{text-decoration:underline}
+.nhit{font-size:10.5px;color:#8a5a00;background:#fff3d6;border-radius:3px;padding:0 4px;margin-left:4px;white-space:nowrap}
+mark{background:#fff3d6;color:inherit;padding:0}
 tr.open .nbtn{font-weight:600}
 .detail td{background:#fbfcfe;padding:8px 12px 10px 28px}
 .detail .var{color:var(--muted);font-size:11.5px;margin-bottom:6px}.detail .var b{color:var(--ink);font-weight:600}
@@ -344,22 +346,24 @@ function tableLine(o){
  const hover=o.table_type+(o.track_label?': '+o.track_label:'')+' — '+o.table_title;
  return `<span title="${eh(hover)}">T${eh(o.table_number)}${t}</span>`;
 }
-function row(r,i){
+function hl(s,term){const e=eh(s);if(!term)return e;const t=eh(term).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return e.replace(new RegExp(t,'gi'),m=>`<mark>${m}</mark>`);}
+function row(r,i,term){
  const cv=`${encodeURIComponent(r.protocol_id)}/SoA2USDM/consolidated/${encodeURIComponent(r.protocol_id)}_consolidated.html#${r.xact_id}`;
  const ind=r.hierarchy_level?` style="padding-left:${r.hierarchy_level*14}px"`:'';
  const flags=(r.is_redacted?'<span class="flag red">redacted</span>':'')+((r.variants||[]).length>1?`<span class="flag">${r.variants.length} wordings</span>`:'');
  const seen=new Set(),tl=[];(r.occurrences||[]).forEach(o=>{if(!seen.has(o.table_number)){seen.add(o.table_number);tl.push(tableLine(o));}});
  const canExp=r.n_notes>0||(r.variants||[]).length>1||r.table_count>1;
- const nb=canExp?`<span class="nbtn" data-i="${i}">${r.n_notes?r.n_notes+' note'+(r.n_notes>1?'s':''):'details'} ▸</span>`:'';
+ const nhit=term&&(r.annotations||[]).some(a=>(a.text||'').toLowerCase().includes(term))?'<span class="nhit" title="The search term is in a note of this activity">in note</span>':'';
+ const nb=canExp?`<span class="nbtn" data-i="${i}">${r.n_notes?r.n_notes+' note'+(r.n_notes>1?'s':''):'details'} ▸</span>${nhit}`:'';
  return `<tr class="r${r.is_section_header?' sec':''}"><td class="pid"><a href="index.html#${eh(r.protocol_id)}" title="${eh(r.d4k_folder)} — this protocol's row on the collection index">${eh(r.protocol_id)}</a></td>`+
   `<td class="sp">${eh(r.sponsor)}</td>`+
   `<td class="act"><a href="${cv}" title="Show in the consolidated view"${ind}>${eh(r.activity_name)}</a>${flags}</td>`+
   `<td class="par">${eh(r.parent_name)}</td><td class="tables">${tl.join('')}</td><td class="nt">${nb}</td></tr>`;
 }
-function detail(r){
+function detail(r){const term=q.value.trim().toLowerCase();
  const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(eh).join('</b> · <b>')}</b></div>`:'';
  const occ=`<div class="dh">As printed</div><table class="otab">`+(r.occurrences||[]).map(o=>`<tr><td class="mono">T${eh(o.table_number)} row ${eh(o.row_position)}</td><td>${eh(o.verbatim_name)}</td><td class="mono">${o.has_schedule_data===false?'no marks':''}</td></tr>`).join('')+'</table>';
- const fns=r.n_notes?`<div class="dh">Notes</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${eh(a.text)}</div>`).join(''):'';
+ const fns=r.n_notes?`<div class="dh">Notes</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${hl(a.text,term)}</div>`).join(''):'';
  return `<tr class="detail"><td colspan="6">${vars}${occ}${fns}</td></tr>`;
 }
 let ARR=[];
@@ -370,10 +374,8 @@ function render(){
  const term=q.value.trim().toLowerCase();
  ARR=D.filter(r=>passes(r,term));
  ARR.sort((a,b)=>{const c=cmp(a,b);return asc?c:-c;});
- tb.innerHTML=ARR.map(row).join('');
+ tb.innerHTML=ARR.map((r,i)=>row(r,i,term)).join('');
  tb.querySelectorAll('.nbtn').forEach(b=>b.onclick=()=>toggle(+b.dataset.i,b.closest('tr')));
- if(term)tb.querySelectorAll('.nbtn').forEach(b=>{const r=ARR[+b.dataset.i];
-  if((r.annotations||[]).some(a=>(a.text||'').toLowerCase().includes(term)))toggle(+b.dataset.i,b.closest('tr'));});
  cnt.textContent=`${ARR.length} of ${D.length} activities`;
 }
 q.oninput=render;[sponsorf,protof,showsec].forEach(e=>e.onchange=render);
