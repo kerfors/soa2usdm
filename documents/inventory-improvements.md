@@ -408,6 +408,8 @@ The remaining two differences are NCT04677179 T3 row 38, the CCI band of item 7d
 
 **Status 2026-10-02:** Release A — item 16 done; item 30 added (order of header rows without a level in consolidation).
 
+**Status 2026-10-02 (Release B, group 1):** item 28 (a) and item 30 done, consolidated schema 1.3. Below the auto threshold nothing is merged on any table pair; the activity stays separate and carries `near_matches` (24 hints in 6 protocols; `review_queue` empty in all 24). Each `source_refs` entry records its own `match_status` / `match_confidence`. Unified activities 980 -> 984 (NCT01847274, NCT02107703, NCT02291289, NCT04557384, one each). Header rows without a level are in print order (NCT04184622, NCT04677179, NCT05051579 reorder). The hints are not shown on any page yet. Item 28 (b) and item 20 (a) open.
+
 **Status 2026-09-30:** item 28 added — consolidation stops merging below the auto threshold, and cross-table matches get a review of their own; direction agreed, no code or data changed.
 
 **Status 2026-09-28 (3.9.2 acceptance session, 13:50–):** prompt 3.9.2 / taxonomy v8 acceptance test run blind on the same 4 studies / 10 tables, output discarded. Gate 0 FAIL; marks, grids and rows equal to published; item 25 (a)–(i) hold; no rule-decided item raised, no silent contrary call. Three recorded deltas against the published record need a call (item 26).
