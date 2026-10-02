@@ -78,7 +78,7 @@ PDF Protocol Document
 
 ## Layer 1: Extraction
 
-**Schema:** `soa-table-extraction` v1.0
+**Schema:** `soa-table-extraction` v1.1
 
 **Implementation:** A single non-interactive Claude pass (PDF→JSON, `PDF_TO_JSON_PROMPT.md`). The model transcribes the table, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on rasters), and ends with an uncertainty report whose open judgement calls are also carried as data (`review_items`) and decided on the review page. The two-conversation PDF→Excel→JSON path with a human-verified Excel checkpoint remains available when a human-editable intermediate is wanted.
 
@@ -98,7 +98,7 @@ PDF Protocol Document
 
 ## Layer 1.5: Corrections
 
-**Schema:** `soa-table-corrections` v1.0
+**Schema:** `soa-table-corrections` v1.1
 
 **Implementation:** Programmatic (ApplyCorrectionsStep)
 
@@ -112,7 +112,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 ## Layer 2: Resolution
 
-**Schema:** `soa-table-resolved` v1.0
+**Schema:** `soa-table-resolved` v1.1
 
 **Implementation:** Programmatic (ResolveStep, no Claude API). Reads the verified extraction where a corrections sidecar exists, the raw extraction otherwise.
 
@@ -131,7 +131,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 ## Layer 3: Study Schedule Logic
 
-**Schema:** `soa-tables-consolidated` v1.1
+**Schema:** `soa-tables-consolidated` v1.2
 
 **Implementation:** Programmatic (ConsolidateStep, no Claude API)
 
@@ -223,8 +223,7 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
 │   ├── *_Table_{NN}_extraction.verified.json # Sidecar applied (where one exists)
 │   ├── *_Table_{NN}_extraction_viewer.html   # JSON viewer
 │   ├── {NCTID}[_<name>]_uncertainty_report.* # One or more extraction reports (.md, .html)
-│   ├── {NCTID}_review.html                   # Review page
-│   └── *_verified.xlsx                       # Excel(s) — two-conversation path only
+│   └── {NCTID}_review.html                   # Review page
 ├── resolved/
 │   ├── *_Table_{NN}_resolved.json   # One per table
 │   └── *_Table_{NN}_resolved_viewer.html   # JSON viewer
@@ -237,8 +236,14 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
     └── {NCTID}_usdm_decisions.json  # What was decided, derived or left out
 ```
 
-The index generator discovers files by suffix pattern, so naming variations
-in the Excel files (e.g., table ranges, extra labels) are handled gracefully.
+The index generator discovers files by suffix pattern.
+
+**Schema versions.** Each schema lists the versions it accepts in an `enum` on
+`schema_version`. An additive change (a new optional field, enum value or op) is a
+minor version: the new number is added to the list and files stamped with an older
+one stay valid. A change that makes existing files invalid is a major version.
+`resolve` and `consolidate` stamp the current version on every file they write;
+`tools/gate.py` accepts the versions the extraction schema lists.
 
 ---
 
@@ -256,6 +261,6 @@ The architecture acknowledges that SoA tables are lossy compressions of study lo
 
 ---
 
-**Version:** 4.2  
+**Version:** 4.3  
 **Date:** 2026-09-29  
-**Schemas:** soa-table-extraction v1.0, soa-table-corrections v1.0, soa-table-resolved v1.0, soa-tables-consolidated v1.1
+**Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.1, soa-tables-consolidated v1.2

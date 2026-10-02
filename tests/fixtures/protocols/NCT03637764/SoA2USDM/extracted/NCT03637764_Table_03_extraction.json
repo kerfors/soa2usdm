@@ -1,0 +1,738 @@
+{
+  "schema_name": "soa-table-extraction",
+  "schema_version": "1.0",
+  "extraction_metadata": {
+    "extracted_at": "2026-09-27T21:05:00+02:00",
+    "extractor": "Claude, PDF_TO_JSON_PROMPT single-pass",
+    "prompt_version": "3.8.1",
+    "source_document": {
+      "filename": "NCT03637764_soa.pdf",
+      "document_type": "protocol",
+      "document_version": "Amended Clinical Trial Protocol 05, Version number: 1",
+      "document_date": "23-Nov-2020"
+    },
+    "extraction_status": "ready_for_resolution",
+    "extraction_notes": "Text-layer PDF with vector rule lines. Marks read with pdftotext -bbox, cell boundaries from rule lines recovered on a 200 dpi render (§1d), including the Notes-column horizontal rules. Three label columns (L=3: Sample Collection, Core sub-column, Biomarker Analysis); data columns 4-10; the right-hand Notes column is not a schedule column and its cells are extracted as annotations. Label hierarchy flattened into grouping rows with sequential row_position (see review item D11). Grey-shaded cells carry no entry.",
+    "model": "claude-opus-5-5"
+  },
+  "table_metadata": {
+    "table_number": 3,
+    "table_type": "subsidiary",
+    "table_title": "EXPLORATORY BIOMARKER FLOW CHART",
+    "table_purpose": "Exploratory biomarker blood draws and tumor tissue/biopsy collection by cycle",
+    "page_start": 24,
+    "page_end": 24,
+    "notes": "Typed subsidiary: the main SoA (Table 01, p.21) row 'Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw' reads 'See Biomarker Flow Chart'; this table breaks that single row into specimen/analysis rows on its own, finer per-cycle column set (Cycle 1, 2, 3, 5 and Beyond vs 'Cycle 2 and Beyond' in the main SoA). Same participants, different columns, so not domain; not a separate timeline, so not track. No 'Cycle 4' column is printed. row_position values are sequential reading-order positions, not physical rows: each vertically merged left-hand label (Sample Collection, Core n) is emitted as its own grouping row before the rows it spans."
+  },
+  "schedule_properties": [
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "property_name": "Study phase",
+      "property_name_source": {
+        "row_position": 1,
+        "column_position": 1,
+        "cell_value": "",
+        "synthesized": true
+      },
+      "property_type": "epoch",
+      "property_comment": "Phase band: 'Screening' (4, cell merged down over the next header row), 'Treatment Phase' (5:8), 'Post-Treatment Phase' (9:10). Label columns hold the column captions 'Sample Collection' / 'Biomarker Analysis' (merged over all 3 header rows), so the name is synthesised. Major study phases -> epoch.",
+      "hierarchical_level": 1
+    },
+    {
+      "table_number": 3,
+      "row_position": 2,
+      "property_name": "Cycle / visit",
+      "property_name_source": {
+        "row_position": 2,
+        "column_position": 1,
+        "cell_value": "",
+        "synthesized": true
+      },
+      "property_type": "cycle",
+      "property_comment": "Cycle 1, Cycle 2, Cycle 3, Cycle 5 and Beyond (no Cycle 4 column is printed), then EOT and Follow-up. Column 4 is covered by the vertically merged 'Screening' cell. Mostly treatment cycles -> cycle; EOT / Follow-up are visit-like values in the same row. Name synthesised (no row label).",
+      "hierarchical_level": 2
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "property_name": "Day / timing",
+      "property_name_source": {
+        "row_position": 3,
+        "column_position": 1,
+        "cell_value": "",
+        "synthesized": true
+      },
+      "property_type": "study_day",
+      "property_comment": "Day of cycle or relative timing: D-28 to D-1, D1 (-1 day)[a], D1, D1, D1, 30 (±7) days after last IMP admin, 60 (±7) days after last IMP admin. Predominantly study days -> study_day; the post-treatment values are offsets from last IMP. Name synthesised (no row label).",
+      "hierarchical_level": 3
+    }
+  ],
+  "schedule_grid": [
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "column_position": 4,
+      "cell_value": "Screening"
+    },
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "column_position": 5,
+      "cell_value": "Treatment Phase",
+      "is_merged_cell": true,
+      "merged_cell_range": "5:8"
+    },
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "column_position": 6,
+      "cell_value": "Treatment Phase",
+      "is_merged_cell": true,
+      "merged_cell_range": "5:8"
+    },
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "column_position": 7,
+      "cell_value": "Treatment Phase",
+      "is_merged_cell": true,
+      "merged_cell_range": "5:8"
+    },
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "column_position": 8,
+      "cell_value": "Treatment Phase",
+      "is_merged_cell": true,
+      "merged_cell_range": "5:8"
+    },
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "column_position": 9,
+      "cell_value": "Post-Treatment Phase",
+      "is_merged_cell": true,
+      "merged_cell_range": "9:10"
+    },
+    {
+      "table_number": 3,
+      "row_position": 1,
+      "column_position": 10,
+      "cell_value": "Post-Treatment Phase",
+      "is_merged_cell": true,
+      "merged_cell_range": "9:10"
+    },
+    {
+      "table_number": 3,
+      "row_position": 2,
+      "column_position": 5,
+      "cell_value": "Cycle 1"
+    },
+    {
+      "table_number": 3,
+      "row_position": 2,
+      "column_position": 6,
+      "cell_value": "Cycle 2"
+    },
+    {
+      "table_number": 3,
+      "row_position": 2,
+      "column_position": 7,
+      "cell_value": "Cycle 3"
+    },
+    {
+      "table_number": 3,
+      "row_position": 2,
+      "column_position": 8,
+      "cell_value": "Cycle 5 and Beyond"
+    },
+    {
+      "table_number": 3,
+      "row_position": 2,
+      "column_position": 9,
+      "cell_value": "EOT"
+    },
+    {
+      "table_number": 3,
+      "row_position": 2,
+      "column_position": 10,
+      "cell_value": "Follow-up"
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "column_position": 4,
+      "cell_value": "D-28 to D-1"
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "column_position": 5,
+      "cell_value": "D1 (-1 day)",
+      "annotation_markers": "a"
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "column_position": 6,
+      "cell_value": "D1"
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "column_position": 7,
+      "cell_value": "D1"
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "column_position": 8,
+      "cell_value": "D1"
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "column_position": 9,
+      "cell_value": "30 (±7) days after last IMP admin"
+    },
+    {
+      "table_number": 3,
+      "row_position": 3,
+      "column_position": 10,
+      "cell_value": "60 (±7) days after last IMP admin"
+    }
+  ],
+  "activities": [
+    {
+      "table_number": 3,
+      "row_position": 4,
+      "source_page": 24,
+      "activity_name": "Peripheral Blood",
+      "activity_name_source": {
+        "cell_text": "Peripheral Blood",
+        "indentation_level": 0,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 5,
+      "source_page": 24,
+      "activity_name": "Immune genetic markers",
+      "activity_name_source": {
+        "cell_text": "Immune genetic markers",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 6,
+      "source_page": 24,
+      "activity_name": "Tumor mutational profile (plasma cell free DNA)",
+      "activity_name_source": {
+        "cell_text": "Tumor mutational profile\n(plasma cell free DNA)",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 7,
+      "source_page": 24,
+      "activity_name": "Immunophenotyping",
+      "activity_name_source": {
+        "cell_text": "Immunophenotyping",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n1"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "source_page": 24,
+      "activity_name": "Plasma or serum cytokines",
+      "activity_name_source": {
+        "cell_text": "Plasma or serum cytokines",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n1"
+    },
+    {
+      "table_number": 3,
+      "row_position": 9,
+      "source_page": 24,
+      "activity_name": "Adaptive immunity",
+      "activity_name_source": {
+        "cell_text": "Adaptive immunity",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n2"
+    },
+    {
+      "table_number": 3,
+      "row_position": 10,
+      "source_page": 24,
+      "activity_name": "Plasma or serum Metabolites",
+      "activity_name_source": {
+        "cell_text": "Plasma or serum Metabolites",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n2"
+    },
+    {
+      "table_number": 3,
+      "row_position": 11,
+      "source_page": 24,
+      "activity_name": "Archival Pre-Treatment Tumor Tissue Collection (for HCC, SCCHN, EOC and GBM)",
+      "activity_name_source": {
+        "cell_text": "Archival Pre-Treatment Tumor\nTissue Collection (for HCC,\nSCCHN, EOC and GBM)",
+        "indentation_level": 0,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 12,
+      "source_page": 24,
+      "activity_name": "If feasible, biomarker analyses listed below for “Baseline or on treatment tumor biopsy core”",
+      "activity_name_source": {
+        "cell_text": "If feasible, biomarker\nanalyses listed below for\n“Baseline or on treatment\ntumor biopsy core”",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n3"
+    },
+    {
+      "table_number": 3,
+      "row_position": 13,
+      "source_page": 24,
+      "activity_name": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)",
+      "activity_name_source": {
+        "cell_text": "Baseline or on\ntreatment tumor\nbiopsy core in order of\npriority (Biopsy to be\nperformed for HCC,\nSCCHN, and EOC if\nadequate archival\ntissue is not available)",
+        "indentation_level": 0,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 14,
+      "source_page": 24,
+      "activity_name": "Core 1",
+      "activity_name_source": {
+        "cell_text": "Core 1",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 15,
+      "source_page": 24,
+      "activity_name": "CD38 and PD-L1 expression, immune contexture (IHC analyses)",
+      "activity_name_source": {
+        "cell_text": "CD38 and PD-L1 expression,\nimmune contexture (IHC\nanalyses)",
+        "indentation_level": 2,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n4"
+    },
+    {
+      "table_number": 3,
+      "row_position": 16,
+      "source_page": 24,
+      "activity_name": "Core 2",
+      "activity_name_source": {
+        "cell_text": "Core 2",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 17,
+      "source_page": 24,
+      "activity_name": "CD38 and PD-L1 expression, immune contexture (IHC analyses)",
+      "activity_name_source": {
+        "cell_text": "CD38 and PD-L1 expression,\nimmune contexture (IHC\nanalyses)",
+        "indentation_level": 2,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n4"
+    },
+    {
+      "table_number": 3,
+      "row_position": 18,
+      "source_page": 24,
+      "activity_name": "Core 3",
+      "activity_name_source": {
+        "cell_text": "Core 3",
+        "indentation_level": 1,
+        "indentation_method": "visual_estimate"
+      }
+    },
+    {
+      "table_number": 3,
+      "row_position": 19,
+      "source_page": 24,
+      "activity_name": "Transcriptomic analysis",
+      "activity_name_source": {
+        "cell_text": "Transcriptomic analysis",
+        "indentation_level": 2,
+        "indentation_method": "visual_estimate"
+      },
+      "annotation_markers": "n4"
+    }
+  ],
+  "activity_schedule": [
+    {
+      "table_number": 3,
+      "row_position": 5,
+      "column_position": 5,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 6,
+      "column_position": 5,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 6,
+      "column_position": 6,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 6,
+      "column_position": 7,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 6,
+      "column_position": 9,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 7,
+      "column_position": 5,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 7,
+      "column_position": 6,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 7,
+      "column_position": 7,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 7,
+      "column_position": 8,
+      "cell_value": "X (odd cycles only)"
+    },
+    {
+      "table_number": 3,
+      "row_position": 7,
+      "column_position": 9,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 7,
+      "column_position": 10,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "column_position": 4,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "column_position": 5,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "column_position": 6,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "column_position": 7,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "column_position": 8,
+      "cell_value": "X (odd cycles only)"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "column_position": 9,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 8,
+      "column_position": 10,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 9,
+      "column_position": 5,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 9,
+      "column_position": 6,
+      "cell_value": "X (only 1 on-treatment sample, see Study Reference Manual for details)",
+      "source_range": "6:8"
+    },
+    {
+      "table_number": 3,
+      "row_position": 9,
+      "column_position": 7,
+      "cell_value": "X (only 1 on-treatment sample, see Study Reference Manual for details)",
+      "source_range": "6:8"
+    },
+    {
+      "table_number": 3,
+      "row_position": 9,
+      "column_position": 8,
+      "cell_value": "X (only 1 on-treatment sample, see Study Reference Manual for details)",
+      "source_range": "6:8"
+    },
+    {
+      "table_number": 3,
+      "row_position": 10,
+      "column_position": 5,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 10,
+      "column_position": 6,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 10,
+      "column_position": 7,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 10,
+      "column_position": 8,
+      "cell_value": "X (odd cycles only)"
+    },
+    {
+      "table_number": 3,
+      "row_position": 10,
+      "column_position": 9,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 12,
+      "column_position": 4,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 15,
+      "column_position": 4,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 15,
+      "column_position": 6,
+      "cell_value": "X (if clinically feasible)"
+    },
+    {
+      "table_number": 3,
+      "row_position": 17,
+      "column_position": 4,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 17,
+      "column_position": 6,
+      "cell_value": "X (if clinically feasible)"
+    },
+    {
+      "table_number": 3,
+      "row_position": 19,
+      "column_position": 4,
+      "cell_value": "X"
+    },
+    {
+      "table_number": 3,
+      "row_position": 19,
+      "column_position": 6,
+      "cell_value": "X (if clinically feasible)"
+    }
+  ],
+  "annotations": [
+    {
+      "annotation_marker": "a",
+      "annotation_type": "footnote",
+      "annotation_text": "Biomarker blood draw may be performed within 1 working day prior to IMP administration.",
+      "marker_locations": [
+        {
+          "table_number": 3,
+          "location_type": "schedule_cell",
+          "row_position": 3,
+          "column_position": 5
+        }
+      ]
+    },
+    {
+      "annotation_marker": "n1",
+      "annotation_type": "footnote",
+      "annotation_text": "Only for Phase 2 Stage 2 participants",
+      "marker_locations": [
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 7,
+          "method": "synthesized"
+        },
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 8,
+          "method": "synthesized"
+        }
+      ]
+    },
+    {
+      "annotation_marker": "n2",
+      "annotation_type": "footnote",
+      "annotation_text": "Only Phase 2 Stage 2 participants, if sufficient clinical response is observable in Phase 1 and Phase 2 Stage 1 participants",
+      "marker_locations": [
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 9,
+          "method": "synthesized"
+        },
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 10,
+          "method": "synthesized"
+        }
+      ]
+    },
+    {
+      "annotation_marker": "n3",
+      "annotation_type": "footnote",
+      "annotation_text": "Mandatory for all GBM participants. For HCC, SCCHN, and EOC participants, provision of adequate archival tumor tissue is allowed to replace mandatory baseline biopsy",
+      "marker_locations": [
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 12,
+          "method": "synthesized"
+        }
+      ]
+    },
+    {
+      "annotation_marker": "n4",
+      "annotation_type": "footnote",
+      "annotation_text": "Refer to I 02 for details. At least 1 tumor core is required, but 3 cores are optimal. Refer to Laboratory Manual for details.",
+      "marker_locations": [
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 15,
+          "method": "synthesized"
+        },
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 17,
+          "method": "synthesized"
+        },
+        {
+          "table_number": 3,
+          "location_type": "activity_name",
+          "row_position": 19,
+          "method": "synthesized"
+        }
+      ]
+    }
+  ],
+  "review_items": [
+    {
+      "id": "D11",
+      "severity": "high",
+      "location": {
+        "page": 24,
+        "row_positions": [
+          4,
+          11,
+          13,
+          14,
+          16,
+          18
+        ]
+      },
+      "call_made": "The three label columns are turned into a hierarchy: each left-hand Sample Collection label (Peripheral Blood, Archival ..., Baseline or on treatment tumor biopsy core ...) becomes a mark-free level-0 grouping row, each 'Core n' a level-1 row, and the Biomarker Analysis text the activity that carries the marks (level 1, or level 2 under a Core). row_position is renumbered in reading order (header 1-3, body 4-19), so it is not the physical row. Notes-column cells bind to the mark-carrying analysis row.",
+      "alternative": "Keep one activity per physical row (10 body rows) named by the Biomarker Analysis text only, carrying the Sample Collection and Core labels in cell_text or joined into the name (e.g. 'Core 1 CD38 and PD-L1 ...').",
+      "report_section": "3.3"
+    },
+    {
+      "id": "D12",
+      "severity": "medium",
+      "location": {
+        "page": 24
+      },
+      "call_made": "Table typed subsidiary: a finer per-cycle breakdown of the single main-SoA row 'Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw - See Biomarker Flow Chart'.",
+      "alternative": "Type it main_soa as an independent schedule with its own column set (its columns are not a strict refinement of the main SoA's columns: it adds Cycle 2, Cycle 3 and 'Cycle 5 and Beyond' and drops D8/D15).",
+      "report_section": "3.1"
+    },
+    {
+      "id": "D13",
+      "severity": "high",
+      "location": {
+        "page": 24,
+        "row_positions": [
+          15,
+          17,
+          19
+        ],
+        "annotation_marker": "n4"
+      },
+      "call_made": "The Notes cell beside the three biopsy-core rows is one rule-bounded cell with two paragraphs; it is one note ('Refer to I 02 for details. At least 1 tumor core is required ...') bound to all three core analysis rows.",
+      "alternative": "Split into two notes: 'Refer to I 02 for details.' on Core 1 only and 'At least 1 tumor core is required, but 3 cores are optimal. Refer to Laboratory Manual for details.' on Core 2 (or on all three cores).",
+      "report_section": "3.5"
+    }
+  ]
+}

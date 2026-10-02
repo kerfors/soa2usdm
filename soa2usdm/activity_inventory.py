@@ -9,7 +9,7 @@ its row in the protocol's consolidated view.
 Annotations are listed under their activity: bound to the name, or to a mark (with
 its column); header-cell annotations and legends are not.
 
-activities.json (schema_name soa2usdm-activity-inventory, schema_version 1.0):
+activities.json (schema_name soa2usdm-activity-inventory, schema_version 2.0):
   collection, generated_at, counts, activities[] — one entry per unified
   activity: protocol_id, sponsor, d4k_folder, therapeutic_area, xact_id,
   activity_name, parent_name, hierarchy_level, is_section_header, is_redacted,
@@ -235,7 +235,7 @@ def generate_activity_inventory(collection: str):
                      for s, n in sorted(sp_counts.items()))
     propts = "".join(f'<option value="{esc(p)}">{esc(p)}</option>' for p in protocols)
 
-    payload = {"schema_name": "soa2usdm-activity-inventory", "schema_version": "1.0",
+    payload = {"schema_name": "soa2usdm-activity-inventory", "schema_version": "2.0",
                "collection": collection, "generated_at": generated_at,
                "counts": counts, "activities": cons}
     data_json = json.dumps(cons, ensure_ascii=False).replace("</", "<\\/")

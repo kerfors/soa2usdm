@@ -39,6 +39,10 @@ def apply_corrections(raw: dict, corrections_doc: dict) -> dict:
         remove  -- drop entries matching `match` (must hit at least one)
         confirm -- change nothing; records that the review item named in
                    `review_item` was examined and the call kept
+        add_item    -- append `value` to the array-valued `field` of the
+                       single entry matching `match`
+        remove_item -- drop from that array the one element equal to `value`
+                       (must be there exactly once)
 
     A correction may name a `review_item` (an id from the extraction's
     `review_items`); the id must exist, because that reference is the only
@@ -85,6 +89,25 @@ def apply_corrections(raw: dict, corrections_doc: dict) -> dict:
             if len(kept) == len(arr):
                 raise ValueError(f"Correction {c['id']}: 'remove' match {match} hit no entries")
             doc[target] = kept
+        elif op in ("add_item", "remove_item"):
+            if "set" in c:
+                raise ValueError(f"Correction {c['id']}: '{op}' takes 'field' and 'value', not 'set'")
+            match = c["match"]
+            hits = [item for item in arr if all(item.get(k) == v for k, v in match.items())]
+            if len(hits) != 1:
+                raise ValueError(f"Correction {c['id']}: '{op}' match {match} hit {len(hits)} entries (expected 1)")
+            field = c["field"]
+            elements = hits[0][field]
+            if not isinstance(elements, list):
+                raise ValueError(f"Correction {c['id']}: field '{field}' is not an array")
+            value = c["value"]
+            if op == "add_item":
+                elements.append(value)
+            else:
+                count = elements.count(value)
+                if count != 1:
+                    raise ValueError(f"Correction {c['id']}: 'remove_item' value is in '{field}' {count} times (expected 1)")
+                elements.remove(value)
         else:
             raise ValueError(f"Correction {c['id']}: unknown op '{op}'")
     return doc

@@ -860,7 +860,7 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
     
     return {
         "schema_name": "soa-table-resolved",
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "resolution_metadata": resolution_metadata,
         "extraction_metadata": extraction.get("extraction_metadata", {}),
         "table_metadata": resolved_table_meta,

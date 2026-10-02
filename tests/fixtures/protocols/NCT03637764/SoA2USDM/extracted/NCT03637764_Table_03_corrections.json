@@ -1,0 +1,43 @@
+{
+ "schema_name": "soa-table-corrections",
+ "schema_version": "1.0",
+ "target_extraction": "NCT03637764_Table_03_extraction.json",
+ "corrections": [
+  {
+   "id": "corr-001",
+   "target": "activities",
+   "op": "confirm",
+   "review_item": "D11",
+   "reason": "Kept as extracted: the three label columns become a hierarchy (Sample Collection label -> 'Core n' -> analysis row carrying the marks); row_position is reading order, not the physical row. Rule (group H): a label cell spanning sub-rows is a parent with children. (Kerstin, 2026-09-27, item-19 session.)",
+   "source_ref": {
+    "page": 24
+   },
+   "by": "Kerstin Forsberg",
+   "at": "2026-09-27T21:00:00+02:00"
+  },
+  {
+   "id": "corr-002",
+   "target": "table_metadata",
+   "op": "confirm",
+   "review_item": "D12",
+   "reason": "Kept as extracted (subsidiary): finer per-cycle breakdown of the Table 01 row 'Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw' ('See Biomarker Flow Chart'); same participants, not a separate timeline. main_soa would also split consolidation (inventory item 10). (Kerstin, 2026-09-27, item-19 session.)",
+   "source_ref": {
+    "page": 24
+   },
+   "by": "Kerstin Forsberg",
+   "at": "2026-09-27T21:00:00+02:00"
+  },
+  {
+   "id": "corr-003",
+   "target": "annotations",
+   "op": "confirm",
+   "review_item": "D13",
+   "reason": "Kept as extracted: the Notes cell beside the three biopsy-core rows is one rule-bounded cell and stays one note (n4) bound to all three core rows. Rule (group M): a note is bound to what it names; a note cell spanning several rows is one annotation with a location per covered row. The 'I 02' link target is not in the excerpt and stays as printed. (Kerstin, 2026-09-27, item-19 session.)",
+   "source_ref": {
+    "page": 24
+   },
+   "by": "Kerstin Forsberg",
+   "at": "2026-09-27T21:00:00+02:00"
+  }
+ ]
+}

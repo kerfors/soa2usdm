@@ -103,7 +103,7 @@ def generate_collections_index_html() -> str:
   <div class="panel">
   <ul>
     <li><strong>Layer&nbsp;1 &mdash; Extraction:</strong> SoA table(s) transcribed from the protocol PDF to
-        <code>soa-table-extraction</code> JSON (single-pass, or a PDF&rarr;Excel&rarr;JSON path for large tables),
+        <code>soa-table-extraction</code> JSON (single-pass),
         ending with an extraction log of every judgement call.</li>
     <li><strong>Corrections:</strong> human review findings applied as an auditable sidecar
         (<code>*_corrections.json</code>) &mdash; the raw extraction is never overwritten.</li>

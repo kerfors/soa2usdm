@@ -200,6 +200,7 @@
             "window",
             "modality",
             "condition",
+            "visit_attribute",
             "other"
           ],
           "description": "Domain classification. Validated during resolution - must be assigned (no null)."
@@ -750,8 +751,8 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "1.0",
-      "description": "Schema version"
+      "enum": ["1.0", "1.1"],
+      "description": "Schema version. 1.1 adds property_type 'visit_attribute'; files stamped 1.0 remain valid."
     },
     "resolution_metadata": {
       "$ref": "#/definitions/resolution_metadata",

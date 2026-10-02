@@ -1,0 +1,55 @@
+{
+ "schema_name": "soa-table-corrections",
+ "schema_version": "1.0",
+ "target_extraction": "NCT03637764_Table_02_extraction.json",
+ "corrections": [
+  {
+   "id": "corr-001",
+   "target": "schedule_properties",
+   "op": "confirm",
+   "review_item": "D7",
+   "reason": "Kept as extracted: the atezolizumab and isatuximab 'Sample RNT (h)' rows are header levels 4 and 5 in print order, the two window rows without level. Both RNT rows are needed to tell the columns apart; the level order follows print order only, as the property comments say. (Kerstin, 2026-09-27, item-19 session.)",
+   "source_ref": {
+    "page": 22
+   },
+   "by": "Kerstin Forsberg",
+   "at": "2026-09-27T21:00:00+02:00"
+  },
+  {
+   "id": "corr-002",
+   "target": "activity_schedule",
+   "op": "confirm",
+   "review_item": "D8",
+   "reason": "Kept as extracted: the isatuximab infusion marks stay in the columns their drawn cells cover (4:5, 8, 9:10, 12:13, 15, 17:18, 21), not realigned to the isatuximab SOI column. Isatuximab is infused after atezolizumab; footnote b places the isatuximab predose sample (P00) at the atezolizumab predose time, so P00 in the SOI column and the infusion one column right are consistent with the drawing. (Kerstin, 2026-09-27, item-19 session.)",
+   "source_ref": {
+    "page": 22
+   },
+   "by": "Kerstin Forsberg",
+   "at": "2026-09-27T21:00:00+02:00"
+  },
+  {
+   "id": "corr-003",
+   "target": "activities",
+   "op": "confirm",
+   "review_item": "D9",
+   "reason": "Kept as extracted: the PK rows keep their full printed two-line labels 'Atezolizumab Sample ID' / 'Isatuximab Sample ID'. (Kerstin, 2026-09-27, item-19 session.)",
+   "source_ref": {
+    "page": 22
+   },
+   "by": "Kerstin Forsberg",
+   "at": "2026-09-27T21:00:00+02:00"
+  },
+  {
+   "id": "corr-004",
+   "target": "schedule_grid",
+   "op": "confirm",
+   "review_item": "D10",
+   "reason": "Kept as extracted (Tables 02 and 03): a header cell merged vertically over two header rows is recorded once, on the upper row ('EOT', 'FUP (90\u00b17 days)' on the Cycle row; 'Screening' on the Study phase row of Table 03), the covered cells empty. Rule (group F): header cells over several header rows are recorded once, on the row whose type matches the content; covered cells empty; no value repeated, no row added. (Kerstin, 2026-09-27, item-19 session.)",
+   "source_ref": {
+    "page": 22
+   },
+   "by": "Kerstin Forsberg",
+   "at": "2026-09-27T21:00:00+02:00"
+  }
+ ]
+}

@@ -12,7 +12,8 @@
       "description": "Schema identifier."
     },
     "schema_version": {
-      "const": "1.0"
+      "enum": ["1.0", "1.1"],
+      "description": "Schema version. 1.1 adds ops 'add_item' and 'remove_item' with 'field' and 'value'; files stamped 1.0 remain valid."
     },
     "target_extraction": {
       "type": "string",
@@ -36,16 +37,23 @@
           },
           "op": {
             "type": "string",
-            "enum": ["add", "set", "remove", "confirm"],
-            "description": "add=append 'set' as a new entry; set=update the single entry matching 'match'; remove=drop entries matching 'match'; confirm=change nothing - records that the reviewer examined the review item named in 'review_item' and kept the call (requires 'review_item'; no 'match' or 'set')."
+            "enum": ["add", "set", "remove", "confirm", "add_item", "remove_item"],
+            "description": "add=append 'set' as a new entry; set=update the single entry matching 'match'; remove=drop entries matching 'match'; confirm=change nothing - records that the reviewer examined the review item named in 'review_item' and kept the call (requires 'review_item'; no 'match' or 'set'); add_item=append 'value' to the array-valued field named in 'field' of the single entry matching 'match'; remove_item=drop from that array the one element equal to 'value' (an error if it is not there exactly once). Both require 'field' and 'value' and take no 'set'."
           },
           "match": {
             "type": "object",
-            "description": "Key fields locating the target entry (e.g. table_number/row_position/column_position). Required for 'set' and 'remove'; omit for 'add'."
+            "description": "Key fields locating the target entry (e.g. table_number/row_position/column_position). Required for 'set', 'remove', 'add_item' and 'remove_item'; omit for 'add'."
           },
           "set": {
             "type": "object",
             "description": "Field values to write. For 'add', the full new entry; for 'set', the fields to update. Omit for 'remove'."
+          },
+          "field": {
+            "type": "string",
+            "description": "For 'add_item' and 'remove_item': name of the array-valued field of the matched entry (e.g. 'marker_locations')."
+          },
+          "value": {
+            "description": "For 'add_item' and 'remove_item': the one array element to append or to drop, written in full (compared as a whole, not field by field)."
           },
           "reason": {
             "type": "string",

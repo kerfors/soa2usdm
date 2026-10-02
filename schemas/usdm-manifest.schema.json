@@ -128,7 +128,7 @@
     },
     "timingAxis": {
       "type": "object",
-      "description": "Optional. The column property carrying study days, and the anchor column. Only plain study-day values are converted to Timing.",
+      "description": "Optional. The column property carrying study days, and the anchor column. Only values printed as 'D' and a day number, with an optional window in brackets (e.g. 'D1', 'D-7', 'D15 (±2)'), are converted to Timing.",
       "required": ["property", "anchor"],
       "additionalProperties": false,
       "properties": {

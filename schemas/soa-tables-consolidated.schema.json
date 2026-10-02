@@ -23,8 +23,8 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "1.1",
-      "description": "Schema version"
+      "enum": ["1.1", "1.2"],
+      "description": "Schema version. 1.2 adds property_type 'visit_attribute'; files stamped 1.1 remain valid."
     },
     "protocol_id": {
       "type": "string",
@@ -321,7 +321,7 @@
         },
         "property_type": {
           "type": "string",
-          "enum": ["epoch", "period", "cycle", "visit", "study_day", "week", "timepoint", "window", "modality", "condition", "other"],
+          "enum": ["epoch", "period", "cycle", "visit", "study_day", "week", "timepoint", "window", "modality", "condition", "visit_attribute", "other"],
           "description": "Property type classification"
         },
         "property_comment": {

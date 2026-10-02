@@ -141,6 +141,34 @@ def test_table_metadata_rejects_match_other_ops_and_table_number():
             apply_corrections(raw, _sidecar(_corr("corr-001", target="table_metadata", **bad)))
 
 
+def test_add_item_and_remove_item_change_one_array_element():
+    """Release A: one element of an array-valued field is added or removed without
+    rewriting the whole list (item 25h had to restate all marker_locations)."""
+    raw = json.loads(RAW_T1.read_text())
+    ann = next(a for a in raw["annotations"] if a["marker_locations"])
+    match = {"annotation_marker": ann["annotation_marker"]}
+    assert sum(1 for a in raw["annotations"] if a["annotation_marker"] == ann["annotation_marker"]) == 1
+    first = ann["marker_locations"][0]
+    item = dict(target="annotations", match=match, field="marker_locations", value=first)
+
+    removed = apply_corrections(raw, _sidecar(_corr("corr-001", op="remove_item", **item)))
+    out = next(a for a in removed["annotations"] if a["annotation_marker"] == ann["annotation_marker"])
+    assert out["marker_locations"] == ann["marker_locations"][1:]
+    assert len(ann["marker_locations"]) == len(out["marker_locations"]) + 1   # raw not mutated
+
+    back = apply_corrections(removed, _sidecar(_corr("corr-001", op="add_item", **item)))
+    out = next(a for a in back["annotations"] if a["annotation_marker"] == ann["annotation_marker"])
+    assert out["marker_locations"] == ann["marker_locations"][1:] + [first]
+
+    with pytest.raises(ValueError, match="0 times"):
+        apply_corrections(removed, _sidecar(_corr("corr-001", op="remove_item", **item)))
+    with pytest.raises(ValueError, match="not 'set'"):
+        apply_corrections(raw, _sidecar(_corr("corr-001", op="remove_item", set={}, **item)))
+    doc = _sidecar(_corr("corr-001", op="remove_item", **item))
+    doc["schema_version"] = "1.1"
+    jsonschema.validate(doc, _schema("soa-table-corrections.schema.json"))
+
+
 # ---------------------------------------------------------------- derived status
 
 def test_review_status_is_derived_from_sidecar_references(tmp_path):

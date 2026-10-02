@@ -193,7 +193,7 @@ same reason they never printed the epoch row.
 ## 5. The shell generator
 
 `shellgen.py`, 264 lines, one class, no protocol-specific branches. Input is a hand-written
-YAML manifest (`schemas/shell-manifest.schema.json`); output is a USDM v4 document with
+YAML manifest (`schemas/usdm-manifest.schema.json`); output is a USDM v4 document with
 `activities`, `encounters` and `scheduleTimelines` empty.
 
 ### Evidence it is mechanical
@@ -459,7 +459,7 @@ dereference.
 | Path | What |
 |---|---|
 | `shellgen.py` | The generator. 264 lines, no protocol-specific branches. |
-| `schemas/shell-manifest.schema.json` | Manifest schema. All three worked manifests validate. |
+| `schemas/usdm-manifest.schema.json` | Manifest schema. All three worked manifests validate. |
 | `notebooks/70_soa_to_usdm.ipynb` | Consolidated table → USDM (CDISC Pilot). |
 | `notebooks/80_shell_from_protocol.ipynb` | Shell for H2Q-MC-LZZT(c) from the protocol PDF. |
 | `notebooks/85_shell_repeatability_test.ipynb` | Shell for MO29112 — the second-protocol test. |
@@ -497,7 +497,7 @@ Free of protocol content, verified by scan:
 | File | |
 |---|---|
 | `shellgen.py` | no product, indication or criterion text |
-| `schemas/shell-manifest.schema.json` | " |
+| `schemas/usdm-manifest.schema.json` | " |
 | `documents/usdm-instantiation.md` | " |
 | `notebooks/70_soa_to_usdm.ipynb` | reads the consolidated JSON only |
 | `notebooks/95_track_soa_test.ipynb` | " |

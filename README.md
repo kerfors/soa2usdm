@@ -52,13 +52,12 @@ soa2usdm/
 │   ├── soa-table-corrections.schema.json    # Layer 1 corrections sidecar
 │   ├── soa-table-resolved.schema.json       # Layer 2
 │   ├── soa-tables-consolidated.schema.json  # Layer 3
-│   └── usdm-manifest.schema.json            # USDM Instantiation manifest
+│   ├── usdm-manifest.schema.json            # USDM Instantiation manifest
+│   └── soa2usdm-activity-inventory.schema.json  # Activity inventory (activities.json)
 │
 ├── prompts/
-│   ├── EXTRACTION_WORKFLOW_GUIDE.md          # How to run all conversations
-│   ├── PDF_TO_EXCEL_PROMPT.md                # Conversation 1
-│   ├── EXCEL_TO_JSON_PROMPT.md               # Conversation 2
-│   └── PDF_TO_JSON_PROMPT.md                 # Non-interactive single-pass path
+│   ├── EXTRACTION_WORKFLOW_GUIDE.md          # How to run extraction and the pipeline
+│   └── PDF_TO_JSON_PROMPT.md                 # Layer 1 extraction, single pass
 │
 ├── documents/
 │   ├── soa2usdm-schema-architecture.md       # Three-layer design rationale

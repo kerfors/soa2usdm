@@ -1,0 +1,3320 @@
+{
+  "schema_name": "soa-table-resolved",
+  "schema_version": "1.1",
+  "resolution_metadata": {
+    "resolved_at": "2026-10-02T19:42:19.929835+00:00",
+    "resolver": "soa2usdm.steps.resolve v1.0",
+    "source_extraction": {
+      "schema_name": "soa-table-extraction",
+      "schema_version": "1.0",
+      "extraction_file": "NCT03637764_Table_02_extraction.verified.json",
+      "extraction_status": "ready_for_resolution"
+    },
+    "validation_results": {
+      "structure_valid": true,
+      "hierarchy_valid": true,
+      "annotations_valid": true,
+      "validation_warnings": [
+        "Property 'Sample time window Atezolizumab' (type=window) has no hierarchical_level but sits between L4 and L5 — may be a missing level assignment"
+      ],
+      "validation_errors": [],
+      "method_provenance": [
+        "indentation_level:font_signal: 9"
+      ]
+    },
+    "resolution_status": "resolved_with_warnings",
+    "ready_for_integration": true,
+    "resolution_notes": ""
+  },
+  "extraction_metadata": {
+    "extracted_at": "2026-09-27T21:05:00+02:00",
+    "extractor": "Claude, PDF_TO_JSON_PROMPT single-pass",
+    "prompt_version": "3.8.1",
+    "source_document": {
+      "filename": "NCT03637764_soa.pdf",
+      "document_type": "protocol",
+      "document_version": "Amended Clinical Trial Protocol 05, Version number: 1",
+      "document_date": "23-Nov-2020"
+    },
+    "extraction_status": "ready_for_resolution",
+    "extraction_notes": "Text-layer PDF with vector rule lines. Grid read with pdftotext -bbox, column/row boundaries from rule lines recovered on a 200 dpi render (§1d). One label column (L=1); data columns 2-23. Body rows 9-16 are drawn with vertical rules offset up to ~16 px (200 dpi) from the header rules; body cells assigned to header columns by majority x-overlap. Grey-shaded cells without text carry no entry; '-' is transcribed literally. Abbreviation block on p.23 not extracted (its terms occur only as cell values, never as markers).",
+    "model": "claude-opus-5-5"
+  },
+  "table_metadata": {
+    "table_id": "table-002",
+    "table_number": 2,
+    "table_type": "subsidiary",
+    "table_title": "PHARMACOKINETICS AND IMMUNOGENICITY FLOW CHART",
+    "table_purpose": "Per-sample PK and ADA timing (relative to start/end of infusion) for atezolizumab and isatuximab, with IMP infusion timing",
+    "page_start": 22,
+    "page_end": 23,
+    "track_label": null,
+    "column_count": 22,
+    "row_count": 16,
+    "header_row_count": 7,
+    "activity_row_count": 9,
+    "notes": "Typed subsidiary: the main SoA (Table 01, p.21) carries single rows 'PK' and 'ADA' reading 'See Pharmacokinetics and immunogenicity Flow Chart'; this table breaks those into per-sample IDs on a finer, within-day timepoint grid (SOI/EOI/EOI+Xh). Grid on p.22; footnotes f-j and abbreviations continue on p.23 (no body rows there)."
+  },
+  "schedule_properties": [
+    {
+      "property_id": "prop-001",
+      "table_id": "table-002",
+      "row_position": 1,
+      "property_name": "Study Phase",
+      "property_name_source": {
+        "row_position": 1,
+        "column_position": 1,
+        "cell_value": "Study Phase"
+      },
+      "property_type": "epoch",
+      "property_comment": "Study phase band: 'Treatment Phase' spans all cycle columns (2:21), 'Post-treatment' spans EOT and FUP (22:23). Major study phases -> epoch.",
+      "hierarchical_level": 1,
+      "parent_property_id": null,
+      "child_property_ids": [
+        "prop-002"
+      ],
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "property_id": "prop-002",
+      "table_id": "table-002",
+      "row_position": 2,
+      "property_name": "Cycle",
+      "property_name_source": {
+        "row_position": 2,
+        "column_position": 1,
+        "cell_value": "Cycle"
+      },
+      "property_type": "cycle",
+      "property_comment": "Treatment cycles: Cycle 1 (2:10), Cycle 2 (11:13), Cycle 3 (14:15), Cycle 4 (16:19), Subsequent Cycles (20:21); EOT (22) and FUP (90±7 days) (23) are cells vertically merged across this row and the Day row, recorded on this row only. Repeating oncology cycles -> cycle.",
+      "hierarchical_level": 2,
+      "parent_property_id": "prop-001",
+      "child_property_ids": [
+        "prop-003"
+      ],
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "property_id": "prop-003",
+      "table_id": "table-002",
+      "row_position": 3,
+      "property_name": "Day within the Cycle",
+      "property_name_source": {
+        "row_position": 3,
+        "column_position": 1,
+        "cell_value": "Day within the Cycle"
+      },
+      "property_type": "study_day",
+      "property_comment": "Day within the cycle: D1 (2:8), D15 (9:10) in Cycle 1; D1 for every later cycle. Columns 22-23 are covered by the vertically merged EOT / FUP cells from the Cycle row. Note the source prints the 72h and 168h (SOI of Day 8) columns under the Cycle 1 'D1' span. Day numbers -> study_day.",
+      "hierarchical_level": 3,
+      "parent_property_id": "prop-002",
+      "child_property_ids": [
+        "prop-004"
+      ],
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "property_id": "prop-004",
+      "table_id": "table-002",
+      "row_position": 4,
+      "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+      "property_name_source": {
+        "row_position": 4,
+        "column_position": 1,
+        "cell_value": "Sample RNT (h)\nRef: SOI\nAtezolizumab"
+      },
+      "property_type": "timepoint",
+      "property_comment": "Atezolizumab relative nominal sampling times (SOI, EOI, EOI +30 min), referenced to atezolizumab start of infusion; '-' where no atezolizumab timepoint applies. Within-visit timing -> timepoint. Drug-specific: governs the atezolizumab PK/ADA rows. Parallel to row 6 (isatuximab scale); stacked levels 4 and 5 follow print order, not a parent-child relation.",
+      "hierarchical_level": 4,
+      "parent_property_id": "prop-003",
+      "child_property_ids": [
+        "prop-006"
+      ],
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "property_id": "prop-005",
+      "table_id": "table-002",
+      "row_position": 5,
+      "property_name": "Sample time window Atezolizumab",
+      "property_name_source": {
+        "row_position": 5,
+        "column_position": 1,
+        "cell_value": "Sample time\nwindow\nAtezolizumab"
+      },
+      "property_type": "window",
+      "property_comment": "Allowed sampling windows for the atezolizumab timepoints in row 4 ([-24h, SOI], ±5 min, ±10 min). Window qualifier of row 4; does not by itself distinguish columns -> level null.",
+      "hierarchical_level": null,
+      "parent_property_id": null,
+      "child_property_ids": [],
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "property_id": "prop-006",
+      "table_id": "table-002",
+      "row_position": 6,
+      "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+      "property_name_source": {
+        "row_position": 6,
+        "column_position": 1,
+        "cell_value": "Sample RNT (h)\nRef: SOI Isatuximab"
+      },
+      "property_type": "timepoint",
+      "property_comment": "Isatuximab relative nominal sampling times (SOI, EOI, EOI +4h, 72h, 168h (SOI of Day 8), EOI +1h), referenced to isatuximab start of infusion; '-' where no isatuximab timepoint applies. Within-visit timing -> timepoint. Drug-specific: governs the isatuximab PK/ADA rows. Parallel to row 4; this row carries the finest column split of the table.",
+      "hierarchical_level": 5,
+      "parent_property_id": "prop-004",
+      "child_property_ids": [],
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "property_id": "prop-007",
+      "table_id": "table-002",
+      "row_position": 7,
+      "property_name": "Sample time window Isatuximab",
+      "property_name_source": {
+        "row_position": 7,
+        "column_position": 1,
+        "cell_value": "Sample time\nwindow Isatuximab"
+      },
+      "property_type": "window",
+      "property_comment": "Allowed sampling windows for the isatuximab timepoints in row 6 (±10 min, ±30 min, ±5 h, [-24h, SOI]). Window qualifier of row 6 -> level null.",
+      "hierarchical_level": null,
+      "parent_property_id": null,
+      "child_property_ids": [],
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    }
+  ],
+  "schedule_columns": [
+    {
+      "column_id": "col-002",
+      "table_id": "table-002",
+      "column_position": 2,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "[-24h, SOI]",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D1 / SOI / [-24h, SOI] / SOI / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-003",
+      "table_id": "table-002",
+      "column_position": 3,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "EOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "±5 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D1 / EOI / ±5 min / - / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-004",
+      "table_id": "table-002",
+      "column_position": 4,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "EOI +30 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "±10 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D1 / EOI +30 min / ±10 min / - / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-005",
+      "table_id": "table-002",
+      "column_position": 5,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "EOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "±10 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / EOI / ±10 min",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-006",
+      "table_id": "table-002",
+      "column_position": 6,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "EOI +4h",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "±30 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / EOI +4h / ±30 min",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-007",
+      "table_id": "table-002",
+      "column_position": 7,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "72h",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "±5 h",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / 72h / ±5 h",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-008",
+      "table_id": "table-002",
+      "column_position": 8,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "168h (SOI of Day 8)",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "[-24h, SOI]",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / 168h (SOI of Day 8) / [-24h, SOI]",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-009",
+      "table_id": "table-002",
+      "column_position": 9,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D15",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "[-24h, SOI]",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D15 / - / - / SOI / [-24h, SOI]",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-010",
+      "table_id": "table-002",
+      "column_position": 10,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D15",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "EOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "±10 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 1 / D15 / - / - / EOI / ±10 min",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-011",
+      "table_id": "table-002",
+      "column_position": 11,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 2",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "[-24h, SOI]",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 2 / D1 / SOI / [-24h, SOI] / SOI / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-012",
+      "table_id": "table-002",
+      "column_position": 12,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 2",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 2 / D1 / - / - / - / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-013",
+      "table_id": "table-002",
+      "column_position": 13,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 2",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "EOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "±10 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 2 / D1 / - / - / EOI / ±10 min",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-014",
+      "table_id": "table-002",
+      "column_position": 14,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 3",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "[-24h, SOI]",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 3 / D1 / SOI / [-24h, SOI] / SOI / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-015",
+      "table_id": "table-002",
+      "column_position": 15,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 3",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 3 / D1 / - / - / - / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-016",
+      "table_id": "table-002",
+      "column_position": 16,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 4",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "[-24h, SOI]",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 4 / D1 / SOI / [-24h, SOI] / SOI / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-017",
+      "table_id": "table-002",
+      "column_position": 17,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 4",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 4 / D1 / - / - / - / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-018",
+      "table_id": "table-002",
+      "column_position": 18,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 4",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "EOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "±10 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 4 / D1 / - / - / EOI / ±10 min",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-019",
+      "table_id": "table-002",
+      "column_position": 19,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Cycle 4",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "EOI +1h",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "±10 min",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Cycle 4 / D1 / - / - / EOI +1h / ±10 min",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-020",
+      "table_id": "table-002",
+      "column_position": 20,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Subsequent Cycles",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "[-24h, SOI]",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "SOI",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Subsequent Cycles / D1 / SOI / [-24h, SOI] / SOI / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-021",
+      "table_id": "table-002",
+      "column_position": 21,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Treatment Phase",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "Subsequent Cycles",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-003",
+          "value": "D1",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Treatment Phase / Subsequent Cycles / D1 / - / - / - / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-022",
+      "table_id": "table-002",
+      "column_position": 22,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Post-treatment",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "EOT",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Post-treatment / EOT / - / - / - / -",
+      "linked_annotation_ids": []
+    },
+    {
+      "column_id": "col-023",
+      "table_id": "table-002",
+      "column_position": 23,
+      "is_label_column": false,
+      "column_values": [
+        {
+          "property_id": "prop-001",
+          "value": "Post-treatment",
+          "is_merged": true,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-002",
+          "value": "FUP (90±7 days)",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-004",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-005",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-006",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        },
+        {
+          "property_id": "prop-007",
+          "value": "-",
+          "is_merged": false,
+          "annotation_markers": ""
+        }
+      ],
+      "composite_label": "Post-treatment / FUP (90±7 days) / - / - / - / -",
+      "linked_annotation_ids": []
+    }
+  ],
+  "activities": [
+    {
+      "activity_id": "act-001",
+      "table_id": "table-002",
+      "row_position": 8,
+      "activity_name": "IMP administration (IV infusion)",
+      "activity_name_source": {
+        "cell_text": "IMP administration (IV infusion)",
+        "indentation_level": 0,
+        "indentation_method": "font_signal",
+        "text_formatting": [
+          "bold"
+        ]
+      },
+      "hierarchy_level": 0,
+      "is_section_header": true,
+      "parent_activity_id": null,
+      "child_activity_ids": [
+        "act-002",
+        "act-003"
+      ],
+      "has_schedule_data": false,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "table_id": "table-002",
+      "row_position": 9,
+      "activity_name": "Atezolizumab",
+      "activity_name_source": {
+        "cell_text": "Atezolizumab",
+        "indentation_level": 1,
+        "indentation_method": "font_signal"
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-001",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "table_id": "table-002",
+      "row_position": 10,
+      "activity_name": "Isatuximab",
+      "activity_name_source": {
+        "cell_text": "Isatuximab",
+        "indentation_level": 1,
+        "indentation_method": "font_signal"
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-001",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-004",
+      "table_id": "table-002",
+      "row_position": 11,
+      "activity_name": "Pharmacokinetics",
+      "activity_name_source": {
+        "cell_text": "Pharmacokinetics a,i",
+        "indentation_level": 0,
+        "indentation_method": "font_signal",
+        "text_formatting": [
+          "bold"
+        ]
+      },
+      "hierarchy_level": 0,
+      "is_section_header": true,
+      "parent_activity_id": null,
+      "child_activity_ids": [
+        "act-005",
+        "act-006"
+      ],
+      "has_schedule_data": false,
+      "annotation_markers": "a,i",
+      "linked_annotation_ids": [
+        "annot-001",
+        "annot-009"
+      ]
+    },
+    {
+      "activity_id": "act-005",
+      "table_id": "table-002",
+      "row_position": 12,
+      "activity_name": "Atezolizumab Sample ID",
+      "activity_name_source": {
+        "cell_text": "Atezolizumabj\nSample ID",
+        "indentation_level": 1,
+        "indentation_method": "font_signal"
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-004",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "j",
+      "linked_annotation_ids": [
+        "annot-010"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "table_id": "table-002",
+      "row_position": 13,
+      "activity_name": "Isatuximab Sample ID",
+      "activity_name_source": {
+        "cell_text": "Isatuximabi\nSample ID",
+        "indentation_level": 1,
+        "indentation_method": "font_signal"
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-004",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "i",
+      "linked_annotation_ids": [
+        "annot-009"
+      ]
+    },
+    {
+      "activity_id": "act-007",
+      "table_id": "table-002",
+      "row_position": 14,
+      "activity_name": "Immunogenicity (ADA)",
+      "activity_name_source": {
+        "cell_text": "Immunogenicity (ADA) a, e ,i",
+        "indentation_level": 0,
+        "indentation_method": "font_signal",
+        "text_formatting": [
+          "bold"
+        ]
+      },
+      "hierarchy_level": 0,
+      "is_section_header": true,
+      "parent_activity_id": null,
+      "child_activity_ids": [
+        "act-008",
+        "act-009"
+      ],
+      "has_schedule_data": false,
+      "annotation_markers": "a,e,i",
+      "linked_annotation_ids": [
+        "annot-001",
+        "annot-005",
+        "annot-009"
+      ]
+    },
+    {
+      "activity_id": "act-008",
+      "table_id": "table-002",
+      "row_position": 15,
+      "activity_name": "Atezolizumab",
+      "activity_name_source": {
+        "cell_text": "Atezolizumab c, j",
+        "indentation_level": 1,
+        "indentation_method": "font_signal"
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-007",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "c,j",
+      "linked_annotation_ids": [
+        "annot-003",
+        "annot-010"
+      ]
+    },
+    {
+      "activity_id": "act-009",
+      "table_id": "table-002",
+      "row_position": 16,
+      "activity_name": "Isatuximab",
+      "activity_name_source": {
+        "cell_text": "Isatuximabg,h i",
+        "indentation_level": 1,
+        "indentation_method": "font_signal"
+      },
+      "hierarchy_level": 1,
+      "is_section_header": false,
+      "parent_activity_id": "act-007",
+      "child_activity_ids": [],
+      "has_schedule_data": true,
+      "annotation_markers": "g,h,i",
+      "linked_annotation_ids": [
+        "annot-007",
+        "annot-008",
+        "annot-009"
+      ]
+    }
+  ],
+  "activity_schedule": [
+    {
+      "activity_id": "act-002",
+      "column_id": "col-002",
+      "row_position": 9,
+      "column_position": 2,
+      "cell_value": "X------------X",
+      "cell_value_type": "other",
+      "source_range": "2:3",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "column_id": "col-003",
+      "row_position": 9,
+      "column_position": 3,
+      "cell_value": "X------------X",
+      "cell_value_type": "other",
+      "source_range": "2:3",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "column_id": "col-011",
+      "row_position": 9,
+      "column_position": 11,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "column_id": "col-014",
+      "row_position": 9,
+      "column_position": 14,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "column_id": "col-016",
+      "row_position": 9,
+      "column_position": 16,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-002",
+      "column_id": "col-020",
+      "row_position": 9,
+      "column_position": 20,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-004",
+      "row_position": 10,
+      "column_position": 4,
+      "cell_value": "X--------------X",
+      "cell_value_type": "other",
+      "source_range": "4:5",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-005",
+      "row_position": 10,
+      "column_position": 5,
+      "cell_value": "X--------------X",
+      "cell_value_type": "other",
+      "source_range": "4:5",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-008",
+      "row_position": 10,
+      "column_position": 8,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-009",
+      "row_position": 10,
+      "column_position": 9,
+      "cell_value": "X----------------X",
+      "cell_value_type": "other",
+      "source_range": "9:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-010",
+      "row_position": 10,
+      "column_position": 10,
+      "cell_value": "X----------------X",
+      "cell_value_type": "other",
+      "source_range": "9:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-012",
+      "row_position": 10,
+      "column_position": 12,
+      "cell_value": "X----------------X",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-013",
+      "row_position": 10,
+      "column_position": 13,
+      "cell_value": "X----------------X",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-015",
+      "row_position": 10,
+      "column_position": 15,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-017",
+      "row_position": 10,
+      "column_position": 17,
+      "cell_value": "X------------X",
+      "cell_value_type": "other",
+      "source_range": "17:18",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-018",
+      "row_position": 10,
+      "column_position": 18,
+      "cell_value": "X------------X",
+      "cell_value_type": "other",
+      "source_range": "17:18",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-003",
+      "column_id": "col-021",
+      "row_position": 10,
+      "column_position": 21,
+      "cell_value": "X",
+      "cell_value_type": "marker",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-002",
+      "row_position": 12,
+      "column_position": 2,
+      "cell_value": "S00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-003",
+      "row_position": 12,
+      "column_position": 3,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-004",
+      "row_position": 12,
+      "column_position": 4,
+      "cell_value": "S01",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-005",
+      "row_position": 12,
+      "column_position": 5,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "5:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-006",
+      "row_position": 12,
+      "column_position": 6,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "5:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-007",
+      "row_position": 12,
+      "column_position": 7,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "5:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-008",
+      "row_position": 12,
+      "column_position": 8,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "5:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-009",
+      "row_position": 12,
+      "column_position": 9,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "5:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-010",
+      "row_position": 12,
+      "column_position": 10,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "5:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-011",
+      "row_position": 12,
+      "column_position": 11,
+      "cell_value": "S00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "c",
+      "linked_annotation_ids": [
+        "annot-003"
+      ]
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-012",
+      "row_position": 12,
+      "column_position": 12,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-013",
+      "row_position": 12,
+      "column_position": 13,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-014",
+      "row_position": 12,
+      "column_position": 14,
+      "cell_value": "S00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "c",
+      "linked_annotation_ids": [
+        "annot-003"
+      ]
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-015",
+      "row_position": 12,
+      "column_position": 15,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-016",
+      "row_position": 12,
+      "column_position": 16,
+      "cell_value": "S00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "c",
+      "linked_annotation_ids": [
+        "annot-003"
+      ]
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-017",
+      "row_position": 12,
+      "column_position": 17,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-018",
+      "row_position": 12,
+      "column_position": 18,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-019",
+      "row_position": 12,
+      "column_position": 19,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-020",
+      "row_position": 12,
+      "column_position": 20,
+      "cell_value": "S00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "c,j",
+      "linked_annotation_ids": [
+        "annot-003",
+        "annot-010"
+      ]
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-021",
+      "row_position": 12,
+      "column_position": 21,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-022",
+      "row_position": 12,
+      "column_position": 22,
+      "cell_value": "SF00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-005",
+      "column_id": "col-023",
+      "row_position": 12,
+      "column_position": 23,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-002",
+      "row_position": 13,
+      "column_position": 2,
+      "cell_value": "P00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-003",
+      "row_position": 13,
+      "column_position": 3,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-004",
+      "row_position": 13,
+      "column_position": 4,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-005",
+      "row_position": 13,
+      "column_position": 5,
+      "cell_value": "P01",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "f",
+      "linked_annotation_ids": [
+        "annot-006"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-006",
+      "row_position": 13,
+      "column_position": 6,
+      "cell_value": "P02",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-007",
+      "row_position": 13,
+      "column_position": 7,
+      "cell_value": "P03",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-008",
+      "row_position": 13,
+      "column_position": 8,
+      "cell_value": "P04",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "d,g",
+      "linked_annotation_ids": [
+        "annot-004",
+        "annot-007"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-009",
+      "row_position": 13,
+      "column_position": 9,
+      "cell_value": "P05",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "g",
+      "linked_annotation_ids": [
+        "annot-007"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-010",
+      "row_position": 13,
+      "column_position": 10,
+      "cell_value": "P06",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "f",
+      "linked_annotation_ids": [
+        "annot-006"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-011",
+      "row_position": 13,
+      "column_position": 11,
+      "cell_value": "P00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b,g",
+      "linked_annotation_ids": [
+        "annot-002",
+        "annot-007"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-012",
+      "row_position": 13,
+      "column_position": 12,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-013",
+      "row_position": 13,
+      "column_position": 13,
+      "cell_value": "P01",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "f",
+      "linked_annotation_ids": [
+        "annot-006"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-014",
+      "row_position": 13,
+      "column_position": 14,
+      "cell_value": "P00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b,g",
+      "linked_annotation_ids": [
+        "annot-002",
+        "annot-007"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-015",
+      "row_position": 13,
+      "column_position": 15,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-016",
+      "row_position": 13,
+      "column_position": 16,
+      "cell_value": "P00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b,g",
+      "linked_annotation_ids": [
+        "annot-002",
+        "annot-007"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-017",
+      "row_position": 13,
+      "column_position": 17,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-018",
+      "row_position": 13,
+      "column_position": 18,
+      "cell_value": "P01",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "f",
+      "linked_annotation_ids": [
+        "annot-006"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-019",
+      "row_position": 13,
+      "column_position": 19,
+      "cell_value": "P02",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-020",
+      "row_position": 13,
+      "column_position": 20,
+      "cell_value": "P00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b,g",
+      "linked_annotation_ids": [
+        "annot-002",
+        "annot-007"
+      ]
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-021",
+      "row_position": 13,
+      "column_position": 21,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-022",
+      "row_position": 13,
+      "column_position": 22,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-006",
+      "column_id": "col-023",
+      "row_position": 13,
+      "column_position": 23,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-002",
+      "row_position": 15,
+      "column_position": 2,
+      "cell_value": "AS00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-003",
+      "row_position": 15,
+      "column_position": 3,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-004",
+      "row_position": 15,
+      "column_position": 4,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-005",
+      "row_position": 15,
+      "column_position": 5,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-006",
+      "row_position": 15,
+      "column_position": 6,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-007",
+      "row_position": 15,
+      "column_position": 7,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-008",
+      "row_position": 15,
+      "column_position": 8,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-009",
+      "row_position": 15,
+      "column_position": 9,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-010",
+      "row_position": 15,
+      "column_position": 10,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-011",
+      "row_position": 15,
+      "column_position": 11,
+      "cell_value": "AS00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-012",
+      "row_position": 15,
+      "column_position": 12,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-013",
+      "row_position": 15,
+      "column_position": 13,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-014",
+      "row_position": 15,
+      "column_position": 14,
+      "cell_value": "AS00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-015",
+      "row_position": 15,
+      "column_position": 15,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-016",
+      "row_position": 15,
+      "column_position": 16,
+      "cell_value": "AS00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-017",
+      "row_position": 15,
+      "column_position": 17,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-018",
+      "row_position": 15,
+      "column_position": 18,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-019",
+      "row_position": 15,
+      "column_position": 19,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-020",
+      "row_position": 15,
+      "column_position": 20,
+      "cell_value": "AS00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "j",
+      "linked_annotation_ids": [
+        "annot-010"
+      ]
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-021",
+      "row_position": 15,
+      "column_position": 21,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-022",
+      "row_position": 15,
+      "column_position": 22,
+      "cell_value": "ASF00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-008",
+      "column_id": "col-023",
+      "row_position": 15,
+      "column_position": 23,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-002",
+      "row_position": 16,
+      "column_position": 2,
+      "cell_value": "AP00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-003",
+      "row_position": 16,
+      "column_position": 3,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-004",
+      "row_position": 16,
+      "column_position": 4,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-005",
+      "row_position": 16,
+      "column_position": 5,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-006",
+      "row_position": 16,
+      "column_position": 6,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-007",
+      "row_position": 16,
+      "column_position": 7,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-008",
+      "row_position": 16,
+      "column_position": 8,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-009",
+      "row_position": 16,
+      "column_position": 9,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-010",
+      "row_position": 16,
+      "column_position": 10,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "3:10",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-011",
+      "row_position": 16,
+      "column_position": 11,
+      "cell_value": "AP00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-012",
+      "row_position": 16,
+      "column_position": 12,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-013",
+      "row_position": 16,
+      "column_position": 13,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "12:13",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-014",
+      "row_position": 16,
+      "column_position": 14,
+      "cell_value": "AP00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-015",
+      "row_position": 16,
+      "column_position": 15,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-016",
+      "row_position": 16,
+      "column_position": 16,
+      "cell_value": "AP00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-017",
+      "row_position": 16,
+      "column_position": 17,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-018",
+      "row_position": 16,
+      "column_position": 18,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-019",
+      "row_position": 16,
+      "column_position": 19,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "17:19",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-020",
+      "row_position": 16,
+      "column_position": 20,
+      "cell_value": "AP00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "b",
+      "linked_annotation_ids": [
+        "annot-002"
+      ]
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-021",
+      "row_position": 16,
+      "column_position": 21,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "21:22",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-022",
+      "row_position": 16,
+      "column_position": 22,
+      "cell_value": "-",
+      "cell_value_type": "other",
+      "source_range": "21:22",
+      "annotation_markers": "",
+      "linked_annotation_ids": []
+    },
+    {
+      "activity_id": "act-009",
+      "column_id": "col-023",
+      "row_position": 16,
+      "column_position": 23,
+      "cell_value": "APF00",
+      "cell_value_type": "other",
+      "source_range": "",
+      "annotation_markers": "h",
+      "linked_annotation_ids": [
+        "annot-008"
+      ]
+    }
+  ],
+  "annotations": [
+    {
+      "annotation_id": "annot-001",
+      "table_id": "table-002",
+      "annotation_marker": "a",
+      "annotation_type": "source_note",
+      "annotation_text": "Refer to the laboratory manual for sample collection, processing and shipping.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-004",
+          "act-007"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 11
+        },
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 14
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-002",
+      "table_id": "table-002",
+      "annotation_marker": "b",
+      "annotation_type": "footnote",
+      "annotation_text": "Isatuximab PK or ADA predose samples should be collected before isatuximab administration and at the same time as atezolizumab predose samples when applicable.",
+      "annotation_scope": "cell",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [],
+        "cell_references": [
+          {
+            "activity_id": "act-006",
+            "column_id": "col-002"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-011"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-014"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-016"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-020"
+          },
+          {
+            "activity_id": "act-009",
+            "column_id": "col-002"
+          },
+          {
+            "activity_id": "act-009",
+            "column_id": "col-011"
+          },
+          {
+            "activity_id": "act-009",
+            "column_id": "col-014"
+          },
+          {
+            "activity_id": "act-009",
+            "column_id": "col-016"
+          },
+          {
+            "activity_id": "act-009",
+            "column_id": "col-020"
+          }
+        ]
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 2
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 11
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 14
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 16
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 20
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 16,
+          "column_position": 2
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 16,
+          "column_position": 11
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 16,
+          "column_position": 14
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 16,
+          "column_position": 16
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 16,
+          "column_position": 20
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-003",
+      "table_id": "table-002",
+      "annotation_marker": "c",
+      "annotation_type": "footnote",
+      "annotation_text": "Atezolizumab sample collected strictly before the start of atezolizumab infusion (during treatment phase).",
+      "annotation_scope": "multiple",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-008"
+        ],
+        "cell_references": [
+          {
+            "activity_id": "act-005",
+            "column_id": "col-011"
+          },
+          {
+            "activity_id": "act-005",
+            "column_id": "col-014"
+          },
+          {
+            "activity_id": "act-005",
+            "column_id": "col-016"
+          },
+          {
+            "activity_id": "act-005",
+            "column_id": "col-020"
+          }
+        ]
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 15
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 12,
+          "column_position": 11
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 12,
+          "column_position": 14
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 12,
+          "column_position": 16
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 12,
+          "column_position": 20
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-004",
+      "table_id": "table-002",
+      "annotation_marker": "d",
+      "annotation_type": "footnote",
+      "annotation_text": "P04 sample must be collected even if the participant withdraws the study without receiving the second administration of isatuximab.",
+      "annotation_scope": "cell",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [],
+        "cell_references": [
+          {
+            "activity_id": "act-006",
+            "column_id": "col-008"
+          }
+        ]
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 8
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-005",
+      "table_id": "table-002",
+      "annotation_marker": "e",
+      "annotation_type": "footnote",
+      "annotation_text": "After start of study treatment, if 1 drug is prematurely discontinued, ADA samples for this drug will be collected and tested on Day 1 of the 2 next cycles. The ADA sample collection for other drug should be done as planned.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-007"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 14
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-006",
+      "table_id": "table-002",
+      "annotation_marker": "f",
+      "annotation_type": "footnote",
+      "annotation_text": "Sample collected just before actual end of infusion of isatuximab.",
+      "annotation_scope": "cell",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [],
+        "cell_references": [
+          {
+            "activity_id": "act-006",
+            "column_id": "col-005"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-010"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-013"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-018"
+          }
+        ]
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 5
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 10
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 13
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 18
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-007",
+      "table_id": "table-002",
+      "annotation_marker": "g",
+      "annotation_type": "footnote",
+      "annotation_text": "Isatuximab sample collected strictly before the start of isatuximab infusion (during treatment phase).",
+      "annotation_scope": "multiple",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-009"
+        ],
+        "cell_references": [
+          {
+            "activity_id": "act-006",
+            "column_id": "col-008"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-009"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-011"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-014"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-016"
+          },
+          {
+            "activity_id": "act-006",
+            "column_id": "col-020"
+          }
+        ]
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 16
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 8
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 9
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 11
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 14
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 16
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 13,
+          "column_position": 20
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-008",
+      "table_id": "table-002",
+      "annotation_marker": "h",
+      "annotation_type": "footnote",
+      "annotation_text": "After FUP 90(±7) days after last isatuximab administration no further ADA will be sampled even if the status is positive or inconclusive.",
+      "annotation_scope": "multiple",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-009"
+        ],
+        "cell_references": [
+          {
+            "activity_id": "act-009",
+            "column_id": "col-023"
+          }
+        ]
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 16
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 16,
+          "column_position": 23
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-009",
+      "table_id": "table-002",
+      "annotation_marker": "i",
+      "annotation_type": "footnote",
+      "annotation_text": "Isatuximab PK and ADA samples to be collected each cycle until the last study treatment for PK and until FUP 90(±7) days after last IMP administration for ADA or at the cut-off date, whichever comes first. However, collection can be reduced or stopped earlier upon notification from the Sponsor based on the updated knowledge of isatuximab on PK/ADA.",
+      "annotation_scope": "activity",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-004",
+          "act-006",
+          "act-007",
+          "act-009"
+        ],
+        "cell_references": []
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 11
+        },
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 13
+        },
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 14
+        },
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 16
+        }
+      ]
+    },
+    {
+      "annotation_id": "annot-010",
+      "table_id": "table-002",
+      "annotation_marker": "j",
+      "annotation_type": "footnote",
+      "annotation_text": "For subsequent cycles, atezolizumab PK and ADA samples (pre-dose) are to be collected at Cycle 8 Day 1 and Cycle 16 Day 1 only.",
+      "annotation_scope": "multiple",
+      "referenced_elements": {
+        "property_ids": [],
+        "column_ids": [],
+        "activity_ids": [
+          "act-005",
+          "act-008"
+        ],
+        "cell_references": [
+          {
+            "activity_id": "act-005",
+            "column_id": "col-020"
+          },
+          {
+            "activity_id": "act-008",
+            "column_id": "col-020"
+          }
+        ]
+      },
+      "marker_locations": [
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 12
+        },
+        {
+          "table_number": 2,
+          "location_type": "activity_name",
+          "row_position": 15
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 12,
+          "column_position": 20
+        },
+        {
+          "table_number": 2,
+          "location_type": "schedule_cell",
+          "row_position": 15,
+          "column_position": 20
+        }
+      ]
+    }
+  ],
+  "review_items": [
+    {
+      "id": "D7",
+      "severity": "medium",
+      "location": {
+        "page": 22,
+        "row_positions": [
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "call_made": "The four drug-specific rows 'Sample RNT (h)' and 'Sample time window' (atezolizumab, isatuximab) are header rows (schedule properties): RNT rows as timepoint at levels 4 (atezolizumab) and 5 (isatuximab), window rows as window with no level.",
+      "alternative": "Treat the two RNT rows as parallel scales at the same level (or as per-drug activity-level timing), since neither is the parent of the other.",
+      "report_section": "2.3"
+    },
+    {
+      "id": "D8",
+      "severity": "high",
+      "location": {
+        "page": 22,
+        "row_position": 10
+      },
+      "call_made": "Isatuximab infusion marks are placed in the columns their drawn cells cover: Cycle 1 D1 bar in columns 4-5, Cycle 2 bar in 12-13, Cycle 3 'X' in 15, Cycle 4 bar in 17-18, Subsequent Cycles 'X' in 21. In Cycles 2-4 and Subsequent these columns sit one column right of the isatuximab 'SOI' column.",
+      "alternative": "Realign each isatuximab infusion mark to start at the isatuximab SOI column of its cycle (columns 2, 11, 14, 16, 20).",
+      "report_section": "2.4"
+    },
+    {
+      "id": "D9",
+      "severity": "medium",
+      "location": {
+        "page": 22,
+        "row_positions": [
+          12,
+          13
+        ]
+      },
+      "call_made": "PK rows named with the full two-line label: 'Atezolizumab Sample ID' and 'Isatuximab Sample ID'.",
+      "alternative": "Name them 'Atezolizumab' / 'Isatuximab' and treat 'Sample ID' as a caption saying the cells hold sample identifiers.",
+      "report_section": "2.5"
+    },
+    {
+      "id": "D10",
+      "severity": "low",
+      "location": {
+        "page": 22,
+        "row_positions": [
+          2,
+          3
+        ]
+      },
+      "call_made": "Header cells merged vertically over two header rows are recorded on the upper row only: Table 02 'EOT' and 'FUP (90±7 days)' on the Cycle row (Day row empty in columns 22-23); Table 03 'Screening' on the Study phase row (Cycle/visit row empty in column 4).",
+      "alternative": "Repeat the vertically merged value on each covered header row.",
+      "report_section": "2.2 / 3.2"
+    }
+  ]
+}

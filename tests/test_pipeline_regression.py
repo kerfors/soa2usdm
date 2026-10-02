@@ -473,6 +473,7 @@ def test_redacted_name_pattern_boundaries():
 # themselves — 'Pharmacokinetics a,i' and 'Immunogenicity (ADA) a,e,i' (doc p.22, checked on the
 # page) — so notes a, i bind both groups and e binds the ADA group.
 EXPECTED_HEADER_BOUND = {
+    "fixtures/NCT03637764": 3,
     "usdm_data/NCT03637764": 3,
     "usdm_data/NCT04557384": 1,
     "usdm_data/NCT04573309": 2,
@@ -535,15 +536,11 @@ def test_range_fields_are_numeric_column_positions():
         for bad in ("D1:E1", "B2:D2", "4-5", "sheet!A1:B2", "A:B"):
             assert not rx.match(bad), f"{definition}.{field} accepts {bad!r}"
 
-    # Every range value in every LIVE collection is numeric. The banked fixtures are frozen
-    # snapshots taken before the notation was pinned, so they are counted rather than asserted
-    # clean: fixtures/NCT03637764 still carries 16 A1-style merged_cell_range values across 6
-    # spans (B1:C1, D1:G1, I1:K1, B2:C2, D2:F2, I2:J2) while its 155 source_range values are all
-    # numeric — the same asymmetry the defect predicted, since only merged_cell_range's schema
-    # description showed an A1 example. The live extraction of that protocol is numeric throughout.
-    # Pinned, not excluded, so the debt stays visible: re-banking that fixture should take this
-    # to 0 and this number with it.
-    KNOWN_A1_IN_FIXTURES = 16
+    # Every range value in every LIVE collection is numeric. The banked fixtures are counted
+    # rather than asserted clean, so an A1 value in a fixture shows as a change of this number.
+    # fixtures/NCT03637764 carried 16 A1-style merged_cell_range values until it was re-banked
+    # from the published extraction (2026-10-02); the count is now 0.
+    KNOWN_A1_IN_FIXTURES = 0
     seen = a1_in_fixtures = 0
     for collection, protocols_dir in config.COLLECTIONS.items():
         for path in Path(protocols_dir).glob("*/SoA2USDM/extracted/*_extraction.json"):
@@ -565,3 +562,17 @@ def test_range_fields_are_numeric_column_positions():
     assert a1_in_fixtures == KNOWN_A1_IN_FIXTURES, (
         f"banked fixtures carry {a1_in_fixtures} A1-notation range values, expected "
         f"{KNOWN_A1_IN_FIXTURES} — if a fixture was re-banked, update this number")
+
+
+def test_activity_inventory_validates_against_its_schema():
+    """Release A: activities.json has a schema (2.0). Every collection that publishes an
+    inventory must validate against it; the banked fixtures carry none."""
+    import jsonschema
+    schema = json.loads((config.SCHEMAS_DIR / "soa2usdm-activity-inventory.schema.json").read_text())
+    paths = [Path(d) / "activities.json" for d in config.COLLECTIONS.values()
+             if (Path(d) / "activities.json").exists()]
+    if not paths:
+        pytest.skip("no collection with an activities.json is checked out")
+    for path in paths:
+        jsonschema.validate(json.loads(path.read_text()), schema)
+

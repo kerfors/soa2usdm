@@ -86,7 +86,7 @@ def check_table(path, schema, base):
         f.append(("1 schema", "FAIL", f"{'/'.join(str(p) for p in e.absolute_path)}: {e.message[:180]}"))
     if data.get("schema_name") != "soa-table-extraction":
         f.append(("1 schema", "FAIL", f"schema_name={data.get('schema_name')!r}"))
-    if str(data.get("schema_version")) != "1.0":
+    if data.get("schema_version") not in schema["properties"]["schema_version"]["enum"]:
         f.append(("1 schema", "FAIL", f"schema_version={data.get('schema_version')!r}"))
     status = data.get("extraction_metadata", {}).get("extraction_status")
     if status != "ready_for_resolution":

@@ -1,0 +1,246 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-inventory.json",
+  "title": "SoA2USDM Activity Inventory Schema",
+  "description": "activities.json of a collection: one entry per unified activity of each protocol's consolidated SoA, with its source-table occurrences and the annotations bound to it. For searching activities across a collection's protocols; no cross-protocol clustering.",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "collection",
+    "generated_at",
+    "counts",
+    "activities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "soa2usdm-activity-inventory",
+      "description": "Schema identifier."
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "2.0"
+      ],
+      "description": "Schema version. 2.0 is the consolidated-only inventory (2026-09-30): the source-table rows of the earlier, unversioned 1.0 shape were removed."
+    },
+    "collection": {
+      "type": "string",
+      "description": "Collection name (e.g. 'usdm_data')."
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "When the inventory was generated (ISO 8601)."
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "protocols",
+        "activities",
+        "multi_table_activities",
+        "activities_with_wording_variants",
+        "redacted_activities"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "protocols": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "activities": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "multi_table_activities": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Activities found in more than one table."
+        },
+        "activities_with_wording_variants": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "redacted_activities": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "activities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "protocol_id",
+          "sponsor",
+          "d4k_folder",
+          "therapeutic_area",
+          "xact_id",
+          "activity_name",
+          "parent_name",
+          "hierarchy_level",
+          "is_section_header",
+          "is_redacted",
+          "match_status",
+          "table_count",
+          "tables",
+          "any_marks",
+          "variants",
+          "occurrences",
+          "annotations"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "protocol_id": {
+            "type": "string"
+          },
+          "sponsor": {
+            "type": "string",
+            "description": "Sponsor as given in the collection's study list; empty when not given."
+          },
+          "d4k_folder": {
+            "type": "string"
+          },
+          "therapeutic_area": {
+            "type": "string"
+          },
+          "xact_id": {
+            "type": "string",
+            "pattern": "^xact-[0-9]+$",
+            "description": "Unified activity id in the protocol's consolidated file."
+          },
+          "activity_name": {
+            "type": "string"
+          },
+          "parent_name": {
+            "type": "string",
+            "description": "Name of the parent activity; empty for a top-level activity."
+          },
+          "hierarchy_level": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "is_section_header": {
+            "type": "boolean"
+          },
+          "is_redacted": {
+            "type": "boolean"
+          },
+          "match_status": {
+            "type": "string",
+            "description": "How consolidation matched the activity across tables (as in soa-tables-consolidated)."
+          },
+          "table_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Table numbers the activity occurs in."
+          },
+          "any_marks": {
+            "type": "boolean",
+            "description": "True when any occurrence carries schedule data."
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Verbatim wordings of the activity across its tables."
+          },
+          "occurrences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "table_number",
+                "table_title",
+                "table_type",
+                "track_label",
+                "row_position",
+                "verbatim_name",
+                "has_schedule_data"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "table_number": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "table_title": {
+                  "type": "string"
+                },
+                "table_type": {
+                  "type": "string",
+                  "enum": [
+                    "main_soa",
+                    "track",
+                    "domain",
+                    "subsidiary",
+                    "continuation",
+                    "reference"
+                  ],
+                  "description": "Table type after corrections."
+                },
+                "track_label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "row_position": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "verbatim_name": {
+                  "type": "string"
+                },
+                "has_schedule_data": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "annotations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "marker",
+                "table_number",
+                "text"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "marker": {
+                  "type": "string"
+                },
+                "table_number": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "text": {
+                  "type": "string"
+                },
+                "columns": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Present for an annotation bound to a mark: the header values of the column(s) it binds to."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

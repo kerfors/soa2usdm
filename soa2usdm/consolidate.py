@@ -1427,7 +1427,7 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
     # Build output
     return {
         "schema_name": "soa-tables-consolidated",
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "protocol_id": protocol_id,
         "consolidation_metadata": {
             "consolidated_at": datetime.now(timezone.utc).isoformat(),

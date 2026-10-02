@@ -52,6 +52,7 @@
       "required": [
         "table_number",
         "table_type",
+        "table_title",
         "page_start",
         "page_end"
       ],
@@ -180,9 +181,10 @@
             "window",
             "modality",
             "condition",
+            "visit_attribute",
             "other"
           ],
-          "description": "Basic domain classification - obvious pattern recognition any clinical trial expert would agree on. NOT USDM/CDISC mapping (that belongs in study-schedule-logic layer). 'epoch'=major study phases (Screening/Treatment/Follow-up); 'period'=sub-phases; 'cycle'=repeating treatment cycles (oncology); 'visit'=named visits; 'study_day'=protocol days; 'week'=week numbers; 'timepoint'=within-visit timing; 'window'=visit windows; 'modality'=visit type (in-person/phone); 'condition'=conditional timing; 'other'=unclear or novel pattern."
+          "description": "Basic domain classification - obvious pattern recognition any clinical trial expert would agree on. NOT USDM/CDISC mapping (that belongs in study-schedule-logic layer). 'epoch'=major study phases (Screening/Treatment/Follow-up); 'period'=sub-phases; 'cycle'=repeating treatment cycles (oncology); 'visit'=named visits; 'study_day'=protocol days; 'week'=week numbers; 'timepoint'=within-visit timing; 'window'=visit windows; 'modality'=how a visit is conducted (in-person/phone); 'condition'=population or eligibility qualifier on the columns it spans (which participants they apply to); 'visit_attribute'=a requirement on or attribute of a visit, marked per visit (e.g. fasting visit); 'other'=unclear or novel pattern."
         },
         "property_comment": {
           "type": "string",
@@ -600,8 +602,8 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "1.0",
-      "description": "Schema version. Major version changes indicate breaking changes; minor versions are backward compatible."
+      "enum": ["1.0", "1.1"],
+      "description": "Schema version. 1.1 adds property_type 'visit_attribute' and requires table_metadata.table_title; files stamped 1.0 remain valid. Major version changes indicate breaking changes; minor versions are backward compatible."
     },
     "extraction_metadata": {
       "$ref": "#/definitions/extraction_metadata",

@@ -1,39 +1,125 @@
 {
   "schema_name": "soa-tables-consolidated",
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "protocol_id": "NCT03637764",
   "consolidation_metadata": {
-    "consolidated_at": "2026-08-15T08:29:42.272041+00:00",
+    "consolidated_at": "2026-10-02T19:42:19.935845+00:00",
     "consolidator": "soa2usdm.steps.consolidate v1.1",
     "source_tables": [
       {
         "table_id": "table-001",
         "table_num": 1,
         "table_type": "main_soa",
-        "table_title": "1.3 SCHEDULE OF ACTIVITIES (SOA)",
-        "table_purpose": "Complete study schedule covering Screening, Treatment (Cycle 1 and Cycle 2+), End of Treatment, Post-Treatment Safety Follow-up, and Survival Follow-up",
+        "table_title": "SCHEDULE OF ACTIVITIES (SOA)",
+        "table_purpose": "Main study schedule: screening, treatment cycles, end of treatment and post-treatment follow-up",
         "track_label": null,
         "activity_count": 29,
         "column_count": 10,
-        "annotation_count": 11,
+        "annotation_count": 13,
         "property_hierarchy": [
           {
             "hierarchical_level": 1,
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "property_type": "epoch",
-            "property_comment": "Major study phases: Screening, Treatment Phase, End of Treatment (EOT), Post Treatment Follow-up Phase. Label column contains 'Evaluation' (the row label header). Synthesized as 'Epoch'. Distinguishes the 4 major phase groupings across columns."
+            "property_comment": "Top header band naming the study phases: Screening (up to 28 days before Day 1), Treatment Phase, End of Treatment (EOT), Post Treatment Follow-up Phase. Major study phases -> epoch. Label column is empty (the 'Evaluation' activity-column header spans all header rows), so the name is synthesised."
           },
           {
             "hierarchical_level": 2,
-            "property_name": "Period",
-            "property_type": "cycle",
-            "property_comment": "Sub-phase breakdown: Cycle 1 / Cycle 2 and Beyond under Treatment; Safety follow-up Period / Survival follow-up under Post Treatment. Without this row, Cycle 1 and Cycle 2+ columns would be indistinguishable at epoch level. Classified as cycle because treatment is organised by cycles."
+            "property_name": "Cycle / Follow-up Period",
+            "property_type": "period",
+            "property_comment": "Second header band sub-dividing the phases: Cycle 1, Cycle 2 and Beyond (treatment cycles of 21 days per footnote a), Safety follow-up Period, Survival follow-up; empty under Screening and EOT. Mixes treatment cycles with follow-up sub-periods, so classified as period (sub-phases) rather than cycle. Name synthesised (label column empty)."
           },
           {
             "hierarchical_level": 3,
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "property_type": "study_day",
-            "property_comment": "Specific timing within each period: D-28 to D-15, D-14 to D-1 (Screening); D1(±1), D8(±1), D15(±1) (Cycle 1); D1(±2) (Cycle 2+); 30/60/90 days post-last-IMP (follow-up); Every 90 days (survival). This row makes each column unique — removing it would leave Cycle 1's three columns indistinguishable."
+            "property_comment": "Lowest header band giving the day of each column with its window: D-28 to D-15, D-14 to D-1, D1 (±1), D8 (± 1), D15 (±1), D1 (± 2), and relative follow-up days (30 (±7) days after last IMPs admin, At 60/At 90 (±7) days after last IMPs admin, Every 90 days (±7) after last safety follow-up). Protocol day values -> study_day. Name synthesised (label column empty)."
+          }
+        ]
+      },
+      {
+        "table_id": "table-002",
+        "table_num": 2,
+        "table_type": "subsidiary",
+        "table_title": "PHARMACOKINETICS AND IMMUNOGENICITY FLOW CHART",
+        "table_purpose": "Per-sample PK and ADA timing (relative to start/end of infusion) for atezolizumab and isatuximab, with IMP infusion timing",
+        "track_label": null,
+        "activity_count": 9,
+        "column_count": 22,
+        "annotation_count": 10,
+        "property_hierarchy": [
+          {
+            "hierarchical_level": 1,
+            "property_name": "Study Phase",
+            "property_type": "epoch",
+            "property_comment": "Study phase band: 'Treatment Phase' spans all cycle columns (2:21), 'Post-treatment' spans EOT and FUP (22:23). Major study phases -> epoch."
+          },
+          {
+            "hierarchical_level": 2,
+            "property_name": "Cycle",
+            "property_type": "cycle",
+            "property_comment": "Treatment cycles: Cycle 1 (2:10), Cycle 2 (11:13), Cycle 3 (14:15), Cycle 4 (16:19), Subsequent Cycles (20:21); EOT (22) and FUP (90±7 days) (23) are cells vertically merged across this row and the Day row, recorded on this row only. Repeating oncology cycles -> cycle."
+          },
+          {
+            "hierarchical_level": 3,
+            "property_name": "Day within the Cycle",
+            "property_type": "study_day",
+            "property_comment": "Day within the cycle: D1 (2:8), D15 (9:10) in Cycle 1; D1 for every later cycle. Columns 22-23 are covered by the vertically merged EOT / FUP cells from the Cycle row. Note the source prints the 72h and 168h (SOI of Day 8) columns under the Cycle 1 'D1' span. Day numbers -> study_day."
+          },
+          {
+            "hierarchical_level": 4,
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "property_type": "timepoint",
+            "property_comment": "Atezolizumab relative nominal sampling times (SOI, EOI, EOI +30 min), referenced to atezolizumab start of infusion; '-' where no atezolizumab timepoint applies. Within-visit timing -> timepoint. Drug-specific: governs the atezolizumab PK/ADA rows. Parallel to row 6 (isatuximab scale); stacked levels 4 and 5 follow print order, not a parent-child relation."
+          },
+          {
+            "hierarchical_level": 5,
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "property_type": "timepoint",
+            "property_comment": "Isatuximab relative nominal sampling times (SOI, EOI, EOI +4h, 72h, 168h (SOI of Day 8), EOI +1h), referenced to isatuximab start of infusion; '-' where no isatuximab timepoint applies. Within-visit timing -> timepoint. Drug-specific: governs the isatuximab PK/ADA rows. Parallel to row 4; this row carries the finest column split of the table."
+          },
+          {
+            "hierarchical_level": null,
+            "property_name": "Sample time window Atezolizumab",
+            "property_type": "window",
+            "property_comment": "Allowed sampling windows for the atezolizumab timepoints in row 4 ([-24h, SOI], ±5 min, ±10 min). Window qualifier of row 4; does not by itself distinguish columns -> level null."
+          },
+          {
+            "hierarchical_level": null,
+            "property_name": "Sample time window Isatuximab",
+            "property_type": "window",
+            "property_comment": "Allowed sampling windows for the isatuximab timepoints in row 6 (±10 min, ±30 min, ±5 h, [-24h, SOI]). Window qualifier of row 6 -> level null."
+          }
+        ]
+      },
+      {
+        "table_id": "table-003",
+        "table_num": 3,
+        "table_type": "subsidiary",
+        "table_title": "EXPLORATORY BIOMARKER FLOW CHART",
+        "table_purpose": "Exploratory biomarker blood draws and tumor tissue/biopsy collection by cycle",
+        "track_label": null,
+        "activity_count": 16,
+        "column_count": 7,
+        "annotation_count": 5,
+        "property_hierarchy": [
+          {
+            "hierarchical_level": 1,
+            "property_name": "Study phase",
+            "property_type": "epoch",
+            "property_comment": "Phase band: 'Screening' (4, cell merged down over the next header row), 'Treatment Phase' (5:8), 'Post-Treatment Phase' (9:10). Label columns hold the column captions 'Sample Collection' / 'Biomarker Analysis' (merged over all 3 header rows), so the name is synthesised. Major study phases -> epoch."
+          },
+          {
+            "hierarchical_level": 2,
+            "property_name": "Cycle / visit",
+            "property_type": "cycle",
+            "property_comment": "Cycle 1, Cycle 2, Cycle 3, Cycle 5 and Beyond (no Cycle 4 column is printed), then EOT and Follow-up. Column 4 is covered by the vertically merged 'Screening' cell. Mostly treatment cycles -> cycle; EOT / Follow-up are visit-like values in the same row. Name synthesised (no row label)."
+          },
+          {
+            "hierarchical_level": 3,
+            "property_name": "Day / timing",
+            "property_type": "study_day",
+            "property_comment": "Day of cycle or relative timing: D-28 to D-1, D1 (-1 day)[a], D1, D1, D1, 30 (±7) days after last IMP admin, 60 (±7) days after last IMP admin. Predominantly study days -> study_day; the post-treatment values are offsets from last IMP. Name synthesised (no row label)."
           }
         ]
       }
@@ -43,19 +129,19 @@
       "fuzzy_auto": 0,
       "fuzzy_cross_parent": 0,
       "fuzzy_review": 0,
-      "new": 29
+      "new": 54
     },
-    "source_activity_count": 29,
-    "unified_activity_count": 29,
+    "source_activity_count": 54,
+    "unified_activity_count": 54,
     "compression_percent": 0,
     "annotation_stats": {
-      "source_annotation_count": 11,
-      "unified_annotation_count": 11,
+      "source_annotation_count": 28,
+      "unified_annotation_count": 28,
       "deduplicated_count": 0,
       "deduplication_percent": 0,
       "by_type": {
-        "footnote": 4,
-        "source_note": 7
+        "footnote": 19,
+        "source_note": 9
       }
     }
   },
@@ -63,23 +149,51 @@
     {
       "property_id": "prop-001",
       "property_type": "epoch",
-      "property_name": "Epoch",
+      "property_name": "Study Phase",
       "hierarchical_level": 1,
-      "property_comment": "Major study phases: Screening, Treatment Phase, End of Treatment (EOT), Post Treatment Follow-up Phase. Label column contains 'Evaluation' (the row label header). Synthesized as 'Epoch'. Distinguishes the 4 major phase groupings across columns."
+      "property_comment": "Top header band naming the study phases: Screening (up to 28 days before Day 1), Treatment Phase, End of Treatment (EOT), Post Treatment Follow-up Phase. Major study phases -> epoch. Label column is empty (the 'Evaluation' activity-column header spans all header rows), so the name is synthesised."
     },
     {
       "property_id": "prop-002",
-      "property_type": "cycle",
-      "property_name": "Period",
+      "property_type": "period",
+      "property_name": "Cycle / Follow-up Period",
       "hierarchical_level": 2,
-      "property_comment": "Sub-phase breakdown: Cycle 1 / Cycle 2 and Beyond under Treatment; Safety follow-up Period / Survival follow-up under Post Treatment. Without this row, Cycle 1 and Cycle 2+ columns would be indistinguishable at epoch level. Classified as cycle because treatment is organised by cycles."
+      "property_comment": "Second header band sub-dividing the phases: Cycle 1, Cycle 2 and Beyond (treatment cycles of 21 days per footnote a), Safety follow-up Period, Survival follow-up; empty under Screening and EOT. Mixes treatment cycles with follow-up sub-periods, so classified as period (sub-phases) rather than cycle. Name synthesised (label column empty)."
     },
     {
       "property_id": "prop-003",
       "property_type": "study_day",
-      "property_name": "Timepoint",
+      "property_name": "Study Day / Visit Timing",
       "hierarchical_level": 3,
-      "property_comment": "Specific timing within each period: D-28 to D-15, D-14 to D-1 (Screening); D1(±1), D8(±1), D15(±1) (Cycle 1); D1(±2) (Cycle 2+); 30/60/90 days post-last-IMP (follow-up); Every 90 days (survival). This row makes each column unique — removing it would leave Cycle 1's three columns indistinguishable."
+      "property_comment": "Lowest header band giving the day of each column with its window: D-28 to D-15, D-14 to D-1, D1 (±1), D8 (± 1), D15 (±1), D1 (± 2), and relative follow-up days (30 (±7) days after last IMPs admin, At 60/At 90 (±7) days after last IMPs admin, Every 90 days (±7) after last safety follow-up). Protocol day values -> study_day. Name synthesised (label column empty)."
+    },
+    {
+      "property_id": "prop-004",
+      "property_type": "timepoint",
+      "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+      "hierarchical_level": 4,
+      "property_comment": "Atezolizumab relative nominal sampling times (SOI, EOI, EOI +30 min), referenced to atezolizumab start of infusion; '-' where no atezolizumab timepoint applies. Within-visit timing -> timepoint. Drug-specific: governs the atezolizumab PK/ADA rows. Parallel to row 6 (isatuximab scale); stacked levels 4 and 5 follow print order, not a parent-child relation."
+    },
+    {
+      "property_id": "prop-006",
+      "property_type": "timepoint",
+      "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+      "hierarchical_level": 5,
+      "property_comment": "Isatuximab relative nominal sampling times (SOI, EOI, EOI +4h, 72h, 168h (SOI of Day 8), EOI +1h), referenced to isatuximab start of infusion; '-' where no isatuximab timepoint applies. Within-visit timing -> timepoint. Drug-specific: governs the isatuximab PK/ADA rows. Parallel to row 4; this row carries the finest column split of the table."
+    },
+    {
+      "property_id": "prop-005",
+      "property_type": "window",
+      "property_name": "Sample time window Atezolizumab",
+      "hierarchical_level": null,
+      "property_comment": "Allowed sampling windows for the atezolizumab timepoints in row 4 ([-24h, SOI], ±5 min, ±10 min). Window qualifier of row 4; does not by itself distinguish columns -> level null."
+    },
+    {
+      "property_id": "prop-007",
+      "property_type": "window",
+      "property_name": "Sample time window Isatuximab",
+      "hierarchical_level": null,
+      "property_comment": "Allowed sampling windows for the isatuximab timepoints in row 6 (±10 min, ±30 min, ±5 h, [-24h, SOI]). Window qualifier of row 6 -> level null."
     }
   ],
   "review_queue": [],
@@ -779,32 +893,632 @@
       "match_status": "new",
       "match_confidence": 1.0,
       "table_count": 1
+    },
+    {
+      "xact_id": "xact-030",
+      "activity_name": "IMP administration (IV infusion)",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 30,
+      "qualified_key": "::IMP administration (IV infusion)",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-001",
+          "row_position": 8
+        }
+      ],
+      "name_variations": [
+        "IMP administration (IV infusion)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-031",
+      "activity_name": "Atezolizumab",
+      "parent_name": "IMP administration (IV infusion)",
+      "parent_xact_id": "xact-030",
+      "hierarchy_level": 1,
+      "display_order": 31,
+      "qualified_key": "IMP administration (IV infusion)::Atezolizumab",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-002",
+          "row_position": 9
+        }
+      ],
+      "name_variations": [
+        "Atezolizumab"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-032",
+      "activity_name": "Isatuximab",
+      "parent_name": "IMP administration (IV infusion)",
+      "parent_xact_id": "xact-030",
+      "hierarchy_level": 1,
+      "display_order": 32,
+      "qualified_key": "IMP administration (IV infusion)::Isatuximab",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-003",
+          "row_position": 10
+        }
+      ],
+      "name_variations": [
+        "Isatuximab"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-033",
+      "activity_name": "Pharmacokinetics",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 33,
+      "qualified_key": "::Pharmacokinetics",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-004",
+          "row_position": 11
+        }
+      ],
+      "name_variations": [
+        "Pharmacokinetics"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-034",
+      "activity_name": "Atezolizumab Sample ID",
+      "parent_name": "Pharmacokinetics",
+      "parent_xact_id": "xact-033",
+      "hierarchy_level": 1,
+      "display_order": 34,
+      "qualified_key": "Pharmacokinetics::Atezolizumab Sample ID",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-005",
+          "row_position": 12
+        }
+      ],
+      "name_variations": [
+        "Atezolizumab Sample ID"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-035",
+      "activity_name": "Isatuximab Sample ID",
+      "parent_name": "Pharmacokinetics",
+      "parent_xact_id": "xact-033",
+      "hierarchy_level": 1,
+      "display_order": 35,
+      "qualified_key": "Pharmacokinetics::Isatuximab Sample ID",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-006",
+          "row_position": 13
+        }
+      ],
+      "name_variations": [
+        "Isatuximab Sample ID"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-036",
+      "activity_name": "Immunogenicity (ADA)",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 36,
+      "qualified_key": "::Immunogenicity (ADA)",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-007",
+          "row_position": 14
+        }
+      ],
+      "name_variations": [
+        "Immunogenicity (ADA)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-037",
+      "activity_name": "Atezolizumab",
+      "parent_name": "Immunogenicity (ADA)",
+      "parent_xact_id": "xact-036",
+      "hierarchy_level": 1,
+      "display_order": 37,
+      "qualified_key": "Immunogenicity (ADA)::Atezolizumab",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-008",
+          "row_position": 15
+        }
+      ],
+      "name_variations": [
+        "Atezolizumab"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-038",
+      "activity_name": "Isatuximab",
+      "parent_name": "Immunogenicity (ADA)",
+      "parent_xact_id": "xact-036",
+      "hierarchy_level": 1,
+      "display_order": 38,
+      "qualified_key": "Immunogenicity (ADA)::Isatuximab",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-002",
+          "table_num": 2,
+          "activity_id": "act-009",
+          "row_position": 16
+        }
+      ],
+      "name_variations": [
+        "Isatuximab"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-039",
+      "activity_name": "Peripheral Blood",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 39,
+      "qualified_key": "::Peripheral Blood",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-001",
+          "row_position": 4
+        }
+      ],
+      "name_variations": [
+        "Peripheral Blood"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-040",
+      "activity_name": "Immune genetic markers",
+      "parent_name": "Peripheral Blood",
+      "parent_xact_id": "xact-039",
+      "hierarchy_level": 1,
+      "display_order": 40,
+      "qualified_key": "Peripheral Blood::Immune genetic markers",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-002",
+          "row_position": 5
+        }
+      ],
+      "name_variations": [
+        "Immune genetic markers"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-041",
+      "activity_name": "Tumor mutational profile (plasma cell free DNA)",
+      "parent_name": "Peripheral Blood",
+      "parent_xact_id": "xact-039",
+      "hierarchy_level": 1,
+      "display_order": 41,
+      "qualified_key": "Peripheral Blood::Tumor mutational profile (plasma cell free DNA)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-003",
+          "row_position": 6
+        }
+      ],
+      "name_variations": [
+        "Tumor mutational profile (plasma cell free DNA)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-042",
+      "activity_name": "Immunophenotyping",
+      "parent_name": "Peripheral Blood",
+      "parent_xact_id": "xact-039",
+      "hierarchy_level": 1,
+      "display_order": 42,
+      "qualified_key": "Peripheral Blood::Immunophenotyping",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-004",
+          "row_position": 7
+        }
+      ],
+      "name_variations": [
+        "Immunophenotyping"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-043",
+      "activity_name": "Plasma or serum cytokines",
+      "parent_name": "Peripheral Blood",
+      "parent_xact_id": "xact-039",
+      "hierarchy_level": 1,
+      "display_order": 43,
+      "qualified_key": "Peripheral Blood::Plasma or serum cytokines",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-005",
+          "row_position": 8
+        }
+      ],
+      "name_variations": [
+        "Plasma or serum cytokines"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-044",
+      "activity_name": "Adaptive immunity",
+      "parent_name": "Peripheral Blood",
+      "parent_xact_id": "xact-039",
+      "hierarchy_level": 1,
+      "display_order": 44,
+      "qualified_key": "Peripheral Blood::Adaptive immunity",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-006",
+          "row_position": 9
+        }
+      ],
+      "name_variations": [
+        "Adaptive immunity"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-045",
+      "activity_name": "Plasma or serum Metabolites",
+      "parent_name": "Peripheral Blood",
+      "parent_xact_id": "xact-039",
+      "hierarchy_level": 1,
+      "display_order": 45,
+      "qualified_key": "Peripheral Blood::Plasma or serum Metabolites",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-007",
+          "row_position": 10
+        }
+      ],
+      "name_variations": [
+        "Plasma or serum Metabolites"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-046",
+      "activity_name": "Archival Pre-Treatment Tumor Tissue Collection (for HCC, SCCHN, EOC and GBM)",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 46,
+      "qualified_key": "::Archival Pre-Treatment Tumor Tissue Collection (for HCC, SCCHN, EOC and GBM)",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-008",
+          "row_position": 11
+        }
+      ],
+      "name_variations": [
+        "Archival Pre-Treatment Tumor Tissue Collection (for HCC, SCCHN, EOC and GBM)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-047",
+      "activity_name": "If feasible, biomarker analyses listed below for “Baseline or on treatment tumor biopsy core”",
+      "parent_name": "Archival Pre-Treatment Tumor Tissue Collection (for HCC, SCCHN, EOC and GBM)",
+      "parent_xact_id": "xact-046",
+      "hierarchy_level": 1,
+      "display_order": 47,
+      "qualified_key": "Archival Pre-Treatment Tumor Tissue Collection (for HCC, SCCHN, EOC and GBM)::If feasible, biomarker analyses listed below for “Baseline or on treatment tumor biopsy core”",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-009",
+          "row_position": 12
+        }
+      ],
+      "name_variations": [
+        "If feasible, biomarker analyses listed below for “Baseline or on treatment tumor biopsy core”"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-048",
+      "activity_name": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)",
+      "parent_name": "",
+      "parent_xact_id": null,
+      "hierarchy_level": 0,
+      "display_order": 48,
+      "qualified_key": "::Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)",
+      "is_section_header": true,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-010",
+          "row_position": 13
+        }
+      ],
+      "name_variations": [
+        "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-049",
+      "activity_name": "Core 1",
+      "parent_name": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)",
+      "parent_xact_id": "xact-048",
+      "hierarchy_level": 1,
+      "display_order": 49,
+      "qualified_key": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)::Core 1",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-011",
+          "row_position": 14
+        }
+      ],
+      "name_variations": [
+        "Core 1"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-050",
+      "activity_name": "CD38 and PD-L1 expression, immune contexture (IHC analyses)",
+      "parent_name": "Core 1",
+      "parent_xact_id": "xact-049",
+      "hierarchy_level": 2,
+      "display_order": 50,
+      "qualified_key": "Core 1::CD38 and PD-L1 expression, immune contexture (IHC analyses)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-012",
+          "row_position": 15
+        }
+      ],
+      "name_variations": [
+        "CD38 and PD-L1 expression, immune contexture (IHC analyses)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-051",
+      "activity_name": "Core 2",
+      "parent_name": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)",
+      "parent_xact_id": "xact-048",
+      "hierarchy_level": 1,
+      "display_order": 51,
+      "qualified_key": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)::Core 2",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-013",
+          "row_position": 16
+        }
+      ],
+      "name_variations": [
+        "Core 2"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-052",
+      "activity_name": "CD38 and PD-L1 expression, immune contexture (IHC analyses)",
+      "parent_name": "Core 2",
+      "parent_xact_id": "xact-051",
+      "hierarchy_level": 2,
+      "display_order": 52,
+      "qualified_key": "Core 2::CD38 and PD-L1 expression, immune contexture (IHC analyses)",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-014",
+          "row_position": 17
+        }
+      ],
+      "name_variations": [
+        "CD38 and PD-L1 expression, immune contexture (IHC analyses)"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-053",
+      "activity_name": "Core 3",
+      "parent_name": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)",
+      "parent_xact_id": "xact-048",
+      "hierarchy_level": 1,
+      "display_order": 53,
+      "qualified_key": "Baseline or on treatment tumor biopsy core in order of priority (Biopsy to be performed for HCC, SCCHN, and EOC if adequate archival tissue is not available)::Core 3",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-015",
+          "row_position": 18
+        }
+      ],
+      "name_variations": [
+        "Core 3"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
+    },
+    {
+      "xact_id": "xact-054",
+      "activity_name": "Transcriptomic analysis",
+      "parent_name": "Core 3",
+      "parent_xact_id": "xact-053",
+      "hierarchy_level": 2,
+      "display_order": 54,
+      "qualified_key": "Core 3::Transcriptomic analysis",
+      "is_section_header": false,
+      "source_refs": [
+        {
+          "table_id": "table-003",
+          "table_num": 3,
+          "activity_id": "act-016",
+          "row_position": 19
+        }
+      ],
+      "name_variations": [
+        "Transcriptomic analysis"
+      ],
+      "match_status": "new",
+      "match_confidence": 1.0,
+      "table_count": 1
     }
   ],
   "timeline_segments": {
     "main": [
       {
         "xcol_id": "xcol-001",
-        "composite_label": "Screening (up to 28 days before Day 1) / D-28 to D-15",
+        "composite_label": "Screening (up to 28 days before Day 1) / Screening (up to 28 days before Day 1) / D-28 to D-15",
         "segment": "main",
         "population_track": null,
         "property_values": [
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Screening (up to 28 days before Day 1)"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
-            "value": ""
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
+            "value": "Screening (up to 28 days before Day 1)"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "D-28 to D-15"
           }
         ],
@@ -819,26 +1533,26 @@
       },
       {
         "xcol_id": "xcol-002",
-        "composite_label": "Screening (up to 28 days before Day 1) / D-14 to D-1",
+        "composite_label": "Screening (up to 28 days before Day 1) / Screening (up to 28 days before Day 1) / D-14 to D-1",
         "segment": "main",
         "population_track": null,
         "property_values": [
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Screening (up to 28 days before Day 1)"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
-            "value": ""
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
+            "value": "Screening (up to 28 days before Day 1)"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "D-14 to D-1"
           }
         ],
@@ -860,19 +1574,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Treatment Phase"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": "Cycle 1"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "D1 (±1)"
           }
         ],
@@ -894,19 +1608,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Treatment Phase"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": "Cycle 1"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "D8 (± 1)"
           }
         ],
@@ -928,19 +1642,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Treatment Phase"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": "Cycle 1"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "D15 (±1)"
           }
         ],
@@ -962,19 +1676,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Treatment Phase"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": "Cycle 2 and Beyond"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "D1 (± 2)"
           }
         ],
@@ -996,19 +1710,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "End of Treatment (EOT)"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": ""
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "30 (±7) days after last IMPs admin"
           }
         ],
@@ -1030,19 +1744,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Post Treatment Follow-up Phase"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": "Safety follow-up Period"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "At 60 (±7) days after last IMPs admin"
           }
         ],
@@ -1064,19 +1778,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Post Treatment Follow-up Phase"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": "Safety follow-up Period"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "At 90 (±7) days after last IMPs admin"
           }
         ],
@@ -1098,19 +1812,19 @@
           {
             "level": 1,
             "property_type": "epoch",
-            "property_name": "Epoch",
+            "property_name": "Study Phase",
             "value": "Post Treatment Follow-up Phase"
           },
           {
             "level": 2,
-            "property_type": "cycle",
-            "property_name": "Period",
+            "property_type": "period",
+            "property_name": "Cycle / Follow-up Period",
             "value": "Survival follow-up"
           },
           {
             "level": 3,
             "property_type": "study_day",
-            "property_name": "Timepoint",
+            "property_name": "Study Day / Visit Timing",
             "value": "Every 90 days (±7) after last safety follow-up"
           }
         ],
@@ -1120,6 +1834,1504 @@
             "table_num": 1,
             "column_id": "col-011",
             "column_position": 11
+          }
+        ]
+      }
+    ],
+    "subsidiary": [
+      {
+        "xcol_id": "xcol-011",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 / SOI / [-24h, SOI] / SOI / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "SOI"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "SOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "[-24h, SOI]"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-002",
+            "column_position": 2
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-012",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 / EOI / ±5 min / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "EOI"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "±5 min"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-003",
+            "column_position": 3
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-013",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 / EOI +30 min / ±10 min / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "EOI +30 min"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "±10 min"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-004",
+            "column_position": 4
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-014",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / EOI / ±10 min",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "EOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "±10 min"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-005",
+            "column_position": 5
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-015",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / EOI +4h / ±30 min",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "EOI +4h"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "±30 min"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-006",
+            "column_position": 6
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-016",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / 72h / ±5 h",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "72h"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "±5 h"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-007",
+            "column_position": 7
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-017",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 / - / - / 168h (SOI of Day 8) / [-24h, SOI]",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "168h (SOI of Day 8)"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "[-24h, SOI]"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-008",
+            "column_position": 8
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-018",
+        "composite_label": "Treatment Phase / Cycle 1 / D15 / - / - / SOI / [-24h, SOI]",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D15"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "SOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "[-24h, SOI]"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-009",
+            "column_position": 9
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-019",
+        "composite_label": "Treatment Phase / Cycle 1 / D15 / - / - / EOI / ±10 min",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D15"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "EOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "±10 min"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-010",
+            "column_position": 10
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-020",
+        "composite_label": "Treatment Phase / Cycle 2 / D1 / SOI / [-24h, SOI] / SOI / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 2"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "SOI"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "SOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "[-24h, SOI]"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-011",
+            "column_position": 11
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-021",
+        "composite_label": "Treatment Phase / Cycle 2 / D1 / - / - / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 2"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-012",
+            "column_position": 12
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-022",
+        "composite_label": "Treatment Phase / Cycle 2 / D1 / - / - / EOI / ±10 min",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 2"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "EOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "±10 min"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-013",
+            "column_position": 13
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-023",
+        "composite_label": "Treatment Phase / Cycle 3 / D1 / SOI / [-24h, SOI] / SOI / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 3"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "SOI"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "SOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "[-24h, SOI]"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-014",
+            "column_position": 14
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-024",
+        "composite_label": "Treatment Phase / Cycle 3 / D1 / - / - / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 3"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-015",
+            "column_position": 15
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-025",
+        "composite_label": "Treatment Phase / Cycle 4 / D1 / SOI / [-24h, SOI] / SOI / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 4"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "SOI"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "SOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "[-24h, SOI]"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-016",
+            "column_position": 16
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-026",
+        "composite_label": "Treatment Phase / Cycle 4 / D1 / - / - / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 4"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-017",
+            "column_position": 17
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-027",
+        "composite_label": "Treatment Phase / Cycle 4 / D1 / - / - / EOI / ±10 min",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 4"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "EOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "±10 min"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-018",
+            "column_position": 18
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-028",
+        "composite_label": "Treatment Phase / Cycle 4 / D1 / - / - / EOI +1h / ±10 min",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Cycle 4"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "EOI +1h"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "±10 min"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-019",
+            "column_position": 19
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-029",
+        "composite_label": "Treatment Phase / Subsequent Cycles / D1 / SOI / [-24h, SOI] / SOI / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Subsequent Cycles"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "SOI"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "SOI"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "[-24h, SOI]"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-020",
+            "column_position": 20
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-030",
+        "composite_label": "Treatment Phase / Subsequent Cycles / D1 / - / - / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "Subsequent Cycles"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day within the Cycle",
+            "value": "D1"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-021",
+            "column_position": 21
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-031",
+        "composite_label": "Post-treatment / EOT / - / - / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Post-treatment"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "EOT"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-022",
+            "column_position": 22
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-032",
+        "composite_label": "Post-treatment / FUP (90±7 days) / - / - / - / -",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study Phase",
+            "value": "Post-treatment"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle",
+            "value": "FUP (90±7 days)"
+          },
+          {
+            "level": 4,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": 5,
+            "property_type": "timepoint",
+            "property_name": "Sample RNT (h) Ref: SOI Isatuximab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Atezolizumab",
+            "value": "-"
+          },
+          {
+            "level": null,
+            "property_type": "window",
+            "property_name": "Sample time window Isatuximab",
+            "value": "-"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-002",
+            "table_num": 2,
+            "column_id": "col-023",
+            "column_position": 23
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-033",
+        "composite_label": "Screening / D-28 to D-1",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study phase",
+            "value": "Screening"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day / timing",
+            "value": "D-28 to D-1"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-003",
+            "table_num": 3,
+            "column_id": "col-004",
+            "column_position": 4
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-034",
+        "composite_label": "Treatment Phase / Cycle 1 / D1 (-1 day)",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle / visit",
+            "value": "Cycle 1"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day / timing",
+            "value": "D1 (-1 day)"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-003",
+            "table_num": 3,
+            "column_id": "col-005",
+            "column_position": 5
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-035",
+        "composite_label": "Treatment Phase / Cycle 2 / D1",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle / visit",
+            "value": "Cycle 2"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day / timing",
+            "value": "D1"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-003",
+            "table_num": 3,
+            "column_id": "col-006",
+            "column_position": 6
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-036",
+        "composite_label": "Treatment Phase / Cycle 3 / D1",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle / visit",
+            "value": "Cycle 3"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day / timing",
+            "value": "D1"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-003",
+            "table_num": 3,
+            "column_id": "col-007",
+            "column_position": 7
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-037",
+        "composite_label": "Treatment Phase / Cycle 5 and Beyond / D1",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study phase",
+            "value": "Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle / visit",
+            "value": "Cycle 5 and Beyond"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day / timing",
+            "value": "D1"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-003",
+            "table_num": 3,
+            "column_id": "col-008",
+            "column_position": 8
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-038",
+        "composite_label": "Post-Treatment Phase / EOT / 30 (±7) days after last IMP admin",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study phase",
+            "value": "Post-Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle / visit",
+            "value": "EOT"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day / timing",
+            "value": "30 (±7) days after last IMP admin"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-003",
+            "table_num": 3,
+            "column_id": "col-009",
+            "column_position": 9
+          }
+        ]
+      },
+      {
+        "xcol_id": "xcol-039",
+        "composite_label": "Post-Treatment Phase / Follow-up / 60 (±7) days after last IMP admin",
+        "segment": "subsidiary",
+        "population_track": null,
+        "property_values": [
+          {
+            "level": 1,
+            "property_type": "epoch",
+            "property_name": "Study phase",
+            "value": "Post-Treatment Phase"
+          },
+          {
+            "level": 2,
+            "property_type": "cycle",
+            "property_name": "Cycle / visit",
+            "value": "Follow-up"
+          },
+          {
+            "level": 3,
+            "property_type": "study_day",
+            "property_name": "Day / timing",
+            "value": "60 (±7) days after last IMP admin"
+          }
+        ],
+        "source_columns": [
+          {
+            "table_id": "table-003",
+            "table_num": 3,
+            "column_id": "col-010",
+            "column_position": 10
           }
         ]
       }
@@ -1439,11 +3651,27 @@
       }
     },
     {
+      "xact_id": "xact-007",
+      "xcol_id": "xcol-007",
+      "consolidated_value": "As clinically indicated",
+      "source_values": {
+        "1": "As clinically indicated"
+      }
+    },
+    {
       "xact_id": "xact-009",
       "xcol_id": "xcol-002",
       "consolidated_value": "X (within 7 days prior to first dose)",
       "source_values": {
         "1": "X (within 7 days prior to first dose)"
+      }
+    },
+    {
+      "xact_id": "xact-009",
+      "xcol_id": "xcol-006",
+      "consolidated_value": "X",
+      "source_values": {
+        "1": "X"
       }
     },
     {
@@ -1465,14 +3693,6 @@
     {
       "xact_id": "xact-009",
       "xcol_id": "xcol-009",
-      "consolidated_value": "X",
-      "source_values": {
-        "1": "X"
-      }
-    },
-    {
-      "xact_id": "xact-009",
-      "xcol_id": "xcol-010",
       "consolidated_value": "X (every 30±7 days until 5 months after last dose of study treatment)",
       "source_values": {
         "1": "X (every 30±7 days until 5 months after last dose of study treatment)"
@@ -1665,6 +3885,14 @@
     {
       "xact_id": "xact-013",
       "xcol_id": "xcol-006",
+      "consolidated_value": "As clinically indicated",
+      "source_values": {
+        "1": "As clinically indicated"
+      }
+    },
+    {
+      "xact_id": "xact-013",
+      "xcol_id": "xcol-007",
       "consolidated_value": "As clinically indicated",
       "source_values": {
         "1": "As clinically indicated"
@@ -2015,6 +4243,14 @@
       }
     },
     {
+      "xact_id": "xact-023",
+      "xcol_id": "xcol-010",
+      "consolidated_value": "X (ongoing related AEs, ongoing SAEs at EOT and new related AE/SAEs)",
+      "source_values": {
+        "1": "X (ongoing related AEs, ongoing SAEs at EOT and new related AE/SAEs)"
+      }
+    },
+    {
       "xact_id": "xact-024",
       "xcol_id": "xcol-001",
       "consolidated_value": "X (within 14 days prior to first dose)",
@@ -2087,243 +4323,11 @@
       }
     },
     {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-001",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-002",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-003",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-004",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-005",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-006",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-007",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-008",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
-      "xcol_id": "xcol-009",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-025",
+      "xact_id": "xact-024",
       "xcol_id": "xcol-010",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "consolidated_value": "X (related to AE/SAEs listed above)",
       "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-001",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-002",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-003",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-004",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-005",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-006",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-007",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-008",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-009",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-026",
-      "xcol_id": "xcol-010",
-      "consolidated_value": "See Pharmacokinetics and immunogenicity Flow Chart",
-      "source_values": {
-        "1": "See Pharmacokinetics and immunogenicity Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-001",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-002",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-003",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-004",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-005",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-006",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-007",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-008",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-009",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
-      }
-    },
-    {
-      "xact_id": "xact-027",
-      "xcol_id": "xcol-010",
-      "consolidated_value": "See Biomarker Flow Chart",
-      "source_values": {
-        "1": "See Biomarker Flow Chart"
+        "1": "X (related to AE/SAEs listed above)"
       }
     },
     {
@@ -2365,6 +4369,1118 @@
       "source_values": {
         "1": "X"
       }
+    },
+    {
+      "xact_id": "xact-031",
+      "xcol_id": "xcol-011",
+      "consolidated_value": "X------------X",
+      "source_values": {
+        "2": "X------------X"
+      }
+    },
+    {
+      "xact_id": "xact-031",
+      "xcol_id": "xcol-012",
+      "consolidated_value": "X------------X",
+      "source_values": {
+        "2": "X------------X"
+      }
+    },
+    {
+      "xact_id": "xact-031",
+      "xcol_id": "xcol-020",
+      "consolidated_value": "X",
+      "source_values": {
+        "2": "X"
+      }
+    },
+    {
+      "xact_id": "xact-031",
+      "xcol_id": "xcol-023",
+      "consolidated_value": "X",
+      "source_values": {
+        "2": "X"
+      }
+    },
+    {
+      "xact_id": "xact-031",
+      "xcol_id": "xcol-025",
+      "consolidated_value": "X",
+      "source_values": {
+        "2": "X"
+      }
+    },
+    {
+      "xact_id": "xact-031",
+      "xcol_id": "xcol-029",
+      "consolidated_value": "X",
+      "source_values": {
+        "2": "X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-013",
+      "consolidated_value": "X--------------X",
+      "source_values": {
+        "2": "X--------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-014",
+      "consolidated_value": "X--------------X",
+      "source_values": {
+        "2": "X--------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-017",
+      "consolidated_value": "X",
+      "source_values": {
+        "2": "X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-018",
+      "consolidated_value": "X----------------X",
+      "source_values": {
+        "2": "X----------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-019",
+      "consolidated_value": "X----------------X",
+      "source_values": {
+        "2": "X----------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-021",
+      "consolidated_value": "X----------------X",
+      "source_values": {
+        "2": "X----------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-022",
+      "consolidated_value": "X----------------X",
+      "source_values": {
+        "2": "X----------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-024",
+      "consolidated_value": "X",
+      "source_values": {
+        "2": "X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-026",
+      "consolidated_value": "X------------X",
+      "source_values": {
+        "2": "X------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-027",
+      "consolidated_value": "X------------X",
+      "source_values": {
+        "2": "X------------X"
+      }
+    },
+    {
+      "xact_id": "xact-032",
+      "xcol_id": "xcol-030",
+      "consolidated_value": "X",
+      "source_values": {
+        "2": "X"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-011",
+      "consolidated_value": "S00",
+      "source_values": {
+        "2": "S00"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-012",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-013",
+      "consolidated_value": "S01",
+      "source_values": {
+        "2": "S01"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-014",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-015",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-016",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-017",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-018",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-019",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-020",
+      "consolidated_value": "S00",
+      "source_values": {
+        "2": "S00"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-021",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-022",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-023",
+      "consolidated_value": "S00",
+      "source_values": {
+        "2": "S00"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-024",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-025",
+      "consolidated_value": "S00",
+      "source_values": {
+        "2": "S00"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-026",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-027",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-028",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-029",
+      "consolidated_value": "S00",
+      "source_values": {
+        "2": "S00"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-030",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-031",
+      "consolidated_value": "SF00",
+      "source_values": {
+        "2": "SF00"
+      }
+    },
+    {
+      "xact_id": "xact-034",
+      "xcol_id": "xcol-032",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-011",
+      "consolidated_value": "P00",
+      "source_values": {
+        "2": "P00"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-012",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-013",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-014",
+      "consolidated_value": "P01",
+      "source_values": {
+        "2": "P01"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-015",
+      "consolidated_value": "P02",
+      "source_values": {
+        "2": "P02"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-016",
+      "consolidated_value": "P03",
+      "source_values": {
+        "2": "P03"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-017",
+      "consolidated_value": "P04",
+      "source_values": {
+        "2": "P04"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-018",
+      "consolidated_value": "P05",
+      "source_values": {
+        "2": "P05"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-019",
+      "consolidated_value": "P06",
+      "source_values": {
+        "2": "P06"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-020",
+      "consolidated_value": "P00",
+      "source_values": {
+        "2": "P00"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-021",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-022",
+      "consolidated_value": "P01",
+      "source_values": {
+        "2": "P01"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-023",
+      "consolidated_value": "P00",
+      "source_values": {
+        "2": "P00"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-024",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-025",
+      "consolidated_value": "P00",
+      "source_values": {
+        "2": "P00"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-026",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-027",
+      "consolidated_value": "P01",
+      "source_values": {
+        "2": "P01"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-028",
+      "consolidated_value": "P02",
+      "source_values": {
+        "2": "P02"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-029",
+      "consolidated_value": "P00",
+      "source_values": {
+        "2": "P00"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-030",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-031",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-035",
+      "xcol_id": "xcol-032",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-011",
+      "consolidated_value": "AS00",
+      "source_values": {
+        "2": "AS00"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-012",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-013",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-014",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-015",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-016",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-017",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-018",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-019",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-020",
+      "consolidated_value": "AS00",
+      "source_values": {
+        "2": "AS00"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-021",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-022",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-023",
+      "consolidated_value": "AS00",
+      "source_values": {
+        "2": "AS00"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-024",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-025",
+      "consolidated_value": "AS00",
+      "source_values": {
+        "2": "AS00"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-026",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-027",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-028",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-029",
+      "consolidated_value": "AS00",
+      "source_values": {
+        "2": "AS00"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-030",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-031",
+      "consolidated_value": "ASF00",
+      "source_values": {
+        "2": "ASF00"
+      }
+    },
+    {
+      "xact_id": "xact-037",
+      "xcol_id": "xcol-032",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-011",
+      "consolidated_value": "AP00",
+      "source_values": {
+        "2": "AP00"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-012",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-013",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-014",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-015",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-016",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-017",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-018",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-019",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-020",
+      "consolidated_value": "AP00",
+      "source_values": {
+        "2": "AP00"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-021",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-022",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-023",
+      "consolidated_value": "AP00",
+      "source_values": {
+        "2": "AP00"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-024",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-025",
+      "consolidated_value": "AP00",
+      "source_values": {
+        "2": "AP00"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-026",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-027",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-028",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-029",
+      "consolidated_value": "AP00",
+      "source_values": {
+        "2": "AP00"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-030",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-031",
+      "consolidated_value": "-",
+      "source_values": {
+        "2": "-"
+      }
+    },
+    {
+      "xact_id": "xact-038",
+      "xcol_id": "xcol-032",
+      "consolidated_value": "APF00",
+      "source_values": {
+        "2": "APF00"
+      }
+    },
+    {
+      "xact_id": "xact-040",
+      "xcol_id": "xcol-034",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-041",
+      "xcol_id": "xcol-034",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-041",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-041",
+      "xcol_id": "xcol-036",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-041",
+      "xcol_id": "xcol-038",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-042",
+      "xcol_id": "xcol-034",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-042",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-042",
+      "xcol_id": "xcol-036",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-042",
+      "xcol_id": "xcol-037",
+      "consolidated_value": "X (odd cycles only)",
+      "source_values": {
+        "3": "X (odd cycles only)"
+      }
+    },
+    {
+      "xact_id": "xact-042",
+      "xcol_id": "xcol-038",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-042",
+      "xcol_id": "xcol-039",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-043",
+      "xcol_id": "xcol-033",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-043",
+      "xcol_id": "xcol-034",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-043",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-043",
+      "xcol_id": "xcol-036",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-043",
+      "xcol_id": "xcol-037",
+      "consolidated_value": "X (odd cycles only)",
+      "source_values": {
+        "3": "X (odd cycles only)"
+      }
+    },
+    {
+      "xact_id": "xact-043",
+      "xcol_id": "xcol-038",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-043",
+      "xcol_id": "xcol-039",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-044",
+      "xcol_id": "xcol-034",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-044",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X (only 1 on-treatment sample, see Study Reference Manual for details)",
+      "source_values": {
+        "3": "X (only 1 on-treatment sample, see Study Reference Manual for details)"
+      }
+    },
+    {
+      "xact_id": "xact-044",
+      "xcol_id": "xcol-036",
+      "consolidated_value": "X (only 1 on-treatment sample, see Study Reference Manual for details)",
+      "source_values": {
+        "3": "X (only 1 on-treatment sample, see Study Reference Manual for details)"
+      }
+    },
+    {
+      "xact_id": "xact-044",
+      "xcol_id": "xcol-037",
+      "consolidated_value": "X (only 1 on-treatment sample, see Study Reference Manual for details)",
+      "source_values": {
+        "3": "X (only 1 on-treatment sample, see Study Reference Manual for details)"
+      }
+    },
+    {
+      "xact_id": "xact-045",
+      "xcol_id": "xcol-034",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-045",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-045",
+      "xcol_id": "xcol-036",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-045",
+      "xcol_id": "xcol-037",
+      "consolidated_value": "X (odd cycles only)",
+      "source_values": {
+        "3": "X (odd cycles only)"
+      }
+    },
+    {
+      "xact_id": "xact-045",
+      "xcol_id": "xcol-038",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-047",
+      "xcol_id": "xcol-033",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-050",
+      "xcol_id": "xcol-033",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-050",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X (if clinically feasible)",
+      "source_values": {
+        "3": "X (if clinically feasible)"
+      }
+    },
+    {
+      "xact_id": "xact-052",
+      "xcol_id": "xcol-033",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-052",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X (if clinically feasible)",
+      "source_values": {
+        "3": "X (if clinically feasible)"
+      }
+    },
+    {
+      "xact_id": "xact-054",
+      "xcol_id": "xcol-033",
+      "consolidated_value": "X",
+      "source_values": {
+        "3": "X"
+      }
+    },
+    {
+      "xact_id": "xact-054",
+      "xcol_id": "xcol-035",
+      "consolidated_value": "X (if clinically feasible)",
+      "source_values": {
+        "3": "X (if clinically feasible)"
+      }
     }
   ],
   "unified_annotations": [
@@ -2387,9 +5503,7 @@
         "xcol-005",
         "xcol-006"
       ],
-      "referenced_props": [
-        "prop-001"
-      ],
+      "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
     },
@@ -2509,11 +5623,11 @@
       "xannot_id": "xannot-004",
       "annotation_type": "footnote",
       "annotation_text": "Informed Consent: Informed consent may be signed prior to D -28.",
-      "display_markers": "T1:note_ic",
+      "display_markers": "T1:n1",
       "source_occurrences": [
         {
           "table_num": 1,
-          "marker": "note_ic",
+          "marker": "n1",
           "annotation_id": "annot-004"
         }
       ],
@@ -2527,14 +5641,34 @@
     },
     {
       "xannot_id": "xannot-005",
-      "annotation_type": "source_note",
-      "annotation_text": "Section 8.2.1",
-      "display_markers": "T1:ref_8.2.1",
+      "annotation_type": "footnote",
+      "annotation_text": "Section 10.3 Before each transfusion.",
+      "display_markers": "T1:n2",
       "source_occurrences": [
         {
           "table_num": 1,
-          "marker": "ref_8.2.1",
+          "marker": "n2",
           "annotation_id": "annot-005"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-014"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-006",
+      "annotation_type": "source_note",
+      "annotation_text": "Section 8.2.1",
+      "display_markers": "T1:pr1",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "pr1",
+          "annotation_id": "annot-006"
         }
       ],
       "referenced_xacts": [
@@ -2547,15 +5681,15 @@
       "occurrence_count": 1
     },
     {
-      "xannot_id": "xannot-006",
+      "xannot_id": "xannot-007",
       "annotation_type": "source_note",
       "annotation_text": "See Section 8.2.2",
-      "display_markers": "T1:ref_8.2.2",
+      "display_markers": "T1:pr2",
       "source_occurrences": [
         {
           "table_num": 1,
-          "marker": "ref_8.2.2",
-          "annotation_id": "annot-006"
+          "marker": "pr2",
+          "annotation_id": "annot-007"
         }
       ],
       "referenced_xacts": [
@@ -2568,15 +5702,15 @@
       "occurrence_count": 1
     },
     {
-      "xannot_id": "xannot-007",
+      "xannot_id": "xannot-008",
       "annotation_type": "source_note",
       "annotation_text": "See Section 8.2.3",
-      "display_markers": "T1:ref_8.2.3",
+      "display_markers": "T1:pr3",
       "source_occurrences": [
         {
           "table_num": 1,
-          "marker": "ref_8.2.3",
-          "annotation_id": "annot-007"
+          "marker": "pr3",
+          "annotation_id": "annot-008"
         }
       ],
       "referenced_xacts": [
@@ -2588,15 +5722,15 @@
       "occurrence_count": 1
     },
     {
-      "xannot_id": "xannot-008",
+      "xannot_id": "xannot-009",
       "annotation_type": "source_note",
       "annotation_text": "See Section 10.3 Table 12",
-      "display_markers": "T1:ref_10.3_table12",
+      "display_markers": "T1:pr4",
       "source_occurrences": [
         {
           "table_num": 1,
-          "marker": "ref_10.3_table12",
-          "annotation_id": "annot-008"
+          "marker": "pr4",
+          "annotation_id": "annot-009"
         }
       ],
       "referenced_xacts": [
@@ -2608,15 +5742,15 @@
       "occurrence_count": 1
     },
     {
-      "xannot_id": "xannot-009",
+      "xannot_id": "xannot-010",
       "annotation_type": "source_note",
       "annotation_text": "Section 10.3",
-      "display_markers": "T1:ref_10.3",
+      "display_markers": "T1:pr5",
       "source_occurrences": [
         {
           "table_num": 1,
-          "marker": "ref_10.3",
-          "annotation_id": "annot-009"
+          "marker": "pr5",
+          "annotation_id": "annot-010"
         }
       ],
       "referenced_xacts": [
@@ -2632,34 +5766,14 @@
       "occurrence_count": 1
     },
     {
-      "xannot_id": "xannot-010",
-      "annotation_type": "source_note",
-      "annotation_text": "Section 10.3. Before each transfusion.",
-      "display_markers": "T1:ref_10.3_bti",
-      "source_occurrences": [
-        {
-          "table_num": 1,
-          "marker": "ref_10.3_bti",
-          "annotation_id": "annot-010"
-        }
-      ],
-      "referenced_xacts": [
-        "xact-014"
-      ],
-      "referenced_xcols": [],
-      "referenced_props": [],
-      "cell_references": [],
-      "occurrence_count": 1
-    },
-    {
       "xannot_id": "xannot-011",
       "annotation_type": "source_note",
       "annotation_text": "Section 8.1",
-      "display_markers": "T1:ref_8.1",
+      "display_markers": "T1:pr6",
       "source_occurrences": [
         {
           "table_num": 1,
-          "marker": "ref_8.1",
+          "marker": "pr6",
           "annotation_id": "annot-011"
         }
       ],
@@ -2672,6 +5786,678 @@
       "referenced_props": [],
       "cell_references": [],
       "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-012",
+      "annotation_type": "source_note",
+      "annotation_text": "See Pharmacokinetics and immunogenicity Flow Chart",
+      "display_markers": "T1:pr7",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "pr7",
+          "annotation_id": "annot-012"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-025",
+        "xact-026"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-013",
+      "annotation_type": "source_note",
+      "annotation_text": "See Biomarker Flow Chart",
+      "display_markers": "T1:pr8",
+      "source_occurrences": [
+        {
+          "table_num": 1,
+          "marker": "pr8",
+          "annotation_id": "annot-013"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-027"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-014",
+      "annotation_type": "source_note",
+      "annotation_text": "Refer to the laboratory manual for sample collection, processing and shipping.",
+      "display_markers": "T2:a",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "a",
+          "annotation_id": "annot-001"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-033",
+        "xact-036"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-015",
+      "annotation_type": "footnote",
+      "annotation_text": "Isatuximab PK or ADA predose samples should be collected before isatuximab administration and at the same time as atezolizumab predose samples when applicable.",
+      "display_markers": "T2:b",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "b",
+          "annotation_id": "annot-002"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-035",
+        "xact-038"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-011"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-020"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-023"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-025"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-029"
+        },
+        {
+          "xact_id": "xact-038",
+          "xcol_id": "xcol-011"
+        },
+        {
+          "xact_id": "xact-038",
+          "xcol_id": "xcol-020"
+        },
+        {
+          "xact_id": "xact-038",
+          "xcol_id": "xcol-023"
+        },
+        {
+          "xact_id": "xact-038",
+          "xcol_id": "xcol-025"
+        },
+        {
+          "xact_id": "xact-038",
+          "xcol_id": "xcol-029"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-016",
+      "annotation_type": "footnote",
+      "annotation_text": "Atezolizumab sample collected strictly before the start of atezolizumab infusion (during treatment phase).",
+      "display_markers": "T2:c",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "c",
+          "annotation_id": "annot-003"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-037"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-034",
+          "xcol_id": "xcol-020"
+        },
+        {
+          "xact_id": "xact-034",
+          "xcol_id": "xcol-023"
+        },
+        {
+          "xact_id": "xact-034",
+          "xcol_id": "xcol-025"
+        },
+        {
+          "xact_id": "xact-034",
+          "xcol_id": "xcol-029"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-017",
+      "annotation_type": "footnote",
+      "annotation_text": "P04 sample must be collected even if the participant withdraws the study without receiving the second administration of isatuximab.",
+      "display_markers": "T2:d",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "d",
+          "annotation_id": "annot-004"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-035"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-017"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-018",
+      "annotation_type": "footnote",
+      "annotation_text": "After start of study treatment, if 1 drug is prematurely discontinued, ADA samples for this drug will be collected and tested on Day 1 of the 2 next cycles. The ADA sample collection for other drug should be done as planned.",
+      "display_markers": "T2:e",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "e",
+          "annotation_id": "annot-005"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-036"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-019",
+      "annotation_type": "footnote",
+      "annotation_text": "Sample collected just before actual end of infusion of isatuximab.",
+      "display_markers": "T2:f",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "f",
+          "annotation_id": "annot-006"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-035"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-014"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-019"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-022"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-027"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-020",
+      "annotation_type": "footnote",
+      "annotation_text": "Isatuximab sample collected strictly before the start of isatuximab infusion (during treatment phase).",
+      "display_markers": "T2:g",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "g",
+          "annotation_id": "annot-007"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-038"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-017"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-018"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-020"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-023"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-025"
+        },
+        {
+          "xact_id": "xact-035",
+          "xcol_id": "xcol-029"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-021",
+      "annotation_type": "footnote",
+      "annotation_text": "After FUP 90(±7) days after last isatuximab administration no further ADA will be sampled even if the status is positive or inconclusive.",
+      "display_markers": "T2:h",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "h",
+          "annotation_id": "annot-008"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-038"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-038",
+          "xcol_id": "xcol-032"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-022",
+      "annotation_type": "footnote",
+      "annotation_text": "Isatuximab PK and ADA samples to be collected each cycle until the last study treatment for PK and until FUP 90(±7) days after last IMP administration for ADA or at the cut-off date, whichever comes first. However, collection can be reduced or stopped earlier upon notification from the Sponsor based on the updated knowledge of isatuximab on PK/ADA.",
+      "display_markers": "T2:i",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "i",
+          "annotation_id": "annot-009"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-033",
+        "xact-035",
+        "xact-036",
+        "xact-038"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-023",
+      "annotation_type": "footnote",
+      "annotation_text": "For subsequent cycles, atezolizumab PK and ADA samples (pre-dose) are to be collected at Cycle 8 Day 1 and Cycle 16 Day 1 only.",
+      "display_markers": "T2:j",
+      "source_occurrences": [
+        {
+          "table_num": 2,
+          "marker": "j",
+          "annotation_id": "annot-010"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-034",
+        "xact-037"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [
+        {
+          "xact_id": "xact-034",
+          "xcol_id": "xcol-029"
+        },
+        {
+          "xact_id": "xact-037",
+          "xcol_id": "xcol-029"
+        }
+      ],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-024",
+      "annotation_type": "footnote",
+      "annotation_text": "Biomarker blood draw may be performed within 1 working day prior to IMP administration.",
+      "display_markers": "T3:a",
+      "source_occurrences": [
+        {
+          "table_num": 3,
+          "marker": "a",
+          "annotation_id": "annot-001"
+        }
+      ],
+      "referenced_xacts": [],
+      "referenced_xcols": [
+        "xcol-034"
+      ],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-025",
+      "annotation_type": "footnote",
+      "annotation_text": "Only for Phase 2 Stage 2 participants",
+      "display_markers": "T3:n1",
+      "source_occurrences": [
+        {
+          "table_num": 3,
+          "marker": "n1",
+          "annotation_id": "annot-002"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-042",
+        "xact-043"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-026",
+      "annotation_type": "footnote",
+      "annotation_text": "Only Phase 2 Stage 2 participants, if sufficient clinical response is observable in Phase 1 and Phase 2 Stage 1 participants",
+      "display_markers": "T3:n2",
+      "source_occurrences": [
+        {
+          "table_num": 3,
+          "marker": "n2",
+          "annotation_id": "annot-003"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-044",
+        "xact-045"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-027",
+      "annotation_type": "footnote",
+      "annotation_text": "Mandatory for all GBM participants. For HCC, SCCHN, and EOC participants, provision of adequate archival tumor tissue is allowed to replace mandatory baseline biopsy",
+      "display_markers": "T3:n3",
+      "source_occurrences": [
+        {
+          "table_num": 3,
+          "marker": "n3",
+          "annotation_id": "annot-004"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-047"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    },
+    {
+      "xannot_id": "xannot-028",
+      "annotation_type": "footnote",
+      "annotation_text": "Refer to I 02 for details. At least 1 tumor core is required, but 3 cores are optimal. Refer to Laboratory Manual for details.",
+      "display_markers": "T3:n4",
+      "source_occurrences": [
+        {
+          "table_num": 3,
+          "marker": "n4",
+          "annotation_id": "annot-005"
+        }
+      ],
+      "referenced_xacts": [
+        "xact-050",
+        "xact-052",
+        "xact-054"
+      ],
+      "referenced_xcols": [],
+      "referenced_props": [],
+      "cell_references": [],
+      "occurrence_count": 1
+    }
+  ],
+  "review_items": [
+    {
+      "table_number": 1,
+      "id": "D1",
+      "severity": "high",
+      "location": {
+        "page": 22
+      },
+      "call_made": "Only the Schedule of Activities table on document pages 18-21 (the declared SoA range) was extracted. The 'Pharmacokinetics and Immunogenicity Flow Chart' (pages 22-23) and the 'Exploratory Biomarker Flow Chart' (page 24), which the SoA's PK / ADA / Tumor Biopsy rows point to, were not extracted.",
+      "alternative": "Extract the two flow charts as additional tables (Table 02 PK/immunogenicity, Table 03 biomarkers), each typed 'subsidiary' because they give finer timing for the PK, ADA and biomarker activities of Table 01.",
+      "report_section": "3.1"
+    },
+    {
+      "table_number": 1,
+      "id": "D2",
+      "severity": "medium",
+      "location": {
+        "page": 21,
+        "row_positions": [
+          28,
+          29,
+          30
+        ]
+      },
+      "call_made": "The merged text 'See Pharmacokinetics and immunogenicity Flow Chart' (PK, ADA rows) and 'See Biomarker Flow Chart' (Tumor Biopsy/Archival Tissue/Biomarker row) is kept as a cell value distributed across every data column 2-11 (source_range 2:11). The printed cell also runs into the Notes column, which is not a data column.",
+      "alternative": "Treat each of these as a cross-reference (source_note annotation on the activity) and leave the grid cells of these three rows empty.",
+      "report_section": "3.3"
+    },
+    {
+      "table_number": 1,
+      "id": "D3",
+      "severity": "medium",
+      "location": {
+        "page": 18,
+        "row_position": 2
+      },
+      "call_made": "Header row 2 (Cycle 1 / Cycle 2 and Beyond / Safety follow-up Period / Survival follow-up) is typed 'period' because it mixes treatment cycles with follow-up sub-periods.",
+      "alternative": "Type it 'cycle' (the treatment-phase entries are cycles) or 'other'.",
+      "report_section": "3.5"
+    },
+    {
+      "table_number": 1,
+      "id": "D4",
+      "severity": "medium",
+      "location": {
+        "page": 20,
+        "row_positions": [
+          17,
+          18,
+          19,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32
+        ]
+      },
+      "call_made": "Blood Typing Interference Test, Serology and Urinalysis (top of page 20) are placed under 'Laboratory Assessments' (indentation 1) across the page break; the bold rows Isatuximab Administration and Atezolizumab Administration and all page-21 rows are top level (indentation 0), not children of 'Disease Assessment'.",
+      "alternative": "Treat the page-20 lab rows as top-level, and/or treat the rows after the Disease Assessment block as children of 'Disease Assessment'.",
+      "report_section": "3.5"
+    },
+    {
+      "table_number": 1,
+      "id": "D5",
+      "severity": "high",
+      "location": {
+        "page": 20,
+        "row_position": 24,
+        "annotation_marker": "c"
+      },
+      "call_made": "Footnote c ('evaluation not applicable for Cohort E') is printed in the Notes cell beside Isatuximab Administration but is bound to every cell carrying a printed superscript c (the D8 and D15 marks of 8 rows, 16 cells), not to the Isatuximab row alone.",
+      "alternative": "Also bind footnote c to the Isatuximab Administration row as a whole (because its definition sits in that row's Notes cell), or restrict it to the Isatuximab Administration cells only.",
+      "report_section": "3.4"
+    },
+    {
+      "table_number": 1,
+      "id": "D6",
+      "severity": "medium",
+      "location": {
+        "page": 20,
+        "row_positions": [
+          17,
+          21,
+          22,
+          23
+        ]
+      },
+      "call_made": "Qualified entries in the 'Cycle 2 and Beyond D1' column - 'Cycle 2 Day 1 only' (Blood Typing) and 'X (Weeks 9, 18, 27, and then every 12 weeks)' / 'X (Weeks 6, 12, 18, 24, and then every 9 weeks)' (imaging, tumour markers) - are kept literally in that single column because the qualifiers name timings that are not separate columns of the table.",
+      "alternative": "Normalise these to a bare 'X' and move the timing qualifier into a synthesised footnote on the cell.",
+      "report_section": "3.3"
+    },
+    {
+      "table_number": 2,
+      "id": "D7",
+      "severity": "medium",
+      "location": {
+        "page": 22,
+        "row_positions": [
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "call_made": "The four drug-specific rows 'Sample RNT (h)' and 'Sample time window' (atezolizumab, isatuximab) are header rows (schedule properties): RNT rows as timepoint at levels 4 (atezolizumab) and 5 (isatuximab), window rows as window with no level.",
+      "alternative": "Treat the two RNT rows as parallel scales at the same level (or as per-drug activity-level timing), since neither is the parent of the other.",
+      "report_section": "2.3"
+    },
+    {
+      "table_number": 2,
+      "id": "D8",
+      "severity": "high",
+      "location": {
+        "page": 22,
+        "row_position": 10
+      },
+      "call_made": "Isatuximab infusion marks are placed in the columns their drawn cells cover: Cycle 1 D1 bar in columns 4-5, Cycle 2 bar in 12-13, Cycle 3 'X' in 15, Cycle 4 bar in 17-18, Subsequent Cycles 'X' in 21. In Cycles 2-4 and Subsequent these columns sit one column right of the isatuximab 'SOI' column.",
+      "alternative": "Realign each isatuximab infusion mark to start at the isatuximab SOI column of its cycle (columns 2, 11, 14, 16, 20).",
+      "report_section": "2.4"
+    },
+    {
+      "table_number": 2,
+      "id": "D9",
+      "severity": "medium",
+      "location": {
+        "page": 22,
+        "row_positions": [
+          12,
+          13
+        ]
+      },
+      "call_made": "PK rows named with the full two-line label: 'Atezolizumab Sample ID' and 'Isatuximab Sample ID'.",
+      "alternative": "Name them 'Atezolizumab' / 'Isatuximab' and treat 'Sample ID' as a caption saying the cells hold sample identifiers.",
+      "report_section": "2.5"
+    },
+    {
+      "table_number": 2,
+      "id": "D10",
+      "severity": "low",
+      "location": {
+        "page": 22,
+        "row_positions": [
+          2,
+          3
+        ]
+      },
+      "call_made": "Header cells merged vertically over two header rows are recorded on the upper row only: Table 02 'EOT' and 'FUP (90±7 days)' on the Cycle row (Day row empty in columns 22-23); Table 03 'Screening' on the Study phase row (Cycle/visit row empty in column 4).",
+      "alternative": "Repeat the vertically merged value on each covered header row.",
+      "report_section": "2.2 / 3.2"
+    },
+    {
+      "table_number": 3,
+      "id": "D11",
+      "severity": "high",
+      "location": {
+        "page": 24,
+        "row_positions": [
+          4,
+          11,
+          13,
+          14,
+          16,
+          18
+        ]
+      },
+      "call_made": "The three label columns are turned into a hierarchy: each left-hand Sample Collection label (Peripheral Blood, Archival ..., Baseline or on treatment tumor biopsy core ...) becomes a mark-free level-0 grouping row, each 'Core n' a level-1 row, and the Biomarker Analysis text the activity that carries the marks (level 1, or level 2 under a Core). row_position is renumbered in reading order (header 1-3, body 4-19), so it is not the physical row. Notes-column cells bind to the mark-carrying analysis row.",
+      "alternative": "Keep one activity per physical row (10 body rows) named by the Biomarker Analysis text only, carrying the Sample Collection and Core labels in cell_text or joined into the name (e.g. 'Core 1 CD38 and PD-L1 ...').",
+      "report_section": "3.3"
+    },
+    {
+      "table_number": 3,
+      "id": "D12",
+      "severity": "medium",
+      "location": {
+        "page": 24
+      },
+      "call_made": "Table typed subsidiary: a finer per-cycle breakdown of the single main-SoA row 'Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw - See Biomarker Flow Chart'.",
+      "alternative": "Type it main_soa as an independent schedule with its own column set (its columns are not a strict refinement of the main SoA's columns: it adds Cycle 2, Cycle 3 and 'Cycle 5 and Beyond' and drops D8/D15).",
+      "report_section": "3.1"
+    },
+    {
+      "table_number": 3,
+      "id": "D13",
+      "severity": "high",
+      "location": {
+        "page": 24,
+        "row_positions": [
+          15,
+          17,
+          19
+        ],
+        "annotation_marker": "n4"
+      },
+      "call_made": "The Notes cell beside the three biopsy-core rows is one rule-bounded cell with two paragraphs; it is one note ('Refer to I 02 for details. At least 1 tumor core is required ...') bound to all three core analysis rows.",
+      "alternative": "Split into two notes: 'Refer to I 02 for details.' on Core 1 only and 'At least 1 tumor core is required, but 3 cores are optimal. Refer to Laboratory Manual for details.' on Core 2 (or on all three cores).",
+      "report_section": "3.5"
     }
   ]
 }

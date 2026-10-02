@@ -183,6 +183,8 @@ It is not hypothetical. Two independent blind extractions of NCT02107703 Table 1
 
 **Size.** Small.
 
+**Status 2026-10-02: done** (Release A). New property type `visit_attribute` (extraction schema 1.1, prompt 3.9.4): a requirement on or attribute of a visit, marked per visit. The alignment corrections were not retired but re-pointed from `modality` to `visit_attribute` — seven, not six (NCT05051579 T1, NCT04184622 T1–T2, NCT04677179 T1–T4) — because the raw extractions type the row `other`. The schema text for `condition` now matches the prompt (a population or eligibility qualifier).
+
 ## 17 — Page-break defects the extraction does not detect
 
 **Motivation.** (a) A label cell split by a page break with its marks on one page only: NCT04573309 T1 'PD: …' prints mark-free at the top of p.15 under the PK row of p.14; Table 2 prints PK and PD in one cell with shared marks. Kept mark-free with a labelled reviewer note (n1); no marks were invented. NCT04557384 T1 shows the same split, which the extraction did catch (review items D1/D2). (b) Reprinted headers that disagree: NCT03693430 V33 window ±3 on pp.9–10, ±5 on pp.11–12; recorded as ±3 with a labelled reviewer note (n1).
@@ -390,11 +392,21 @@ The remaining two differences are NCT04677179 T3 row 38, the CCI band of item 7d
 
 **Size.** (a) small to medium; (b) small; (c) small.
 
+## 30 — Consolidation: header rows without a level are ordered by type, not as printed
+
+**Motivation.** `consolidate.py` orders header rows that have no `hierarchical_level` by `property_type` alphabetically. While 'Fasting Visit' and 'Telephone Visit' were both `modality` they tied and kept print order; since item 16 typed the fasting row `visit_attribute`, the consolidated files list 'Telephone Visit' before 'Fasting Visit' although the source prints the fasting row first (NCT04184622). Accepted for Release A (2026-10-02).
+
+**Sketch.** Order rows without a level by print position (`row_position`) in the two sort keys. Do it with the item 28 consolidation work; compare a full rebuild, since other protocols may reorder.
+
+**Size.** Small.
+
 ---
 
 2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment), item 28 added 2026-09-30 (collection index / activity inventory session), item 29 added 2026-09-30 (mark check). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
 
 **Status 2026-09-30 (evening):** mark check fixed (`e853ebb`, 24 review pages regenerated in collections `768ddb5`): 100 differences in 10 tables become 3 in 2, all known checker limits; follow-ups in item 29.
+
+**Status 2026-10-02:** Release A — item 16 done; item 30 added (order of header rows without a level in consolidation).
 
 **Status 2026-09-30:** item 28 added — consolidation stops merging below the auto threshold, and cross-table matches get a review of their own; direction agreed, no code or data changed.
 

@@ -1,8 +1,8 @@
 # SoA2USDM — Extraction Workflow Guide
 
-**Version:** 2.7
+**Version:** 2.8
 
-How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file (each carries its own version header) — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) can be run two ways: the **non-interactive single-pass path** (below) or the **two-conversation PDF→Excel→JSON path** (Conversations 1–2).
+How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file (each carries its own version header) — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) is one non-interactive single pass (below).
 
 For architecture rationale, see [`documents/soa2usdm-schema-architecture.md`](../documents/soa2usdm-schema-architecture.md).
 For table type definitions, see [`documents/soa_table_type_definitions.md`](../documents/soa_table_type_definitions.md).
@@ -11,69 +11,22 @@ For table type definitions, see [`documents/soa_table_type_definitions.md`](../d
 
 ## Preparation
 
-- **Split screen:** Claude on left, PDF/Excel on right
+- **Split screen:** Claude on left, PDF on right
 - **One table per conversation** for complex protocols (many columns, merged cells)
 - **Pre-extract SoA pages** using `00_download_extract.ipynb` — downloads protocol PDFs, extracts SoA pages, converts full protocol to markdown
 - **Rendering note:** when a table spans ≥10 pages, `pdftoppm` zero-pads the rendered page names (`p-01.png`, not `p-1.png`); it also prints harmless `Bad annotation destination` warnings. Neither affects extraction.
 
 ---
 
-## Non-interactive path: PDF → JSON in one pass
+## Extraction: PDF → JSON in one pass (Layer 1)
 
-The default for most runs. Use `PDF_TO_JSON_PROMPT.md` in place of Conversations 1 and 2 — no Excel checkpoint, no staged confirmations.
+Use `PDF_TO_JSON_PROMPT.md`. There are no staged confirmations.
 
 **Attach:** `PDF_TO_JSON_PROMPT.md` + SoA PDF (+ optionally protocol markdown) + `soa-table-extraction.schema.json` + `soa_table_type_definitions.md`
 
 **Say:** "Please read and follow the attached prompt to extract the SoA tables from this protocol to JSON."
 
 The model runs start to finish and returns one extraction JSON per table plus an **uncertainty report** (calls a stated rule decides under *Recorded, not open*; open judgement calls in a *Decisions needed* block, also carried as `review_items` in the JSON), with exception-based method provenance recorded in the JSON for any value derived by a non-default method (prompt §1e). Decide the open calls on the review page (`{NCTID}_review.html`) through the corrections sidecar instead of confirming at mid-run gates. The **mechanical mark-check** — bbox column-binning for text-layer grids, a rule-line/near-black-pixel detector for image-only grids — is the verification surface that replaces the old Excel checkpoint: it re-derives the mark matrix from the PDF and flags merged single-marks on grid-heavy tables, the one error class post-hoc review must still catch. For a wide table split into side-by-side column-block tiles (e.g. V10–V19 and a V20–V29 "(continued)" spread), run the mark-check across *all* tiles and take the per-row union — a recurring row usually appears in every tile, so checking only one tile silently drops the others' visits (see `PDF_TO_JSON_PROMPT.md` §5).
-
-**Prefer the two-conversation flow below when:** you want a human-editable Excel artifact, or a very large/complex table where reviewing an intermediate is worth the extra time.
-
-**Save as:** `{NCTID}_Table_{NN}_extraction.json` in the `extracted/` folder.
-
----
-
-## Conversation 1: PDF → Excel (Layer 1a)
-
-**Attach:** `PDF_TO_EXCEL_PROMPT.md` + SoA PDF (+ optionally protocol markdown)
-
-**Say:** "Please carefully read and follow the attached prompt to extract the SoA tables from this protocol."
-
-**Interact at checkpoints:**
-- **Stage 1:** Confirm table count, column count, table types, track labels
-- **Stage 2:** Confirm row labels and hierarchy
-- **Stage 3:** Download the Excel file
-
-**After download — verify in Excel:**
-- Column count matches PDF
-- Header rows match PDF structure
-- Merged cells correct (fix manually if needed)
-- Activity hierarchy correct (indentation levels)
-- Cell values spot-checked against PDF
-- All footnotes captured in Annotations sheet
-- Table type and track label correct
-
-**Save as:** `{NCTID}_SoA_Table_{NN}_verified.xlsx`
-
-**Time:** 25–45 min per table (15–25 Claude + 10–20 verification)
-
----
-
-## Conversation 2: Excel → JSON (Layer 1b)
-
-**Attach:** `EXCEL_TO_JSON_PROMPT.md` + verified Excel
-
-**Say:** "Please carefully read and follow the attached prompt to convert this verified Excel to extraction JSON."
-
-**After download — verify:**
-- JSON parses, `schema_name` is `soa-table-extraction`, `schema_version` is `1.0`
-- `extraction_status` is `ready_for_resolution`
-- All `property_comment` fields meaningful
-- `hierarchical_level` values sensible (1→2→3; null for a row that does not tell columns apart, e.g. a window row)
-- All `cell_value` fields clean (markers in `annotation_markers`)
-- All annotations have `marker_locations`
-- `track_label` present for track tables
 
 **Save as:** `{NCTID}_Table_{NN}_extraction.json` in the `extracted/` folder.
 
@@ -84,11 +37,9 @@ The model runs start to finish and returns one extraction JSON per table plus an
 | Empty `property_comment` | Ask Claude to explain the classification |
 | Markers in `cell_value` | Ask Claude to re-extract to `annotation_markers` |
 | Missing `marker_locations` | Ask Claude to scan the table for that marker |
-| Wrong level values | Verify against PDF header structure / Excel indentation |
+| Wrong level values | Verify against PDF header structure |
 | Missing `track_label` | Ask Claude to identify the population from the table title |
 | Unsure of the table type | `soa_table_type_definitions.md`: same columns, other activity category → domain; finer timing for some activities → subsidiary; a branch only some participants take → track; a schedule every participant passes through → main_soa |
-
-**Time:** 15–30 min per table
 
 ---
 
