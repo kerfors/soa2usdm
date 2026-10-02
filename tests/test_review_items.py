@@ -215,3 +215,30 @@ def test_consolidate_aggregates_review_items_with_table_number(tmp_path):
 
     jsonschema.validate(out, _schema("soa-tables-consolidated.schema.json"))
     jsonschema.validate(resolved, _schema("soa-table-resolved.schema.json"))
+
+
+needs_nct01847274 = pytest.mark.skipif(
+    "usdm_data" not in config.COLLECTIONS
+    or not config.find_resolved_files("NCT01847274", "usdm_data"),
+    reason="needs the published NCT01847274 resolved files (usdm_data)")
+
+
+@needs_nct01847274
+def test_a_match_below_the_auto_threshold_is_kept_separate_with_a_hint():
+    """Item 28a on NCT01847274: Table 2's 'Hematology/serum chemistry' scores 0.60
+    against Table 1's 'Coagulation/serum chemistry' — different panels. It is not
+    merged; it carries the near match, and every source row records its own match."""
+    out = consolidate_tables("NCT01847274", config.find_resolved_files("NCT01847274", "usdm_data"))
+    by_name = {ua["activity_name"]: ua for ua in out["unified_activities"]}
+    kept = by_name["Hematology/serum chemistry"]
+    target = by_name["Coagulation/serum chemistry"]
+    assert kept["xact_id"] != target["xact_id"]
+    assert kept["near_matches"] == [{"xact_id": target["xact_id"],
+                                     "activity_name": "Coagulation/serum chemistry",
+                                     "score": 0.6, "table_num": 2}]
+    assert out["review_queue"] == []
+    assert out["consolidation_metadata"]["match_stats"]["fuzzy_review"] == 0
+    assert kept["source_refs"][0]["match_status"] == "new"
+    statuses = {r["match_status"] for ua in out["unified_activities"] for r in ua["source_refs"]}
+    assert "fuzzy_review" not in statuses
+    jsonschema.validate(out, _schema("soa-tables-consolidated.schema.json"))

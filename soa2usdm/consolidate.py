@@ -5,8 +5,9 @@ Consolidates multiple resolved SoA tables into a unified per-protocol structure.
 
 This is structural consolidation only:
 - Activity matching across tables (exact, fuzzy, cross-parent); the lowest-numbered
-  main_soa table is the base, further main_soa tables match against it without
-  merging review-level fuzzy matches
+  main_soa table is the base. A fuzzy match below the auto threshold is not merged
+  on any table pair: the activity stays separate and carries the near match as a
+  hint (near_matches)
 - Column alignment into timeline segments (main, domain, track, subsidiary)
 - Annotation consolidation with deduplication; table-wide notes get annotation_scope 'table'
 - Schedule matrix construction
@@ -88,12 +89,12 @@ def find_best_match(name: str, candidates: list, threshold: float = 0.5):
 def extract_property_hierarchy(table: dict) -> List[dict]:
     """Extract property hierarchy from a resolved table."""
     props = table.get('schedule_properties', [])
-    # Sort: hierarchical first (by level), then qualifiers (level=None) by type
+    # Sort: hierarchical first (by level), then qualifiers (level=None) as printed
     def sort_key(p):
         level = p.get('hierarchical_level')
         if level is not None:
             return (0, level, '')  # Hierarchical first, sorted by level
-        return (1, 0, p.get('property_type', ''))  # Qualifiers after, sorted by type
+        return (1, p['row_position'], '')  # Qualifiers after, in print order (item 30)
     
     sorted_props = sorted(props, key=sort_key)
     return [
@@ -127,15 +128,20 @@ class UnifiedActivity:
     match_status: str = "new"
     match_confidence: float = 1.0
     is_redacted: bool = False
+    near_matches: list = field(default_factory=list)
 
     def add_source(self, table_id: str, table_num: int, activity_id: str, 
-                   row_position: int, activity_name: str):
-        """Add a source reference."""
+                   row_position: int, activity_name: str,
+                   match_status: str = 'new', match_confidence: float = 1.0):
+        """Add a source reference. match_status / match_confidence say how this
+        source row came to the activity ('new' = the row that created it)."""
         self.source_refs.append({
             'table_id': table_id,
             'table_num': table_num,
             'activity_id': activity_id,
-            'row_position': row_position
+            'row_position': row_position,
+            'match_status': match_status,
+            'match_confidence': match_confidence
         })
         if activity_name not in self.name_variations:
             self.name_variations.append(activity_name)
@@ -167,6 +173,8 @@ class UnifiedActivity:
             # Exception-based in the output: present only when true, so the
             # 19 protocols without redactions do not churn.
             **({'is_redacted': True} if self.is_redacted else {}),
+            # Present only when the activity was kept separate from a near match.
+            **({'near_matches': self.near_matches} if self.near_matches else {}),
             'source_refs': self.source_refs,
             'name_variations': self.name_variations,
             'match_status': self.match_status,
@@ -250,8 +258,10 @@ class ActivityConsolidator:
         """Process activities from a resolved table.
 
         merge_review_matches=False keeps a fuzzy match below the auto threshold
-        ('fuzzy_review') as a separate activity instead of merging it — used between
-        main_soa tables, where a consolidation merge cannot be corrected later."""
+        ('fuzzy_review') as a separate activity instead of merging it, and records
+        the near match on that activity (near_matches) — used on every table pair
+        (inventory item 28a): below the auto threshold a merge is an identity
+        judgement, not a wording variant."""
         acts = table['activities']
         act_by_id = {a['activity_id']: a for a in acts}
         table_id = table['table_metadata']['table_id']
@@ -278,12 +288,15 @@ class ActivityConsolidator:
                 self.match_stats['new'] += 1
             else:
                 matched_ua, status, confidence = self._find_match(act, parent_name, table_num)
+                near = None
                 if status == 'fuzzy_review' and not merge_review_matches:
+                    near = (matched_ua, confidence)
                     matched_ua, status, confidence = None, 'new', 0.0
 
                 if matched_ua:
                     matched_ua.add_source(table_id, table_num, act['activity_id'],
-                                          act['row_position'], act_name)
+                                          act['row_position'], act_name,
+                                          status, confidence)
                     matched_ua.is_redacted = (matched_ua.is_redacted
                                               or act.get('is_redacted', False))
                     matched_ua.match_status = status
@@ -312,6 +325,13 @@ class ActivityConsolidator:
                     )
                     ua.add_source(table_id, table_num, act['activity_id'],
                                   act['row_position'], act_name)
+                    if near:
+                        ua.near_matches.append({
+                            'xact_id': near[0].xact_id,
+                            'activity_name': near[0].activity_name,
+                            'score': near[1],
+                            'table_num': table_num
+                        })
                     self.unified_activities.append(ua)
                     self.key_to_unified[qual_key] = ua
                     self.match_stats['new'] += 1
@@ -388,6 +408,9 @@ class PropertyInfo:
     property_name: str
     hierarchical_level: Optional[int]
     property_comment: str = ""
+    # (table_num, row_position) in the lowest-numbered table that prints the row;
+    # orders qualifiers in the unified hierarchy (item 30). Not written to the output.
+    print_order: Tuple[int, int] = (0, 0)
 
     def to_dict(self) -> dict:
         return {
@@ -464,7 +487,8 @@ class ColumnConsolidator:
                 'property_type': p.get('property_type', 'other'),
                 'property_name': p.get('property_name', ''),
                 'hierarchical_level': p.get('hierarchical_level'),  # Preserve None
-                'property_comment': p.get('property_comment', '')
+                'property_comment': p.get('property_comment', ''),
+                'row_position': p['row_position']
             }
             for p in table.get('schedule_properties', [])
         }
@@ -510,14 +534,19 @@ class ColumnConsolidator:
                         property_type=info['property_type'],
                         property_name=info['property_name'],
                         hierarchical_level=level,
-                        property_comment=info['property_comment']
+                        property_comment=info['property_comment'],
+                        print_order=(table_num, info['row_position'])
                     )
+                else:
+                    known = self.property_info[prop_key]
+                    known.print_order = min(known.print_order,
+                                            (table_num, info['row_position']))
 
-        # Sort: hierarchical by level, then qualifiers
+        # Sort: hierarchical by level, then qualifiers as printed (item 30)
         def sort_key(x):
             if x.hierarchical_level is not None:
                 return (0, x.hierarchical_level)
-            return (1, x.property_type)
+            return (1, prop_lookup[x.property_id]['row_position'])
         result.sort(key=sort_key)
         return result
 
@@ -592,9 +621,10 @@ class ColumnConsolidator:
         hierarchical = [(k, v) for k, v in self.property_info.items() if isinstance(k, int)]
         qualifiers = [(k, v) for k, v in self.property_info.items() if isinstance(k, str)]
         
-        # Sort hierarchical by level, qualifiers by type
+        # Sort hierarchical by level, qualifiers as printed in the lowest-numbered
+        # table that has the row (item 30)
         hierarchical.sort(key=lambda x: x[0])
-        qualifiers.sort(key=lambda x: x[0])
+        qualifiers.sort(key=lambda x: x[1].print_order)
         
         return [v for _, v in hierarchical] + [v for _, v in qualifiers]
 
@@ -1387,7 +1417,8 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
             continue
         if num in tables_by_type.get('reference', []):
             continue
-        act_consolidator.process_table(tables[num], num, is_base=False)
+        act_consolidator.process_table(tables[num], num, is_base=False,
+                                       merge_review_matches=False)
 
     # Resolve parent_xact_id references now that all activities exist
     act_consolidator.resolve_parent_references()
@@ -1427,7 +1458,7 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
     # Build output
     return {
         "schema_name": "soa-tables-consolidated",
-        "schema_version": "1.2",
+        "schema_version": "1.3",
         "protocol_id": protocol_id,
         "consolidation_metadata": {
             "consolidated_at": datetime.now(timezone.utc).isoformat(),

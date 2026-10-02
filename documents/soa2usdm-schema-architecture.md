@@ -131,7 +131,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 ## Layer 3: Study Schedule Logic
 
-**Schema:** `soa-tables-consolidated` v1.2
+**Schema:** `soa-tables-consolidated` v1.3
 
 **Implementation:** Programmatic (ConsolidateStep, no Claude API)
 
@@ -263,4 +263,4 @@ The architecture acknowledges that SoA tables are lossy compressions of study lo
 
 **Version:** 4.3  
 **Date:** 2026-09-29  
-**Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.1, soa-tables-consolidated v1.2
+**Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.1, soa-tables-consolidated v1.3
