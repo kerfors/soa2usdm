@@ -8,6 +8,8 @@ This is structural consolidation only:
   main_soa table is the base. A fuzzy match below the auto threshold is not merged
   on any table pair: the activity stays separate and carries the near match as a
   hint (near_matches)
+- Human decisions on those matches, read from the protocol's consolidation
+  corrections sidecar when one exists (keep / split / merge / refines)
 - Column alignment into timeline segments (main, domain, track, subsidiary)
 - Annotation consolidation with deduplication; table-wide notes get annotation_scope 'table'
 - Schedule matrix construction
@@ -25,6 +27,7 @@ from collections import defaultdict
 
 from .base import PipelineStepBase
 from . import config
+from .consolidation_corrections import corrections_path, index_corrections
 
 
 # =============================================================================
@@ -129,19 +132,24 @@ class UnifiedActivity:
     match_confidence: float = 1.0
     is_redacted: bool = False
     near_matches: list = field(default_factory=list)
+    refines: list = field(default_factory=list)
+    refined_by: list = field(default_factory=list)
 
     def add_source(self, table_id: str, table_num: int, activity_id: str, 
                    row_position: int, activity_name: str,
-                   match_status: str = 'new', match_confidence: float = 1.0):
+                   match_status: str = 'new', match_confidence: float = 1.0,
+                   decision: Optional[dict] = None):
         """Add a source reference. match_status / match_confidence say how this
-        source row came to the activity ('new' = the row that created it)."""
+        source row came to the activity ('new' = the row that created it).
+        decision names the sidecar entry that decided this row, when there is one."""
         self.source_refs.append({
             'table_id': table_id,
             'table_num': table_num,
             'activity_id': activity_id,
             'row_position': row_position,
             'match_status': match_status,
-            'match_confidence': match_confidence
+            'match_confidence': match_confidence,
+            **({'decision': decision} if decision else {})
         })
         if activity_name not in self.name_variations:
             self.name_variations.append(activity_name)
@@ -175,6 +183,9 @@ class UnifiedActivity:
             **({'is_redacted': True} if self.is_redacted else {}),
             # Present only when the activity was kept separate from a near match.
             **({'near_matches': self.near_matches} if self.near_matches else {}),
+            # Present only when a 'refines' entry of the sidecar names the activity.
+            **({'refines': self.refines} if self.refines else {}),
+            **({'refined_by': self.refined_by} if self.refined_by else {}),
             'source_refs': self.source_refs,
             'name_variations': self.name_variations,
             'match_status': self.match_status,
@@ -186,16 +197,22 @@ class UnifiedActivity:
 class ActivityConsolidator:
     """Consolidates activities across multiple tables."""
 
-    def __init__(self):
+    def __init__(self, decisions: Optional[Dict[Tuple[int, str], dict]] = None):
         self.unified_activities: List[UnifiedActivity] = []
         self.xact_counter = 0
         self.key_to_unified: Dict[str, UnifiedActivity] = {}
         self.review_queue: List[dict] = []
+        # Sidecar decisions by source row (table_number, activity_id); the unified
+        # activity of every consolidated row; the ids of the decisions applied.
+        self.decisions = decisions or {}
+        self.row_to_unified: Dict[Tuple[int, str], UnifiedActivity] = {}
+        self.applied_decisions: Set[str] = set()
         self.match_stats = {
             'exact': 0,
             'fuzzy_auto': 0,
             'fuzzy_cross_parent': 0,
             'fuzzy_review': 0,
+            'decision': 0,
             'new': 0
         }
 
@@ -253,6 +270,40 @@ class ActivityConsolidator:
 
         return None, 'new', 0.0
 
+    def _apply_decision(self, entry: dict, matched_ua, status: str, confidence: float,
+                        near, table_num: int):
+        """Apply the sidecar decision on a source row to what matching found for it.
+        Fails fast when the entry's premise no longer holds."""
+        cid, op, target = entry['id'], entry['op'], entry['target']
+        target_ua = self.row_to_unified.get((target['table_number'], target['activity_id']))
+        if target_ua is None:
+            raise ValueError(
+                f"Consolidation correction {cid}: target row T{target['table_number']} "
+                f"{target['activity_id']} is not consolidated before the source row "
+                f"(the target must be in a table processed earlier)")
+        if op == 'keep':
+            if matched_ua is not target_ua and not (near and near[0] is target_ua):
+                raise ValueError(
+                    f"Consolidation correction {cid}: 'keep' names a match that consolidation "
+                    f"no longer makes or nearly makes")
+        elif op == 'split':
+            if matched_ua is not target_ua:
+                raise ValueError(
+                    f"Consolidation correction {cid}: 'split' names a merge that no longer happens")
+            matched_ua, status, confidence, near = None, 'new', 0.0, None
+        elif op == 'merge':
+            if matched_ua is target_ua:
+                raise ValueError(
+                    f"Consolidation correction {cid}: 'merge' names a merge that happens "
+                    f"without it ({status}); use 'keep'")
+            if table_num in target_ua.table_nums:
+                raise ValueError(
+                    f"Consolidation correction {cid}: the target's activity already has "
+                    f"a row from table {table_num}")
+            matched_ua, status, confidence, near = target_ua, 'decision', 1.0, None
+        self.applied_decisions.add(cid)
+        return matched_ua, status, confidence, near, {'correction_id': cid, 'op': op}
+
     def process_table(self, table: dict, table_num: int, is_base: bool = False,
                       merge_review_matches: bool = True):
         """Process activities from a resolved table.
@@ -285,6 +336,7 @@ class ActivityConsolidator:
                               act['row_position'], act_name)
                 self.unified_activities.append(ua)
                 self.key_to_unified[qual_key] = ua
+                self.row_to_unified[(table_num, act['activity_id'])] = ua
                 self.match_stats['new'] += 1
             else:
                 matched_ua, status, confidence = self._find_match(act, parent_name, table_num)
@@ -293,10 +345,17 @@ class ActivityConsolidator:
                     near = (matched_ua, confidence)
                     matched_ua, status, confidence = None, 'new', 0.0
 
+                decision = None
+                entry = self.decisions.get((table_num, act['activity_id']))
+                if entry:
+                    matched_ua, status, confidence, near, decision = self._apply_decision(
+                        entry, matched_ua, status, confidence, near, table_num)
+
                 if matched_ua:
                     matched_ua.add_source(table_id, table_num, act['activity_id'],
                                           act['row_position'], act_name,
-                                          status, confidence)
+                                          status, confidence, decision)
+                    self.row_to_unified[(table_num, act['activity_id'])] = matched_ua
                     matched_ua.is_redacted = (matched_ua.is_redacted
                                               or act.get('is_redacted', False))
                     matched_ua.match_status = status
@@ -323,18 +382,57 @@ class ActivityConsolidator:
                         hierarchy_level=act.get('hierarchy_level', 0),
                         is_redacted=act.get('is_redacted', False)
                     )
+                    # A decision on a row kept separate from a near match ('keep')
+                    # is recorded on the hint; a 'split' on the row's own source ref.
                     ua.add_source(table_id, table_num, act['activity_id'],
-                                  act['row_position'], act_name)
+                                  act['row_position'], act_name,
+                                  decision=None if near else decision)
                     if near:
                         ua.near_matches.append({
                             'xact_id': near[0].xact_id,
                             'activity_name': near[0].activity_name,
                             'score': near[1],
-                            'table_num': table_num
+                            'table_num': table_num,
+                            **({'decision': decision} if decision else {})
                         })
                     self.unified_activities.append(ua)
                     self.key_to_unified[qual_key] = ua
+                    self.row_to_unified[(table_num, act['activity_id'])] = ua
                     self.match_stats['new'] += 1
+
+    def check_all_decisions_applied(self):
+        """Every keep / split / merge entry must have met its source row. One that
+        did not names a row that is never matched (a row of the base table)."""
+        for entry in self.decisions.values():
+            if entry['id'] not in self.applied_decisions:
+                src = entry['source']
+                raise ValueError(
+                    f"Consolidation correction {entry['id']}: source row T{src['table_number']} "
+                    f"{src['activity_id']} is in the base table, which is not matched against "
+                    f"any other; name the pair the other way round")
+
+    def apply_refinements(self, refinements: List[dict]) -> Dict[int, list]:
+        """Record 'refines' entries: `refines` on the refining activity, `refined_by`
+        on the row it details. Nothing is merged. A whole-table source is returned
+        per table number, for that table's source_tables entry.
+        Must be called after all tables are processed."""
+        table_refines: Dict[int, list] = defaultdict(list)
+        for entry in refinements:
+            cid, source, target = entry['id'], entry['source'], entry['target']
+            target_ua = self.row_to_unified[(target['table_number'], target['activity_id'])]
+            if 'activity_id' in source:
+                source_ua = self.row_to_unified[(source['table_number'], source['activity_id'])]
+                if source_ua is target_ua:
+                    raise ValueError(
+                        f"Consolidation correction {cid}: source and target are the same "
+                        f"unified activity ({target_ua.xact_id})")
+                source_ua.refines.append({'xact_id': target_ua.xact_id, 'correction_id': cid})
+                target_ua.refined_by.append({'xact_id': source_ua.xact_id, 'correction_id': cid})
+            else:
+                table_refines[source['table_number']].append(
+                    {'xact_id': target_ua.xact_id, 'correction_id': cid})
+                target_ua.refined_by.append({'table_num': source['table_number'], 'correction_id': cid})
+        return table_refines
 
     def resolve_parent_references(self):
         """Resolve parent_xact_id by matching parent_name to activity_name.
@@ -1367,12 +1465,15 @@ def build_schedule_matrix(
 # Core Consolidation Function
 # =============================================================================
 
-def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
+def consolidate_tables(protocol_id: str, resolved_files: List[Path],
+                       corrections_doc: Optional[dict] = None) -> dict:
     """Consolidate multiple resolved tables into unified structure.
     
     Args:
         protocol_id: Protocol identifier
         resolved_files: List of paths to resolved JSON files
+        corrections_doc: The protocol's consolidation corrections sidecar
+            (soa-consolidation-corrections), when it has one
         
     Returns:
         Consolidated JSON data structure
@@ -1400,8 +1501,13 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
     for num, t in tables.items():
         tables_by_type[t['table_metadata']['table_type']].append(num)
 
+    # Human decisions on cross-table matches, checked against the tables first
+    decisions, refinements = (
+        index_corrections(corrections_doc, protocol_id, tables) if corrections_doc else ({}, [])
+    )
+
     # Activity consolidation
-    act_consolidator = ActivityConsolidator()
+    act_consolidator = ActivityConsolidator(decisions)
 
     # Process main tables first. Only the first (lowest-numbered) main_soa table is
     # the base; a further main_soa table is matched against it like any other table.
@@ -1419,6 +1525,18 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
             continue
         act_consolidator.process_table(tables[num], num, is_base=False,
                                        merge_review_matches=False)
+
+    act_consolidator.check_all_decisions_applied()
+    table_refines = act_consolidator.apply_refinements(refinements)
+
+    # Cross-table matches a reviewer can decide: every source row merged on a
+    # fuzzy score or by a decision, every row split off, and every near match.
+    # One is decided exactly when a sidecar entry names it.
+    review_matches = [
+        ref for ua in act_consolidator.unified_activities for ref in ua.source_refs
+        if 'fuzzy' in ref['match_status'] or 'decision' in ref
+    ] + [hint for ua in act_consolidator.unified_activities for hint in ua.near_matches]
+    review_decided = sum(1 for m in review_matches if 'decision' in m)
 
     # Resolve parent_xact_id references now that all activities exist
     act_consolidator.resolve_parent_references()
@@ -1458,7 +1576,7 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
     # Build output
     return {
         "schema_name": "soa-tables-consolidated",
-        "schema_version": "1.3",
+        "schema_version": "1.4",
         "protocol_id": protocol_id,
         "consolidation_metadata": {
             "consolidated_at": datetime.now(timezone.utc).isoformat(),
@@ -1477,11 +1595,19 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path]) -> dict:
                         if not c.get('is_label_column')
                     ]),
                     "annotation_count": len(t.get('annotations', [])),
-                    "property_hierarchy": extract_property_hierarchy(t)
+                    "property_hierarchy": extract_property_hierarchy(t),
+                    **({"refines": table_refines[n]} if n in table_refines else {})
                 }
                 for n, t in sorted(tables.items())
             ],
             "match_stats": act_consolidator.match_stats,
+            "review_stats": {
+                "total": len(review_matches),
+                "open": len(review_matches) - review_decided,
+                "decided": review_decided,
+                "near_matches": sum(len(ua.near_matches) for ua in act_consolidator.unified_activities)
+            },
+            **({"corrections_applied": len(corrections_doc["corrections"])} if corrections_doc else {}),
             "source_activity_count": total_src,
             "unified_activity_count": unified_count,
             "compression_percent": compression,
@@ -1538,9 +1664,13 @@ class ConsolidateStep(PipelineStepBase):
 
         self._analytics.record("resolved_files_found", len(resolved_files))
 
+        # The protocol's consolidation corrections sidecar, when it has one
+        sidecar = corrections_path(config.get_consolidated_dir(protocol_id, collection), protocol_id)
+        corrections_doc = json.loads(sidecar.read_text(encoding="utf-8")) if sidecar.exists() else None
+
         # Run consolidation
         try:
-            consolidated = consolidate_tables(protocol_id, resolved_files)
+            consolidated = consolidate_tables(protocol_id, resolved_files, corrections_doc)
         except Exception as e:
             self._log_error(f"Consolidation failed: {e}")
             return {

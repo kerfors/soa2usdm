@@ -1,9 +1,9 @@
 {
   "schema_name": "soa-tables-consolidated",
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "protocol_id": "NCT04677179",
   "consolidation_metadata": {
-    "consolidated_at": "2026-10-02T20:58:00.543500+00:00",
+    "consolidated_at": "2026-10-03T08:12:37.654401+00:00",
     "consolidator": "soa2usdm.steps.consolidate v1.1",
     "source_tables": [
       {
@@ -184,7 +184,14 @@
       "fuzzy_auto": 0,
       "fuzzy_cross_parent": 0,
       "fuzzy_review": 0,
+      "decision": 0,
       "new": 60
+    },
+    "review_stats": {
+      "total": 0,
+      "open": 0,
+      "decided": 0,
+      "near_matches": 0
     },
     "source_activity_count": 162,
     "unified_activity_count": 60,

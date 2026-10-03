@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa-consolidation-corrections.json",
+  "title": "SoA Consolidation Corrections Schema",
+  "description": "Human decisions on a protocol's cross-table activity matches. One file per protocol, next to the consolidated file; consolidation reads it before matching. Entries name source rows (table_number + activity_id, with activity_name as a check), never unified-activity ids, which are not stable across input changes. The Layer 3 analogue of soa-table-corrections.",
+  "type": "object",
+  "required": ["schema_name", "schema_version", "protocol_id", "corrections"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_name": {
+      "const": "soa-consolidation-corrections",
+      "description": "Schema identifier."
+    },
+    "schema_version": {
+      "enum": ["1.0"],
+      "description": "Schema version."
+    },
+    "protocol_id": {
+      "type": "string",
+      "description": "Protocol whose consolidation this sidecar corrects."
+    },
+    "corrections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "op", "source", "target", "reason", "by", "at"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Entry identifier, unique within this file (e.g. 'ccorr-001')."
+          },
+          "op": {
+            "type": "string",
+            "enum": ["keep", "split", "merge", "refines"],
+            "description": "keep=consolidation's result for the pair stands: 'source' stays merged with 'target', or stays separate from its near match 'target'; split='source' is taken out of the unified activity it shares with 'target' and becomes an activity of its own; merge='source' joins the unified activity of 'target'; refines='source' (a row or a whole table) details the row 'target', nothing is merged. An entry whose premise no longer holds (a row renamed, a 'keep' or 'split' of a merge that no longer happens, a 'merge' that now happens by itself) stops consolidation."
+          },
+          "source": {
+            "$ref": "#/definitions/row_or_table",
+            "description": "The row the decision is about: the later-consolidated row of the pair. For 'refines' it may be a whole table (table_number only)."
+          },
+          "target": {
+            "$ref": "#/definitions/row",
+            "description": "The other row of the pair: a row of the unified activity 'source' is merged with, kept apart from, taken out of, joined to, or refines. Its table must be consolidated before the source's table."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Human explanation of the decision."
+          },
+          "by": {
+            "type": "string",
+            "description": "Who made the decision."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the decision was made (ISO 8601)."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "row": {
+      "type": "object",
+      "required": ["table_number", "activity_id", "activity_name"],
+      "additionalProperties": false,
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "table_metadata.table_number of the resolved table."
+        },
+        "activity_id": {
+          "type": "string",
+          "pattern": "^act-[0-9]{3}$",
+          "description": "activity_id of the row in that table."
+        },
+        "activity_name": {
+          "type": "string",
+          "description": "The row's activity_name, carried as a check: it must equal the name in the resolved table."
+        }
+      }
+    },
+    "row_or_table": {
+      "type": "object",
+      "required": ["table_number"],
+      "additionalProperties": false,
+      "dependencies": {
+        "activity_id": ["activity_name"],
+        "activity_name": ["activity_id"]
+      },
+      "properties": {
+        "table_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "table_metadata.table_number of the resolved table."
+        },
+        "activity_id": {
+          "type": "string",
+          "pattern": "^act-[0-9]{3}$",
+          "description": "activity_id of the row in that table. Absent when a whole table is meant ('refines' only)."
+        },
+        "activity_name": {
+          "type": "string",
+          "description": "The row's activity_name, carried as a check."
+        }
+      }
+    }
+  }
+}

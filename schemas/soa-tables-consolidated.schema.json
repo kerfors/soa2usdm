@@ -23,8 +23,8 @@
     },
     "schema_version": {
       "type": "string",
-      "enum": ["1.1", "1.2", "1.3"],
-      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. Files stamped 1.1 or 1.2 remain valid."
+      "enum": ["1.1", "1.2", "1.3", "1.4"],
+      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. 1.4 adds what the consolidation corrections sidecar (soa-consolidation-corrections) leaves in the output: 'decision' on a source reference or a near match, match_status 'decision', 'refines' / 'refined_by' on a unified activity, 'refines' on a source table, and review_stats / corrections_applied in consolidation_metadata. Files stamped 1.1, 1.2 or 1.3 remain valid."
     },
     "protocol_id": {
       "type": "string",
@@ -179,6 +179,10 @@
               "type": "integer",
               "description": "Fuzzy matches merged below the auto threshold. 0 from 1.3: such a match is not merged on any table pair and the activity counts as new"
             },
+            "decision": {
+              "type": "integer",
+              "description": "Source rows joined to an activity by a 'merge' entry of the consolidation corrections sidecar. From 1.4."
+            },
             "new": {
               "type": "integer",
               "description": "New activities (no match found)"
@@ -194,6 +198,23 @@
           "type": "integer",
           "minimum": 0,
           "description": "Activities after consolidation"
+        },
+        "review_stats": {
+          "type": "object",
+          "description": "Cross-table matches a reviewer can decide: every source row merged on a fuzzy score or by a decision, every row split off by a decision, and every near match. One is decided exactly when an entry of the consolidation corrections sidecar names it. From 1.4.",
+          "required": ["total", "open", "decided", "near_matches"],
+          "additionalProperties": false,
+          "properties": {
+            "total": {"type": "integer", "minimum": 0, "description": "Matches to review"},
+            "open": {"type": "integer", "minimum": 0, "description": "Matches without a decision"},
+            "decided": {"type": "integer", "minimum": 0, "description": "Matches a sidecar entry names"},
+            "near_matches": {"type": "integer", "minimum": 0, "description": "Near matches (hints) in the file, decided or not"}
+          }
+        },
+        "corrections_applied": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of entries in the consolidation corrections sidecar that was read. Present only when the protocol has one. From 1.4."
         },
         "compression_percent": {
           "type": "integer",
@@ -292,6 +313,20 @@
             "$ref": "#/definitions/property_info"
           },
           "description": "Property hierarchy for this specific table"
+        },
+        "refines": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Unified activities this table as a whole details, stated by 'refines' entries of the consolidation corrections sidecar that name the table as source. Present only when there is one. From 1.4.",
+          "items": {
+            "type": "object",
+            "required": ["xact_id", "correction_id"],
+            "additionalProperties": false,
+            "properties": {
+              "xact_id": {"type": "string", "pattern": "^xact-[0-9]{3}$", "description": "The unified activity that is refined"},
+              "correction_id": {"type": "string", "description": "Id of the sidecar entry"}
+            }
+          }
         }
       }
     },
@@ -442,6 +477,10 @@
                 "type": "integer",
                 "minimum": 1,
                 "description": "Source table of this activity's row for which the near match was found"
+              },
+              "decision": {
+                "$ref": "#/definitions/decision_ref",
+                "description": "The sidecar 'keep' entry stating that the activity stays separate from this near match. Present only when there is one. From 1.4."
               }
             }
           }
@@ -453,6 +492,35 @@
           },
           "description": "References to source table activities"
         },
+        "refines": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Unified activities this activity details, stated by 'refines' entries of the consolidation corrections sidecar. A relation, not a merge. Present only when there is one. From 1.4.",
+          "items": {
+            "type": "object",
+            "required": ["xact_id", "correction_id"],
+            "additionalProperties": false,
+            "properties": {
+              "xact_id": {"type": "string", "pattern": "^xact-[0-9]{3}$", "description": "The unified activity that is refined"},
+              "correction_id": {"type": "string", "description": "Id of the sidecar entry"}
+            }
+          }
+        },
+        "refined_by": {
+          "type": "array",
+          "minItems": 1,
+          "description": "What details this activity, stated by 'refines' entries of the consolidation corrections sidecar: a unified activity (xact_id) or a whole source table (table_num). Present only when there is one. From 1.4.",
+          "items": {
+            "type": "object",
+            "required": ["correction_id"],
+            "additionalProperties": false,
+            "properties": {
+              "xact_id": {"type": "string", "pattern": "^xact-[0-9]{3}$", "description": "The refining unified activity"},
+              "table_num": {"type": "integer", "minimum": 1, "description": "The refining source table, when the entry names a whole table"},
+              "correction_id": {"type": "string", "description": "Id of the sidecar entry"}
+            }
+          }
+        },
         "name_variations": {
           "type": "array",
           "items": {
@@ -462,8 +530,8 @@
         },
         "match_status": {
           "type": "string",
-          "enum": ["new", "exact", "fuzzy_auto", "fuzzy_cross_parent", "fuzzy_review"],
-          "description": "How this activity was matched/created"
+          "enum": ["new", "exact", "fuzzy_auto", "fuzzy_cross_parent", "fuzzy_review", "decision"],
+          "description": "How this activity was matched/created (the status of the last source row added to it)"
         },
         "match_confidence": {
           "type": "number",
@@ -476,6 +544,16 @@
           "minimum": 1,
           "description": "Number of tables this activity appears in"
         }
+      }
+    },
+    "decision_ref": {
+      "type": "object",
+      "description": "Reference to the entry of the protocol's consolidation corrections sidecar that decided a cross-table match",
+      "required": ["correction_id", "op"],
+      "additionalProperties": false,
+      "properties": {
+        "correction_id": {"type": "string", "description": "Id of the sidecar entry"},
+        "op": {"type": "string", "enum": ["keep", "split", "merge"], "description": "The entry's op"}
       }
     },
     "activity_source_ref": {
@@ -511,9 +589,14 @@
             "exact",
             "fuzzy_auto",
             "fuzzy_cross_parent",
-            "fuzzy_review"
+            "fuzzy_review",
+            "decision"
           ],
-          "description": "How this source row came to the unified activity; 'new' = the row that created it. From 1.3."
+          "description": "How this source row came to the unified activity; 'new' = the row that created it; 'decision' = joined by a 'merge' entry of the consolidation corrections sidecar (from 1.4). From 1.3."
+        },
+        "decision": {
+          "$ref": "#/definitions/decision_ref",
+          "description": "The sidecar entry that decided this source row: 'keep' (the merge stands), 'merge' (joined by decision) or 'split' (taken out of a merge; the row then has match_status 'new'). Present only when there is one. From 1.4."
         },
         "match_confidence": {
           "type": "number",
