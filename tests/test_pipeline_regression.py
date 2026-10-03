@@ -98,6 +98,12 @@ def pipeline_output(request, tmp_path):
         shutil.copy(f, extracted / f.name)
     for f in (golden / "extracted").glob("*_corrections.json"):
         shutil.copy(f, extracted / f.name)
+    # The consolidation corrections sidecar is an input of consolidate, like the
+    # extraction sidecars are of resolve.
+    for f in (golden / "consolidated").glob("*_consolidation_corrections.json"):
+        consolidated = coll / protocol / "SoA2USDM" / "consolidated"
+        consolidated.mkdir()
+        shutil.copy(f, consolidated / f.name)
 
     key = "regression_tmp"
     config.COLLECTIONS[key] = coll
