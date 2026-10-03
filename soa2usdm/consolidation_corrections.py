@@ -26,6 +26,9 @@ from typing import Dict, List, Tuple
 
 OPS = ("keep", "split", "merge", "refines")
 
+# What the consolidated view's draft puts where the reviewer must write.
+DRAFT_PLACEHOLDERS = {"reason": "<why>", "by": "<reviewer>"}
+
 
 def corrections_path(consolidated_dir: Path, protocol_id: str) -> Path:
     return consolidated_dir / f"{protocol_id}_consolidation_corrections.json"
@@ -70,6 +73,10 @@ def index_corrections(doc: dict, protocol_id: str,
         op = c["op"]
         if op not in OPS:
             raise ValueError(f"Consolidation correction {cid}: unknown op '{op}'")
+        for name, placeholder in DRAFT_PLACEHOLDERS.items():
+            if c[name] == placeholder:
+                raise ValueError(
+                    f"Consolidation correction {cid}: '{name}' is still the draft placeholder '{placeholder}'")
         source, target = c["source"], c["target"]
         if "activity_id" not in target:
             raise ValueError(f"Consolidation correction {cid}: 'target' must be a row (table_number, activity_id, activity_name)")

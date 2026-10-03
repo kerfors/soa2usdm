@@ -129,6 +129,12 @@ def test_malformed_sidecars_stop_consolidation():
     same = _doc("NCT03637764", {"op": "refines", "source": ISA_ADMIN, "target": PK})
     with pytest.raises(ValueError, match="both in table 1"):
         consolidate_tables("NCT03637764", FIXTURE_FILES, same)
+    # A draft pasted from the consolidated view with its placeholders left in.
+    for name, placeholder in (("reason", "<why>"), ("by", "<reviewer>")):
+        draft = _doc("NCT03637764", {"op": "refines", "source": {"table_number": 2}, "target": PK})
+        draft["corrections"][0][name] = placeholder
+        with pytest.raises(ValueError, match=f"ccorr-001: '{name}' is still the draft placeholder"):
+            consolidate_tables("NCT03637764", FIXTURE_FILES, draft)
 
 
 # --- usdm_data: keep, split, merge on real non-exact matches ----------------

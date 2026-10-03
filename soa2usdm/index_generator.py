@@ -258,6 +258,11 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                         1 for ua in data.get('unified_activities', [])
                         if ua.get('is_redacted')
                     )
+                    # Cross-table matches to review and how many are decided
+                    # (consolidation corrections sidecar); absent before 1.4.
+                    review_stats = meta.get('review_stats', {})
+                    result['matches_total'] = review_stats.get('total', 0)
+                    result['matches_open'] = review_stats.get('open', 0)
                 except Exception:
                     pass
     
@@ -655,6 +660,13 @@ def generate_index_html(collection: str) -> str:
             cons_html = f'<a href="{p["consolidated_file"]}" class="link-table" title="Protocol-level SoA — all tables unified">View</a>'
             if p.get('consolidated_json'):
                 cons_html += f' <a href="{p["consolidated_json"]}" class="link-json" title="Consolidated JSON data">json</a>'
+            # Consolidation decisions, kept apart from the extraction decisions
+            # in the Review column: matches across tables and how many are open.
+            if p.get('matches_total'):
+                n_open, n_total = p['matches_open'], p['matches_total']
+                state = f'{n_open} open of {n_total}' if n_open else f'all {n_total} decided'
+                cons_html += (f' <a href="{p["consolidated_file"]}#matches" class="decisions{" open" if n_open else ""}" title="Matches across tables that consolidation made on name similarity or nearly made, and how many still await a reviewer">'
+                              f'{state}</a>')
 
         # Redacted rows column: shown only where the protocol has any, as
         # "n / total" of unified activities (e.g. NCT04677179: 6 / 60).
@@ -782,6 +794,8 @@ def generate_index_html(collection: str) -> str:
         .link-review { font-weight: 600; }
         .decisions { font-size: 11px; color: var(--ok); white-space: nowrap; }
         .decisions.open { color: var(--warn); font-weight: 600; }
+        a.decisions { text-decoration: none; }
+        a.decisions:hover { text-decoration: underline; }
 
         .pending { color: #9aa4af; font-style: italic; font-size: 11px; }
         .pending-row { opacity: 0.55; }

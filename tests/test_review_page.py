@@ -43,8 +43,8 @@ def test_across_tables_reads_folds_from_the_consolidated_golden():
     fold = next(f for f in across["folds"] if f["name"] == "Concomitant medications")
     assert [s["table"] for s in fold["sources"]] == [1, 2, 3, 4]
     assert fold["status"] == "exact"
-    assert across["review_queue"] == cons["review_queue"]
-    assert _across_tables(None) == {"folds": [], "review_queue": [], "stats": {}}
+    assert "review_queue" not in across        # matches are decided in the consolidated view (item 28b)
+    assert _across_tables(None) == {"folds": [], "stats": {}}
 
 
 @needs_pdf

@@ -19,7 +19,7 @@ Inputs (all read, never modified):
     extracted/*_extraction[.verified].json   structure, marks, annotations, review_items
     extracted/*_corrections.json        applied corrections, decided review items
     resolved/*_resolved.json            table ids (for cross-table references)
-    consolidated/{NCT}_consolidated.json   unified activities, review_queue
+    consolidated/{NCT}_consolidated.json   unified activities
     row_audit.audit_protocol            page assignment, doc-page offset, audit lists
     page_grid                           bands, columns, words
 
@@ -313,7 +313,7 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
 def _across_tables(consolidated: dict | None) -> dict:
     """Cross-table relations consolidation established, as (table, row) pairs."""
     if not consolidated:
-        return {"folds": [], "review_queue": [], "stats": {}}
+        return {"folds": [], "stats": {}}
     folds = []
     for ua in consolidated["unified_activities"]:
         refs = ua.get("source_refs", [])
@@ -323,7 +323,7 @@ def _across_tables(consolidated: dict | None) -> dict:
                       "status": ua.get("match_status"), "confidence": ua.get("match_confidence"),
                       "variations": ua.get("name_variations", []),
                       "sources": [{"table": r["table_num"], "row": r["row_position"]} for r in refs]})
-    return {"folds": folds, "review_queue": consolidated.get("review_queue", []),
+    return {"folds": folds,
             "stats": consolidated["consolidation_metadata"].get("match_stats", {})}
 
 
@@ -623,7 +623,7 @@ const tableIndex = num => D.tables.findIndex(t=>t.number===num);
  const unplaced = D.tables.reduce((n,t)=>n+t.checks.extracted_not_on_page.length,0);
  const badRows = new Set(); D.tables.forEach(t=>t.checks.mark_disagreements.forEach(d=>badRows.add(t.number+':'+d.row)));
  const badCells = D.tables.reduce((n,t)=>n+t.checks.mark_disagreements.length,0);
- const rs = D.review_status, rq = D.across.review_queue.length;
+ const rs = D.review_status;
  // A check that saw no readable page is not a pass: say "not checked" and why.
  const rowsUnchecked = D.tables.filter(t=>!t.checks.rows_checked), marksUnchecked = D.tables.filter(t=>!t.checks.marks_checked);
  const reasons = (ts, marks) => [...new Set(ts.flatMap(t=>t.checks.unreadable_pages.map(u=>u.reason.split(' — ')[0]).concat(marks&&t.checks.rows_checked?['column headers could not be read']:[])))].join('; ');
@@ -639,7 +639,7 @@ const tableIndex = num => D.tables.findIndex(t=>t.number===num);
   rowsTile,
   [unplaced?'warn':'ok', 'Rows the checker could not place', unplaced, 'extracted rows with no matching page band (section headings, composed names, packed rows)'],
   marksTile,
-  [rs.open||rq?'warn':'ok', 'Decisions open', (rs.open+rq), `${rs.decided} of ${rs.total} extraction calls decided · ${rq} consolidation match${rq!==1?'es':''} to review`],
+  [rs.open?'warn':'ok', 'Decisions open', rs.open, `${rs.decided} of ${rs.total} extraction calls decided`],
  ].map(([c,k,v,d])=>`<div class="tile ${c}"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 })();
 
@@ -735,11 +735,11 @@ function buildTable(){
 function switchTab(n){ document.querySelectorAll('#sidetabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===n)); ['dec','notes','check','across'].forEach(k=>document.getElementById('tab-'+k).classList.toggle('hidden',k!==n)); }
 document.querySelectorAll('#sidetabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.t));
 
-// ---------- decisions (review_items of the current table + consolidation's review_queue)
+// ---------- decisions (review_items of the current table)
 function buildDecisions(){
  const t=T(), el=document.getElementById('tab-dec');
- const items=t.review_items, rq=D.across.review_queue;
- document.getElementById('ndec').textContent = D.review_status.open + rq.length;
+ const items=t.review_items;
+ document.getElementById('ndec').textContent = D.review_status.open;
  let h='';
  if(!items.length && !t.applied.length) h+=`<p class="small">This table carries no review items${D.review_status.total?'':' — the extraction predates the field (prompt v3.8.0), so its open calls, if any, are only in the extraction log'}.</p>`;
  else h+='<p class="small">Calls the extractor made that could reasonably go the other way. Click one to see it on the page (call in purple, alternative rows in blue where the call names them). Choosing drafts a sidecar entry below; nothing is saved from here.</p>';
@@ -750,16 +750,10 @@ function buildDecisions(){
    <div class="c"><b>Call made:</b> ${esc(d.call_made)}</div><div class="c a"><b>Alternative:</b> ${esc(d.alternative)}</div>
    ${done?'':`<div class="btns"><button class="keep" data-id="${d.id}" data-c="keep">keep the call</button><button class="alt" data-id="${d.id}" data-c="alt">take the alternative</button></div>`}</div>`;
  });
- rq.forEach((q,i)=>{
-  h+=`<div class="dec" data-q="${i}"><div class="t">Consolidation match <span class="pill cons">from consolidation</span></div><div class="w">${esc(q.xact_id)} · similarity ${Number(q.confidence).toFixed(2)}</div>
-   <div class="c"><b>Call made:</b> "${esc(q.new_name)}" was treated as the same activity as "${esc(q.existing_name)}".</div><div class="c a"><b>Alternative:</b> keep them as two activities.</div>
-   <div class="small">Consolidation has no sidecar yet — record this in the protocol's review notes for now.</div></div>`;
- });
  if(t.applied.length) h+=`<h3 style="font-size:13px;margin:14px 0 4px">Corrections applied to this table (${t.applied.length})</h3><ul class="plain small">${t.applied.map(a=>`<li><b>${esc(a.id)}</b> ${esc(a.op)} ${esc(a.target)}${a.review_item?` → ${esc(a.review_item)}`:''} — ${esc(a.reason)} <i>(${esc(a.by)}, ${esc(a.at.slice(0,10))})</i></li>`).join('')}</ul>`;
  h+=`<h3 style="font-size:13px;margin:14px 0 4px">Draft for <code>${esc(t.sidecar||'the corrections sidecar')}</code></h3><input id="reviewer" placeholder="your name, as it should appear in the sidecar" value="${esc(S.reviewer||'')}"><textarea id="draft" readonly placeholder="Choose 'keep the call' or 'take the alternative' above to draft sidecar entries here. 'Keep' drafts a complete confirm entry; 'alternative' drafts the entry skeleton with the review item and its location filled in."></textarea>`;
  el.innerHTML=h;
  el.querySelectorAll('.dec[data-id]').forEach(c=>c.onclick=e=>{ if(e.target.tagName==='BUTTON') return; showDecision(c.dataset.id); });
- el.querySelectorAll('.dec[data-q]').forEach(c=>c.onclick=()=>showQueue(+c.dataset.q));
  el.querySelectorAll('.btns button').forEach(b=>b.onclick=()=>{ S.choice[b.dataset.id]=b.dataset.c; el.querySelectorAll(`.btns button[data-id="${b.dataset.id}"]`).forEach(x=>x.classList.toggle('on',x===b)); showDecision(b.dataset.id); renderDraft(); });
  document.getElementById('reviewer').oninput=e=>{ S.reviewer=e.target.value; renderDraft(); };
  renderDraft();
@@ -779,11 +773,6 @@ function showDecision(id){
  showPage(pi>=0?pi:S.page);
  if(first) scrollToBand(first.band[1]); else document.getElementById('pagewrap').scrollTo({top:0,behavior:'smooth'});
  const tr=document.querySelector('#soa tr.note,#soa tr.sel'); if(tr) scrollRowIntoView(tr);
-}
-function showQueue(i){
- const q=D.across.review_queue[i]; const f=D.across.folds.find(x=>x.xact_id===q.xact_id);
- document.querySelectorAll('.dec').forEach(c=>c.classList.toggle('on',c.dataset.q==i));
- if(f) showFold(f.xact_id, true);
 }
 function renderDraft(){
  const t=T(), el=document.getElementById('draft'); if(!el) return;
@@ -861,7 +850,8 @@ function buildChecks(){
  const nonexact=A.folds.filter(f=>f.status!=='exact'), exact=A.folds.filter(f=>f.status==='exact');
  document.getElementById('nacross').textContent=A.folds.length;
  const st=A.stats||{};
- let h=`<p class="small">Rows consolidation treated as the same activity across tables. Exact name matches are collapsed below; anything matched on similarity is listed first. Click a source to see that row on its page.</p>`;
+ let h=`<p class="small">Rows consolidation treated as the same activity across tables. Exact name matches are collapsed below; anything matched on similarity is listed first. Click a source to see that row on its page.</p>
+ <p class="small">Whether a match is right is decided in the consolidated view, not here: <a href="../consolidated/${esc(D.protocol_id)}_consolidated.html#matches">Matches across tables</a>.</p>`;
  if(!A.folds.length) h+='<p class="small">Single-table protocol, or no activity appears in more than one table.</p>';
  const card=f=>`<div class="foldcard" data-x="${f.xact_id}"><b>${esc(f.name)}</b> <span class="pill cons">${esc(f.status)}${f.status!=='exact'?' · '+Number(f.confidence).toFixed(2):''}</span>${f.variations.length>1?`<div class="small">printed as: ${f.variations.map(esc).join(' / ')}</div>`:''}<div class="small">${f.sources.map(s=>`<span class="src" data-t="${s.table}" data-r="${s.row}">Table ${s.table} row ${s.row}</span>`).join(' · ')}</div></div>`;
  if(nonexact.length) h+=`<h3 style="font-size:13px;margin:8px 0 4px">Matched on similarity (${nonexact.length})</h3>`+nonexact.map(card).join('');
