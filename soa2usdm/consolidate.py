@@ -62,9 +62,17 @@ def normalize_text(text: str) -> str:
     return ' '.join(text.split()).strip()
 
 
+def singular(word: str) -> str:
+    """Drop a plural 's' so 'Events' and 'Event' compare as one word. Words ending
+    in 'ss', 'us' or 'is' (status, analysis) and words of three letters are left."""
+    if len(word) > 3 and word.endswith('s') and not word.endswith(('ss', 'us', 'is')):
+        return word[:-1]
+    return word
+
+
 def get_word_set(text: str) -> set:
-    """Extract significant words from text."""
-    return {w for w in normalize_text(text).split() if len(w) > 2}
+    """Extract significant words from text, singular and plural taken as one word."""
+    return {singular(w) for w in normalize_text(text).split() if len(w) > 2}
 
 
 def word_overlap_score(text1: str, text2: str) -> float:

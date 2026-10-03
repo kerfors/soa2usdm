@@ -18,7 +18,7 @@ import pytest
 
 from soa2usdm import config
 from soa2usdm.consolidate import consolidate_tables
-from soa2usdm.visualize import build_matches_model, generate_consolidated_html
+from soa2usdm.visualize import build_matches_model, generate_consolidated_html, mark_differences
 
 SCHEMAS = Path(__file__).parent.parent / "schemas"
 FIXTURE = Path(__file__).parent / "fixtures" / "protocols" / "NCT03637764" / "SoA2USDM" / "resolved"
@@ -149,6 +149,8 @@ needs_nct01847274 = pytest.mark.skipif(
     not _published("NCT01847274"), reason="needs the published NCT01847274 resolved files (usdm_data)")
 needs_nct02107703 = pytest.mark.skipif(
     not _published("NCT02107703"), reason="needs the published NCT02107703 resolved files (usdm_data)")
+needs_nct03402841 = pytest.mark.skipif(
+    not _published("NCT03402841"), reason="needs the published NCT03402841 resolved files (usdm_data)")
 
 VITALS_T1 = _row(1, "act-010", "Vital signs, height, weight")
 VITALS_T3 = _row(3, "act-002", "Vital signs, weight")              # fuzzy_auto 0.90 into VITALS_T1
@@ -203,18 +205,39 @@ def test_split_takes_a_row_out_of_its_unified_activity():
 
 
 @needs_nct02107703
-def test_merge_joins_a_near_match():
-    """NCT02107703: Table 2's 'Adverse Events Collection/CTCAE Grading' scores 0.75
-    against Table 1's 'Adverse Event Collection/CTCAE Grading' and is kept separate
-    with a hint since 1.3 (item 28a). A 'merge' entry joins the two rows."""
+def test_singular_and_plural_are_one_word_to_the_matcher():
+    """NCT02107703: Table 2's 'Adverse Events Collection/CTCAE Grading' and Table 1's
+    'Adverse Event Collection/CTCAE Grading' differ in the plural only. They merge
+    on similarity (shown for review as any fuzzy merge); a 'merge' entry for the
+    pair is stale, because the merge happens without it."""
     files = _published("NCT02107703")
-    plain = consolidate_tables("NCT02107703", files)
     source = _row(2, "act-001", "Adverse Events Collection/CTCAE Grading")
     target = _row(1, "act-019", "Adverse Event Collection/CTCAE Grading")
-    out = consolidate_tables("NCT02107703", files, _doc("NCT02107703", {"op": "merge", "source": source, "target": target}))
+    out = consolidate_tables("NCT02107703", files)
     rows = _by_row(out)
-    ua = rows[(2, "act-001")]
-    assert ua is rows[(1, "act-019")]
+    assert rows[(2, "act-001")] is rows[(1, "act-019")]
+    merged = next(r for r in rows[(2, "act-001")]["source_refs"] if r["table_num"] == 2)
+    assert merged["match_status"] == "fuzzy_auto" and merged["match_confidence"] == 1.0
+    assert out["consolidation_metadata"]["review_stats"] == {"total": 1, "open": 1, "decided": 0, "near_matches": 0}
+    with pytest.raises(ValueError, match="ccorr-001: 'merge' names a merge that happens without it"):
+        consolidate_tables("NCT02107703", files, _doc("NCT02107703", {"op": "merge", "source": source, "target": target}))
+    assert mark_differences(source["activity_name"], target["activity_name"]) == (
+        "Adverse <mark class='diff'>Events</mark> Collection/CTCAE Grading")
+
+
+@needs_nct03402841
+def test_merge_joins_a_near_match():
+    """NCT03402841: Table 2's 'Pregnancy test' scores 0.73 against Table 1's
+    'Pregnancy test for women of childbearing potential' and is kept separate with
+    a hint (item 28a). A 'merge' entry joins the two rows."""
+    files = _published("NCT03402841")
+    plain = consolidate_tables("NCT03402841", files)
+    source = _row(2, "act-006", "Pregnancy test")
+    target = _row(1, "act-013", "Pregnancy test for women of childbearing potential")
+    out = consolidate_tables("NCT03402841", files, _doc("NCT03402841", {"op": "merge", "source": source, "target": target}))
+    rows = _by_row(out)
+    ua = rows[(2, "act-006")]
+    assert ua is rows[(1, "act-013")]
     joined = next(r for r in ua["source_refs"] if r["table_num"] == 2)
     assert joined["match_status"] == "decision" and joined["match_confidence"] == 1.0
     assert joined["decision"] == {"correction_id": "ccorr-001", "op": "merge"}

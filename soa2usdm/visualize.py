@@ -409,8 +409,19 @@ def gen_property_comparison_component(data: dict) -> str:
     </div>'''
 
 
-# A 'See ...' source note starting like this points into the protocol body, not at a table.
-BODY_REFERENCE_PREFIXES = ('see section', 'see appendix', 'see attachment')
+# A 'See ...' source note starting like this, or naming one of these anywhere,
+# points into the protocol body or at a figure, not at a table.
+BODY_REFERENCE_PREFIXES = ('see section', 'see appendix', 'see attachment', 'see figure')
+BODY_REFERENCE_WORDS = ('attachment', 'appendix')
+
+
+def mark_differences(name: str, other: str) -> str:
+    """The name as HTML, with every word that the other name does not print
+    marked. Words are compared as printed (case and punctuation included), so
+    the difference a similarity score hides is the one shown."""
+    other_words = set(other.split())
+    return ' '.join(esc(w) if w in other_words else f"<mark class='diff'>{esc(w)}</mark>"
+                    for w in name.split())
 
 
 def build_matches_model(data: dict, row_names: dict, corrections_doc: Optional[dict]) -> dict:
@@ -483,13 +494,16 @@ def build_matches_model(data: dict, row_names: dict, corrections_doc: Optional[d
     # Cross-reference source notes ('See ... Flow Chart') bound to activity rows:
     # each can draft table -> row 'refines' entries. The reviewer picks the table;
     # nothing is derived from the note's wording. A note that points into the
-    # protocol body ('See Section 8.2.2', 'See Appendix 3') is not a candidate.
+    # protocol body or at a figure ('See Section 8.2.2', 'See ... (Attachment 7)',
+    # 'See Figure 5.1-1') is not a candidate.
     candidates = []
     for annot in data.get('unified_annotations', []):
         if annot['annotation_type'] != 'source_note' or not annot.get('referenced_xacts'):
             continue
         text = annot['annotation_text'].strip().lower()
         if not text.startswith('see') or text.startswith(BODY_REFERENCE_PREFIXES):
+            continue
+        if any(word in text for word in BODY_REFERENCE_WORDS):
             continue
         note_tables = {occ['table_num'] for occ in annot['source_occurrences']}
         if not any(t['table_type'] != 'reference' and t['table_num'] not in note_tables for t in tables):
@@ -570,9 +584,10 @@ def gen_matches_component(model: dict) -> str:
     The page writes nothing."""
     items = model['items']
 
-    def row_cell(r: dict) -> str:
-        return (f"<span class='trace'>T{r['table_number']} {esc(r['activity_id'])}</span> "
-                f"{esc(r['activity_name'])}")
+    def row_cell(r: dict, other: Optional[dict] = None) -> str:
+        """A row; with the other row of the pair, the words that differ are marked."""
+        name = mark_differences(r['activity_name'], other['activity_name']) if other else esc(r['activity_name'])
+        return f"<span class='trace'>T{r['table_number']} {esc(r['activity_id'])}</span> {name}"
 
     RELATION = {'merged': 'merged with', 'separate': 'kept separate from', 'split': 'split from'}
     CHOICES = {'merged': [('keep', 'keep the merge'), ('split', 'split')],
@@ -597,9 +612,9 @@ def gen_matches_component(model: dict) -> str:
                               for op, label in CHOICES[it['kind']])
         rows.append(f"""<tr>
             <td>{state}</td>
-            <td class="text-full">{row_cell(it['source'])}</td>
+            <td class="text-full">{row_cell(it['source'], it['target'])}</td>
             <td class="type">{RELATION[it['kind']]}{score}</td>
-            <td class="text-full">{row_cell(it['target'])}</td>
+            <td class="text-full">{row_cell(it['target'], it['source'])}</td>
             <td class="id"><a href="#{it['xact_id']}">{it['xact_id']}</a></td>
             <td>{action}</td>
         </tr>""")
@@ -645,7 +660,8 @@ def gen_matches_component(model: dict) -> str:
     intro = ("Rows that consolidation merged on name similarity, or kept separate from a near match. "
              "Whether two rows are the same activity is the reviewer's call: choosing drafts an entry "
              f"for <code>{esc(model['sidecar'])}</code> below; nothing is saved from here. "
-             "Rows merged on an identical name are not listed.")
+             "Rows merged on an identical name are not listed. Words that only one of the two names prints are "
+             "marked; the score ignores case, hyphens, slashes, text in parentheses and plural endings.")
     matches_table = f"""<table class="comp-table">
                 <thead><tr><th>state</th><th>row</th><th>consolidation</th><th>other row</th><th>activity</th><th>decision</th></tr></thead>
                 <tbody>{''.join(rows)}</tbody>
@@ -1307,6 +1323,7 @@ def generate_consolidated_html(data: dict, nav=None, row_names: Optional[dict] =
         .comp-table tr:hover {{ background: #eef4fb; }}
         .comp-table tr.refined-by td {{ color: var(--muted); padding-left: 28px; }}
         .comp-table tr.group-row td {{ background: var(--head); }}
+        mark.diff {{ background: #fff1c2; color: inherit; padding: 0 2px; border-radius: 2px; }}
         .pill {{ display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 9px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }}
         .pill.open {{ border-color: #c77700; color: #8a5300; background: #fff6e5; }}
         .pill.done {{ border-color: #2e7d32; color: #1b5e20; background: #edf7ee; }}
