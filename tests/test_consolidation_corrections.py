@@ -18,6 +18,7 @@ import pytest
 
 from soa2usdm import config
 from soa2usdm.consolidate import consolidate_tables
+from soa2usdm.visualize import build_matches_model, generate_consolidated_html
 
 SCHEMAS = Path(__file__).parent.parent / "schemas"
 FIXTURE = Path(__file__).parent / "fixtures" / "protocols" / "NCT03637764" / "SoA2USDM" / "resolved"
@@ -219,3 +220,70 @@ def test_merge_joins_a_near_match():
     assert after["review_stats"]["total"] == before["review_stats"]["total"]
     assert after["review_stats"]["decided"] == 1
     _valid(out)
+
+
+# --- the consolidated view: 'Matches across tables' --------------------------
+
+def _row_names(files) -> dict:
+    names = {}
+    for f in files:
+        table = json.loads(Path(f).read_text())
+        for act in table["activities"]:
+            names[(table["table_metadata"]["table_number"], act["activity_id"])] = act["activity_name"]
+    return names
+
+
+def test_view_offers_the_cross_reference_notes_as_refines_drafts():
+    """NCT03637764 Table 1 carries two source notes that point at a flow chart
+    ('See Pharmacokinetics and immunogenicity Flow Chart' on PK and ADA, 'See
+    Biomarker Flow Chart' on the biomarker row). The view lists them with the
+    other tables to pick from; it does not pick."""
+    out = consolidate_tables("NCT03637764", FIXTURE_FILES)
+    model = build_matches_model(out, _row_names(FIXTURE_FILES), None)
+    assert model["items"] == [] and model["open"] == 0 and model["relations"] == []
+    assert model["sidecar"] == "NCT03637764_consolidation_corrections.json"
+    assert model["sidecar_exists"] is False and model["next_id"] == 1
+    assert [(c["text"], [r["activity_name"] for r in c["rows"]]) for c in model["candidates"]] == [
+        ("See Pharmacokinetics and immunogenicity Flow Chart", ["PK", "ADA"]),
+        ("See Biomarker Flow Chart", ["Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw"]),
+    ]
+    assert [t["table_number"] for t in model["candidates"][0]["tables"]] == [2, 3]
+    html = generate_consolidated_html(out, None, _row_names(FIXTURE_FILES), None)
+    assert 'id="matches"' in html and "no matches to review" in html
+    assert 'class="comp" id="matches"' in html            # nothing open: starts collapsed
+
+
+def test_view_shows_a_stated_refinement_under_the_row_it_details():
+    doc = _doc("NCT03637764",
+               {"op": "refines", "source": {"table_number": 2}, "target": PK},
+               {"op": "refines", "source": ISA_INFUSION, "target": ISA_ADMIN})
+    out = consolidate_tables("NCT03637764", FIXTURE_FILES, doc)
+    model = build_matches_model(out, _row_names(FIXTURE_FILES), doc)
+    assert model["sidecar_exists"] is True and model["next_id"] == 3
+    assert [(r["correction_id"], r["source"], r["target"]) for r in model["relations"]] == [
+        ("ccorr-002", ISA_INFUSION, ISA_ADMIN), ("ccorr-001", {"table_number": 2}, PK)]
+    html = generate_consolidated_html(out, None, _row_names(FIXTURE_FILES), doc)
+    assert "↳ refined by Table 2 (whole table)" in html
+    assert "↳ refines <a href=" in html
+
+
+@needs_nct01847274
+def test_view_lists_the_same_matches_review_stats_counts():
+    files = _published("NCT01847274")
+    plain = consolidate_tables("NCT01847274", files)
+    model = build_matches_model(plain, _row_names(files), None)
+    stats = plain["consolidation_metadata"]["review_stats"]
+    assert len(model["items"]) == stats["total"] == 4 and model["open"] == stats["open"] == 4
+    assert {(i["kind"], i["source"]["activity_name"], i["target"]["activity_name"]) for i in model["items"]} >= {
+        ("merged", "Vital signs, weight", "Vital signs, height, weight"),
+        ("separate", "Hematology/serum chemistry", "Coagulation/serum chemistry")}
+    assert 'class="comp start-open" id="matches"' in generate_consolidated_html(plain, None, _row_names(files), None)
+    doc = _doc("NCT01847274", {"op": "keep", "source": HEMA_T2, "target": COAG_T1},
+               {"op": "split", "source": VITALS_T3, "target": VITALS_T1})
+    out = consolidate_tables("NCT01847274", files, doc)
+    model = build_matches_model(out, _row_names(files), doc)
+    assert len(model["items"]) == 4 and model["open"] == 2
+    split = next(i for i in model["items"] if i["kind"] == "split")
+    assert split["source"] == VITALS_T3 and split["target"] == VITALS_T1
+    assert split["decision"] == {"correction_id": "ccorr-002", "op": "split", "reason": "test",
+                                 "by": "test", "at": "2026-10-03T00:00:00Z"}

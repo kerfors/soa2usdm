@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 from .base import PipelineStepBase
 from . import config
+from .consolidation_corrections import corrections_path
 from .nav import NAV_CSS, nav_block, page_title
 
 
@@ -123,6 +124,7 @@ MATCH_LABELS = {
     'fuzzy_auto': 'near match, accepted',
     'fuzzy_review': 'near match, to review',
     'fuzzy_cross_parent': 'near match, different parent',
+    'decision': 'merged by decision',
     'new': 'one table',
 }
 
@@ -407,9 +409,276 @@ def gen_property_comparison_component(data: dict) -> str:
     </div>'''
 
 
+# A 'See ...' source note starting like this points into the protocol body, not at a table.
+BODY_REFERENCE_PREFIXES = ('see section', 'see appendix', 'see attachment')
+
+
+def build_matches_model(data: dict, row_names: dict, corrections_doc: Optional[dict]) -> dict:
+    """What the 'Matches across tables' section shows and drafts from.
+
+    row_names maps (table_number, activity_id) to the row's activity_name in its
+    resolved table: a sidecar entry names source rows, and a source reference in
+    the consolidated file carries no name of its own. corrections_doc is the
+    protocol's consolidation corrections sidecar, when it has one.
+
+    items: every cross-table match a reviewer can decide — a source row merged on
+    a fuzzy score or by a decision ('merged'), a row split off by a decision
+    ('split'), and a near match kept separate ('separate'). Same set as
+    consolidation_metadata.review_stats. An item is decided when it carries a
+    decision; the sidecar entry gives reason, by and at.
+    """
+    entries = {c['id']: c for c in corrections_doc['corrections']} if corrections_doc else {}
+    activities = data['unified_activities']
+    by_xact = {ua['xact_id']: ua for ua in activities}
+    tables = data['consolidation_metadata']['source_tables']
+
+    def row(ref: dict) -> dict:
+        return {'table_number': ref['table_num'], 'activity_id': ref['activity_id'],
+                'activity_name': row_names[(ref['table_num'], ref['activity_id'])]}
+
+    def decided(decision: Optional[dict]) -> Optional[dict]:
+        if not decision:
+            return None
+        entry = entries[decision['correction_id']]
+        return {**decision, 'reason': entry['reason'], 'by': entry['by'], 'at': entry['at']}
+
+    items = []
+    for ua in activities:
+        creator = ua['source_refs'][0]
+        for ref in ua['source_refs']:
+            if 'fuzzy' not in ref['match_status'] and 'decision' not in ref:
+                continue
+            split = ref is creator
+            items.append({
+                'kind': 'split' if split else 'merged',
+                'xact_id': ua['xact_id'],
+                'source': row(ref),
+                'target': entries[ref['decision']['correction_id']]['target'] if split else row(creator),
+                'status': ref['match_status'],
+                'score': None if split else ref['match_confidence'],
+                'decision': decided(ref.get('decision')),
+            })
+        for hint in ua.get('near_matches', []):
+            source_ref = next(r for r in ua['source_refs'] if r['table_num'] == hint['table_num'])
+            items.append({
+                'kind': 'separate',
+                'xact_id': ua['xact_id'],
+                'source': row(source_ref),
+                'target': row(by_xact[hint['xact_id']]['source_refs'][0]),
+                'target_xact_id': hint['xact_id'],
+                'status': 'near_match',
+                'score': hint['score'],
+                'decision': decided(hint.get('decision')),
+            })
+
+    # 'refines' relations already stated in the sidecar, by the row they detail.
+    relations = []
+    for ua in activities:
+        for r in ua.get('refined_by', []):
+            entry = entries[r['correction_id']]
+            relations.append({'target': entry['target'], 'target_xact_id': ua['xact_id'],
+                              'source': entry['source'], 'correction_id': r['correction_id'],
+                              'reason': entry['reason'], 'by': entry['by'], 'at': entry['at']})
+
+    # Cross-reference source notes ('See ... Flow Chart') bound to activity rows:
+    # each can draft table -> row 'refines' entries. The reviewer picks the table;
+    # nothing is derived from the note's wording. A note that points into the
+    # protocol body ('See Section 8.2.2', 'See Appendix 3') is not a candidate.
+    candidates = []
+    for annot in data.get('unified_annotations', []):
+        if annot['annotation_type'] != 'source_note' or not annot.get('referenced_xacts'):
+            continue
+        text = annot['annotation_text'].strip().lower()
+        if not text.startswith('see') or text.startswith(BODY_REFERENCE_PREFIXES):
+            continue
+        note_tables = {occ['table_num'] for occ in annot['source_occurrences']}
+        if not any(t['table_type'] != 'reference' and t['table_num'] not in note_tables for t in tables):
+            continue
+        rows = [row(ref) for xact_id in annot['referenced_xacts']
+                for ref in by_xact[xact_id]['source_refs'] if ref['table_num'] in note_tables]
+        candidates.append({
+            'xannot_id': annot['xannot_id'], 'text': annot['annotation_text'], 'rows': rows,
+            'tables': [{'table_number': t['table_num'], 'table_title': t.get('table_title', '')}
+                       for t in tables
+                       if t['table_type'] != 'reference' and t['table_num'] not in note_tables],
+        })
+
+    protocol_id = data['protocol_id']
+    return {
+        'protocol_id': protocol_id,
+        'sidecar': corrections_path(Path('.'), protocol_id).name,
+        'sidecar_exists': corrections_doc is not None,
+        'next_id': len(entries) + 1,
+        'items': items,
+        'relations': relations,
+        'candidates': candidates,
+        'open': sum(1 for i in items if not i['decision']),
+    }
+
+
+MATCHES_SCRIPT = '''
+    <script>
+    (function () {
+        const M = __MODEL__;
+        const choice = {}, picked = {};
+        const body = document.getElementById('matches-body');
+        const fmt = r => 'T' + r.table_number + (r.activity_id ? ' ' + r.activity_id : '');
+        function entries() {
+            const by = document.getElementById('matches-by').value || '<reviewer>';
+            const at = new Date().toISOString().slice(0, 19) + 'Z';
+            const out = []; let n = M.next_id;
+            const id = () => 'ccorr-' + String(n++).padStart(3, '0');
+            M.items.forEach((it, i) => {
+                if (!choice[i]) return;
+                out.push({id: id(), op: choice[i], source: it.source, target: it.target,
+                          reason: '<why>', by: by, at: at});
+            });
+            M.candidates.forEach((c, k) => {
+                if (!picked[k]) return;
+                c.rows.forEach(r => out.push({id: id(), op: 'refines', source: {table_number: picked[k]},
+                                              target: r, reason: '<why>', by: by, at: at}));
+            });
+            return out;
+        }
+        function render() {
+            const e = entries(), el = document.getElementById('matches-draft');
+            if (!e.length) { el.value = ''; return; }
+            el.value = JSON.stringify(M.sidecar_exists ? e : {schema_name: 'soa-consolidation-corrections',
+                schema_version: '1.0', protocol_id: M.protocol_id, corrections: e}, null, 2);
+        }
+        function choose(i, op) {
+            choice[i] = choice[i] === op ? null : op;
+            body.querySelectorAll('button[data-i="' + i + '"]').forEach(
+                b => b.classList.toggle('on', b.dataset.op === choice[i]));
+        }
+        body.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => { choose(+b.dataset.i, b.dataset.op); render(); });
+        body.querySelectorAll('button[data-group]').forEach(b => b.onclick = () => {
+            b.dataset.group.split(',').forEach(i => { if (choice[+i] !== b.dataset.op) choose(+i, b.dataset.op); });
+            render();
+        });
+        body.querySelectorAll('select[data-k]').forEach(sel => sel.onchange = () => {
+            picked[+sel.dataset.k] = sel.value ? +sel.value : null; render();
+        });
+        document.getElementById('matches-by').oninput = render;
+    })();
+    </script>'''
+
+
+def gen_matches_component(model: dict) -> str:
+    """Generate the 'Matches across tables' component: the cross-table matches to
+    review, their decisions, and a draft of consolidation-sidecar entries to copy.
+    The page writes nothing."""
+    items = model['items']
+
+    def row_cell(r: dict) -> str:
+        return (f"<span class='trace'>T{r['table_number']} {esc(r['activity_id'])}</span> "
+                f"{esc(r['activity_name'])}")
+
+    RELATION = {'merged': 'merged with', 'separate': 'kept separate from', 'split': 'split from'}
+    CHOICES = {'merged': [('keep', 'keep the merge'), ('split', 'split')],
+               'separate': [('keep', 'keep separate'), ('merge', 'merge')]}
+
+    # Open near matches against one target row can be decided together.
+    groups = defaultdict(list)
+    for i, it in enumerate(items):
+        if it['kind'] == 'separate' and not it['decision']:
+            groups[(it['target']['table_number'], it['target']['activity_id'])].append(i)
+
+    rows = []
+    for i, it in enumerate(items):
+        d = it['decision']
+        score = '' if it['score'] is None else f" <span class='trace'>{it['score']:.2f}</span>"
+        if d:
+            state = f"<span class='pill done'>decided · {esc(d['correction_id'])} {esc(d['op'])}</span>"
+            action = f"{esc(d['reason'])} <span class='trace'>{esc(d['by'])}, {esc(d['at'])}</span>"
+        else:
+            state = "<span class='pill open'>open</span>"
+            action = ' '.join(f'<button data-i="{i}" data-op="{op}">{label}</button>'
+                              for op, label in CHOICES[it['kind']])
+        rows.append(f"""<tr>
+            <td>{state}</td>
+            <td class="text-full">{row_cell(it['source'])}</td>
+            <td class="type">{RELATION[it['kind']]}{score}</td>
+            <td class="text-full">{row_cell(it['target'])}</td>
+            <td class="id"><a href="#{it['xact_id']}">{it['xact_id']}</a></td>
+            <td>{action}</td>
+        </tr>""")
+        key = (it['target']['table_number'], it['target']['activity_id'])
+        if it['kind'] == 'separate' and len(groups.get(key, [])) > 1 and groups[key][-1] == i:
+            ids = ','.join(str(g) for g in groups[key])
+            n = len(groups[key])
+            rows.append(f"""<tr class="group-row">
+            <td></td><td colspan="4" class="type">The {n} open near matches of {row_cell(it['target'])}</td>
+            <td><button data-group="{ids}" data-op="keep">keep all {n} separate</button> <button data-group="{ids}" data-op="merge">merge all {n}</button></td>
+        </tr>""")
+
+    refines = []
+    for r in model['relations']:
+        source = row_cell(r['source']) if 'activity_id' in r['source'] else f"Table {r['source']['table_number']} (whole table)"
+        refines.append(f"""<tr>
+            <td><span class='pill done'>stated · {esc(r['correction_id'])}</span></td>
+            <td class="text-full">{source}</td>
+            <td class="type">refines</td>
+            <td class="text-full">{row_cell(r['target'])}</td>
+            <td class="id"><a href="#{r['target_xact_id']}">{r['target_xact_id']}</a></td>
+            <td>{esc(r['reason'])} <span class='trace'>{esc(r['by'])}, {esc(r['at'])}</span></td>
+        </tr>""")
+    for k, c in enumerate(model['candidates']):
+        options = ''.join(f'<option value="{t["table_number"]}">Table {t["table_number"]} — {esc(t["table_title"])}</option>'
+                          for t in c['tables'])
+        refines.append(f"""<tr>
+            <td><span class='pill'>source note</span></td>
+            <td class="text-full"><a href="#{c['xannot_id']}">{note_label(c['xannot_id'])}</a> “{esc(c['text'])}”</td>
+            <td class="type">points from</td>
+            <td class="text-full">{'<br/>'.join(row_cell(r) for r in c['rows'])}</td>
+            <td></td>
+            <td><select data-k="{k}"><option value="">which table refines? (no draft)</option>{options}</select></td>
+        </tr>""")
+
+    total = len(items)
+    if not total:
+        desc = 'no matches to review'
+    elif model['open']:
+        desc = f"{model['open']} open of {total}"
+    else:
+        desc = f"all {total} decided"
+    intro = ("Rows that consolidation merged on name similarity, or kept separate from a near match. "
+             "Whether two rows are the same activity is the reviewer's call: choosing drafts an entry "
+             f"for <code>{esc(model['sidecar'])}</code> below; nothing is saved from here. "
+             "Rows merged on an identical name are not listed.")
+    matches_table = f"""<table class="comp-table">
+                <thead><tr><th>state</th><th>row</th><th>consolidation</th><th>other row</th><th>activity</th><th>decision</th></tr></thead>
+                <tbody>{''.join(rows)}</tbody>
+            </table>""" if rows else ''
+    refines_table = f"""<div class="comp-note">Refinements: a table or row that details a row of another table, without being the same activity. A cross-reference note can draft the entry once the table it means is picked; row-to-row entries are written by hand.</div>
+            <table class="comp-table">
+                <thead><tr><th>state</th><th>refining side</th><th></th><th>row</th><th>activity</th><th>draft</th></tr></thead>
+                <tbody>{''.join(refines)}</tbody>
+            </table>""" if refines else ''
+    draft_label = ('entries to append to' if model['sidecar_exists'] else 'new file')
+    script = MATCHES_SCRIPT.replace('__MODEL__', json.dumps(model, ensure_ascii=False).replace('</', '<\\/'))
+    return f'''
+    <div class="comp{' start-open' if model['open'] else ''}" id="matches">
+        <div class="comp-header collapsible" style="background: {COLORS['activities']};" onclick="toggleSection(this)">
+            <span class="comp-title"><span class="toggle-icon">▼</span> Matches across tables</span>
+            <span class="comp-desc">{desc}</span>
+        </div>
+        <div class="comp-body" id="matches-body">
+            <div class="comp-note">{intro}</div>
+            {matches_table}
+            {refines_table}
+            <div class="comp-note">Draft — {draft_label} <code>consolidated/{esc(model['sidecar'])}</code>; replace each <code>&lt;why&gt;</code>, then re-run consolidation.
+                <input id="matches-by" placeholder="your name, as it should appear in the sidecar">
+                <textarea id="matches-draft" readonly placeholder="Choose a decision above to draft sidecar entries here."></textarea>
+            </div>
+        </div>
+    </div>{script}'''
+
+
 def gen_activities_component(data: dict) -> str:
     """Generate Unified Activities component."""
     activities = data.get('unified_activities', [])
+    by_xact = {ua['xact_id']: ua for ua in activities}
     
     rows = []
     for ua in activities:
@@ -425,8 +694,10 @@ def gen_activities_component(data: dict) -> str:
                 name_display += f"<br/><span class='variations'>≈ {'; '.join(esc(n) for n in unique_names[1:])}</span>"
         else:
             name_display = esc(ua.get('activity_name', ''))
+        for r in ua.get('refines', []):
+            name_display += f"<br/><span class='variations'>↳ refines <a href='#{r['xact_id']}'>{r['xact_id']}</a> {esc(by_xact[r['xact_id']]['activity_name'])}</span>"
         
-        rows.append(f'''<tr style="background: {bg};">
+        rows.append(f'''<tr id="{ua.get('xact_id', '')}" style="background: {bg};">
             <td class="id">{ua.get('xact_id', '')}</td>
             <td class="text-full">{name_display}</td>
             <td class="trace">{esc(ua.get('parent_name', '')[:40])}</td>
@@ -434,6 +705,18 @@ def gen_activities_component(data: dict) -> str:
             <td class="trace">{ua.get('table_count', 1)}</td>
             <td class="trace">{tables}</td>
             <td class="type">{'section' if ua.get('is_section_header', False) else ''}</td>
+        </tr>''')
+        # Nested under the row: what refines it (a 'refines' entry of the sidecar).
+        for r in ua.get('refined_by', []):
+            if 'xact_id' in r:
+                refining = by_xact[r['xact_id']]
+                what = (f"<a href='#{r['xact_id']}'>{r['xact_id']}</a> {esc(refining['activity_name'])} "
+                        f"<span class='trace'>{', '.join('T' + str(sr['table_num']) for sr in refining['source_refs'])}</span>")
+            else:
+                what = f"Table {r['table_num']} (whole table)"
+            rows.append(f'''<tr class="refined-by">
+            <td></td>
+            <td class="text-full" colspan="6">↳ refined by {what} <span class="trace">{esc(r['correction_id'])}</span></td>
         </tr>''')
     
     return f'''
@@ -925,8 +1208,13 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
 # Full HTML Generator
 # =============================================================================
 
-def generate_consolidated_html(data: dict, nav=None) -> str:
-    """Generate complete consolidated HTML."""
+def generate_consolidated_html(data: dict, nav=None, row_names: Optional[dict] = None,
+                               corrections_doc: Optional[dict] = None) -> str:
+    """Generate complete consolidated HTML.
+
+    row_names ((table_number, activity_id) -> activity_name, from the resolved
+    tables) and corrections_doc (the consolidation corrections sidecar, if any)
+    feed the 'Matches across tables' section."""
     protocol_id = data.get('protocol_id', 'Unknown')
     meta = data.get('consolidation_metadata', {})
     
@@ -1017,6 +1305,15 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
             vertical-align: top; word-wrap: break-word;
         }}
         .comp-table tr:hover {{ background: #eef4fb; }}
+        .comp-table tr.refined-by td {{ color: var(--muted); padding-left: 28px; }}
+        .comp-table tr.group-row td {{ background: var(--head); }}
+        .pill {{ display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 9px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }}
+        .pill.open {{ border-color: #c77700; color: #8a5300; background: #fff6e5; }}
+        .pill.done {{ border-color: #2e7d32; color: #1b5e20; background: #edf7ee; }}
+        #matches button, #matches select {{ font-size: 11px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 4px; background: #fff; cursor: pointer; }}
+        #matches button.on {{ background: var(--blue2); border-color: var(--blue2); color: #fff; }}
+        #matches-by {{ display: block; width: 320px; margin: 8px 0 4px; font-size: 12px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; }}
+        #matches-draft {{ display: block; width: 100%; height: 200px; font: 11px/1.35 ui-monospace, Menlo, Consolas, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 6px; }}
 
         .prop-comparison th.table-col {{ text-align: center; min-width: 320px; }}
         .prop-comparison .track-small {{ font-size: 10px; font-weight: normal; color: var(--muted); }}
@@ -1176,6 +1473,7 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
     </div>
     
     {grids}
+    {gen_matches_component(build_matches_model(data, row_names, corrections_doc))}
     {gen_metadata_component(data)}
     {gen_tables_component(data, pop_colors)}
     {gen_property_comparison_component(data)}
@@ -1201,7 +1499,7 @@ def generate_consolidated_html(data: dict, nav=None) -> str:
             document.querySelectorAll('.comp, .collapsible-section').forEach(c => c.classList.add('collapsed'));
         }
         // Start with component sections collapsed, grids expanded
-        document.querySelectorAll('.comp').forEach(c => c.classList.add('collapsed'));
+        document.querySelectorAll('.comp:not(.start-open)').forEach(c => c.classList.add('collapsed'));
         // Note markers link to #xannot-NNN: open its section, then scroll to the row
         function showNote() {
             const row = location.hash && document.getElementById(location.hash.slice(1));
@@ -1287,7 +1585,18 @@ class VisualizeStep(PipelineStepBase):
                 all_tables=all_tables
             )
             
-            html = generate_consolidated_html(consolidated_data, nav)
+            # Row names for the matches section (a sidecar entry names source rows),
+            # and the consolidation corrections sidecar, when the protocol has one.
+            row_names = {}
+            for rf in resolved_files:
+                rd = json.loads(rf.read_text(encoding="utf-8"))
+                tnum = rd['table_metadata']['table_number']
+                for act in rd['activities']:
+                    row_names[(tnum, act['activity_id'])] = act['activity_name']
+            sidecar = corrections_path(consolidated_dir, protocol_id)
+            corrections_doc = json.loads(sidecar.read_text(encoding="utf-8")) if sidecar.exists() else None
+
+            html = generate_consolidated_html(consolidated_data, nav, row_names, corrections_doc)
             
             output_file = consolidated_dir / f"{protocol_id}_consolidated.html"
             output_file.write_text(html)
