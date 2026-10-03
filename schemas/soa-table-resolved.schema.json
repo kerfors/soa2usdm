@@ -541,6 +541,20 @@
           "type": "string",
           "description": "Full annotation text. Preserved from extraction."
         },
+        "document_references": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Numbered targets in the protocol document that the annotation text points at ('See Section 8.2.2', 'refer to Appendix 3', 'see Table 4'), read from the text only; whether the target can be found in the protocol text is not stated here. A list gives one entry per number; a reviewer note (text starting 'Reviewer note' or 'Footnote not printed in the source') has none. Present only when there is one. From 1.2.",
+          "items": {
+            "type": "object",
+            "required": ["kind", "target"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {"type": "string", "enum": ["section", "appendix", "attachment", "table", "figure"], "description": "What the note points at"},
+              "target": {"type": "string", "description": "Its number or letter as printed, e.g. '8.2.2', 'C', '5.1-1'"}
+            }
+          }
+        },
         "annotation_scope": {
           "type": "string",
           "enum": [
@@ -751,8 +765,8 @@
     },
     "schema_version": {
       "type": "string",
-      "enum": ["1.0", "1.1"],
-      "description": "Schema version. 1.1 adds property_type 'visit_attribute'; files stamped 1.0 remain valid."
+      "enum": ["1.0", "1.1", "1.2"],
+      "description": "Schema version. 1.1 adds property_type 'visit_attribute'. 1.2 adds document_references on an annotation. Files stamped 1.0 or 1.1 remain valid."
     },
     "resolution_metadata": {
       "$ref": "#/definitions/resolution_metadata",

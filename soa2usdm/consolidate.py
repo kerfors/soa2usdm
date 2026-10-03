@@ -769,6 +769,7 @@ class UnifiedAnnotation:
     referenced_props: list = field(default_factory=list)
     cell_references: list = field(default_factory=list)
     table_scope: bool = False
+    document_references: list = field(default_factory=list)
 
     def add_occurrence(self, table_num: int, marker: str, annot_id: str):
         """Add a source occurrence."""
@@ -815,7 +816,9 @@ class UnifiedAnnotation:
             'cell_references': self.cell_references,
             'occurrence_count': len(self.source_occurrences),
             # Exception-based: present only for a table-wide note (item 25l).
-            **({'annotation_scope': 'table'} if self.table_scope else {})
+            **({'annotation_scope': 'table'} if self.table_scope else {}),
+            # Present only when the text names a numbered target (item 3).
+            **({'document_references': self.document_references} if self.document_references else {})
         }
 
 
@@ -977,7 +980,8 @@ class AnnotationConsolidator:
                 referenced_xcols=xcols,
                 referenced_props=xprops,
                 cell_references=cell_refs,
-                table_scope=table_scope
+                table_scope=table_scope,
+                document_references=[dict(r) for r in annot.get('document_references', [])]
             )
             ua.add_occurrence(table_num, marker, annot_id)
             self.unified_annotations.append(ua)
@@ -1570,6 +1574,19 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path],
     prop_to_xprop = build_prop_to_xprop(tables, col_consolidator.property_info)
     annot_consolidator.process_tables(tables, act_to_xact, col_to_xcol, prop_to_xprop)
 
+    # A 'Table N' reference that names one of this protocol's extracted tables
+    # also carries that table's number. Matched on the printed title only
+    # ('Table 4. Schedule of ...'); a printed number borne by two titles links nothing.
+    printed_numbers = defaultdict(list)
+    for num, t in tables.items():
+        title_number = re.match(r'\s*Table\s+(\d+(?:[.\-–]\d+)*)', t['table_metadata'].get('table_title', ''), re.I)
+        if title_number:
+            printed_numbers[title_number.group(1)].append(num)
+    for ua in annot_consolidator.unified_annotations:
+        for ref in ua.document_references:
+            if ref['kind'] == 'table' and len(printed_numbers.get(ref['target'], [])) == 1:
+                ref['table_num'] = printed_numbers[ref['target']][0]
+
     # Calculate stats
     total_src = sum(
         len(t['activities']) for t in tables.values()
@@ -1584,7 +1601,7 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path],
     # Build output
     return {
         "schema_name": "soa-tables-consolidated",
-        "schema_version": "1.4",
+        "schema_version": "1.5",
         "protocol_id": protocol_id,
         "consolidation_metadata": {
             "consolidated_at": datetime.now(timezone.utc).isoformat(),

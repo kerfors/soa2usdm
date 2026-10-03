@@ -23,8 +23,8 @@
     },
     "schema_version": {
       "type": "string",
-      "enum": ["1.1", "1.2", "1.3", "1.4"],
-      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. 1.4 adds what the consolidation corrections sidecar (soa-consolidation-corrections) leaves in the output: 'decision' on a source reference or a near match, match_status 'decision', 'refines' / 'refined_by' on a unified activity, 'refines' on a source table, and review_stats / corrections_applied in consolidation_metadata. Files stamped 1.1, 1.2 or 1.3 remain valid."
+      "enum": ["1.1", "1.2", "1.3", "1.4", "1.5"],
+      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. 1.4 adds what the consolidation corrections sidecar (soa-consolidation-corrections) leaves in the output: 'decision' on a source reference or a near match, match_status 'decision', 'refines' / 'refined_by' on a unified activity, 'refines' on a source table, and review_stats / corrections_applied in consolidation_metadata. 1.5 adds document_references on a unified annotation. Files stamped 1.1 to 1.4 remain valid."
     },
     "protocol_id": {
       "type": "string",
@@ -820,6 +820,21 @@
           "type": "integer",
           "minimum": 1,
           "description": "Number of times this annotation appears across tables"
+        },
+        "document_references": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Numbered targets in the protocol document that the annotation text points at, carried from the resolved tables. A 'table' reference whose number is the printed number of exactly one of this protocol's extracted tables (its title starts 'Table N') also carries table_num. Present only when there is one. From 1.5.",
+          "items": {
+            "type": "object",
+            "required": ["kind", "target"],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {"type": "string", "enum": ["section", "appendix", "attachment", "table", "figure"], "description": "What the note points at"},
+              "target": {"type": "string", "description": "Its number or letter as printed, e.g. '8.2.2', 'C', '5.1-1'"},
+              "table_num": {"type": "integer", "minimum": 1, "description": "For kind 'table': the extracted source table that prints this number in its title"}
+            }
+          }
         },
         "annotation_scope": {
           "type": "string",

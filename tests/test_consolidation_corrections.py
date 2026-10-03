@@ -61,7 +61,7 @@ ISA_INFUSION = _row(2, "act-003", "Isatuximab")
 def test_without_a_sidecar_nothing_is_decided():
     out = consolidate_tables("NCT03637764", FIXTURE_FILES)
     meta = out["consolidation_metadata"]
-    assert out["schema_version"] == "1.4"
+    assert out["schema_version"] == "1.5"
     assert meta["review_stats"] == {"total": 0, "open": 0, "decided": 0, "near_matches": 0}
     assert meta["match_stats"]["decision"] == 0
     assert "corrections_applied" not in meta

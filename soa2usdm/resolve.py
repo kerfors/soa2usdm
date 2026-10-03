@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .base import PipelineStepBase
+from .references import find_document_references
 from .errors import Errors
 from .analytics import AnalyticsBase
 from . import config
@@ -381,6 +382,10 @@ def build_annotation_crossrefs(
                 and is_legend_annotation(annot["annotation_text"])):
             annotation_type = "legend"
 
+        # What the note points at in the protocol ('See Section 8.2.2'), stated
+        # as data; exception-based, present only when the text names a target.
+        document_references = find_document_references(annot["annotation_text"])
+
         resolved_annotations.append({
             "annotation_id": annot_id,
             "table_id": table_id,
@@ -392,7 +397,8 @@ def build_annotation_crossrefs(
             "annotation_text": annot["annotation_text"],
             "annotation_scope": scope,
             "referenced_elements": referenced,
-            "marker_locations": annot.get("marker_locations", [])
+            "marker_locations": annot.get("marker_locations", []),
+            **({"document_references": document_references} if document_references else {})
         })
         
         for prop_id in referenced["property_ids"]:
@@ -860,7 +866,7 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
     
     return {
         "schema_name": "soa-table-resolved",
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "resolution_metadata": resolution_metadata,
         "extraction_metadata": extraction.get("extraction_metadata", {}),
         "table_metadata": resolved_table_meta,

@@ -112,7 +112,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 ## Layer 2: Resolution
 
-**Schema:** `soa-table-resolved` v1.1
+**Schema:** `soa-table-resolved` v1.2
 
 **Implementation:** Programmatic (ResolveStep, no Claude API). Reads the verified extraction where a corrections sidecar exists, the raw extraction otherwise.
 
@@ -121,6 +121,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 - Derived parent-child relationships from indentation/hierarchy levels
 - Explicit schedule columns with composite labels
 - Bidirectional annotation cross-references
+- Document references: the numbered section, appendix, attachment, table or figure an annotation text points at ('See Section 8.2.2'), stated as `document_references` (kind + number as printed). The pointer only; the target is not looked up in the protocol text
 - Validation (structure, hierarchy, annotations); a table-wide note (marker on no element, only `schedule_property` locations) is table scope, not an orphan
 
 **Key Principle:** Everything derivable is now derived; every element is addressable.
@@ -131,7 +132,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 ## Layer 3: Study Schedule Logic
 
-**Schema:** `soa-tables-consolidated` v1.4
+**Schema:** `soa-tables-consolidated` v1.5
 
 **Implementation:** Programmatic (ConsolidateStep, no Claude API)
 
@@ -262,6 +263,6 @@ The architecture acknowledges that SoA tables are lossy compressions of study lo
 
 ---
 
-**Version:** 4.4  
+**Version:** 4.5  
 **Date:** 2026-10-03  
-**Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.1, soa-tables-consolidated v1.4, soa-consolidation-corrections v1.0
+**Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.2, soa-tables-consolidated v1.5, soa-consolidation-corrections v1.0
