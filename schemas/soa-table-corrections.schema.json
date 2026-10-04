@@ -63,10 +63,10 @@
             "type": "object",
             "description": "Where in the source document this correction is grounded, for audit back to source.",
             "properties": {
-              "page": {"type": "integer"},
-              "row_position": {"type": "integer"},
-              "column_position": {"type": "integer"},
-              "cell_value": {"type": "string"}
+              "page": {"type": "integer", "description": "Document page (same numbering as source_page)."},
+              "row_position": {"type": "integer", "description": "Row position in the table, as in the extraction."},
+              "column_position": {"type": "integer", "description": "Column position in the table, as in the extraction."},
+              "cell_value": {"type": "string", "description": "The cell content as printed in the source."}
             }
           },
           "by": {
@@ -84,7 +84,8 @@
             "description": "Id of the extraction's review_items entry this correction answers. An item is decided exactly when some correction in this file names it: with op 'confirm' the call stands, with any other op this correction is the alternative taken. Absent on corrections that are not answers to a review item."
           }
         }
-      }
+      },
+      "description": "The corrections, one entry per change or confirmation."
     }
   }
 }

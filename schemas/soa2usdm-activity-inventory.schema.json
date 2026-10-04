@@ -48,11 +48,13 @@
       "properties": {
         "protocols": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Number of protocols in the inventory."
         },
         "activities": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Number of activity entries."
         },
         "multi_table_activities": {
           "type": "integer",
@@ -61,13 +63,16 @@
         },
         "activities_with_wording_variants": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Activities with more than one verbatim wording across their tables."
         },
         "redacted_activities": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "description": "Activities flagged is_redacted."
         }
-      }
+      },
+      "description": "Totals over the inventory."
     },
     "activities": {
       "type": "array",
@@ -95,17 +100,20 @@
         "additionalProperties": false,
         "properties": {
           "protocol_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Protocol the activity belongs to (e.g., NCT number)."
           },
           "sponsor": {
             "type": "string",
             "description": "Sponsor as given in the collection's study list; empty when not given."
           },
           "d4k_folder": {
-            "type": "string"
+            "type": "string",
+            "description": "Folder name of the study as given in the collection's study list; empty when not given."
           },
           "therapeutic_area": {
-            "type": "string"
+            "type": "string",
+            "description": "Therapeutic area as given in the collection's study list; empty when not given."
           },
           "xact_id": {
             "type": "string",
@@ -113,7 +121,8 @@
             "description": "Unified activity id in the protocol's consolidated file."
           },
           "activity_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Canonical activity name in the protocol's consolidated file."
           },
           "parent_name": {
             "type": "string",
@@ -121,13 +130,16 @@
           },
           "hierarchy_level": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "Hierarchy level: 0 = section header/top-level, 1 = child, 2 = grandchild, etc."
           },
           "is_section_header": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "True if this is a grouping header without schedule data."
           },
           "is_redacted": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "True if any source row's activity name is a redaction placeholder ('CCI')."
           },
           "match_status": {
             "type": "string",
@@ -135,7 +147,8 @@
           },
           "table_count": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "Number of tables this activity appears in."
           },
           "tables": {
             "type": "array",
@@ -173,10 +186,12 @@
               "properties": {
                 "table_number": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 1,
+                  "description": "Table number in the protocol."
                 },
                 "table_title": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Table title from source."
                 },
                 "table_type": {
                   "type": "string",
@@ -194,20 +209,25 @@
                   "type": [
                     "string",
                     "null"
-                  ]
+                  ],
+                  "description": "Population/phase track label for track tables. null for non-track tables."
                 },
                 "row_position": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 1,
+                  "description": "Physical row position of the row in that table."
                 },
                 "verbatim_name": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "The activity name as worded in that table."
                 },
                 "has_schedule_data": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "description": "True when the row carries schedule data in that table."
                 }
               }
-            }
+            },
+            "description": "The source-table rows of the activity, one entry per row."
           },
           "annotations": {
             "type": "array",
@@ -221,14 +241,17 @@
               "additionalProperties": false,
               "properties": {
                 "marker": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Annotation marker in the source table."
                 },
                 "table_number": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 1,
+                  "description": "Table the annotation occurs in."
                 },
                 "text": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "The annotation text."
                 },
                 "columns": {
                   "type": "array",
@@ -246,16 +269,18 @@
                     "required": ["kind", "target"],
                     "additionalProperties": false,
                     "properties": {
-                      "kind": {"type": "string", "enum": ["section", "appendix", "attachment", "table", "figure"]},
+                      "kind": {"type": "string", "enum": ["section", "appendix", "attachment", "table", "figure"], "description": "Kind of target the text names."},
                       "target": {"type": "string", "description": "Its number or letter as printed"}
                     }
                   }
                 }
               }
-            }
+            },
+            "description": "The annotations bound to the activity."
           }
         }
-      }
+      },
+      "description": "One entry per unified activity of each protocol."
     }
   }
 }

@@ -28,9 +28,10 @@
             "page": {"type": "integer", "description": "Document page the call is about (same numbering as source_page)."},
             "row_position": {"type": "integer", "description": "The activity or schedule_property row the call is about, when it is one row."},
             "row_positions": {"type": "array", "items": {"type": "integer"}, "description": "All rows the call is about, when more than one."},
-            "column_position": {"type": "integer"},
+            "column_position": {"type": "integer", "description": "The column the call is about, when it is one cell or one column."},
             "annotation_marker": {"type": "string", "description": "Marker of the annotation the call is about, when it concerns a note's scope or existence."}
-          }
+          },
+          "description": "Where on the printed page the call applies."
         },
         "call_made": {
           "type": "string",
@@ -173,17 +174,21 @@
           "properties": {
             "row_position": {
               "type": "integer",
-              "minimum": 1
+              "minimum": 1,
+              "description": "Row in source where property name was found"
             },
             "column_position": {
               "type": "integer",
-              "minimum": 1
+              "minimum": 1,
+              "description": "Column in source where property name was found (typically column 1 for row labels)"
             },
             "cell_value": {
-              "type": "string"
+              "type": "string",
+              "description": "Exact cell content from source. Empty string if label column was empty and property_name was synthesized."
             },
             "synthesized": {
-              "type": "boolean"
+              "type": "boolean",
+              "description": "true if property_name was created through domain interpretation rather than extracted directly. Omit or false if property_name came directly from source."
             }
           }
         },
@@ -303,11 +308,13 @@
                 "properties": {
                   "start_column": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "description": "First column position of the merged cell."
                   },
                   "end_column": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "description": "Last column position of the merged cell."
                   }
                 }
               },
@@ -360,20 +367,24 @@
           "description": "Source attribution preserved from extraction",
           "properties": {
             "cell_text": {
-              "type": "string"
+              "type": "string",
+              "description": "Exact text from source cell including leading whitespace and annotation markers."
             },
             "hierarchy_level": {
               "type": "integer",
-              "minimum": 0
+              "minimum": 0,
+              "description": "Hierarchy level of the row, as on the activity."
             },
             "text_formatting": {
               "type": "array",
               "items": {
                 "type": "string"
-              }
+              },
+              "description": "Text formatting attributes, as in the extraction."
             },
             "font_info": {
-              "type": "object"
+              "type": "object",
+              "description": "Font information, as in the extraction, if captured."
             }
           }
         },
@@ -529,7 +540,8 @@
           "properties": {
             "method": {
               "type": "string",
-              "enum": ["legend_pattern"]
+              "enum": ["legend_pattern"],
+              "description": "How the type was overridden. 'legend_pattern' = the text matched the abbreviation-legend density rule."
             },
             "extracted_type": {
               "type": "string",
@@ -602,11 +614,13 @@
                 "properties": {
                   "activity_id": {
                     "type": "string",
-                    "pattern": "^act-[0-9]{3}$"
+                    "pattern": "^act-[0-9]{3}$",
+                    "description": "Activity (row) of the cell."
                   },
                   "column_id": {
                     "type": "string",
-                    "pattern": "^col-[0-9]{3}$"
+                    "pattern": "^col-[0-9]{3}$",
+                    "description": "Schedule column of the cell."
                   }
                 }
               },
@@ -621,13 +635,16 @@
             "type": "object",
             "properties": {
               "location_type": {
-                "type": "string"
+                "type": "string",
+                "description": "What type of element the marker appears in (schedule_property, activity_name, schedule_cell, unresolved), as in the extraction."
               },
               "row_position": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Row position where marker appears"
               },
               "column_position": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Column position. Present for a marker on a specific cell."
               }
             }
           }
@@ -664,10 +681,12 @@
           "properties": {
             "schema_name": {
               "type": "string",
-              "const": "soa-table-extraction"
+              "const": "soa-table-extraction",
+              "description": "Schema of the source file."
             },
             "schema_version": {
-              "type": "string"
+              "type": "string",
+              "description": "schema_version of the source extraction file."
             },
             "extraction_file": {
               "type": "string",
@@ -736,22 +755,28 @@
       "properties": {
         "extracted_at": {
           "type": "string",
-          "format": "date-time"
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of extraction"
         },
         "extractor": {
-          "type": "string"
+          "type": "string",
+          "description": "Tool, model, or person who performed extraction. E.g., 'Claude-3.5-Sonnet', 'Manual-KL'"
         },
         "source_document": {
-          "type": "object"
+          "type": "object",
+          "description": "Source document identification"
         },
         "verification": {
-          "type": "object"
+          "type": "object",
+          "description": "Verification checkpoint information"
         },
         "extraction_status": {
-          "type": "string"
+          "type": "string",
+          "description": "Workflow status. 'draft'=initial extraction, may have errors; 'verified'=human-verified against source; 'ready_for_resolution'=complete and ready for soa-table-resolved processing."
         },
         "extraction_notes": {
-          "type": "string"
+          "type": "string",
+          "description": "General notes about extraction decisions, ambiguities encountered, or issues for downstream attention"
         }
       }
     }

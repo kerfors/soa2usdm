@@ -44,12 +44,13 @@
         "additionalProperties": false,
         "properties": {
           "slug": {"type": "string", "description": "Local key; the Organization id is Organization_<slug>. Identifiers point here with org."},
-          "name": {"type": "string"},
+          "name": {"type": "string", "description": "Organization.name."},
           "ct": {"type": "string", "description": "Key into terms for Organization.type."},
           "ref": {"type": "string", "description": "Where in the protocol document the organization is stated."},
           "flag": {"type": "string", "description": "Why the organization is not stated in the protocol, and where it was taken from."}
         }
-      }
+      },
+      "description": "The organizations of the study. Identifiers point here with org."
     },
     "identifiers": {
       "type": "array",
@@ -59,12 +60,13 @@
         "required": ["slug", "text", "org", "ref"],
         "additionalProperties": false,
         "properties": {
-          "slug": {"type": "string"},
+          "slug": {"type": "string", "description": "Local key of the identifier."},
           "text": {"type": "string", "description": "StudyIdentifier.text."},
           "org": {"type": "string", "description": "slug of the scoping organization."},
-          "ref": {"type": "string"}
+          "ref": {"type": "string", "description": "Where in the protocol document the identifier is stated."}
         }
-      }
+      },
+      "description": "The study identifiers, each scoped by an organization."
     },
     "titles": {
       "type": "array",
@@ -75,10 +77,11 @@
         "additionalProperties": false,
         "properties": {
           "ct": {"type": "string", "description": "Key into terms for StudyTitle.type."},
-          "text": {"type": "string"},
-          "ref": {"type": "string"}
+          "text": {"type": "string", "description": "StudyTitle.text."},
+          "ref": {"type": "string", "description": "Where in the protocol document the title is stated."}
         }
-      }
+      },
+      "description": "The study titles."
     },
     "epochs": {
       "type": "array",
@@ -90,11 +93,11 @@
         "additionalProperties": false,
         "properties": {
           "slug": {"type": "string", "description": "Local key; the StudyEpoch id is StudyEpoch_<slug>. epochAxis.map values point here."},
-          "name": {"type": "string"},
-          "label": {"type": ["string", "null"]},
-          "description": {"type": ["string", "null"]},
+          "name": {"type": "string", "description": "StudyEpoch.name."},
+          "label": {"type": ["string", "null"], "description": "StudyEpoch.label."},
+          "description": {"type": ["string", "null"], "description": "StudyEpoch.description."},
           "ct": {"type": "string", "description": "Key into terms for StudyEpoch.type."},
-          "ref": {"type": "string"}
+          "ref": {"type": "string", "description": "Where in the protocol document the epoch is stated."}
         }
       }
     },
@@ -132,7 +135,7 @@
       "required": ["property", "anchor"],
       "additionalProperties": false,
       "properties": {
-        "property": {"type": "string", "pattern": "^prop-[0-9]+$"},
+        "property": {"type": "string", "pattern": "^prop-[0-9]+$", "description": "property_id of the consolidated column property carrying study days."},
         "anchor": {"type": "string", "pattern": "^xcol-[0-9]+$", "description": "xcol_id of the fixed-reference column."},
         "sameValueOf": {"type": "string", "pattern": "^prop-[0-9]+$", "description": "Restrict derivation to columns sharing the anchor's value of this property, e.g. the cycle, because a day number that restarts each cycle is not a study day."}
       }
@@ -143,7 +146,7 @@
       "required": ["property", "ct"],
       "additionalProperties": false,
       "properties": {
-        "property": {"type": "string", "pattern": "^prop-[0-9]+$"},
+        "property": {"type": "string", "pattern": "^prop-[0-9]+$", "description": "property_id of the consolidated column property carrying visits."},
         "ct": {"type": "string", "description": "Key into terms for Encounter.type."}
       }
     }

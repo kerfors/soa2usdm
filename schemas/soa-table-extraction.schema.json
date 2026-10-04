@@ -28,9 +28,10 @@
             "page": {"type": "integer", "description": "Document page the call is about (same numbering as source_page)."},
             "row_position": {"type": "integer", "description": "The activity or schedule_property row the call is about, when it is one row."},
             "row_positions": {"type": "array", "items": {"type": "integer"}, "description": "All rows the call is about, when more than one."},
-            "column_position": {"type": "integer"},
+            "column_position": {"type": "integer", "description": "The column the call is about, when it is one cell or one column."},
             "annotation_marker": {"type": "string", "description": "Marker of the annotation the call is about, when it concerns a note's scope or existence."}
-          }
+          },
+          "description": "Where on the printed page the call applies."
         },
         "call_made": {
           "type": "string",
@@ -215,7 +216,8 @@
       "properties": {
         "table_number": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Which table this cell belongs to"
         },
         "row_position": {
           "type": "integer",
@@ -266,7 +268,8 @@
       "properties": {
         "table_number": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Which table this activity belongs to"
         },
         "row_position": {
           "type": "integer",
@@ -316,13 +319,16 @@
               "type": "object",
               "properties": {
                 "font_name": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Font name, if captured."
                 },
                 "font_size": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Font size, if captured."
                 },
                 "font_color": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Font colour, if captured."
                 }
               },
               "description": "Font information if captured. Size/weight differences often indicate hierarchy."
@@ -363,7 +369,8 @@
       "properties": {
         "table_number": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Which table this cell belongs to"
         },
         "row_position": {
           "type": "integer",

@@ -31,7 +31,8 @@
       "description": "Protocol identifier (e.g., NCT number)"
     },
     "consolidation_metadata": {
-      "$ref": "#/definitions/consolidation_metadata"
+      "$ref": "#/definitions/consolidation_metadata",
+      "description": "Metadata about the consolidation process and source tables"
     },
     "property_hierarchy": {
       "type": "array",
@@ -115,9 +116,10 @@
             "page": {"type": "integer", "description": "Document page the call is about (same numbering as source_page)."},
             "row_position": {"type": "integer", "description": "The activity or schedule_property row the call is about, when it is one row."},
             "row_positions": {"type": "array", "items": {"type": "integer"}, "description": "All rows the call is about, when more than one."},
-            "column_position": {"type": "integer"},
+            "column_position": {"type": "integer", "description": "The column the call is about, when it is one cell or one column."},
             "annotation_marker": {"type": "string", "description": "Marker of the annotation the call is about, when it concerns a note's scope or existence."}
-          }
+          },
+          "description": "Where on the printed page the call applies."
         },
         "call_made": {
           "type": "string",
@@ -568,19 +570,23 @@
       "properties": {
         "table_id": {
           "type": "string",
-          "pattern": "^table-[0-9]{3}$"
+          "pattern": "^table-[0-9]{3}$",
+          "description": "table_id of the source resolved table."
         },
         "table_num": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Table number of the source table in the protocol."
         },
         "activity_id": {
           "type": "string",
-          "pattern": "^act-[0-9]{3}$"
+          "pattern": "^act-[0-9]{3}$",
+          "description": "activity_id of the row in that table."
         },
         "row_position": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Physical row position of the row in that table, preserved from extraction."
         },
         "match_status": {
           "type": "string",
@@ -693,19 +699,23 @@
       "properties": {
         "table_id": {
           "type": "string",
-          "pattern": "^table-[0-9]{3}$"
+          "pattern": "^table-[0-9]{3}$",
+          "description": "table_id of the source resolved table."
         },
         "table_num": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Table number of the source table in the protocol."
         },
         "column_id": {
           "type": "string",
-          "pattern": "^col-[0-9]{3}$"
+          "pattern": "^col-[0-9]{3}$",
+          "description": "column_id of the column in that table."
         },
         "column_position": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Column position of the column in that table."
         }
       }
     },
@@ -806,11 +816,13 @@
             "properties": {
               "xact_id": {
                 "type": "string",
-                "pattern": "^xact-[0-9]{3}$"
+                "pattern": "^xact-[0-9]{3}$",
+                "description": "Unified activity of the cell."
               },
               "xcol_id": {
                 "type": "string",
-                "pattern": "^xcol-[0-9]{3}$"
+                "pattern": "^xcol-[0-9]{3}$",
+                "description": "Unified column of the cell."
               }
             }
           },

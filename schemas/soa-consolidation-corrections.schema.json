@@ -57,7 +57,8 @@
             "description": "When the decision was made (ISO 8601)."
           }
         }
-      }
+      },
+      "description": "The decisions, one entry per pair of rows (for 'refines': per row or table and the row it details)."
     }
   },
   "definitions": {
@@ -80,7 +81,8 @@
           "type": "string",
           "description": "The row's activity_name, carried as a check: it must equal the name in the resolved table."
         }
-      }
+      },
+      "description": "A source row: one activity row of one resolved table."
     },
     "row_or_table": {
       "type": "object",
@@ -105,7 +107,8 @@
           "type": "string",
           "description": "The row's activity_name, carried as a check."
         }
-      }
+      },
+      "description": "A source row, or a whole resolved table when only table_number is given ('refines' only)."
     }
   }
 }
