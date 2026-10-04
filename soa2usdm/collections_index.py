@@ -90,6 +90,8 @@ def generate_collections_index_html() -> str:
      <a href="https://github.com/kerfors/soa2usdm">soa2usdm</a> pipeline, organised as collections of studies.
      Full protocol PDFs are not stored here: each protocol links to its source, and only its SoA pages are
      published (an excerpt PDF and the rendered page images).</p>
+  <p>An introduction to SoA2USDM, with two short videos and the schemas on one page, is at
+     <a href="https://kerfors.github.io/soa2usdm/">kerfors.github.io/soa2usdm</a>.</p>
 
   <h2>Collections</h2>
 {cards_html}
