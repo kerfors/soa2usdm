@@ -93,3 +93,42 @@ def test_a_table_reference_to_an_extracted_table_carries_its_number():
     other = consolidate_tables("NCT03637764", _resolved("NCT03637764"))
     body = {a["annotation_text"]: a for a in other["unified_annotations"]}["See Section 10.3 Table 12"]
     assert body["document_references"] == _refs(("section", "10.3"), ("table", "12"))
+
+
+# --- shown in the views -------------------------------------------------------
+
+def test_references_are_shown_as_printed():
+    from soa2usdm.visualize import format_document_references
+    assert format_document_references(_refs(("section", "10.3"), ("table", "12"))) == "Section 10.3 · Table 12"
+    shown = format_document_references([{"kind": "table", "target": "4", "table_num": 4}])
+    assert shown.startswith("Table 4 ") and "(T4)" in shown
+    assert format_document_references([]) == ""
+
+
+def _row_names(files) -> dict:
+    names = {}
+    for f in files:
+        table = json.loads(Path(f).read_text())
+        for act in table["activities"]:
+            names[(table["table_metadata"]["table_number"], act["activity_id"])] = act["activity_name"]
+    return names
+
+
+@pytest.mark.skipif(not _published("NCT04573309") or not _published("NCT04677179"),
+                    reason="needs the published NCT04573309 and NCT04677179 resolved files (usdm_data)")
+def test_a_note_naming_an_extracted_table_is_offered_as_a_refinement():
+    """NCT04573309 Table 1: 'See Table 2 for PK/PD sampling ...' on the row 'PK/PD
+    Analyses'. Table 2 is extracted, so the matches section offers the note with
+    Table 2 as the one table to pick. NCT04677179's 'see ETV in Table 4.' notes are
+    table-wide: listed, but with no row there is nothing to draft."""
+    from soa2usdm.visualize import build_matches_model
+    files = _published("NCT04573309")
+    model = build_matches_model(consolidate_tables("NCT04573309", files), _row_names(files), None)
+    offered = {c["text"][:38]: c for c in model["candidates"]}
+    pk = offered["Blood sampling for PK/PD will occur be"]
+    assert [r["activity_name"] for r in pk["rows"]] == ["PK/PD Analyses"]
+    assert [t["table_number"] for t in pk["tables"]] == [2]
+    files = _published("NCT04677179")
+    model = build_matches_model(consolidate_tables("NCT04677179", files), _row_names(files), None)
+    etv = next(c for c in model["candidates"] if c["text"] == "For procedures at an ETV, see ETV in Table 4.")
+    assert etv["rows"] == [] and [t["table_number"] for t in etv["tables"]] == [4]

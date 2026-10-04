@@ -130,15 +130,18 @@ def _collect(collection: str):
                 # Dosing row. Excluded from row lists, counts and search; they
                 # remain in the resolved/consolidated data and viewers.
                 row_ids = a.get("linked_annotation_ids", [])
+                # What a note points at in the protocol (resolved 1.2), carried as stated.
+                refs = lambda aid: ({"document_references": ann_by_id[aid]["document_references"]}
+                                    if "document_references" in ann_by_id[aid] else {})
                 row_anns = [{"marker": ann_by_id[aid]["annotation_marker"],
                              "table_number": tm.get("table_number"),
-                             "text": ann_by_id[aid]["annotation_text"]}
+                             "text": ann_by_id[aid]["annotation_text"], **refs(aid)}
                             for aid in row_ids
                             if ann_by_id[aid]["annotation_type"] != "legend"]
                 row_anns += [{"marker": ann_by_id[aid]["annotation_marker"],
                               "table_number": tm.get("table_number"),
                               "text": ann_by_id[aid]["annotation_text"],
-                              "columns": cols}
+                              "columns": cols, **refs(aid)}
                              for aid, cols in cell_anns.get(a["activity_id"], {}).items()
                              if aid not in row_ids and ann_by_id[aid]["annotation_type"] != "legend"]
                 ann_lookup[(pid, tid, a["activity_id"])] = row_anns
@@ -235,7 +238,7 @@ def generate_activity_inventory(collection: str):
                      for s, n in sorted(sp_counts.items()))
     propts = "".join(f'<option value="{esc(p)}">{esc(p)}</option>' for p in protocols)
 
-    payload = {"schema_name": "soa2usdm-activity-inventory", "schema_version": "2.0",
+    payload = {"schema_name": "soa2usdm-activity-inventory", "schema_version": "2.1",
                "collection": collection, "generated_at": generated_at,
                "counts": counts, "activities": cons}
     data_json = json.dumps(cons, ensure_ascii=False).replace("</", "<\\/")
@@ -299,6 +302,7 @@ tr.open .nbtn{font-weight:600}
 .otab td{border:0;padding:2px 14px 2px 0;background:transparent}
 .fn{font-size:11.5px;margin:3px 0}.fn b{color:#6a1b9a;font-family:ui-monospace,Menlo,monospace;margin-right:4px}
 .fn .where{color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-right:6px}
+.fn .ref{color:var(--muted);margin-left:6px;white-space:nowrap}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--muted)}
 footer{padding:12px 22px 20px;color:var(--muted);font-size:11.5px}
 </style></head><body>
@@ -326,6 +330,7 @@ const HEAD=[['protocol_id','Protocol'],['sponsor','Sponsor'],['activity_name','A
 thead.innerHTML='<tr>'+HEAD.map(([k,l])=>`<th data-k="${k}">${l}<span class="ar"></span></th>`).join('')+'</tr>';
 thead.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortk===k)asc=!asc;else{sortk=k;asc=true;}
  thead.querySelectorAll('.ar').forEach(a=>a.textContent='');th.querySelector('.ar').textContent=asc?' ▲':' ▼';render();});
+const REFKIND={section:'Section',appendix:'Appendix',attachment:'Attachment',table:'Table',figure:'Figure'};
 D.forEach(r=>{r.n_notes=(r.annotations||[]).length;
  const o=r.occurrences&&r.occurrences.length?r.occurrences[0]:{table_number:0,row_position:0};r._t=o.table_number||0;r._p=o.row_position||0;
  r._h=(r.activity_name+' '+r.parent_name+' '+r.protocol_id+' '+r.sponsor+' '+(r.variants||[]).join(' ')+' '+(r.occurrences||[]).map(o=>o.table_title).join(' ')+' '+(r.annotations||[]).map(a=>a.text).join(' ')).toLowerCase();});
@@ -363,7 +368,7 @@ function row(r,i,term){
 function detail(r){const term=q.value.trim().toLowerCase();
  const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(v=>hl(v,term)).join('</b> · <b>')}</b></div>`:'';
  const occ=`<div class="dh">As printed</div><table class="otab">`+(r.occurrences||[]).map(o=>`<tr><td class="mono">T${eh(o.table_number)} row ${eh(o.row_position)}</td><td>${hl(o.verbatim_name,term)}</td><td class="mono">${o.has_schedule_data===false?'no marks':''}</td></tr>`).join('')+'</table>';
- const fns=r.n_notes?`<div class="dh">Annotations</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${hl(a.text,term)}</div>`).join(''):'';
+ const fns=r.n_notes?`<div class="dh">Annotations</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${hl(a.text,term)}${a.document_references?`<span class="ref" title="What the text points at in the protocol">→ ${a.document_references.map(d=>eh(REFKIND[d.kind]+' '+d.target)).join(' · ')}</span>`:''}</div>`).join(''):'';
  return `<tr class="detail"><td colspan="6">${vars}${occ}${fns}</td></tr>`;
 }
 let ARR=[];

@@ -22,9 +22,10 @@
     "schema_version": {
       "type": "string",
       "enum": [
-        "2.0"
+        "2.0",
+        "2.1"
       ],
-      "description": "Schema version. 2.0 is the consolidated-only inventory (2026-09-30): the source-table rows of the earlier, unversioned 1.0 shape were removed."
+      "description": "Schema version. 2.0 is the consolidated-only inventory (2026-09-30): the source-table rows of the earlier, unversioned 1.0 shape were removed. 2.1 adds document_references on an annotation; files stamped 2.0 remain valid."
     },
     "collection": {
       "type": "string",
@@ -235,6 +236,20 @@
                     "type": "string"
                   },
                   "description": "Present for an annotation bound to a mark: the header values of the column(s) it binds to."
+                },
+                "document_references": {
+                  "type": "array",
+                  "minItems": 1,
+                  "description": "Numbered targets in the protocol document that the annotation text points at, as stated in the resolved table. Present only when there is one. From 2.1.",
+                  "items": {
+                    "type": "object",
+                    "required": ["kind", "target"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {"type": "string", "enum": ["section", "appendix", "attachment", "table", "figure"]},
+                      "target": {"type": "string", "description": "Its number or letter as printed"}
+                    }
+                  }
                 }
               }
             }

@@ -259,10 +259,12 @@ one stay valid. A change that makes existing files invalid is a major version.
 
 Between extraction and resolution, human adjudication enters through the corrections sidecar (Layer 1.5) without ever touching the raw extraction. After consolidation, USDM Instantiation turns a protocol's consolidated SoA into a USDM v4 document, as a documented manual step.
 
+**Scope test for Layers 1–3: transcript, not interpretation.** A statement belongs in these layers when it can be checked against the printed SoA pages alone, with no judgement about what the author meant. A note's own words stated as data pass (`document_references`: 'Section 8.2.2' as kind + number as printed). What lies behind the words does not: looking the section up in the protocol body, recognising named documents or standards from a list, or deciding that two rows are the same activity. The last enters only as a human statement in a sidecar; the others belong to the semantic work after Layer 3, if anywhere.
+
 The architecture acknowledges that SoA tables are lossy compressions of study logic, and provides a systematic path to recover that logic while maintaining full traceability.
 
 ---
 
-**Version:** 4.5  
-**Date:** 2026-10-03  
+**Version:** 4.6  
+**Date:** 2026-10-04  
 **Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.2, soa-tables-consolidated v1.5, soa-consolidation-corrections v1.0

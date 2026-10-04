@@ -517,6 +517,27 @@ def build_matches_model(data: dict, row_names: dict, corrections_doc: Optional[d
                        if t['table_type'] != 'reference' and t['table_num'] not in note_tables],
         })
 
+    # A note that names one of the protocol's extracted tables by its printed
+    # number ('See Table 2', document_references with table_num) is a candidate
+    # too, with that table as the only one to pick. A table-wide note binds no
+    # row, so it is listed without a draft: a refinement is stated on a row.
+    listed = {c['xannot_id'] for c in candidates}
+    for annot in data.get('unified_annotations', []):
+        if annot['xannot_id'] in listed:
+            continue
+        note_tables = {occ['table_num'] for occ in annot['source_occurrences']}
+        named = [ref['table_num'] for ref in annot.get('document_references', [])
+                 if 'table_num' in ref and ref['table_num'] not in note_tables]
+        if not named:
+            continue
+        rows = [row(ref) for xact_id in annot['referenced_xacts']
+                for ref in by_xact[xact_id]['source_refs'] if ref['table_num'] in note_tables]
+        candidates.append({
+            'xannot_id': annot['xannot_id'], 'text': annot['annotation_text'], 'rows': rows,
+            'tables': [{'table_number': t['table_num'], 'table_title': t.get('table_title', '')}
+                       for t in tables if t['table_num'] in named],
+        })
+
     protocol_id = data['protocol_id']
     return {
         'protocol_id': protocol_id,
@@ -645,9 +666,9 @@ def gen_matches_component(model: dict) -> str:
             <td><span class='pill'>source note</span></td>
             <td class="text-full"><a href="#{c['xannot_id']}">{note_label(c['xannot_id'])}</a> “{esc(c['text'])}”</td>
             <td class="type">points from</td>
-            <td class="text-full">{'<br/>'.join(row_cell(r) for r in c['rows'])}</td>
+            <td class="text-full">{'<br/>'.join(row_cell(r) for r in c['rows']) if c['rows'] else "<span class='trace'>table-wide note, bound to no row</span>"}</td>
             <td></td>
-            <td><select data-k="{k}"><option value="">which table refines? (no draft)</option>{options}</select></td>
+            <td>{f'<select data-k="{k}"><option value="">which table refines? (no draft)</option>{options}</select>' if c['rows'] else "<span class='trace'>names " + ', '.join('Table ' + str(t['table_number']) for t in c['tables']) + "; no row to state a refinement on</span>"}</td>
         </tr>""")
 
     total = len(items)
@@ -750,6 +771,22 @@ def gen_activities_component(data: dict) -> str:
             </table>
         </div>
     </div>'''
+
+
+REFERENCE_KIND_LABELS = {'section': 'Section', 'appendix': 'Appendix', 'attachment': 'Attachment',
+                         'table': 'Table', 'figure': 'Figure'}
+
+
+def format_document_references(refs: list) -> str:
+    """What a note points at in the protocol, as printed ('Section 8.2.2 · Table 4').
+    A table reference that names one of the protocol's extracted tables says so (T4)."""
+    parts = []
+    for ref in refs:
+        label = f"{REFERENCE_KIND_LABELS[ref['kind']]} {esc(ref['target'])}"
+        if 'table_num' in ref:
+            label += f" <span class='trace' title='One of this protocol&#39;s extracted tables'>(T{ref['table_num']})</span>"
+        parts.append(label)
+    return ' · '.join(parts)
 
 
 def gen_annotations_component(data: dict) -> str:
@@ -866,6 +903,7 @@ def gen_annotations_component(data: dict) -> str:
                 <td class="trace">{occ_count}</td>
                 <td class="text-full" title="{esc(text)}">{esc(text_display)}</td>
                 <td class="trace">{refs_display}</td>
+                <td class="type">{format_document_references(ua.get('document_references', []))}</td>
             </tr>''')
         
         color = type_colors.get(atype, '#666')
@@ -874,7 +912,7 @@ def gen_annotations_component(data: dict) -> str:
                 <div class="annot-type-header" style="background: {color};">{atype.replace('_', ' ').title()} ({len(type_annots)})</div>
                 <table class="comp-table">
                     <thead><tr>
-                        <th>xannot_id</th><th>markers</th><th>#</th><th>text</th><th>scope</th>
+                        <th>xannot_id</th><th>markers</th><th>#</th><th>text</th><th>scope</th><th title="The numbered section, appendix, attachment, table or figure of the protocol that the text points at">points to</th>
                     </tr></thead>
                     <tbody>{''.join(rows)}</tbody>
                 </table>
