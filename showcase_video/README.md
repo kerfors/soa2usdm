@@ -9,6 +9,10 @@ NCT04184622, published as assets of one GitHub Release
 | `SoA2USDM_review_showcase_v2.mp4` | 2026-09-29 | 79 s, 1080×1080 (LinkedIn, mobile) | [`v2/`](#v2--the-idea-end-to-end-2026-09-29) |
 | `SoA2USDM_review_page_showcase.mp4` | 2026-09-02 | 84 s, 1920×1080 | this folder (below) |
 
+Both videos show the pages as they looked in September 2026. Since then the index column
+'Review' is named 'Extraction review', and cross-table matches are decided in the
+consolidated view, not on the review page.
+
 ## v1 — screen recording (2026-09-02)
 
 A captions-only screen recording (no voice) of the extraction review page, made

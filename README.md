@@ -16,7 +16,7 @@ Three processing layers:
 | **2. Resolution** | What precisely is in it? | Programmatic (Python) | per table |
 | **3. Consolidation** | What was the protocol expressing? | Programmatic (Python) | per protocol |
 
-Layer 1 runs as a single non-interactive Claude pass (PDF→JSON): the model extracts, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on scanned ones), and ends with an uncertainty report that surfaces every judgement call for human review. Human fixes flow through an auditable corrections sidecar — the raw extraction is never overwritten. A two-conversation PDF→Excel→JSON path with an Excel checkpoint remains available when a human-editable intermediate is wanted. Layers 2–3 are pure Python, producing consolidated structured data and HTML visualizations; an independent row audit compares extracted rows against what the source pages actually print.
+Layer 1 runs as a single non-interactive Claude pass (PDF→JSON): the model extracts, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on scanned ones), and ends with an uncertainty report that surfaces every judgement call for human review. Human fixes flow through an auditable corrections sidecar — the raw extraction is never overwritten. Layers 2–3 are pure Python, producing consolidated structured data and HTML visualizations; an independent row audit compares extracted rows against what the source pages actually print. The cross-table matches made by consolidation are reviewed in the consolidated view and decided through a per-protocol consolidation sidecar, which consolidation reads before matching.
 
 **USDM Instantiation** — the USDM side the repo is named after, not a fourth layer — turns one protocol's consolidated SoA and a short hand-written manifest into a USDM v4 document, checked by a gate against the pinned [usdm-rdf](https://github.com/kerfors/usdm-rdf) release and the NCI EVS codelists USDM borrows. It is a documented manual step, not a pipeline step: see [`documents/usdm-instantiation.md`](documents/usdm-instantiation.md).
 
@@ -52,6 +52,7 @@ soa2usdm/
 │   ├── soa-table-corrections.schema.json    # Layer 1 corrections sidecar
 │   ├── soa-table-resolved.schema.json       # Layer 2
 │   ├── soa-tables-consolidated.schema.json  # Layer 3
+│   ├── soa-consolidation-corrections.schema.json  # Layer 3 corrections sidecar (match decisions)
 │   ├── usdm-manifest.schema.json            # USDM Instantiation manifest
 │   └── soa2usdm-activity-inventory.schema.json  # Activity inventory (activities.json)
 │
@@ -76,8 +77,10 @@ soa2usdm/
 │   ├── analytics.py                 # Metrics and timing
 │   ├── corrections.py               # ApplyCorrectionsStep (raw + corrections)
 │   ├── resolve.py                   # ResolveStep (Layer 2)
+│   ├── references.py                # document_references: what an annotation text points at, as printed
 │   ├── consolidate.py               # ConsolidateStep (Layer 3)
-│   ├── visualize.py                 # Consolidated HTML
+│   ├── consolidation_corrections.py # Consolidation sidecar: keep / split / merge / refines
+│   ├── visualize.py                 # Consolidated HTML, with the 'Matches across tables' review section
 │   ├── index_generator.py           # Collection index page; renders reports, refreshes nav
 │   ├── collections_index.py         # Root index across collections
 │   ├── activity_inventory.py        # Collection activity inventory (activities.json/.html)
@@ -103,6 +106,8 @@ soa2usdm/
 │   ├── test_page_geometry.py        # Cell geometry + row audit, incl. negative controls
 │   ├── test_review_items.py         # review_items; decided via sidecar
 │   ├── test_review_page.py          # Review page: model, tiled-table column map
+│   ├── test_consolidation_corrections.py  # Consolidation sidecar: ops, stale entries, the matches view
+│   ├── test_document_references.py  # document_references on annotations
 │   └── fixtures/                    # Golden protocols (JSON only), negative controls, pages — tests run standalone
 │
 └── pyproject.toml
@@ -127,7 +132,10 @@ Per protocol: write the manifest, run `python -m soa2usdm.usdmgen`, then `tools/
 
 The review page is a proof of concept with two aims: to envision what a user interface for a review user could look like — worklist (`review_items`), evidence, and the sidecar write path in one place — and to showcase the traceability the pipeline already carries: every highlight is an existing extraction field drawn at the position on the source page it refers to. It also lays groundwork for the semantic/USDM layer: any claim about what an SoA table expresses should be checkable against a printed page in seconds, which is why the page images are pre-rendered and stamped at ingest.
 
-Two short captions-only videos of the review page are published as [release assets](https://github.com/kerfors/soa2usdm/releases/tag/showcase-video-2026-09): the [idea end to end](https://github.com/kerfors/soa2usdm/releases/download/showcase-video-2026-09/SoA2USDM_review_showcase_v2.mp4) (79 s, square) and the first [walkthrough](https://github.com/kerfors/soa2usdm/releases/download/showcase-video-2026-09/SoA2USDM_review_page_showcase.mp4) (84 s); the storyboards and the scripts that regenerate them are in [`showcase_video/`](showcase_video/README.md).
+**Reviewing cross-table matches (HTML):**
+The consolidated view (`{NCTID}_consolidated.html`) has a section *Matches across tables*. It lists the rows consolidation merged on name similarity and the near matches it kept separate. A reviewer decides each one: `keep`, `split` or `merge`; `refines` states that a table or a row details a row of another table without being merged. The view drafts the entries for `consolidated/{NCTID}_consolidation_corrections.json` and writes nothing. Consolidation reads the sidecar before matching and stops on a stale entry. The collection index shows the state per protocol ('matches: n open of N'). The review page's *Across tables* tab shows the matched rows on their source pages; the decision is made in the consolidated view.
+
+Two short captions-only videos of the review page are published as [release assets](https://github.com/kerfors/soa2usdm/releases/tag/showcase-video-2026-09): the [idea end to end](https://github.com/kerfors/soa2usdm/releases/download/showcase-video-2026-09/SoA2USDM_review_showcase_v2.mp4) (79 s, square) and the first [walkthrough](https://github.com/kerfors/soa2usdm/releases/download/showcase-video-2026-09/SoA2USDM_review_page_showcase.mp4) (84 s); the storyboards and the scripts that regenerate them are in [`showcase_video/`](showcase_video/README.md). The videos show the pages as they looked in September 2026.
 
 ## Key Design Decisions
 
@@ -141,7 +149,7 @@ Two short captions-only videos of the review page are published as [release asse
 
 **One file per table, then integrate.** Each table gets its own extraction/resolution file. Consolidation handles cross-table logic.
 
-**Raw + corrections, never overwrite.** A verified extraction is the raw extraction plus a corrections sidecar applied deterministically — the original model output is preserved and every change is auditable.
+**Raw + corrections, never overwrite.** A verified extraction is the raw extraction plus a corrections sidecar applied deterministically — the original model output is preserved and every change is auditable. Layer 3 follows the same rule: decisions on cross-table matches are kept in a consolidation sidecar, not written into the consolidated output.
 
 **Traceability throughout.** Every element traces from consolidated output back through resolved and extracted to PDF page and row position.
 

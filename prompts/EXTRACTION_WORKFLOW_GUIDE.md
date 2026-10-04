@@ -1,8 +1,8 @@
 # SoA2USDM — Extraction Workflow Guide
 
-**Version:** 2.8
+**Version:** 2.9
 
-How to use the extraction prompts and the processing pipeline. Each prompt is a standalone file (each carries its own version header) — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) is one non-interactive single pass (below).
+How to use the extraction prompt and the processing pipeline. The prompt is a standalone file with its own version header — attach it to a new Claude conversation alongside your data files. Layer 1 (extraction) is one non-interactive single pass (below).
 
 For architecture rationale, see [`documents/soa2usdm-schema-architecture.md`](../documents/soa2usdm-schema-architecture.md).
 For table type definitions, see [`documents/soa_table_type_definitions.md`](../documents/soa_table_type_definitions.md).
@@ -11,9 +11,9 @@ For table type definitions, see [`documents/soa_table_type_definitions.md`](../d
 
 ## Preparation
 
-- **Split screen:** Claude on left, PDF on right
-- **One table per conversation** for complex protocols (many columns, merged cells)
 - **Pre-extract SoA pages** using `00_download_extract.ipynb` — downloads protocol PDFs, extracts SoA pages, converts full protocol to markdown
+- **Render the SoA pages** with `python3 tools/page_map.py --collection <name> --render` — writes `{NCTID}_soa_pages/pNN.png`, each stamped with its document page number; the review page draws the extraction on these
+- **Run the extraction in Claude Cowork** — the mechanical mark-check needs file access and code execution in the same session that reads the table
 - **Rendering note:** when a table spans ≥10 pages, `pdftoppm` zero-pads the rendered page names (`p-01.png`, not `p-1.png`); it also prints harmless `Bad annotation destination` warnings. Neither affects extraction.
 
 ---
@@ -30,15 +30,16 @@ The model runs start to finish and returns one extraction JSON per table plus an
 
 **Save as:** `{NCTID}_Table_{NN}_extraction.json` in the `extracted/` folder.
 
-**Common issues:**
+**Fixing an extraction after the run.** The raw extraction JSON is not edited, and the model is not asked to patch it. A fix is an entry in the table's corrections sidecar (`{NCTID}_Table_{NN}_corrections.json`, schema `soa-table-corrections`), with `reason`, `by` and `at`; the pipeline applies it and writes `*_extraction.verified.json`. The review page drafts the entry for an open decision.
 
-| Problem | Fix |
+| Problem | Fix (sidecar op) |
 |---------|-----|
-| Empty `property_comment` | Ask Claude to explain the classification |
-| Markers in `cell_value` | Ask Claude to re-extract to `annotation_markers` |
-| Missing `marker_locations` | Ask Claude to scan the table for that marker |
-| Wrong level values | Verify against PDF header structure |
-| Missing `track_label` | Ask Claude to identify the population from the table title |
+| Open judgement call (`review_items`) | `confirm` to keep the call, or the correction that takes the alternative; both name the `review_item` |
+| Markers left in `cell_value` | `set` on the entry: clean `cell_value`, markers in `annotation_markers` |
+| Marker location missing on an annotation | `add_item` on `marker_locations` |
+| Wrong `hierarchical_level`, empty `property_comment` | `set` on the `schedule_properties` entry, checked against the printed header |
+| Missing `track_label`, wrong `table_type` | `set` on `table_metadata` (no `match`) |
+| Row or mark missing, or extracted twice | `add` / `remove` on `activities` and `activity_schedule` |
 | Unsure of the table type | `soa_table_type_definitions.md`: same columns, other activity category → domain; finer timing for some activities → subsidiary; a branch only some participants take → track; a schedule every participant passes through → main_soa |
 
 ---
@@ -47,17 +48,19 @@ The model runs start to finish and returns one extraction JSON per table plus an
 
 Once extraction JSON files are in `{NCTID}/SoA2USDM/extracted/`, run `01_batch.ipynb`. Set `COLLECTION` in the config cell and execute.
 
-The batch notebook runs six steps in sequence:
+The batch notebook runs five steps in sequence:
 
 | Step | Class | Layer | What it does |
 |------|-------|-------|-------------|
 | 1 | `ApplyCorrectionsStep` | 1.5 | Applies `*_corrections.json` sidecars → `*_extraction.verified.json`; raw never overwritten |
 | 2 | `ResolveStep` | 2 | Adds IDs, validates hierarchy, derives relationships — per table |
-| 3 | `ConsolidateStep` | 3 | Cross-table integration, activity matching, annotation dedup |
-| 4 | `VisualizeStep` | — | Consolidated HTML: the unified SoA, with its notes marked where they apply |
+| 3 | `ConsolidateStep` | 3 | Cross-table integration, activity matching, annotation dedup; reads `{NCTID}_consolidation_corrections.json` where one exists |
+| 4 | `VisualizeStep` | — | Consolidated HTML: the unified SoA, with its notes marked where they apply, and the *Matches across tables* section |
 | 5 | `ReviewPageStep` | — | `{NCTID}_review.html`: the extraction against its rendered source pages — rows, marks, notes, review items and cross-table folds drawn where they refer to; drafts sidecar entries, writes nothing |
 
 After all protocols: `IndexGeneratorStep` builds the collection index and renders the reports (refreshing each page's navigation), `CollectionsIndexStep` the root index, `ActivityInventoryStep` the activity inventory.
+
+The collection index follows the workflow. Per table, against the source pages: Source, 1. Extraction, 2. Resolution, Extraction review, Log. Per protocol, across tables: 3. Consolidation (view, JSON, 'matches: n open of N'), Redacted.
 
 **Errors are collected, not raised** — partial success matters when one table out of four has issues. Check the batch output for error summaries.
 
@@ -102,6 +105,16 @@ print(errors.has_errors(), errors.summary())
 
 ---
 
+## Consolidation review (cross-table matches)
+
+Consolidation merges rows of different tables with the same name, and rows with a name similarity at or above the auto threshold. Below the threshold nothing is merged; the row stays separate and carries the near match as a hint (`near_matches`).
+
+The section *Matches across tables* in `{NCTID}_consolidated.html` lists the merges made on similarity and the near matches kept separate, for review. Decide each match with `keep`, `split` or `merge`; use `refines` where a table or a row details a row of another table without being merged. The view drafts the entries and writes nothing. Save them as `consolidated/{NCTID}_consolidation_corrections.json` (schema `soa-consolidation-corrections`), fill in `reason` and `by`, and re-run the pipeline: `ConsolidateStep` reads the sidecar before matching, refuses draft placeholders, and stops on an entry that no longer fits the tables.
+
+The review page's *Across tables* tab shows the matched rows on their source pages. The decision is made in the consolidated view.
+
+---
+
 ## Row audit (independent check)
 
 After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extracted activity row against the rows its SoA pages actually print and writes `row_audit.json` to the collection root. Needs poppler (`pdftoppm`, `pdftotext`, `pdfinfo`) and the `bands` extra: `pip install -e '.[bands]'`.
@@ -114,7 +127,9 @@ After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extr
 {NCTID}/SoA2USDM/
 ├── extracted/
 │   ├── {NCTID}_Table_{NN}_extraction.json            # raw, immutable
-│   ├── {NCTID}_Table_{NN}_corrections.json           # sidecar (where needed) → .verified.json
+│   ├── {NCTID}_Table_{NN}_corrections.json           # sidecar (where needed)
+│   ├── {NCTID}_Table_{NN}_extraction.verified.json   # sidecar applied (where one exists)
+│   ├── {NCTID}_Table_{NN}_extraction_viewer.html     # JSON viewer
 │   ├── {NCTID}[_<name>]_uncertainty_report.md/.html  # one or more
 │   └── {NCTID}_review.html
 ├── resolved/
@@ -122,6 +137,7 @@ After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extr
 │   └── {NCTID}_Table_{NN}_resolved_viewer.html
 └── consolidated/
     ├── {NCTID}_consolidated.json
+    ├── {NCTID}_consolidation_corrections.json        # match decisions sidecar (where needed)
     └── {NCTID}_consolidated.html
 ```
 
@@ -135,4 +151,4 @@ In the **data repo**, `.gitignore` publishes only the sliced SoA PDFs (`{NCTID}_
 
 Per protocol, stage `{NCTID}/SoA2USDM/`, `protocols/index.html`, and `studies_protocols.xlsx`, and **regenerate the index** (`IndexGeneratorStep`) before committing so the published page matches the outputs.
 
-Commit-message style: name the protocol and what changed, e.g. `Re-run NCT… single-pass (supersede Excel-first)`.
+Commit-message style: name the protocol and what changed, e.g. `NCT…: consolidation review, 4 matches decided`.

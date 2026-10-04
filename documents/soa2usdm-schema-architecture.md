@@ -80,7 +80,7 @@ PDF Protocol Document
 
 **Schema:** `soa-table-extraction` v1.1
 
-**Implementation:** A single non-interactive Claude pass (PDF→JSON, `PDF_TO_JSON_PROMPT.md`). The model transcribes the table, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on rasters), and ends with an uncertainty report whose open judgement calls are also carried as data (`review_items`) and decided on the review page. The two-conversation PDF→Excel→JSON path with a human-verified Excel checkpoint remains available when a human-editable intermediate is wanted.
+**Implementation:** A single non-interactive Claude pass (PDF→JSON, `PDF_TO_JSON_PROMPT.md`). The model transcribes the table, re-derives the mark matrix mechanically from the PDF (bbox column-binning on text-layer grids, rule-line detection on rasters), and ends with an uncertainty report whose open judgement calls are also carried as data (`review_items`) and decided on the review page.
 
 **Contains:**
 - Physical structure (rows, columns, positions)
@@ -231,6 +231,7 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
 │   └── *_Table_{NN}_resolved_viewer.html   # JSON viewer
 ├── consolidated/
 │   ├── {NCTID}_consolidated.json    # Single file per protocol
+│   ├── {NCTID}_consolidation_corrections.json  # Match decisions sidecar (where needed)
 │   └── {NCTID}_consolidated.html    # Consolidated visualization
 └── usdm/                            # Only where a USDM document was built
     ├── {NCTID}_usdm_manifest.yaml   # Hand-written
@@ -265,6 +266,6 @@ The architecture acknowledges that SoA tables are lossy compressions of study lo
 
 ---
 
-**Version:** 4.6  
+**Version:** 4.7  
 **Date:** 2026-10-04  
 **Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.2, soa-tables-consolidated v1.5, soa-consolidation-corrections v1.0
