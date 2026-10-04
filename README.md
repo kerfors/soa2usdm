@@ -135,8 +135,6 @@ The review page is a proof of concept with two aims: to envision what a user int
 **Reviewing cross-table matches (HTML):**
 The consolidated view (`{NCTID}_consolidated.html`) has a section *Matches across tables*. It lists the rows consolidation merged on name similarity and the near matches it kept separate. A reviewer decides each one: `keep`, `split` or `merge`; `refines` states that a table or a row details a row of another table without being merged. The view drafts the entries for `consolidated/{NCTID}_consolidation_corrections.json` and writes nothing. Consolidation reads the sidecar before matching and stops on a stale entry. The collection index shows the state per protocol ('matches: n open of N'). The review page's *Across tables* tab shows the matched rows on their source pages; the decision is made in the consolidated view.
 
-Two short captions-only videos of the review page are published as [release assets](https://github.com/kerfors/soa2usdm/releases/tag/showcase-video-2026-09): the [idea end to end](https://github.com/kerfors/soa2usdm/releases/download/showcase-video-2026-09/SoA2USDM_review_showcase_v2.mp4) (79 s, square) and the first [walkthrough](https://github.com/kerfors/soa2usdm/releases/download/showcase-video-2026-09/SoA2USDM_review_page_showcase.mp4) (84 s); the storyboards and the scripts that regenerate them are in [`showcase_video/`](showcase_video/README.md). The videos show the pages as they looked in September 2026.
-
 ## Key Design Decisions
 
 **Errors collected, not raised.** Steps continue on errors — partial success matters when one table out of four has issues.
