@@ -22,8 +22,9 @@ from .corrections import review_status
 from .nav import NAV_CSS, nav_block, page_title
 
 
-# Short labels for table_type on the collection index (main_soa is unlabelled).
+# Short labels for table_type on the collection index.
 TABLE_TYPE_SHORT = {
+    'main_soa': 'main',
     'continuation': 'cont.',
     'domain': 'domain',
     'subsidiary': 'subsid.',
@@ -629,9 +630,9 @@ def generate_index_html(collection: str) -> str:
         # Extraction JSON column
         ext_json_parts = []
         for ef in p.get('extraction_json_files', []):
-            # Table type shown only where it is not main_soa; hover gives type, track label and title.
+            # Table type shown for every table; hover gives type, track label and title.
             ttype = ef['table_type']
-            type_html = f' <span class="ttype">{TABLE_TYPE_SHORT[ttype]}</span>' if ttype != 'main_soa' else ''
+            type_html = f' <span class="ttype">{TABLE_TYPE_SHORT[ttype]}</span>'
             hover = ttype + (f': {ef["track_label"]}' if ef['track_label'] else '') + f' — {ef["table_title"]}'
             ext_json_parts.append(
                 f'<a href="{ef["path"]}" class="link-table" title="{esc(hover)}">{ef["label"]}{type_html}</a>'
@@ -646,7 +647,7 @@ def generate_index_html(collection: str) -> str:
             for rf in p['resolved_files']:
                 # Effective table type after corrections; hover says when a sidecar changed it.
                 ttype = rf['table_type']
-                type_html = f' <span class="ttype">{TABLE_TYPE_SHORT[ttype]}</span>' if ttype != 'main_soa' else ''
+                type_html = f' <span class="ttype">{TABLE_TYPE_SHORT[ttype]}</span>'
                 hover = ttype + (f': {rf["track_label"]}' if rf['track_label'] else '') + f' — {rf["table_title"]}'
                 if ttype != extracted_type[rf['label']]:
                     hover += f' (corrected; extracted as {extracted_type[rf["label"]]})'
@@ -666,7 +667,7 @@ def generate_index_html(collection: str) -> str:
                 n_open, n_total = p['matches_open'], p['matches_total']
                 state = f'{n_open} open of {n_total}' if n_open else f'all {n_total} decided'
                 cons_html += (f' <a href="{p["consolidated_file"]}#matches" class="decisions{" open" if n_open else ""}" title="Matches across tables that consolidation made on name similarity or nearly made, and how many still await a reviewer">'
-                              f'{state}</a>')
+                              f'matches: {state}</a>')
 
         # Redacted rows column: shown only where the protocol has any, as
         # "n / total" of unified activities (e.g. NCT04677179: 6 / 60).
@@ -719,12 +720,12 @@ def generate_index_html(collection: str) -> str:
             <td class="acronym">{acronym}</td>
             <td class="soa-pages">{soa}</td>
             <td class="sources">{source_html}</td>
-            <td class="viz tables">{ext_json_html}</td>
+            <td class="viz tables grp-start">{ext_json_html}</td>
             <td class="viz tables">{resolved_html}</td>
-            <td class="viz">{cons_html}</td>
-            <td class="stats">{red_html}</td>
             <td class="viz">{review_html}</td>
             <td class="viz">{report_html}</td>
+            <td class="viz grp-start">{cons_html}</td>
+            <td class="stats">{red_html}</td>
         </tr>'''
     
     def excluded_row(e: dict) -> str:
@@ -741,6 +742,7 @@ def generate_index_html(collection: str) -> str:
     pending_rows = ''.join(protocol_row(p) for p in pending)
     excluded_rows = ''.join(excluded_row(e) for e in excluded)
     prov_th = f'<th>{esc(provenance["label"])}</th>' if provenance else ''
+    id_cols = 6 if provenance else 5
     
     css = """
         :root { --blue:#1F4788; --blue2:#2E75B6; --ink:#1f2933; --muted:#5f6b7a; --line:#d9dee5;
@@ -771,6 +773,11 @@ def generate_index_html(collection: str) -> str:
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { background: var(--head); padding: 6px 10px; text-align: left; font-size: 11px; font-weight: 600;
              color: var(--muted); border-bottom: 1px solid var(--line); white-space: nowrap; }
+        /* group row: layers 1-2 are per table, layer 3 is per protocol */
+        tr.groups th { color: var(--ink); font-size: 11px; text-transform: none; border-bottom: 1px solid var(--line); }
+        tr.groups th.grp { border-left: 2px solid var(--line); }
+        th.grp-start, td.grp-start { border-left: 2px solid var(--line); }
+
         td { padding: 6px 10px; border-bottom: 1px solid #eef1f4; vertical-align: top; }
         tr.ready:hover td { background: #eef4fb; }
         /* The row a protocol page's breadcrumb points back to (#NCT... anchor). */
@@ -826,8 +833,10 @@ def generate_index_html(collection: str) -> str:
         <div class="section-header">Protocols</div>
         <div class="table-wrap">
         <table>
-            <thead><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th title="Layer 1 — extraction JSON per table (viewer); table type shown where not main_soa">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections, shown where not main_soa">2. Resolution (JSON)</th><th title="Layer 3 — protocol-level unified SoA (HTML + JSON)">3. Consolidation (view, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th><th title="Review the extraction against its source pages and take the open decisions">Review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th>
+            <thead><tr class="groups">
+                <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>
+            </tr><tr>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>
             </tr></thead>
             <tbody>
                 {ready_rows}
