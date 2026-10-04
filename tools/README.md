@@ -80,3 +80,12 @@ a test suite run in one environment vouch for a rebuild done in another.
   element through the row's `annotation_markers`; the shipped detector reports only *partial*
   disagreement, so when both sides are empty nothing is partial. `gate.py` check 12 compares the
   count of distinct markers carried on rows against the baseline.
+
+## Other tools in this directory
+
+Not part of the re-extraction harness.
+
+| script | what it does |
+|---|---|
+| `build_explainer.py` | builds `docs/schema-chain.html`, the infographic of the schemas, from `schemas/*.json` and `explainer_schema_chain.template.html`; every field path the page names is checked against its schema, and a path that no longer exists stops the build. Run it after a schema change |
+| `video/` | the scripts behind the two videos on the landing page (`docs/index.html`); see `video/README.md` |
