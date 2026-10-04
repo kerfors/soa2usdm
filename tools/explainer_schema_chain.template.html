@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoA2USDM - from the printed table to schemas</title>
+<style>
+:root{--blue:#1F4788;--ink:#1f2933;--muted:#5f6b7a;--line:#d9dee5;--bg:#f5f7fa;
+ --c1:#1F4788;--t1:#dde5f2;--c2:#2E75B6;--t2:#e3eefa;--c3:#00796b;--t3:#dff1ef;--c4:#5a7d1a;--t4:#edf3df;--c5:#6a1b9a;--t5:#f1e7f7;
+ --human:#c77700;--humanbg:#fff6e5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{background:var(--blue);color:#fff;padding:20px 24px}
+header h1{margin:0;font-size:22px;font-weight:600}
+header p{margin:6px 0 0;font-size:14.5px;opacity:.92;max-width:900px}
+main{max-width:1240px;margin:0 auto;padding:8px 24px 36px}
+section{margin-top:26px}
+.sh{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.sh .step{font-size:13px;font-weight:700;color:#fff;background:var(--blue);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sh h2{margin:0;font-size:19px}
+.lead{margin:0 0 14px 38px;color:var(--muted);max-width:860px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+a{color:var(--blue)}
+.num{flex:none;width:22px;height:22px;border-radius:50%;color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.c-properties{--c:var(--c1);--t:var(--t1)}.c-grid{--c:var(--c2);--t:var(--t2)}.c-activities{--c:var(--c3);--t:var(--t3)}
+.c-schedule{--c:var(--c4);--t:var(--t4)}.c-annotations{--c:var(--c5);--t:var(--t5)}.c-other{--c:var(--muted);--t:#eef0f3}
+[data-c]{transition:opacity .15s}
+.dim{opacity:.25}
+
+/* 1 anatomy */
+.anatomy{display:grid;grid-template-columns:minmax(0,11fr) minmax(0,9fr);gap:22px;align-items:start}
+.anatomy svg{width:100%;height:auto;display:block}
+.anatomy .cap{font-size:12px;color:var(--muted);margin-top:4px}
+.cards{display:grid;gap:8px}
+.card{display:flex;gap:10px;border-left:4px solid var(--c);background:var(--t);border-radius:0 6px 6px 0;padding:8px 12px}
+.card .num{background:var(--c);margin-top:1px}
+.card b{font-size:14.5px}
+.card .where{color:var(--muted);font-size:12.5px}
+.card .blk code{color:var(--c);font-weight:600}
+.card p{margin:2px 0 0;font-size:12.5px;color:var(--ink)}
+.cell{stroke:#b9c1cc;stroke-width:1}
+.bar{rx:2}
+.mk{font:700 13px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;fill:var(--c4)}
+.sup{font:700 10px -apple-system,"Segoe UI",sans-serif;fill:var(--c5)}
+.badge circle{stroke:#fff;stroke-width:2}
+.badge text{font:700 12px -apple-system,"Segoe UI",sans-serif;fill:#fff;text-anchor:middle}
+
+/* 2 matrix */
+.scroll{overflow-x:auto}
+.mx{display:grid;grid-template-columns:168px repeat(3,minmax(230px,1fr));gap:8px 26px;min-width:940px}
+.mx-head{border:1.5px solid var(--blue);border-radius:6px;padding:10px 12px;background:#fff;position:relative}
+.mx-head.w-model{background:#e3eefa;border-color:#2E75B6}
+.mx-head .tag{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.mx-head h3{margin:0;font-size:17px}
+.mx-head .q{font-style:italic;color:var(--blue);margin:1px 0 6px}
+.mx-head .meta{font-size:12px;color:var(--muted)}
+.mx-head .sch{font-size:12px;margin-top:4px}
+.mx-head .sch a{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pill{display:inline-block;font-size:11.5px;padding:0 8px;border-radius:10px;border:1px solid var(--blue);color:var(--blue);background:#fff;margin-right:4px}
+.pill.human{border-color:var(--human);color:#7a4a00;background:var(--humanbg)}
+.mx-row{display:flex;align-items:center;gap:8px;border-left:4px solid var(--c);background:var(--t);border-radius:0 6px 6px 0;padding:8px 10px}
+.mx-row .num{background:var(--c)}
+.mx-cell{border:1px solid var(--line);border-top:3px solid var(--c);border-radius:6px;padding:8px 10px;background:#fff;position:relative}
+.mx-head+.mx-head::before,.mx-cell+.mx-cell::before{content:"\2192";position:absolute;left:-22px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted)}
+.mx-cell .blk code{font-size:13px;font-weight:700;color:var(--c)}
+.mx-cell .flds{margin:3px 0 4px;line-height:1.75}
+.mx-cell .flds code{background:#f1f3f6;border-radius:3px;padding:1px 5px;white-space:nowrap}
+.mx-cell p{margin:0;font-size:12.5px;color:var(--muted)}
+.mx-foot-label{font-size:12px;color:var(--muted);align-self:center;padding-left:4px}
+.mx-foot{font-size:12.5px;border-top:2px solid var(--ink);padding-top:6px}
+.after{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px;color:var(--muted)}
+.after b{color:var(--ink)}
+
+/* 3 corrections */
+.rule{border-left:4px solid var(--human);background:var(--humanbg);border-radius:0 6px 6px 0;padding:10px 14px;font-size:15px;margin-bottom:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.corr h3{margin:0;font-size:16px}
+.corr .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+.corr .sub a{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.flow{display:flex;align-items:stretch;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.flow .bx{flex:1 1 110px;border:1.5px solid var(--blue);border-radius:6px;padding:6px 8px;font-size:12.5px;background:#fff}
+.flow .bx b{display:block;font-size:13px}
+.flow .bx span{color:var(--muted);font-size:11.5px}
+.flow .bx.model{background:#e3eefa;border-color:#2E75B6}
+.flow .bx.human{background:var(--humanbg);border-color:var(--human)}
+.flow .op{align-self:center;font-size:18px;color:var(--muted);flex:none}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+td{border-top:1px solid var(--line);padding:6px 8px 6px 0;vertical-align:top}
+td:first-child{white-space:nowrap;color:var(--blue);width:1%}
+.chips{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px}
+.chip{font:11.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;border:1px solid var(--c,var(--line));background:var(--t,#f1f3f6);color:var(--c,var(--ink));border-radius:3px;padding:0 6px}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.calls{margin-top:16px;display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}
+.calls .side{border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.calls .side.model{background:#e3eefa;border-color:#2E75B6}
+.calls .side.human{background:var(--humanbg);border-color:var(--human)}
+.calls h4{margin:0 0 2px;font-size:13.5px}
+.calls p{margin:0;font-size:12.5px}
+.calls .op{font-size:20px;color:var(--muted)}
+/* 4 usdm */
+.wip{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7a4a00;background:var(--humanbg);border:1px dashed var(--human);border-radius:3px;padding:1px 8px;align-self:center}
+.wipbox{border:2px dashed #b9c1cc}
+.wipnote{font-size:13px;color:#7a4a00;margin-bottom:12px}
+.notes{margin:6px 0 0;padding-left:18px;font-size:13px}
+.notes li{margin-bottom:5px}
+.need{margin:14px 0 0;font-size:13.5px}
+footer{font-size:12px;color:var(--muted);margin-top:22px}
+@media (max-width:860px){.anatomy,.two,.calls{grid-template-columns:1fr}.calls .op{display:none}.lead{margin-left:0}}
+</style>
+</head>
+<body>
+<header>
+<h1>SoA2USDM - from the printed table to schemas</h1>
+<p>A Schedule of Activities table is a 2D presentation of study logic, constrained by paper. Footnotes are the overflow for logic that does not fit the grid. SoA2USDM transcribes the table into five constructs, carries them through three schemas, and lets human judgement in only through sidecars. Stating the result in USDM is a separate step that is still being explored.</p>
+</header>
+<main>
+
+<section>
+<div class="sh"><span class="step">1</span><h2>The constructs of an SoA table</h2></div>
+<p class="lead">Every SoA table, whatever its layout, is read as the same five constructs. They are the blocks of the extraction schema.</p>
+<div class="panel anatomy">
+<div>
+<svg viewBox="0 0 640 372" role="img" aria-label="Schematic SoA table with its five constructs marked">
+ <!-- header rows: property names -->
+ <g class="c-properties" data-c="properties">
+  <rect class="cell" x="10" y="14" width="190" height="28" fill="var(--t1)"/><rect class="bar" x="20" y="24" width="70" height="8" fill="var(--c1)"/>
+  <rect class="cell" x="10" y="42" width="190" height="28" fill="var(--t1)"/><rect class="bar" x="20" y="52" width="48" height="8" fill="var(--c1)"/>
+  <rect class="cell" x="10" y="70" width="190" height="28" fill="var(--t1)"/><rect class="bar" x="20" y="80" width="92" height="8" fill="var(--c1)"/>
+ </g>
+ <!-- header cells: grid values -->
+ <g class="c-grid" data-c="grid">
+  <rect class="cell" x="200" y="14" width="132" height="28" fill="var(--t2)"/><rect class="bar" x="240" y="24" width="52" height="8" fill="var(--c2)"/>
+  <rect class="cell" x="332" y="14" width="264" height="28" fill="var(--t2)"/><rect class="bar" x="428" y="24" width="72" height="8" fill="var(--c2)"/>
+  <g fill="var(--t2)">
+   <rect class="cell" x="200" y="42" width="66" height="28"/><rect class="cell" x="266" y="42" width="66" height="28"/><rect class="cell" x="332" y="42" width="66" height="28"/>
+   <rect class="cell" x="398" y="42" width="66" height="28"/><rect class="cell" x="464" y="42" width="66" height="28"/><rect class="cell" x="530" y="42" width="66" height="28"/>
+   <rect class="cell" x="200" y="70" width="66" height="28"/><rect class="cell" x="266" y="70" width="66" height="28"/><rect class="cell" x="332" y="70" width="66" height="28"/>
+   <rect class="cell" x="398" y="70" width="66" height="28"/><rect class="cell" x="464" y="70" width="66" height="28"/><rect class="cell" x="530" y="70" width="66" height="28"/>
+  </g>
+  <g fill="var(--c2)">
+   <rect class="bar" x="219" y="52" width="28" height="8"/><rect class="bar" x="285" y="52" width="28" height="8"/><rect class="bar" x="351" y="52" width="28" height="8"/>
+   <rect class="bar" x="417" y="52" width="28" height="8"/><rect class="bar" x="483" y="52" width="28" height="8"/><rect class="bar" x="549" y="52" width="28" height="8"/>
+   <rect class="bar" x="223" y="80" width="20" height="8"/><rect class="bar" x="289" y="80" width="20" height="8"/><rect class="bar" x="355" y="80" width="20" height="8"/>
+   <rect class="bar" x="421" y="80" width="20" height="8"/><rect class="bar" x="487" y="80" width="20" height="8"/><rect class="bar" x="553" y="80" width="20" height="8"/>
+  </g>
+ </g>
+ <!-- body rows: activities -->
+ <g class="c-activities" data-c="activities">
+  <g fill="var(--t3)">
+   <rect class="cell" x="10" y="98" width="190" height="28"/><rect class="cell" x="10" y="126" width="190" height="28"/><rect class="cell" x="10" y="154" width="190" height="28"/>
+   <rect class="cell" x="10" y="182" width="190" height="28"/><rect class="cell" x="10" y="210" width="190" height="28"/><rect class="cell" x="10" y="238" width="190" height="28"/>
+  </g>
+  <g fill="var(--c3)">
+   <rect class="bar" x="20" y="107" width="96" height="10"/>
+   <rect class="bar" x="36" y="136" width="112" height="8"/><rect class="bar" x="36" y="164" width="78" height="8"/>
+   <rect class="bar" x="20" y="191" width="74" height="10"/>
+   <rect class="bar" x="36" y="220" width="124" height="8"/><rect class="bar" x="36" y="248" width="90" height="8"/>
+  </g>
+ </g>
+ <!-- body cells: activity schedule -->
+ <g class="c-schedule" data-c="schedule">
+  <g fill="#fff">
+   <rect class="cell" x="200" y="98" width="396" height="28" fill="#f3f5f8"/>
+   <rect class="cell" x="200" y="182" width="396" height="28" fill="#f3f5f8"/>
+  </g>
+  <g fill="#fff">
+   <rect class="cell" x="200" y="126" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="266" y="126" width="66" height="28"/><rect class="cell" x="332" y="126" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="398" y="126" width="66" height="28"/><rect class="cell" x="464" y="126" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="530" y="126" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="200" y="154" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="266" y="154" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="332" y="154" width="66" height="28"/>
+   <rect class="cell" x="398" y="154" width="66" height="28"/><rect class="cell" x="464" y="154" width="66" height="28"/><rect class="cell" x="530" y="154" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="200" y="210" width="66" height="28"/><rect class="cell" x="266" y="210" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="332" y="210" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="398" y="210" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="464" y="210" width="66" height="28"/><rect class="cell" x="530" y="210" width="66" height="28"/>
+   <rect class="cell" x="200" y="238" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="266" y="238" width="66" height="28"/><rect class="cell" x="332" y="238" width="66" height="28"/>
+   <rect class="cell" x="398" y="238" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="464" y="238" width="66" height="28"/><rect class="cell" x="530" y="238" width="66" height="28" fill="var(--t4)"/>
+  </g>
+  <g class="mk">
+   <text x="233" y="145">X</text><text x="365" y="145">X</text><text x="497" y="145">X</text><text x="563" y="145">X</text>
+   <text x="233" y="173">X</text><text x="299" y="173">X</text><text x="563" y="173">X</text>
+   <text x="299" y="229">X</text><text x="365" y="229">X</text><text x="431" y="229">X</text>
+   <text x="233" y="257">X</text><text x="431" y="257">X</text><text x="563" y="257">X</text>
+  </g>
+ </g>
+ <!-- annotations: markers and notes -->
+ <g class="c-annotations" data-c="annotations">
+  <text class="sup" x="503" y="50">a</text>
+  <text class="sup" x="152" y="138">b</text>
+  <text class="sup" x="372" y="138">c</text>
+  <text class="sup" x="438" y="222">c</text>
+  <rect x="10" y="284" width="586" height="74" fill="var(--t5)" rx="4"/>
+  <rect x="10" y="284" width="4" height="74" fill="var(--c5)"/>
+  <text class="sup" x="24" y="304">a</text><rect class="bar" x="36" y="296" width="330" height="7" fill="#b9a3c9"/>
+  <text class="sup" x="24" y="326">b</text><rect class="bar" x="36" y="318" width="470" height="7" fill="#b9a3c9"/>
+  <text class="sup" x="24" y="348">c</text><rect class="bar" x="36" y="340" width="250" height="7" fill="#b9a3c9"/>
+ </g>
+ <!-- badges -->
+ <g class="badge"><circle cx="10" cy="56" r="11" fill="var(--c1)"/><text x="10" y="60">1</text></g>
+ <g class="badge"><circle cx="596" cy="56" r="11" fill="var(--c2)"/><text x="596" y="60">2</text></g>
+ <g class="badge"><circle cx="10" cy="182" r="11" fill="var(--c3)"/><text x="10" y="186">3</text></g>
+ <g class="badge"><circle cx="596" cy="182" r="11" fill="var(--c4)"/><text x="596" y="186">4</text></g>
+ <g class="badge"><circle cx="596" cy="321" r="11" fill="var(--c5)"/><text x="596" y="325">5</text></g>
+</svg>
+<div class="cap">Schematic. Bars stand for printed text, X for a schedule mark, small letters for annotation markers.</div>
+</div>
+<div class="cards">
+__CARDS__
+</div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">2</span><h2>The same constructs through three schemas</h2></div>
+<p class="lead">Each schema answers one question and adds one kind of precision. Nothing is replaced on the way: an id in a later file always points to the entry it came from, down to the position on the printed page.</p>
+<div class="panel">
+<div class="scroll"><div class="mx">
+__MATRIX__
+</div></div>
+<div class="after"><b>Layers 1 to 3 stop at USDM-ready data.</b> What they exclude on purpose are USDM-specific semantics. Those belong to USDM Instantiation, part 4.</div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">3</span><h2>How corrections work</h2></div>
+<p class="lead">Review finds things. A reviewer does not edit a file; the reviewer writes an entry in a sidecar, and a program applies it. There are two sidecars, one before Layer 2 and one before Layer 3.</p>
+<div class="rule">The human is an adjudicator, not an editor. Judgement enters through an auditable sidecar, never by rewriting model output.</div>
+<div class="two">
+ <div class="panel corr">
+  <h3>Table corrections <span class="pill human">written by a human</span></h3>
+  <div class="sub">Layer 1.5 &middot; one sidecar per table, only where needed &middot; __CORR_SCHEMA__</div>
+  <div class="flow">
+   <div class="bx model"><b>Raw extraction</b><span>model output, never overwritten</span></div>
+   <div class="op">+</div>
+   <div class="bx human"><b>Corrections sidecar</b><span>names the raw file in target_extraction</span></div>
+   <div class="op">&rarr;</div>
+   <div class="bx"><b>Verified extraction</b><span>sidecar applied by program</span></div>
+   <div class="op">&rarr;</div>
+   <div class="bx"><b>Resolution</b><span>reads verified, else raw</span></div>
+  </div>
+  <table>
+__TABLE_ENTRY__
+  </table>
+  <p class="note">A table without a sidecar passes through untouched.</p>
+ </div>
+ <div class="panel corr">
+  <h3>Match decisions <span class="pill human">written by a human</span></h3>
+  <div class="sub">Layer 3 sidecar &middot; one per protocol, only where needed &middot; __CCORR_SCHEMA__</div>
+  <div class="flow">
+   <div class="bx"><b>Resolved tables</b><span>1 ... n of a protocol</span></div>
+   <div class="op">+</div>
+   <div class="bx human"><b>Match decisions sidecar</b><span>read before matching</span></div>
+   <div class="op">&rarr;</div>
+   <div class="bx"><b>Consolidation</b><span>each decided source row carries decision: correction_id, op</span></div>
+  </div>
+  <table>
+__MATCH_ENTRY__
+  </table>
+  <p class="note">That two rows are the same activity is a human statement, not a pipeline result. An entry whose premise no longer holds stops consolidation.</p>
+ </div>
+</div>
+<div class="calls">
+ <div class="side model"><h4>The extraction states its open judgement calls as data</h4>
+  <p><code>review_items[]</code>: <code>id</code>, <code>severity</code>, <code>call_made</code>, <code>alternative</code></p></div>
+ <div class="op">&rarr;</div>
+ <div class="side human"><h4>A correction answers by naming the item</h4>
+  <p><code>review_item</code> with op <code>confirm</code>: the call stands. With any other op: the alternative was taken. An item is decided exactly when an entry names it.</p></div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">4</span><h2>USDM Instantiation</h2><span class="wip">work in progress</span></div>
+<p class="lead">Not a fourth layer. Layers 1 to 3 stop at USDM-ready data. Turning one consolidated SoA into a USDM v4 document is a separate step that has only just started to be explored.</p>
+<div class="panel wipbox">
+ <div class="wipnote"><b>Work in progress.</b> Parts 1 to 3 describe what is in place. This part only indicates the direction. A first minimal build exists, and everything here can change.</div>
+ <div class="flow">
+  <div class="bx"><b>Consolidated SoA</b><span>the Layer 3 file</span></div>
+  <div class="op">+</div>
+  <div class="bx"><b>Study shell</b><span>the study structure USDM requires around an SoA</span></div>
+  <div class="op">&rarr;</div>
+  <div class="bx"><b>USDM v4 document</b><span>with a log of what was decided, derived or left out</span></div>
+ </div>
+ <div class="two">
+  <div class="corr">
+   <h3>The idea of a study shell</h3>
+   <ul class="notes">
+    <li>USDM has no standalone serialization of an SoA. A ScheduleTimeline hangs under a StudyDesign, under a StudyVersion, under a Study.</li>
+    <li>A StudyDesign mandates arms, cells, elements, a population, eligibility criteria and a model. An SoA contains none of these.</li>
+    <li>The shell is that surrounding structure, built from a manifest of a few facts about the protocol: identifier, title, sponsor, epoch list (__MANIFEST_SCHEMA__). What is not stated is emitted as an object flagged not stated.</li>
+    <li>The shell and the SoA meet at exactly one attribute, <code>ScheduledInstance.epochId</code>. The epoch list is the one part of the shell the SoA really needs.</li>
+   </ul>
+  </div>
+  <div class="corr">
+   <h3>The SoA lifting</h3>
+   <ul class="notes">
+    <li>The consolidated table is rendered as USDM schedule objects: activities and scheduled instances in a timeline and, where the table supports it, timings and encounters.</li>
+    <li>Which column property carries the epoch axis is an interpretation. It is stated outside the Layer 1-3 schemas and logged as a decision.</li>
+    <li>Each build is checked against a pinned usdm-rdf release.</li>
+   </ul>
+  </div>
+ </div>
+ <p class="need"><b>What a full-fledged instantiation would need.</b> SoA patterns, to interpret what the timeline and the notes express, and potentially some kind of shared nomenclature. Neither is part of soa2usdm today.</p>
+</div>
+</section>
+
+<footer>Generated by <code>tools/build_explainer.py</code> from <code>schemas/*.json</code>. Block descriptions, versions and enum values are read from the schema files; hover a field name for its schema description.</footer>
+</main>
+<script>
+document.querySelectorAll("[data-c]").forEach(function (node) {
+    node.addEventListener("mouseenter", function () {
+        document.querySelectorAll("[data-c]").forEach(function (other) {
+            other.classList.toggle("dim", other.dataset.c !== node.dataset.c);
+        });
+    });
+    node.addEventListener("mouseleave", function () {
+        document.querySelectorAll(".dim").forEach(function (other) { other.classList.remove("dim"); });
+    });
+});
+</script>
+</body>
+</html>

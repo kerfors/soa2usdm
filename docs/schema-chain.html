@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoA2USDM - from the printed table to schemas</title>
+<style>
+:root{--blue:#1F4788;--ink:#1f2933;--muted:#5f6b7a;--line:#d9dee5;--bg:#f5f7fa;
+ --c1:#1F4788;--t1:#dde5f2;--c2:#2E75B6;--t2:#e3eefa;--c3:#00796b;--t3:#dff1ef;--c4:#5a7d1a;--t4:#edf3df;--c5:#6a1b9a;--t5:#f1e7f7;
+ --human:#c77700;--humanbg:#fff6e5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{background:var(--blue);color:#fff;padding:20px 24px}
+header h1{margin:0;font-size:22px;font-weight:600}
+header p{margin:6px 0 0;font-size:14.5px;opacity:.92;max-width:900px}
+main{max-width:1240px;margin:0 auto;padding:8px 24px 36px}
+section{margin-top:26px}
+.sh{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.sh .step{font-size:13px;font-weight:700;color:#fff;background:var(--blue);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sh h2{margin:0;font-size:19px}
+.lead{margin:0 0 14px 38px;color:var(--muted);max-width:860px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+a{color:var(--blue)}
+.num{flex:none;width:22px;height:22px;border-radius:50%;color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.c-properties{--c:var(--c1);--t:var(--t1)}.c-grid{--c:var(--c2);--t:var(--t2)}.c-activities{--c:var(--c3);--t:var(--t3)}
+.c-schedule{--c:var(--c4);--t:var(--t4)}.c-annotations{--c:var(--c5);--t:var(--t5)}.c-other{--c:var(--muted);--t:#eef0f3}
+[data-c]{transition:opacity .15s}
+.dim{opacity:.25}
+
+/* 1 anatomy */
+.anatomy{display:grid;grid-template-columns:minmax(0,11fr) minmax(0,9fr);gap:22px;align-items:start}
+.anatomy svg{width:100%;height:auto;display:block}
+.anatomy .cap{font-size:12px;color:var(--muted);margin-top:4px}
+.cards{display:grid;gap:8px}
+.card{display:flex;gap:10px;border-left:4px solid var(--c);background:var(--t);border-radius:0 6px 6px 0;padding:8px 12px}
+.card .num{background:var(--c);margin-top:1px}
+.card b{font-size:14.5px}
+.card .where{color:var(--muted);font-size:12.5px}
+.card .blk code{color:var(--c);font-weight:600}
+.card p{margin:2px 0 0;font-size:12.5px;color:var(--ink)}
+.cell{stroke:#b9c1cc;stroke-width:1}
+.bar{rx:2}
+.mk{font:700 13px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;fill:var(--c4)}
+.sup{font:700 10px -apple-system,"Segoe UI",sans-serif;fill:var(--c5)}
+.badge circle{stroke:#fff;stroke-width:2}
+.badge text{font:700 12px -apple-system,"Segoe UI",sans-serif;fill:#fff;text-anchor:middle}
+
+/* 2 matrix */
+.scroll{overflow-x:auto}
+.mx{display:grid;grid-template-columns:168px repeat(3,minmax(230px,1fr));gap:8px 26px;min-width:940px}
+.mx-head{border:1.5px solid var(--blue);border-radius:6px;padding:10px 12px;background:#fff;position:relative}
+.mx-head.w-model{background:#e3eefa;border-color:#2E75B6}
+.mx-head .tag{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.mx-head h3{margin:0;font-size:17px}
+.mx-head .q{font-style:italic;color:var(--blue);margin:1px 0 6px}
+.mx-head .meta{font-size:12px;color:var(--muted)}
+.mx-head .sch{font-size:12px;margin-top:4px}
+.mx-head .sch a{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pill{display:inline-block;font-size:11.5px;padding:0 8px;border-radius:10px;border:1px solid var(--blue);color:var(--blue);background:#fff;margin-right:4px}
+.pill.human{border-color:var(--human);color:#7a4a00;background:var(--humanbg)}
+.mx-row{display:flex;align-items:center;gap:8px;border-left:4px solid var(--c);background:var(--t);border-radius:0 6px 6px 0;padding:8px 10px}
+.mx-row .num{background:var(--c)}
+.mx-cell{border:1px solid var(--line);border-top:3px solid var(--c);border-radius:6px;padding:8px 10px;background:#fff;position:relative}
+.mx-head+.mx-head::before,.mx-cell+.mx-cell::before{content:"\2192";position:absolute;left:-22px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--muted)}
+.mx-cell .blk code{font-size:13px;font-weight:700;color:var(--c)}
+.mx-cell .flds{margin:3px 0 4px;line-height:1.75}
+.mx-cell .flds code{background:#f1f3f6;border-radius:3px;padding:1px 5px;white-space:nowrap}
+.mx-cell p{margin:0;font-size:12.5px;color:var(--muted)}
+.mx-foot-label{font-size:12px;color:var(--muted);align-self:center;padding-left:4px}
+.mx-foot{font-size:12.5px;border-top:2px solid var(--ink);padding-top:6px}
+.after{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px;color:var(--muted)}
+.after b{color:var(--ink)}
+
+/* 3 corrections */
+.rule{border-left:4px solid var(--human);background:var(--humanbg);border-radius:0 6px 6px 0;padding:10px 14px;font-size:15px;margin-bottom:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.corr h3{margin:0;font-size:16px}
+.corr .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+.corr .sub a{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.flow{display:flex;align-items:stretch;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.flow .bx{flex:1 1 110px;border:1.5px solid var(--blue);border-radius:6px;padding:6px 8px;font-size:12.5px;background:#fff}
+.flow .bx b{display:block;font-size:13px}
+.flow .bx span{color:var(--muted);font-size:11.5px}
+.flow .bx.model{background:#e3eefa;border-color:#2E75B6}
+.flow .bx.human{background:var(--humanbg);border-color:var(--human)}
+.flow .op{align-self:center;font-size:18px;color:var(--muted);flex:none}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+td{border-top:1px solid var(--line);padding:6px 8px 6px 0;vertical-align:top}
+td:first-child{white-space:nowrap;color:var(--blue);width:1%}
+.chips{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px}
+.chip{font:11.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;border:1px solid var(--c,var(--line));background:var(--t,#f1f3f6);color:var(--c,var(--ink));border-radius:3px;padding:0 6px}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.calls{margin-top:16px;display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}
+.calls .side{border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.calls .side.model{background:#e3eefa;border-color:#2E75B6}
+.calls .side.human{background:var(--humanbg);border-color:var(--human)}
+.calls h4{margin:0 0 2px;font-size:13.5px}
+.calls p{margin:0;font-size:12.5px}
+.calls .op{font-size:20px;color:var(--muted)}
+/* 4 usdm */
+.wip{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7a4a00;background:var(--humanbg);border:1px dashed var(--human);border-radius:3px;padding:1px 8px;align-self:center}
+.wipbox{border:2px dashed #b9c1cc}
+.wipnote{font-size:13px;color:#7a4a00;margin-bottom:12px}
+.notes{margin:6px 0 0;padding-left:18px;font-size:13px}
+.notes li{margin-bottom:5px}
+.need{margin:14px 0 0;font-size:13.5px}
+footer{font-size:12px;color:var(--muted);margin-top:22px}
+@media (max-width:860px){.anatomy,.two,.calls{grid-template-columns:1fr}.calls .op{display:none}.lead{margin-left:0}}
+</style>
+</head>
+<body>
+<header>
+<h1>SoA2USDM - from the printed table to schemas</h1>
+<p>A Schedule of Activities table is a 2D presentation of study logic, constrained by paper. Footnotes are the overflow for logic that does not fit the grid. SoA2USDM transcribes the table into five constructs, carries them through three schemas, and lets human judgement in only through sidecars. Stating the result in USDM is a separate step that is still being explored.</p>
+</header>
+<main>
+
+<section>
+<div class="sh"><span class="step">1</span><h2>The constructs of an SoA table</h2></div>
+<p class="lead">Every SoA table, whatever its layout, is read as the same five constructs. They are the blocks of the extraction schema.</p>
+<div class="panel anatomy">
+<div>
+<svg viewBox="0 0 640 372" role="img" aria-label="Schematic SoA table with its five constructs marked">
+ <!-- header rows: property names -->
+ <g class="c-properties" data-c="properties">
+  <rect class="cell" x="10" y="14" width="190" height="28" fill="var(--t1)"/><rect class="bar" x="20" y="24" width="70" height="8" fill="var(--c1)"/>
+  <rect class="cell" x="10" y="42" width="190" height="28" fill="var(--t1)"/><rect class="bar" x="20" y="52" width="48" height="8" fill="var(--c1)"/>
+  <rect class="cell" x="10" y="70" width="190" height="28" fill="var(--t1)"/><rect class="bar" x="20" y="80" width="92" height="8" fill="var(--c1)"/>
+ </g>
+ <!-- header cells: grid values -->
+ <g class="c-grid" data-c="grid">
+  <rect class="cell" x="200" y="14" width="132" height="28" fill="var(--t2)"/><rect class="bar" x="240" y="24" width="52" height="8" fill="var(--c2)"/>
+  <rect class="cell" x="332" y="14" width="264" height="28" fill="var(--t2)"/><rect class="bar" x="428" y="24" width="72" height="8" fill="var(--c2)"/>
+  <g fill="var(--t2)">
+   <rect class="cell" x="200" y="42" width="66" height="28"/><rect class="cell" x="266" y="42" width="66" height="28"/><rect class="cell" x="332" y="42" width="66" height="28"/>
+   <rect class="cell" x="398" y="42" width="66" height="28"/><rect class="cell" x="464" y="42" width="66" height="28"/><rect class="cell" x="530" y="42" width="66" height="28"/>
+   <rect class="cell" x="200" y="70" width="66" height="28"/><rect class="cell" x="266" y="70" width="66" height="28"/><rect class="cell" x="332" y="70" width="66" height="28"/>
+   <rect class="cell" x="398" y="70" width="66" height="28"/><rect class="cell" x="464" y="70" width="66" height="28"/><rect class="cell" x="530" y="70" width="66" height="28"/>
+  </g>
+  <g fill="var(--c2)">
+   <rect class="bar" x="219" y="52" width="28" height="8"/><rect class="bar" x="285" y="52" width="28" height="8"/><rect class="bar" x="351" y="52" width="28" height="8"/>
+   <rect class="bar" x="417" y="52" width="28" height="8"/><rect class="bar" x="483" y="52" width="28" height="8"/><rect class="bar" x="549" y="52" width="28" height="8"/>
+   <rect class="bar" x="223" y="80" width="20" height="8"/><rect class="bar" x="289" y="80" width="20" height="8"/><rect class="bar" x="355" y="80" width="20" height="8"/>
+   <rect class="bar" x="421" y="80" width="20" height="8"/><rect class="bar" x="487" y="80" width="20" height="8"/><rect class="bar" x="553" y="80" width="20" height="8"/>
+  </g>
+ </g>
+ <!-- body rows: activities -->
+ <g class="c-activities" data-c="activities">
+  <g fill="var(--t3)">
+   <rect class="cell" x="10" y="98" width="190" height="28"/><rect class="cell" x="10" y="126" width="190" height="28"/><rect class="cell" x="10" y="154" width="190" height="28"/>
+   <rect class="cell" x="10" y="182" width="190" height="28"/><rect class="cell" x="10" y="210" width="190" height="28"/><rect class="cell" x="10" y="238" width="190" height="28"/>
+  </g>
+  <g fill="var(--c3)">
+   <rect class="bar" x="20" y="107" width="96" height="10"/>
+   <rect class="bar" x="36" y="136" width="112" height="8"/><rect class="bar" x="36" y="164" width="78" height="8"/>
+   <rect class="bar" x="20" y="191" width="74" height="10"/>
+   <rect class="bar" x="36" y="220" width="124" height="8"/><rect class="bar" x="36" y="248" width="90" height="8"/>
+  </g>
+ </g>
+ <!-- body cells: activity schedule -->
+ <g class="c-schedule" data-c="schedule">
+  <g fill="#fff">
+   <rect class="cell" x="200" y="98" width="396" height="28" fill="#f3f5f8"/>
+   <rect class="cell" x="200" y="182" width="396" height="28" fill="#f3f5f8"/>
+  </g>
+  <g fill="#fff">
+   <rect class="cell" x="200" y="126" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="266" y="126" width="66" height="28"/><rect class="cell" x="332" y="126" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="398" y="126" width="66" height="28"/><rect class="cell" x="464" y="126" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="530" y="126" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="200" y="154" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="266" y="154" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="332" y="154" width="66" height="28"/>
+   <rect class="cell" x="398" y="154" width="66" height="28"/><rect class="cell" x="464" y="154" width="66" height="28"/><rect class="cell" x="530" y="154" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="200" y="210" width="66" height="28"/><rect class="cell" x="266" y="210" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="332" y="210" width="66" height="28" fill="var(--t4)"/>
+   <rect class="cell" x="398" y="210" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="464" y="210" width="66" height="28"/><rect class="cell" x="530" y="210" width="66" height="28"/>
+   <rect class="cell" x="200" y="238" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="266" y="238" width="66" height="28"/><rect class="cell" x="332" y="238" width="66" height="28"/>
+   <rect class="cell" x="398" y="238" width="66" height="28" fill="var(--t4)"/><rect class="cell" x="464" y="238" width="66" height="28"/><rect class="cell" x="530" y="238" width="66" height="28" fill="var(--t4)"/>
+  </g>
+  <g class="mk">
+   <text x="233" y="145">X</text><text x="365" y="145">X</text><text x="497" y="145">X</text><text x="563" y="145">X</text>
+   <text x="233" y="173">X</text><text x="299" y="173">X</text><text x="563" y="173">X</text>
+   <text x="299" y="229">X</text><text x="365" y="229">X</text><text x="431" y="229">X</text>
+   <text x="233" y="257">X</text><text x="431" y="257">X</text><text x="563" y="257">X</text>
+  </g>
+ </g>
+ <!-- annotations: markers and notes -->
+ <g class="c-annotations" data-c="annotations">
+  <text class="sup" x="503" y="50">a</text>
+  <text class="sup" x="152" y="138">b</text>
+  <text class="sup" x="372" y="138">c</text>
+  <text class="sup" x="438" y="222">c</text>
+  <rect x="10" y="284" width="586" height="74" fill="var(--t5)" rx="4"/>
+  <rect x="10" y="284" width="4" height="74" fill="var(--c5)"/>
+  <text class="sup" x="24" y="304">a</text><rect class="bar" x="36" y="296" width="330" height="7" fill="#b9a3c9"/>
+  <text class="sup" x="24" y="326">b</text><rect class="bar" x="36" y="318" width="470" height="7" fill="#b9a3c9"/>
+  <text class="sup" x="24" y="348">c</text><rect class="bar" x="36" y="340" width="250" height="7" fill="#b9a3c9"/>
+ </g>
+ <!-- badges -->
+ <g class="badge"><circle cx="10" cy="56" r="11" fill="var(--c1)"/><text x="10" y="60">1</text></g>
+ <g class="badge"><circle cx="596" cy="56" r="11" fill="var(--c2)"/><text x="596" y="60">2</text></g>
+ <g class="badge"><circle cx="10" cy="182" r="11" fill="var(--c3)"/><text x="10" y="186">3</text></g>
+ <g class="badge"><circle cx="596" cy="182" r="11" fill="var(--c4)"/><text x="596" y="186">4</text></g>
+ <g class="badge"><circle cx="596" cy="321" r="11" fill="var(--c5)"/><text x="596" y="325">5</text></g>
+</svg>
+<div class="cap">Schematic. Bars stand for printed text, X for a schedule mark, small letters for annotation markers.</div>
+</div>
+<div class="cards">
+<div class="card c-properties" data-c="properties"><span class="num">1</span><div><b>Schedule properties</b> <span class="where">the header rows</span><div class="blk"><code>schedule_properties</code></div><p>Schedule property definitions from table header rows. These define the temporal grid structure.</p></div></div>
+<div class="card c-grid" data-c="grid"><span class="num">2</span><div><b>Schedule grid</b> <span class="where">the header cells</span><div class="blk"><code>schedule_grid</code></div><p>Cell values for schedule properties across columns. The temporal dimension of the table.</p></div></div>
+<div class="card c-activities" data-c="activities"><span class="num">3</span><div><b>Activities</b> <span class="where">the body rows</span><div class="blk"><code>activities</code></div><p>Activity definitions from table body rows. Includes indentation_level for hierarchy reconstruction - parent-child relationships derived in resolved layer.</p></div></div>
+<div class="card c-schedule" data-c="schedule"><span class="num">4</span><div><b>Activity schedule</b> <span class="where">the body cells</span><div class="blk"><code>activity_schedule</code></div><p>Scheduling data at activity × timepoint intersections. The core content of the SoA table.</p></div></div>
+<div class="card c-annotations" data-c="annotations"><span class="num">5</span><div><b>Annotations</b> <span class="where">markers and the notes they point to</span><div class="blk"><code>annotations</code></div><p>Footnotes, legends, and other annotations with explicit marker_locations. These encode study logic that doesn&#x27;t fit the 2D table presentation.</p></div></div>
+</div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">2</span><h2>The same constructs through three schemas</h2></div>
+<p class="lead">Each schema answers one question and adds one kind of precision. Nothing is replaced on the way: an id in a later file always points to the entry it came from, down to the position on the printed page.</p>
+<div class="panel">
+<div class="scroll"><div class="mx">
+<div class="mx-corner"></div>
+<div class="mx-head w-model"><div class="tag">Layer 1</div><h3>Extraction</h3><div class="q">What does this table show?</div><div class="meta"><span class="pill model">written by the model, one Claude pass</span> one file per table</div><div class="sch"><a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-table-extraction.schema.json">soa-table-extraction</a> v1.1</div></div>
+<div class="mx-head w-program"><div class="tag">Layer 2</div><h3>Resolution</h3><div class="q">What precisely is in this table?</div><div class="meta"><span class="pill program">derived by program</span> one file per table</div><div class="sch"><a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-table-resolved.schema.json">soa-table-resolved</a> v1.2</div></div>
+<div class="mx-head w-program"><div class="tag">Layer 3</div><h3>Consolidation</h3><div class="q">What was the protocol expressing?</div><div class="meta"><span class="pill program">derived by program</span> one file per protocol</div><div class="sch"><a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-tables-consolidated.schema.json">soa-tables-consolidated</a> v1.5</div></div>
+<div class="mx-row c-properties" data-c="properties"><span class="num">1</span><b>Schedule properties</b></div>
+<div class="mx-cell c-properties" data-c="properties"><div class="blk"><code>schedule_properties[]</code></div><div class="flds"><code title="Physical row position in source/Excel (1-based). Preserves exact table structure.">row_position</code> <code title="Property name CLEAN of annotation markers. Extracted directly from row label column when present. Synthesized through basic domain interpretation when label column is empty but row clearly contains schedule property data (e.g., period headers spanning columns). Synthesis is acceptable basic interpretation - any domain expert would identify the same pattern.">property_name</code> <code title="Basic domain classification - obvious pattern recognition any clinical trial expert would agree on. NOT USDM/CDISC mapping (that belongs in study-schedule-logic layer). &#x27;epoch&#x27;=major study phases (Screening/Treatment/Follow-up); &#x27;period&#x27;=sub-phases; &#x27;cycle&#x27;=repeating treatment cycles (oncology); &#x27;visit&#x27;=named visits; &#x27;study_day&#x27;=protocol days; &#x27;week&#x27;=week numbers; &#x27;timepoint&#x27;=within-visit timing; &#x27;window&#x27;=visit windows; &#x27;modality&#x27;=how a visit is conducted (in-person/phone); &#x27;condition&#x27;=population or eligibility qualifier on the columns it spans (which participants they apply to); &#x27;visit_attribute&#x27;=a requirement on or attribute of a visit, marked per visit (e.g. fasting visit); &#x27;other&#x27;=unclear or novel pattern.">property_type</code> <code title="Position in header hierarchy where 1=topmost header row, incrementing downward. The SoA table presentation stacks timing concepts vertically: Epoch→Visit→Day might be levels 1→2→3; Cycle→Week→Day→Timepoint would be 1→2→3→4. Semantic meaning of each level varies by protocol - captured in property_type. null if this row is not part of hierarchical header structure or does not tell columns apart (e.g. a window/tolerance row, a row of dashes). No artificial maximum.">hierarchical_level</code></div><p>One entry per header row.</p></div>
+<div class="mx-cell c-properties" data-c="properties"><div class="blk"><code>schedule_properties[]</code></div><div class="flds"><code title="Stable identifier for this schedule property (e.g., &#x27;prop-001&#x27;). Generated sequentially by row_position within table.">property_id</code> <code title="ID of parent property in hierarchy (e.g., Visit&#x27;s parent is Epoch). Derived from hierarchical_level relationships. null for top-level properties.">parent_property_id</code> <code title="IDs of annotations linked to this property. Derived by matching annotation_markers to annotations array.">linked_annotation_ids</code></div><p>Each row gets an id and its parent.</p></div>
+<div class="mx-cell c-properties" data-c="properties"><div class="blk"><code>property_hierarchy[]</code></div><div class="flds"><code title="Property ID from the first source table that contributed this property; suffixed &#x27;-t&lt;table&gt;&#x27; when that id is already used by another unified property">property_id</code> <code title="Level in header hierarchy (1 = topmost). null for qualifier properties (modality/condition) outside the hierarchical structure.">hierarchical_level</code> <code title="Property name (may be empty for implicit properties)">property_name</code> <code title="Property type classification">property_type</code></div><p>One hierarchy across the tables.</p></div>
+<div class="mx-row c-grid" data-c="grid"><span class="num">2</span><b>Schedule grid</b></div>
+<div class="mx-cell c-grid" data-c="grid"><div class="blk"><code>schedule_grid[]</code></div><div class="flds"><code title="Row position of the schedule property this value belongs to">row_position</code> <code title="Column position in grid. Column 1 is typically row labels; data columns start at 2+.">column_position</code> <code title="Cell content CLEAN of annotation markers. The actual schedule value: visit names, day numbers, timepoints, etc. Example: &#x27;V1&#x27; not &#x27;V1ᵃ&#x27;.">cell_value</code> <code title="If cell is part of merged cells, the covered range as COLUMN POSITIONS in this table&#x27;s own numbering (e.g. &#x27;6:9&#x27;). Never spreadsheet A1 notation - the example here used to read &#x27;B2:D2&#x27;, and because the field is a bare string an A1 value validated silently and split the corpus into two notations no count-based check could see. Empty or absent when the cell is not merged. Merged cells in SoA tables indicate spanning concepts - a phase covering multiple visits, etc.">merged_cell_range</code></div><p>One entry per header cell.</p></div>
+<div class="mx-cell c-grid" data-c="grid"><div class="blk"><code>schedule_columns[]</code></div><div class="flds"><code title="Stable identifier for this column (e.g., &#x27;col-002&#x27;). Generated sequentially by column_position.">column_id</code> <code title="Physical column position. Column 1 is typically row labels; schedule columns start at 2+.">column_position</code> <code title="Hierarchical property values for this column, ordered by hierarchical_level. Represents the full timepoint identification (e.g., [&#x27;Treatment&#x27;, &#x27;Visit 3&#x27;, &#x27;Day 15&#x27;]).">column_values</code> <code title="Human-readable composite label joining all hierarchical values (e.g., &#x27;Treatment / Visit 3 / Day 15&#x27;). Generated for convenience.">composite_label</code></div><p>Header cells read downwards become columns.</p></div>
+<div class="mx-cell c-grid" data-c="grid"><div class="blk"><code>timeline_segments.&lt;segment&gt;[]</code></div><div class="flds"><code title="Cross-table column identifier">xcol_id</code> <code title="Timeline segment this column belongs to. &#x27;main&#x27;=primary timeline; &#x27;domain&#x27;=same timeline, different activity category; &#x27;track&#x27;=a branch only some participants take; &#x27;subsidiary&#x27;=finer timing detail.">segment</code> <code title="Property values for this column, ordered by level">property_values</code> <code title="References to source table columns">source_columns</code></div><p>Columns of all tables aligned into segments (main, domain, track, subsidiary).</p></div>
+<div class="mx-row c-activities" data-c="activities"><span class="num">3</span><b>Activities</b></div>
+<div class="mx-cell c-activities" data-c="activities"><div class="blk"><code>activities[]</code></div><div class="flds"><code title="Physical row position in source (1-based). Combined with indentation_level, enables hierarchy reconstruction.">row_position</code> <code title="Document page this row was read from, in the same numbering as table_metadata.page_start/page_end. Makes page coverage checkable: every page in the declared range should contribute rows, and a page contributing none usually means it was skipped during extraction. For a tiled table where the same row prints on several pages, record the page it was first read from.">source_page</code> <code title="Activity name CLEAN of formatting (no indentation whitespace) and CLEAN of annotation markers. The canonical activity label.">activity_name</code> <code title="Visual indentation level representing grouping hierarchy. 0=section header/top-level parent, 1=child, 2=grandchild, etc. This is CORE STRUCTURAL INTERPRETATION requiring human judgment - not reliably derivable from whitespace alone due to inconsistent protocol formatting. Essential input for hierarchy reconstruction in resolved layer.">activity_name_source.indentation_level</code></div><p>One entry per body row, with the page it was read from.</p></div>
+<div class="mx-cell c-activities" data-c="activities"><div class="blk"><code>activities[]</code></div><div class="flds"><code title="Stable identifier for this activity (e.g., &#x27;act-015&#x27;). Generated sequentially by row_position.">activity_id</code> <code title="ID of parent activity in hierarchy. Derived by scanning backward for lower indentation_level. null for top-level activities.">parent_activity_id</code> <code title="Hierarchy level derived from source indentation. 0 = section header/top-level, 1 = child, 2 = grandchild, etc.">hierarchy_level</code> <code title="true if this activity is a grouping header (typically indentation_level 0, bold, no schedule data). Derived from indentation + formatting + schedule data presence.">is_section_header</code></div><p>Each row gets an id; the parent is derived from the indentation level.</p></div>
+<div class="mx-cell c-activities" data-c="activities"><div class="blk"><code>unified_activities[]</code></div><div class="flds"><code title="Cross-table activity identifier">xact_id</code> <code title="References to source table activities">source_refs</code> <code title="How this activity was matched/created (the status of the last source row added to it)">match_status</code> <code title="Near matches this activity was NOT merged into: a fuzzy match below the auto threshold. A hint, not a decision. Present only when there is one.">near_matches</code></div><p>Rows of several tables matched into one activity. The source rows stay listed.</p></div>
+<div class="mx-row c-schedule" data-c="schedule"><span class="num">4</span><b>Activity schedule</b></div>
+<div class="mx-cell c-schedule" data-c="schedule"><div class="blk"><code>activity_schedule[]</code></div><div class="flds"><code title="Row position of the activity">row_position</code> <code title="Column position in schedule grid">column_position</code> <code title="Cell content CLEAN of annotation markers. Common values: scheduling markers (X, ✓, •), timing text (Week 4, Day 1-3), frequencies (Daily, PRN), continuation indicators (→, ...). Only non-empty cells are emitted in activity_schedule (schedule_grid is complete, with &quot;&quot; for empty cells). Example: &#x27;X&#x27; not &#x27;Xᵖ&#x27;.">cell_value</code> <code title="How this cell value (and any source_range extent) was read, recorded ONLY when other than the default (pdftotext -bbox coordinate read of the text layer). &#x27;raster_pixel_detection&#x27;=mark detected from rendered-page pixels (dark-pixel counts in a row-band x column-band rectangle); &#x27;visual_read&#x27;=read by eye from the rendered page. Absent = bbox text layer.">method</code></div><p>One entry per non-empty body cell.</p></div>
+<div class="mx-cell c-schedule" data-c="schedule"><div class="blk"><code>activity_schedule[]</code></div><div class="flds"><code title="Reference to the activity (row)">activity_id</code> <code title="Reference to the schedule column">column_id</code> <code title="Schedule indicator (clean). Empty string for no data.">cell_value</code> <code title="Classification of cell content. Derived during resolution. &#x27;marker&#x27;=X,✓,•; &#x27;timing_text&#x27;=Week 4, Day 1-3; &#x27;frequency&#x27;=Daily, PRN; &#x27;continuation&#x27;=→, ...; &#x27;conditional&#x27;=if/as needed; &#x27;empty&#x27;=no data.">cell_value_type</code></div><p>Positions become id references.</p></div>
+<div class="mx-cell c-schedule" data-c="schedule"><div class="blk"><code>schedule_matrix[]</code></div><div class="flds"><code title="Unified activity ID">xact_id</code> <code title="Unified column ID">xcol_id</code> <code title="Consolidated cell value. If sources differ, formatted as &#x27;[val1, val2]&#x27;.">consolidated_value</code> <code title="Per-table source values. Keys are table numbers (as strings).">source_values</code></div><p>One cell per unified activity and unified column. The value of each source table is kept.</p></div>
+<div class="mx-row c-annotations" data-c="annotations"><span class="num">5</span><b>Annotations</b></div>
+<div class="mx-cell c-annotations" data-c="annotations"><div class="blk"><code>annotations[]</code></div><div class="flds"><code title="The marker symbol as plain character (e.g., &#x27;a&#x27;, &#x27;b&#x27;, &#x27;p&#x27;, &#x27;1&#x27;, &#x27;*&#x27;), not superscript. Normalized for consistent matching.">annotation_marker</code> <code title="Classification of annotation. &#x27;footnote&#x27;=explanatory notes; &#x27;legend&#x27;=symbol definitions (incl. a symbol printed with a superscript, e.g. &#x27;Xa&#x27;); &#x27;abbreviation&#x27;=term definitions - not emitted since prompt 3.9.0 (abbreviations are not annotations), kept for older extractions; &#x27;source_note&#x27;=data source attribution; &#x27;continuation_note&#x27;=table continuation indicators.">annotation_type</code> <code title="Full text of the annotation exactly as written in source. Contains the study logic that footnotes encode.">annotation_text</code> <code title="All locations where this annotation marker appears in the table. Enables traceability from annotation to the specific cells/elements it qualifies. Essential for reconstructing conditional logic.">marker_locations</code></div><p>Marker, text, and every place the marker is printed.</p></div>
+<div class="mx-cell c-annotations" data-c="annotations"><div class="blk"><code>annotations[]</code></div><div class="flds"><code title="Stable identifier for this annotation (e.g., &#x27;annot-001&#x27;). Generated sequentially.">annotation_id</code> <code title="Explicit cross-references to elements this annotation qualifies. Derived from marker_locations in extraction.">referenced_elements</code> <code title="Scope of what this annotation qualifies. Derived from referenced_elements. &#x27;table&#x27;=applies to entire table; &#x27;column&#x27;=specific timepoint(s); &#x27;activity&#x27;=specific activity(ies); &#x27;cell&#x27;=specific intersections; &#x27;multiple&#x27;=mixed scope.">annotation_scope</code> <code title="Numbered targets in the protocol document that the annotation text points at (&#x27;See Section 8.2.2&#x27;, &#x27;refer to Appendix 3&#x27;, &#x27;see Table 4&#x27;), read from the text only; whether the target can be found in the protocol text is not stated here. A list gives one entry per number; a reviewer note (text starting &#x27;Reviewer note&#x27; or &#x27;Footnote not printed in the source&#x27;) has none. Present only when there is one. From 1.2.">document_references</code></div><p>Bound to the elements it applies to.</p></div>
+<div class="mx-cell c-annotations" data-c="annotations"><div class="blk"><code>unified_annotations[]</code></div><div class="flds"><code title="Cross-table annotation identifier">xannot_id</code> <code title="All source table occurrences of this annotation">source_occurrences</code> <code title="Unified activity IDs this annotation references">referenced_xacts</code> <code title="Unified column IDs this annotation references">referenced_xcols</code></div><p>Identical text deduplicated. Every occurrence is kept.</p></div>
+<div class="mx-foot-label">How an element is addressed</div>
+<div class="mx-foot">Addressed by position: row, column, page</div>
+<div class="mx-foot">Addressed by per-table ids: prop-NNN, col-NNN, act-NNN, annot-NNN</div>
+<div class="mx-foot">Addressed by cross-table ids: xact-NNN, xcol-NNN, xannot-NNN, each listing its source ids</div>
+</div></div>
+<div class="after"><b>Layers 1 to 3 stop at USDM-ready data.</b> What they exclude on purpose are USDM-specific semantics. Those belong to USDM Instantiation, part 4.</div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">3</span><h2>How corrections work</h2></div>
+<p class="lead">Review finds things. A reviewer does not edit a file; the reviewer writes an entry in a sidecar, and a program applies it. There are two sidecars, one before Layer 2 and one before Layer 3.</p>
+<div class="rule">The human is an adjudicator, not an editor. Judgement enters through an auditable sidecar, never by rewriting model output.</div>
+<div class="two">
+ <div class="panel corr">
+  <h3>Table corrections <span class="pill human">written by a human</span></h3>
+  <div class="sub">Layer 1.5 &middot; one sidecar per table, only where needed &middot; <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-table-corrections.schema.json">soa-table-corrections</a> v1.1</div>
+  <div class="flow">
+   <div class="bx model"><b>Raw extraction</b><span>model output, never overwritten</span></div>
+   <div class="op">+</div>
+   <div class="bx human"><b>Corrections sidecar</b><span>names the raw file in target_extraction</span></div>
+   <div class="op">&rarr;</div>
+   <div class="bx"><b>Verified extraction</b><span>sidecar applied by program</span></div>
+   <div class="op">&rarr;</div>
+   <div class="bx"><b>Resolution</b><span>reads verified, else raw</span></div>
+  </div>
+  <table>
+<tr><td><code>id</code></td><td>The entry&#x27;s own id.</td></tr>
+<tr><td><code>target</code></td><td>Which block of the extraction it acts on.<div class="chips"><span class="chip c-properties">schedule_properties</span><span class="chip c-grid">schedule_grid</span><span class="chip c-activities">activities</span><span class="chip c-schedule">activity_schedule</span><span class="chip c-annotations">annotations</span><span class="chip c-other">review_items</span><span class="chip c-other">table_metadata</span></div></td></tr>
+<tr><td><code>op</code></td><td>What it does.<div class="chips"><span class="chip">add</span><span class="chip">set</span><span class="chip">remove</span><span class="chip">confirm</span><span class="chip">add_item</span><span class="chip">remove_item</span></div></td></tr>
+<tr><td><code>match</code></td><td>Key fields that locate the entry, e.g. row and column position.</td></tr>
+<tr><td><code>set</code> <code>field</code> <code>value</code></td><td>What to write.</td></tr>
+<tr><td><code>reason</code> <code>by</code> <code>at</code></td><td>Why, who, when.</td></tr>
+<tr><td><code>source_ref</code></td><td>Where on the printed page the correction is grounded.</td></tr>
+<tr><td><code>review_item</code></td><td>The judgement call this entry answers, when it answers one.</td></tr>
+  </table>
+  <p class="note">A table without a sidecar passes through untouched.</p>
+ </div>
+ <div class="panel corr">
+  <h3>Match decisions <span class="pill human">written by a human</span></h3>
+  <div class="sub">Layer 3 sidecar &middot; one per protocol, only where needed &middot; <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-consolidation-corrections.schema.json">soa-consolidation-corrections</a> v1.0</div>
+  <div class="flow">
+   <div class="bx"><b>Resolved tables</b><span>1 ... n of a protocol</span></div>
+   <div class="op">+</div>
+   <div class="bx human"><b>Match decisions sidecar</b><span>read before matching</span></div>
+   <div class="op">&rarr;</div>
+   <div class="bx"><b>Consolidation</b><span>each decided source row carries decision: correction_id, op</span></div>
+  </div>
+  <table>
+<tr><td><code>id</code></td><td>The entry&#x27;s own id.</td></tr>
+<tr><td><code>op</code></td><td>What is decided about a pair of rows.<div class="chips"><span class="chip">keep</span><span class="chip">split</span><span class="chip">merge</span><span class="chip">refines</span></div></td></tr>
+<tr><td><code>source</code> <code>target</code></td><td>The two source rows, named by table_number + activity_id, with activity_name as a check.</td></tr>
+<tr><td><code>reason</code> <code>by</code> <code>at</code></td><td>Why, who, when.</td></tr>
+  </table>
+  <p class="note">That two rows are the same activity is a human statement, not a pipeline result. An entry whose premise no longer holds stops consolidation.</p>
+ </div>
+</div>
+<div class="calls">
+ <div class="side model"><h4>The extraction states its open judgement calls as data</h4>
+  <p><code>review_items[]</code>: <code>id</code>, <code>severity</code>, <code>call_made</code>, <code>alternative</code></p></div>
+ <div class="op">&rarr;</div>
+ <div class="side human"><h4>A correction answers by naming the item</h4>
+  <p><code>review_item</code> with op <code>confirm</code>: the call stands. With any other op: the alternative was taken. An item is decided exactly when an entry names it.</p></div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">4</span><h2>USDM Instantiation</h2><span class="wip">work in progress</span></div>
+<p class="lead">Not a fourth layer. Layers 1 to 3 stop at USDM-ready data. Turning one consolidated SoA into a USDM v4 document is a separate step that has only just started to be explored.</p>
+<div class="panel wipbox">
+ <div class="wipnote"><b>Work in progress.</b> Parts 1 to 3 describe what is in place. This part only indicates the direction. A first minimal build exists, and everything here can change.</div>
+ <div class="flow">
+  <div class="bx"><b>Consolidated SoA</b><span>the Layer 3 file</span></div>
+  <div class="op">+</div>
+  <div class="bx"><b>Study shell</b><span>the study structure USDM requires around an SoA</span></div>
+  <div class="op">&rarr;</div>
+  <div class="bx"><b>USDM v4 document</b><span>with a log of what was decided, derived or left out</span></div>
+ </div>
+ <div class="two">
+  <div class="corr">
+   <h3>The idea of a study shell</h3>
+   <ul class="notes">
+    <li>USDM has no standalone serialization of an SoA. A ScheduleTimeline hangs under a StudyDesign, under a StudyVersion, under a Study.</li>
+    <li>A StudyDesign mandates arms, cells, elements, a population, eligibility criteria and a model. An SoA contains none of these.</li>
+    <li>The shell is that surrounding structure, built from a manifest of a few facts about the protocol: identifier, title, sponsor, epoch list (<a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/usdm-manifest.schema.json">usdm-manifest</a> v1.0). What is not stated is emitted as an object flagged not stated.</li>
+    <li>The shell and the SoA meet at exactly one attribute, <code>ScheduledInstance.epochId</code>. The epoch list is the one part of the shell the SoA really needs.</li>
+   </ul>
+  </div>
+  <div class="corr">
+   <h3>The SoA lifting</h3>
+   <ul class="notes">
+    <li>The consolidated table is rendered as USDM schedule objects: activities and scheduled instances in a timeline and, where the table supports it, timings and encounters.</li>
+    <li>Which column property carries the epoch axis is an interpretation. It is stated outside the Layer 1-3 schemas and logged as a decision.</li>
+    <li>Each build is checked against a pinned usdm-rdf release.</li>
+   </ul>
+  </div>
+ </div>
+ <p class="need"><b>What a full-fledged instantiation would need.</b> SoA patterns, to interpret what the timeline and the notes express, and potentially some kind of shared nomenclature. Neither is part of soa2usdm today.</p>
+</div>
+</section>
+
+<footer>Generated by <code>tools/build_explainer.py</code> from <code>schemas/*.json</code>. Block descriptions, versions and enum values are read from the schema files; hover a field name for its schema description.</footer>
+</main>
+<script>
+document.querySelectorAll("[data-c]").forEach(function (node) {
+    node.addEventListener("mouseenter", function () {
+        document.querySelectorAll("[data-c]").forEach(function (other) {
+            other.classList.toggle("dim", other.dataset.c !== node.dataset.c);
+        });
+    });
+    node.addEventListener("mouseleave", function () {
+        document.querySelectorAll(".dim").forEach(function (other) { other.classList.remove("dim"); });
+    });
+});
+</script>
+</body>
+</html>
