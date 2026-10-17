@@ -88,4 +88,5 @@ Not part of the re-extraction harness.
 | script | what it does |
 |---|---|
 | `build_explainer.py` | builds `docs/schema-chain.html`, the infographic of the schemas, from `schemas/*.json` and `explainer_schema_chain.template.html`; every field path the page names is checked against its schema, and a path that no longer exists stops the build. Run it after a schema change |
+| `build_consolidation_explainer.py` | builds `docs/consolidation.html`, the page on consolidation, from `explainer_consolidation.template.html`, `schemas/*.json`, the thresholds and name score in `soa2usdm/consolidate.py`, and the consolidated files and sidecars of the collections (`SOA2USDM_COLLECTIONS`, default `../soa2usdm-collections`); field paths, named examples and the review count are checked, and a mismatch stops the build. Run it after a schema, matching or sidecar change. The screenshots in `docs/img/` are static |
 | `video/` | the scripts behind the two videos on the landing page (`docs/index.html`); see `video/README.md` |

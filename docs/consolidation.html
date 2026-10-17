@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoA2USDM - consolidation of tables</title>
+<meta name="description" content="How the resolved tables of one protocol become one schedule: table types, the three axes, row matching, the match decisions sidecar and the consolidated view.">
+<style>
+:root{--blue:#1F4788;--ink:#1f2933;--muted:#5f6b7a;--line:#d9dee5;--bg:#f5f7fa;
+ --c1:#1F4788;--t1:#dde5f2;--c2:#2E75B6;--t2:#e3eefa;--c3:#00796b;--t3:#dff1ef;--c4:#5a7d1a;--t4:#edf3df;--c5:#6a1b9a;--t5:#f1e7f7;
+ --human:#c77700;--humanbg:#fff6e5;--grey:#eef0f3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{background:var(--blue);color:#fff;padding:20px 24px}
+header .in{max-width:1192px;margin:0 auto}
+header h1{margin:0;font-size:22px;font-weight:600}
+header p{margin:6px 0 0;font-size:14.5px;opacity:.92;max-width:900px}
+header nav{margin-top:10px;font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px}
+header nav a{color:#fff;opacity:.85}
+main{max-width:1240px;margin:0 auto;padding:8px 24px 36px}
+section{margin-top:30px}
+.sh{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.sh .step{font-size:13px;font-weight:700;color:#fff;background:var(--blue);border-radius:50%;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.sh h2{margin:0;font-size:19px}
+.lead{margin:0 0 14px 38px;color:var(--muted);max-width:900px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px}
+code{font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+a{color:var(--blue)}
+.c-properties{--c:var(--c1);--t:var(--t1)}.c-grid{--c:var(--c2);--t:var(--t2)}.c-activities{--c:var(--c3);--t:var(--t3)}
+.c-schedule{--c:var(--c4);--t:var(--t4)}.c-annotations{--c:var(--c5);--t:var(--t5)}.c-other{--c:var(--muted);--t:var(--grey)}
+[data-c]{transition:opacity .15s}
+.dim{opacity:.22}
+.pill{display:inline-block;font-size:11.5px;padding:0 8px;border-radius:10px;border:1px solid var(--blue);color:var(--blue);background:#fff;white-space:nowrap}
+.pill.human{border-color:var(--human);color:#7a4a00;background:var(--humanbg)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.rule{border-left:4px solid var(--human);background:var(--humanbg);border-radius:0 6px 6px 0;padding:10px 14px;font-size:15px;margin-bottom:14px}
+.stat{display:inline-block;font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink)}
+
+/* 1 position */
+.flow{display:flex;align-items:stretch;gap:6px;flex-wrap:wrap}
+.flow .bx{flex:1 1 150px;border:1.5px solid var(--blue);border-radius:6px;padding:8px 10px;font-size:12.5px;background:#fff}
+.flow .bx b{display:block;font-size:13.5px}
+.flow .bx span{color:var(--muted);font-size:12px}
+.flow .bx.human{background:var(--humanbg);border-color:var(--human)}
+.flow .bx.prog{background:var(--blue);color:#fff;border-color:var(--blue)}
+.flow .bx.prog span{color:#dbe4f3}
+.flow .op{align-self:center;font-size:18px;color:var(--muted);flex:none}
+.ex-table{border-collapse:collapse;width:100%;font-size:13px;margin-top:16px}
+.ex-table th,.ex-table td{border-top:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+.ex-table th{font-weight:600;font-size:12px;color:var(--muted);border-top:0}
+.ex-table td:first-child{white-space:nowrap}
+.ex-table td.n{font-variant-numeric:tabular-nums}
+.ex-table td.rs{background:#f7f9fc}
+.ex-table .lbl{font-weight:600;color:var(--c)}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.dl h3{margin:0 0 4px;font-size:14px}
+.dl ul{margin:0;padding-left:18px;font-size:13px}
+.dl li{margin-bottom:3px}
+.dl .no h3{color:var(--muted)}
+
+/* 2 types */
+.order{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin-bottom:14px}
+.order .o{flex:1 1 200px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--c3);border-radius:0 6px 6px 0;padding:8px 10px;font-size:12.5px}
+.order .o b{font-size:13px}
+.order .op{align-self:center;color:var(--muted);font-size:18px}
+.types{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tt{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.tt.off{background:#f7f8fa;border-style:dashed}
+.tt-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.tt-h code{font-size:14px;font-weight:700;color:var(--blue)}
+.tt .cnt{font-size:11.5px;color:var(--muted);text-align:right}
+.tt .pr{margin:4px 0 8px;font-size:12.5px;color:var(--muted)}
+.rc{display:grid;grid-template-columns:64px 1fr;gap:8px;font-size:12.5px;margin-top:4px}
+.rc .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--c);padding-top:1px}
+
+/* 3 axes */
+.axes{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:22px;align-items:start}
+.axes svg{width:100%;height:auto;display:block}
+.cell{stroke:#b9c1cc;stroke-width:1}
+.ttl{font:600 12.5px -apple-system,"Segoe UI",sans-serif;fill:var(--ink)}
+.hv{font:600 11px -apple-system,"Segoe UI",sans-serif;fill:var(--c2);text-anchor:middle}
+.rl{font:700 12px -apple-system,"Segoe UI",sans-serif;fill:var(--c3)}
+.inn{font:600 10px ui-monospace,Menlo,monospace;fill:var(--c3);text-anchor:middle}
+.mk{font:700 12px -apple-system,"Segoe UI",sans-serif;text-anchor:middle;fill:var(--c4)}
+.sup{font:700 10.5px -apple-system,"Segoe UI",sans-serif;fill:var(--c5)}
+.occ{font:600 10px ui-monospace,Menlo,monospace;fill:var(--c5)}
+.segl{font:700 10.5px -apple-system,"Segoe UI",sans-serif;fill:#fff;text-anchor:middle}
+.arrow line{stroke:var(--muted);stroke-width:2}.arrow path{fill:var(--muted)}
+.aw{font:600 11px -apple-system,"Segoe UI",sans-serif;fill:var(--muted);text-anchor:middle}
+.ax{display:grid;gap:8px}
+.axc{display:flex;gap:10px;border-left:4px solid var(--c);background:var(--t);border-radius:0 6px 6px 0;padding:8px 12px}
+.axc .v{flex:none;width:86px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--c);padding-top:2px}
+.axc b{font-size:14px}
+.axc p{margin:2px 0 0;font-size:12.5px}
+.axc code{color:var(--c);font-weight:600}
+
+/* 4 matching */
+.steps{display:grid;gap:8px;counter-reset:s}
+.st{display:grid;grid-template-columns:30px minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-items:start;background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px}
+.st .k{width:24px;height:24px;border-radius:50%;background:var(--c3);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.st b{font-size:13.5px}
+.st p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.res{display:flex;flex-direction:column;gap:3px;font-size:12.5px}
+.res .r{display:block}
+.chip{font:11.5px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;border:1px solid var(--line);background:#f1f3f6;border-radius:3px;padding:0 6px;white-space:nowrap}
+.chip.m{border-color:var(--c3);background:var(--t3);color:var(--c3)}
+.chip.n{border-color:var(--human);background:var(--humanbg);color:#7a4a00}
+.chip.x{border-color:#b9c1cc;color:var(--muted)}
+.st.end{background:#f7f8fa;border-style:dashed}
+.st.end .k{background:var(--muted)}
+.st.dec{background:var(--humanbg);border-color:var(--human)}
+.st.dec .k{background:var(--human)}
+.formula{margin:14px 0 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.formula .f{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f7f9fc;border:1px solid var(--line);border-radius:6px;padding:10px 12px;line-height:1.7}
+.formula ol{margin:0;padding-left:18px;font-size:13px}
+.calc{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px}
+.calc h3{margin:0 0 2px;font-size:15px}
+.calc .sub{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+.calc label{font-size:12px;color:var(--muted);display:block;margin:6px 0 2px}
+.calc select,.calc input[type=text]{width:100%;font:13px -apple-system,"Segoe UI",sans-serif;padding:6px 8px;border:1px solid #b9c1cc;border-radius:5px;background:#fff;color:var(--ink)}
+.calc .rad{display:flex;gap:16px;font-size:13px;margin-top:8px;flex-wrap:wrap}
+.calc .rad label{display:inline;margin:0;color:var(--ink)}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.words{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;min-height:22px}
+.w{font:12px ui-monospace,Menlo,monospace;border-radius:3px;padding:1px 6px;background:#f1f3f6;border:1px solid var(--line)}
+.w.sh{background:var(--t3);border-color:var(--c3);color:var(--c3);font-weight:700}
+.nums{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin-top:10px}
+.nums b{font-variant-numeric:tabular-nums}
+.bar-wrap{position:relative;margin:28px 0 30px}
+.sbar{position:relative;height:16px;border-radius:4px;overflow:hidden;display:flex}
+.sbar span{height:100%}
+.z0{background:#e3e7ec}.z1{background:#ffe2b0}.z2{background:#bfe3dd}
+.tick{position:absolute;top:-4px;height:24px;border-left:1.5px dashed var(--ink)}
+.tick i{position:absolute;top:26px;left:-14px;font:11px ui-monospace,Menlo,monospace;font-style:normal;color:var(--muted)}
+.tick.top i{top:-17px}
+.ptr{position:absolute;top:-10px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid var(--ink);margin-left:-7px;transition:left .2s}
+.zl{display:flex;font-size:11.5px;color:var(--muted);margin-top:-22px}
+.zl span{text-align:center}
+.outcome{border-radius:6px;padding:10px 12px;font-size:13.5px;border:1.5px solid var(--line)}
+.outcome.m{border-color:var(--c3);background:var(--t3)}
+.outcome.n{border-color:var(--human);background:var(--humanbg)}
+.outcome.x{background:#f7f8fa}
+.infile{font-size:12.5px;color:var(--muted);margin-top:8px}
+.infile b{color:var(--ink)}
+
+/* 5 decisions */
+.ops{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.opc{background:#fff;border:1px solid var(--line);border-top:4px solid var(--human);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.opc h3{margin:0;font-size:15px}
+.opc h3 code{font-size:15px;color:#7a4a00}
+.opc .say{font-size:12.5px}
+.opc .h{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.opc ul{margin:0;padding-left:16px;font-size:12px}
+.opc .cnt{font-size:12px;color:var(--muted);margin-top:auto}
+.pair{display:flex;align-items:center;gap:0;font-size:11.5px;margin:2px 0}
+.pair .r{border:1.5px solid var(--c3);background:var(--t3);color:var(--c3);border-radius:4px;padding:1px 6px;font-weight:700}
+.pair .j{width:26px;height:0;border-top:2px solid var(--c3)}
+.pair .j.near{border-top:2px dashed var(--human)}
+.pair .j.none{border-top:2px solid transparent}
+.pair .j.ref{border-top:2px solid var(--c5);position:relative}
+.pair .j.ref::after{content:"";position:absolute;right:-1px;top:-6px;border-left:8px solid var(--c5);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.pair .a{color:var(--muted);margin:0 8px}
+.ex{border-top:1px solid var(--line);padding-top:6px;font-size:12px}
+.ex .pid{font:11px ui-monospace,Menlo,monospace;color:var(--muted)}
+.ex .t{font:11px ui-monospace,Menlo,monospace;color:var(--c3);font-weight:700}
+.ex .why{color:#7a4a00;font-style:italic}
+.side2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:16px}
+pre{margin:0;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f7f9fc;border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto}
+.checks{font-size:13px;margin:0;padding-left:18px}
+.checks li{margin-bottom:4px}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.status span{border-radius:12px;padding:2px 10px;font-size:12.5px;border:1px solid var(--line);background:#fff}
+.status .d{border-color:#2e7d32;color:#2e7d32}
+.status .o{border-color:var(--human);color:#7a4a00}
+
+/* 6 output */
+.blk-row{display:grid;grid-template-columns:200px 1fr;gap:12px;border-left:4px solid var(--c);background:var(--t);border-radius:0 6px 6px 0;padding:6px 12px;font-size:12.5px;margin-bottom:6px}
+.blk-row code{font-size:12.5px;font-weight:700;color:var(--c)}
+.trace{display:flex;flex-direction:column;gap:0}
+.tr{border:1px solid var(--line);border-left:4px solid var(--c);background:#fff;border-radius:0 6px 6px 0;padding:7px 12px;font-size:12.5px}
+.tr .lay{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.tr code{color:var(--c);font-weight:600}
+.tr .q{color:var(--muted)}
+.down{align-self:flex-start;margin:0 0 0 22px;color:var(--muted);font-size:15px;line-height:1.3}
+
+/* 7 view */
+.shots{display:grid;gap:18px}
+figure{margin:0}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:6px;background:#fff}
+figcaption{font-size:12.5px;color:var(--muted);margin-top:6px}
+figcaption b{color:var(--ink)}
+.callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.callouts div{background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;font-size:12.5px}
+.callouts b{display:block;font-size:13.5px;margin-bottom:2px}
+footer{font-size:12px;color:var(--muted);margin-top:26px}
+@media (max-width:980px){.types,.ops,.callouts{grid-template-columns:1fr 1fr}}
+@media (max-width:860px){.axes,.two,.dl,.formula,.cgrid,.side2{grid-template-columns:minmax(0,1fr)}.lead{margin-left:0}.st{grid-template-columns:30px 1fr}.st .res{grid-column:2}.blk-row{grid-template-columns:1fr;gap:2px}}
+@media (max-width:600px){.types,.ops,.callouts{grid-template-columns:1fr}main{padding:8px 16px 30px}header{padding:18px 16px}.ex-table{font-size:12px}.ex-table th,.ex-table td{padding:5px 6px}}
+</style>
+</head>
+<body>
+<header><div class="in">
+<h1>SoA2USDM - consolidation of tables</h1>
+<p>Consolidation is the point where the pipeline stops working per table. The resolved tables of one protocol become one schedule: rows that print the same activity are matched, the columns of each table are placed on timeline segments, and a note printed in several tables is kept once. It is done by program. Whether two rows are the same activity stays a human statement, made in a sidecar.</p>
+<nav><a href="./">SoA2USDM home</a><a href="schema-chain.html">From the printed table to schemas</a></nav>
+</div></header>
+<main>
+
+<section>
+<div class="sh"><span class="step">1</span><h2>Where consolidation sits</h2></div>
+<p class="lead">One step between the per-table schema and the per-protocol schema. It reads every resolved table of the protocol and, where one exists, the protocol's match decisions sidecar. It calls no model.</p>
+<div class="panel">
+ <div class="flow">
+  <div class="bx"><b>Resolved tables</b><span>Layer 2, one file per table &middot; <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-table-resolved.schema.json">soa-table-resolved</a> v1.2 &middot; per-table ids <code>act-</code> <code>col-</code> <code>annot-</code></span></div>
+  <div class="op">+</div>
+  <div class="bx human"><b>Match decisions sidecar</b><span>one per protocol, only where needed &middot; written by a human &middot; read before matching</span></div>
+  <div class="op">&rarr;</div>
+  <div class="bx prog"><b>Consolidation</b><span>ConsolidateStep, by program, deterministic</span></div>
+  <div class="op">&rarr;</div>
+  <div class="bx"><b>Consolidated file</b><span>Layer 3, one file per protocol &middot; <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-tables-consolidated.schema.json">soa-tables-consolidated</a> v1.5 &middot; cross-table ids <code>xact-</code> <code>xcol-</code> <code>xannot-</code></span></div>
+ </div>
+ <table class="ex-table">
+  <tr><th>Running example: <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04184622/SoA2USDM/consolidated/NCT04184622_consolidated.html">NCT04184622</a></th><th title="Schedule of Activities covering visits to primary study endpoint">Table 1 &middot; <code>main_soa</code></th><th title="Schedule of Activities for additional 2-year treatment period for participants with prediabetes at randomization">Table 2 &middot; <code>track</code> (Prediabetes)</th><th>Consolidated</th></tr>
+  <tr><td><span class="c-activities"><span class="lbl">Activity rows</span></span></td><td class="n">54</td><td class="n">39</td><td class="n rs"><b>55</b> unified activities: 38 rows of Table 2 matched to Table 1 (31 exact, 5 on a similar name, 2 across parents), 1 new</td></tr>
+  <tr><td><span class="c-grid"><span class="lbl">Columns</span></span></td><td class="n">24</td><td class="n">19</td><td class="n rs"><b>43</b> unified columns: 24 in segment main, 19 in segment track. None merged</td></tr>
+  <tr><td><span class="c-annotations"><span class="lbl">Notes</span></span></td><td class="n">27</td><td class="n">18</td><td class="n rs"><b>27</b> unified annotations: 18 notes of Table 2 print the same text as a note of Table 1</td></tr>
+ </table>
+ <div class="dl">
+  <div><h3>What consolidation does</h3><ul>
+   <li>matches activity rows across tables</li>
+   <li>places every column on a timeline segment, by table type</li>
+   <li>keeps a note printed in several tables once, with every occurrence</li>
+   <li>rebuilds the schedule matrix on the cross-table ids</li>
+   <li>applies the human match decisions, and counts what is left to decide</li>
+   <li>carries every table's extraction review items, tagged with the table</li>
+  </ul></div>
+  <div class="no"><h3>What it leaves</h3><ul>
+   <li>columns are not matched across tables</li>
+   <li>no reading of what the timeline or the notes mean: epochs, timings, conditions</li>
+   <li>no USDM objects. That is USDM Instantiation, a separate step</li>
+  </ul></div>
+ </div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">2</span><h2>The table type decides the route</h2></div>
+<p class="lead">The extraction classifies every table (<code>table_metadata.table_type</code>). Consolidation reads that type and nothing else to decide whether the table's rows are matched and on which segment its columns go. Tables are processed in a fixed order.</p>
+<div class="order">
+ <div class="o c-activities"><b>1. The base</b><br>the lowest-numbered <code>main_soa</code>. Its rows become the first activities, <code>xact-001</code> onwards.</div>
+ <div class="op">&rarr;</div>
+ <div class="o c-activities"><b>2. Further main_soa tables</b><br>by table number, matched against what exists.</div>
+ <div class="op">&rarr;</div>
+ <div class="o c-activities"><b>3. All other tables</b><br>by table number, matched; <code>reference</code> tables skipped.</div>
+</div>
+<div class="types">
+<div class="tt"><div class="tt-h"><code>main_soa</code><span class="cnt">29 tables in 24 protocols</span></div><p class="pr">The primary activity &times; timepoint grid. A protocol can have several, e.g. one per study period that every participant passes through.</p><div class="rc"><span class="lbl c-activities">rows</span><span>The lowest-numbered main_soa is the <b>base</b>: its rows become the first activities and are never matched. A further main_soa is matched against them.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>main</code>.</span></div></div>
+<div class="tt"><div class="tt-h"><code>continuation</code><span class="cnt">none in the published collections</span></div><p class="pr">The same table carried on under its own number or caption: same columns, the rows continue.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>main</code>, after the main_soa columns.</span></div></div>
+<div class="tt"><div class="tt-h"><code>domain</code><span class="cnt">2 tables in 1 protocol</span></div><p class="pr">Same columns, same participants, another category of activities (e.g. a laboratory table next to a non-laboratory table).</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>domain</code>. Printed on the main timeline, but kept as columns of their own.</span></div></div>
+<div class="tt"><div class="tt-h"><code>track</code><span class="cnt">12 tables in 6 protocols</span></div><p class="pr">A branch only some participants take: a cohort, responders vs non-responders, a later phase entered on a condition.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>track</code>, each column with a <code>population_track</code>: the table's track_label, else read from its purpose or title, else <code>Track-T&lt;n&gt;</code>.</span></div></div>
+<div class="tt"><div class="tt-h"><code>subsidiary</code><span class="cnt">4 tables in 3 protocols</span></div><p class="pr">Finer timing for a subset of activities, e.g. hour-by-hour PK sampling for days of the main table.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>subsidiary</code>.</span></div></div>
+<div class="tt off"><div class="tt-h"><code>reference</code><span class="cnt">none in the published collections</span></div><p class="pr">Rows that are not activities: sample specifications, timing parameters, abbreviations.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Not consolidated: no activities.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Not consolidated: no columns. A match decision may not name the table.</span></div></div>
+</div>
+<p class="note">Order matters twice. A row can only be matched to an activity made from a table processed earlier, so the pair has a direction: the source is the later row, the target the earlier one. And <code>xact</code> ids are counters in this order, so they change when the input changes. That is why the match decisions sidecar names rows, never <code>xact</code> ids. In the published collections: 24 protocols, 47 tables; 12 protocols have a single table, so consolidation only re-addresses them.</p>
+</section>
+
+<section>
+<div class="sh"><span class="step">3</span><h2>Three axes, three strategies</h2></div>
+<p class="lead">An SoA table has two axes and its notes. Consolidation treats each differently: rows are matched, columns are placed side by side, notes are deduplicated on their text. The schedule matrix is then rebuilt on the new ids. Hover a part of the drawing or a card.</p>
+<div class="panel axes">
+<div>
+<svg viewBox="0 0 790 362" role="img" aria-label="Two tables consolidated: shared rows fold into one activity, the columns of each table are placed side by side in segments, and a note printed in both tables is kept once">
+<text class="ttl" x="10" y="18">Table 1 &#183; main_soa</text>
+<g class="c-grid" data-c="grid">
+<rect class="cell" x="10" y="26" width="120" height="24" fill="#f3f5f8"/>
+<rect class="cell" x="130" y="26" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="145.0" y="42">1</text>
+<rect class="cell" x="160" y="26" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="175.0" y="42">2</text>
+<rect class="cell" x="190" y="26" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="205.0" y="42">3</text>
+<rect class="cell" x="220" y="26" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="235.0" y="42">4</text>
+</g>
+<g class="c-activities" data-c="activities">
+<rect class="cell" x="10" y="50" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="22" y="66">A</text>
+<rect class="bar" x="38" y="59" width="76" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="10" y="74" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="22" y="90">B</text>
+<rect class="bar" x="38" y="83" width="60" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="10" y="98" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="22" y="114">C</text>
+<rect class="bar" x="38" y="107" width="76" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="10" y="122" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="22" y="138">D</text>
+<rect class="bar" x="38" y="131" width="60" height="6" fill="var(--c3)" opacity=".55"/>
+</g>
+<g class="c-schedule" data-c="schedule">
+<rect class="cell" x="130" y="50" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="145.0" y="66">X</text>
+<rect class="cell" x="160" y="50" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="190" y="50" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="220" y="50" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="130" y="74" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="145.0" y="90">X</text>
+<rect class="cell" x="160" y="74" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="175.0" y="90">X</text>
+<rect class="cell" x="190" y="74" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="205.0" y="90">X</text>
+<rect class="cell" x="220" y="74" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="235.0" y="90">X</text>
+<rect class="cell" x="130" y="98" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="160" y="98" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="175.0" y="114">X</text>
+<rect class="cell" x="190" y="98" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="220" y="98" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="235.0" y="114">X</text>
+<rect class="cell" x="130" y="122" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="145.0" y="138">X</text>
+<rect class="cell" x="160" y="122" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="190" y="122" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="220" y="122" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="235.0" y="138">X</text>
+</g>
+<g class="c-annotations" data-c="annotations">
+<rect x="10" y="154" width="240" height="46" rx="3" fill="var(--t5)"/>
+<text class="sup" x="18" y="170">n1</text>
+<rect class="bar" x="40" y="164" width="150" height="6" fill="#b9a3c9"/>
+<text class="sup" x="18" y="186">n2</text>
+<rect class="bar" x="40" y="180" width="110" height="6" fill="#b9a3c9"/>
+</g>
+<text class="ttl" x="10" y="218">Table 2 &#183; track</text>
+<g class="c-grid" data-c="grid">
+<rect class="cell" x="10" y="226" width="120" height="24" fill="#f3f5f8"/>
+<rect class="cell" x="130" y="226" width="34" height="24" fill="var(--t2)"/>
+<text class="hv" x="147.0" y="242">101</text>
+<rect class="cell" x="164" y="226" width="34" height="24" fill="var(--t2)"/>
+<text class="hv" x="181.0" y="242">102</text>
+<rect class="cell" x="198" y="226" width="34" height="24" fill="var(--t2)"/>
+<text class="hv" x="215.0" y="242">103</text>
+</g>
+<g class="c-activities" data-c="activities">
+<rect class="cell" x="10" y="250" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="22" y="266">A</text>
+<rect class="bar" x="38" y="259" width="76" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="10" y="274" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="22" y="290">C</text>
+<rect class="bar" x="38" y="283" width="60" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="10" y="298" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="22" y="314">E</text>
+<rect class="bar" x="38" y="307" width="76" height="6" fill="var(--c3)" opacity=".55"/>
+</g>
+<g class="c-schedule" data-c="schedule">
+<rect class="cell" x="130" y="250" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="147.0" y="266">X</text>
+<rect class="cell" x="164" y="250" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="198" y="250" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="130" y="274" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="147.0" y="290">X</text>
+<rect class="cell" x="164" y="274" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="181.0" y="290">X</text>
+<rect class="cell" x="198" y="274" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="215.0" y="290">X</text>
+<rect class="cell" x="130" y="298" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="164" y="298" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="181.0" y="314">X</text>
+<rect class="cell" x="198" y="298" width="34" height="24" fill="#fff"/>
+</g>
+<g class="c-annotations" data-c="annotations">
+<rect x="10" y="330" width="222" height="30" rx="3" fill="var(--t5)"/>
+<text class="sup" x="18" y="346">n1</text>
+<rect class="bar" x="40" y="340" width="150" height="6" fill="#b9a3c9"/>
+</g>
+<g class="arrow"><line x1="282" y1="170" x2="352" y2="170"/><path d="M352,163 L364,170 L352,177 Z"/><text x="318" y="158" class="aw">consolidate</text></g>
+<text class="ttl" x="380" y="16">Consolidated &#183; one schedule</text>
+<g class="c-grid" data-c="grid">
+<rect x="548" y="28" width="120" height="18" rx="3" fill="var(--c2)"/><text class="segl" x="608" y="41">segment main</text>
+<rect x="678" y="28" width="102" height="18" rx="3" fill="var(--c2)" opacity=".75"/><text class="segl" x="729" y="41">segment track</text>
+<rect class="cell" x="380" y="50" width="120" height="24" fill="#f3f5f8"/>
+<rect class="cell" x="500" y="50" width="48" height="24" fill="#f3f5f8"/>
+<text class="hv" x="524" y="66">In</text>
+<rect class="cell" x="548" y="50" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="563" y="66">1</text>
+<rect class="cell" x="578" y="50" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="593" y="66">2</text>
+<rect class="cell" x="608" y="50" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="623" y="66">3</text>
+<rect class="cell" x="638" y="50" width="30" height="24" fill="var(--t2)"/>
+<text class="hv" x="653" y="66">4</text>
+<rect class="cell" x="678" y="50" width="34" height="24" fill="var(--t2)"/>
+<text class="hv" x="695" y="66">101</text>
+<rect class="cell" x="712" y="50" width="34" height="24" fill="var(--t2)"/>
+<text class="hv" x="729" y="66">102</text>
+<rect class="cell" x="746" y="50" width="34" height="24" fill="var(--t2)"/>
+<text class="hv" x="763" y="66">103</text>
+</g>
+<g class="c-activities" data-c="activities">
+<rect class="cell" x="380" y="74" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="392" y="90">A</text>
+<rect class="bar" x="408" y="83" width="76" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="500" y="74" width="48" height="24" fill="var(--t3)"/>
+<text class="inn" x="524" y="90">T1,T2</text>
+<rect class="cell" x="380" y="98" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="392" y="114">B</text>
+<rect class="bar" x="408" y="107" width="60" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="500" y="98" width="48" height="24" fill="var(--t3)"/>
+<text class="inn" x="524" y="114">T1</text>
+<rect class="cell" x="380" y="122" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="392" y="138">C</text>
+<rect class="bar" x="408" y="131" width="76" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="500" y="122" width="48" height="24" fill="var(--t3)"/>
+<text class="inn" x="524" y="138">T1,T2</text>
+<rect class="cell" x="380" y="146" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="392" y="162">D</text>
+<rect class="bar" x="408" y="155" width="60" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="500" y="146" width="48" height="24" fill="var(--t3)"/>
+<text class="inn" x="524" y="162">T1</text>
+<rect class="cell" x="380" y="170" width="120" height="24" fill="var(--t3)"/>
+<text class="rl" x="392" y="186">E</text>
+<rect class="bar" x="408" y="179" width="76" height="6" fill="var(--c3)" opacity=".55"/>
+<rect class="cell" x="500" y="170" width="48" height="24" fill="var(--t3)"/>
+<text class="inn" x="524" y="186">T2</text>
+</g>
+<g class="c-schedule" data-c="schedule">
+<rect class="cell" x="548" y="74" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="563" y="90">X</text>
+<rect class="cell" x="578" y="74" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="608" y="74" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="638" y="74" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="678" y="74" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="695" y="90">X</text>
+<rect class="cell" x="712" y="74" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="746" y="74" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="548" y="98" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="563" y="114">X</text>
+<rect class="cell" x="578" y="98" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="593" y="114">X</text>
+<rect class="cell" x="608" y="98" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="623" y="114">X</text>
+<rect class="cell" x="638" y="98" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="653" y="114">X</text>
+<rect class="cell" x="678" y="98" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="712" y="98" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="746" y="98" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="548" y="122" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="578" y="122" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="593" y="138">X</text>
+<rect class="cell" x="608" y="122" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="638" y="122" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="653" y="138">X</text>
+<rect class="cell" x="678" y="122" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="695" y="138">X</text>
+<rect class="cell" x="712" y="122" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="729" y="138">X</text>
+<rect class="cell" x="746" y="122" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="763" y="138">X</text>
+<rect class="cell" x="548" y="146" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="563" y="162">X</text>
+<rect class="cell" x="578" y="146" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="608" y="146" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="638" y="146" width="30" height="24" fill="var(--t4)"/>
+<text class="mk" x="653" y="162">X</text>
+<rect class="cell" x="678" y="146" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="712" y="146" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="746" y="146" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="548" y="170" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="578" y="170" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="608" y="170" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="638" y="170" width="30" height="24" fill="#fff"/>
+<rect class="cell" x="678" y="170" width="34" height="24" fill="#fff"/>
+<rect class="cell" x="712" y="170" width="34" height="24" fill="var(--t4)"/>
+<text class="mk" x="729" y="186">X</text>
+<rect class="cell" x="746" y="170" width="34" height="24" fill="#fff"/>
+</g>
+<g class="c-annotations" data-c="annotations">
+<rect x="380" y="202" width="400" height="46" rx="3" fill="var(--t5)"/>
+<text class="sup" x="388" y="218">n1</text>
+<rect class="bar" x="410" y="212" width="150" height="6" fill="#b9a3c9"/>
+<text class="occ" x="570" y="218">T1-2</text>
+<text class="sup" x="388" y="234">n2</text>
+<rect class="bar" x="410" y="228" width="110" height="6" fill="#b9a3c9"/>
+<text class="occ" x="570" y="234">T1</text>
+</g>
+</svg>
+<div class="note">Schematic. Letters stand for activity rows, numbers for visits, X for a schedule mark, n for a note.</div>
+</div>
+<div class="ax">
+ <div class="axc c-activities" data-c="activities"><span class="v">Rows<br>matched</span><div><b>Activities</b> &rarr; <code>unified_activities[]</code>
+  <p>A row of a later table joins an activity that already exists, or starts a new one (part 4). An activity takes at most one row per table. Every row it holds stays listed in <code>source_refs</code>, with how it came there: <code>match_status</code>, <code>match_confidence</code> and, when a human decided, <code>decision</code>.</p></div></div>
+ <div class="axc c-grid" data-c="grid"><span class="v">Columns<br>placed</span><div><b>Columns</b> &rarr; <code>timeline_segments.&lt;segment&gt;[]</code>
+  <p>Not matched. Every data column of every table becomes its own <code>xcol</code>, on the segment its table type gives it. Columns of different tables line up only through <code>property_hierarchy</code>: header rows with a level unify by level, rows without one (window, modality, visit attribute) by type and name. Even a domain table, printed on the main timeline, keeps its own columns (NCT03283098: 20 main + 40 domain).</p></div></div>
+ <div class="axc c-annotations" data-c="annotations"><span class="v">Notes<br>deduplicated</span><div><b>Annotations</b> &rarr; <code>unified_annotations[]</code>
+  <p>A note whose text is identical, after lower case and collapsed spaces, to a note already seen is the same note. It is kept once, with every <code>source_occurrences</code> entry (table, marker, annotation id). What each occurrence binds to is re-pointed to <code>xact</code>, <code>xcol</code> and unified property ids.</p></div></div>
+ <div class="axc c-schedule" data-c="schedule"><span class="v">Cells<br>re-addressed</span><div><b>Schedule marks</b> &rarr; <code>schedule_matrix[]</code>
+  <p>One cell per <code>xact_id</code> &times; <code>xcol_id</code>, with <code>source_values</code> keyed by table. Since a column belongs to one table, a cell holds the value of exactly one table; true for all 5,814 cells in the published collections.</p></div></div>
+</div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">4</span><h2>Matching rows</h2></div>
+<p class="lead">Each row of a table after the base is compared with the activities made so far. Four steps, in order; the first that finds a candidate decides. Only activities that hold no row of the same table yet are candidates, and among several the best score wins.</p>
+<div class="panel">
+<div class="steps">
+ <div class="st"><span class="k">1</span><div><b>Same parent, same name</b><p>The qualified key <code>parent::name</code> is one already made. Names compared as printed, case included.</p></div>
+  <div class="res"><div class="r"><span class="chip m">exact</span> merged, score 1.0. Not listed for review.</div></div></div>
+ <div class="st"><span class="k">2</span><div><b>Same name, any parent</b><p>The name equals the name of an activity, whatever its parent.</p></div>
+  <div class="res"><div class="r"><span class="chip m">exact</span> merged, score 1.0. Not listed for review.</div></div></div>
+ <div class="st"><span class="k">3</span><div><b>Similar name, same parent</b><p>The best name score among activities under the same parent row.</p></div>
+  <div class="res"><div class="r"><span class="chip m">fuzzy_auto</span> score &ge; 0.85: merged, and listed for review</div>
+   <div class="r"><span class="chip n">near match</span> 0.60 &le; score &lt; 0.85: <b>not merged</b>. The row becomes an activity of its own and carries the candidate as a hint, <code>near_matches</code>, listed for review</div></div></div>
+ <div class="st"><span class="k">4</span><div><b>Similar name, other parent</b><p>The best name score among activities under another parent; section headers are not candidates.</p></div>
+  <div class="res"><div class="r"><span class="chip m">fuzzy_cross_parent</span> score &ge; 0.90: merged, listed for review; the activity's parent_name becomes &ldquo;A / B&rdquo;</div></div></div>
+ <div class="st end"><span class="k">&ndash;</span><div><b>Nothing found</b><p>No step found a candidate.</p></div>
+  <div class="res"><div class="r"><span class="chip x">new</span> a new activity</div></div></div>
+ <div class="st dec"><span class="k">&#9998;</span><div><b>Then the human decision</b><p>If the sidecar has an entry for this row, it is applied to what the steps found (part 5).</p></div>
+  <div class="res"><div class="r"><span class="chip n">keep / split / merge</span> recorded as <code>decision</code> on the row or on the hint</div></div></div>
+</div>
+<div class="formula">
+ <div><ol>
+  <li>Lower case; hyphen and slash read as a space; text in parentheses removed.</li>
+  <li>Split on spaces; other punctuation stays on the word (&lsquo;medical,&rsquo;). Words of one or two characters dropped; a plural &lsquo;s&rsquo; dropped (not after ss, us, is).</li>
+  <li>Compare the two word sets.</li>
+ </ol>
+ <p class="note">Coverage lets a short name inside a longer one score high; the Jaccard part pulls the score down when the longer name adds much. Below 0.85 a merge is an identity judgement, not a wording variant, so the program does not make it: it leaves a hint for a human.</p></div>
+ <div class="f">coverage = shared / size of the smaller set<br>jaccard &nbsp;= shared / size of the union<br><b>score &nbsp;&nbsp;&nbsp;= 0.6 &times; coverage + 0.4 &times; jaccard</b></div>
+</div>
+
+<div class="calc" id="calc">
+ <h3>Try the name score</h3>
+ <div class="sub">The same computation as <code>word_overlap_score</code> in soa2usdm/consolidate.py. Pick one of the 40 matches listed for review in the published collections, or type two names.</div>
+ <label for="preset">Matches from the published collections</label>
+ <select id="preset"></select>
+ <div class="cgrid">
+  <div><label for="na">Row being matched (later table)</label><input type="text" id="na"><div class="words" id="wa"></div></div>
+  <div><label for="nb">Activity it is compared with (earlier table)</label><input type="text" id="nb"><div class="words" id="wb"></div></div>
+ </div>
+ <div class="rad"><span style="color:var(--muted)">Parent rows:</span>
+  <label><input type="radio" name="par" value="same" checked> same parent (step 3)</label>
+  <label><input type="radio" name="par" value="other"> different parents (step 4)</label></div>
+ <div class="nums"><span>shared <b id="o-sh"></b></span><span>coverage <b id="o-cov"></b></span><span>jaccard <b id="o-jac"></b></span><span>score <b id="o-sc"></b></span></div>
+ <div class="bar-wrap">
+  <div class="sbar"><span class="z0" id="z0"></span><span class="z1" id="z1"></span><span class="z2" id="z2"></span></div>
+  <div class="tick" id="t-rev"><i>0.60</i></div><div class="tick" id="t-auto"><i>0.85</i></div><div class="tick top" id="t-cross"><i>0.90</i></div>
+  <div class="ptr" id="ptr"></div>
+ </div>
+ <div class="outcome" id="outcome"></div>
+ <div class="infile" id="infile"></div>
+</div>
+<p class="note">In the published collections: 313 rows matched exactly, 15 on a similar name under the same parent, 2 across parents, 2 merged by a human decision, and 21 near matches kept separate.</p>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">5</span><h2>Match decisions: the Layer 3 sidecar</h2></div>
+<p class="lead">Every match a name score made or nearly made is listed for review: each row merged on a similar name, each row merged or split by a decision, and each near match. A match is decided exactly when an entry of the sidecar names it. Rows merged on an identical name are not listed. Schema: <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-consolidation-corrections.schema.json">soa-consolidation-corrections</a> v1.0, file <code>consolidated/&lt;protocol&gt;_consolidation_corrections.json</code>.</p>
+<div class="rule">That two rows are the same activity is a human statement, not a pipeline result. The sidecar is read before matching, and an entry whose premise no longer holds stops consolidation.</div>
+<div class="ops">
+ <div class="opc"><h3><code>keep</code></h3>
+  <div class="pair"><span class="r">T2</span><span class="j"></span><span class="r">T1</span><span class="a">stays merged</span></div>
+  <div class="pair"><span class="r">T2</span><span class="j near"></span><span class="r">T1</span><span class="a">stays apart</span></div>
+  <div class="say">What consolidation did stands: the merge, or keeping a near match separate.</div>
+  <div class="h">Checked</div><ul><li>consolidation still makes this merge, or still finds this near match</li></ul>
+  <div class="h">Leaves</div><ul><li><code>decision</code> on the source row, or on the near-match hint</li></ul>
+  <div class="ex"><span class="pid">NCT04184622 ccorr-001</span><div><span class="t">T2</span> Adverse events/Product Complaints</div><div><span class="t">T1</span> Adverse events and product complaints</div><div class="why">&#x27;/&#x27; for &#x27;and&#x27;; same row.</div></div><div class="ex"><span class="pid">NCT04730349 ccorr-003</span><div><span class="t">T3</span> CSF - solid tumors and leukemia</div><div><span class="t">T2</span> CSF - Solid tumors</div><div class="why">Other population: Table 3 adds leukemia.</div></div>
+  <div class="cnt">35 entries in the published collections</div></div>
+ <div class="opc"><h3><code>split</code></h3>
+  <div class="pair"><span class="r">T2</span><span class="j"></span><span class="r">T1</span><span class="a">&rarr;</span><span class="r">T2</span><span class="j none"></span><span class="r">T1</span></div>
+  <div class="say">The row is taken out of the activity it was merged into and becomes an activity of its own.</div>
+  <div class="h">Checked</div><ul><li>the merge still happens</li></ul>
+  <div class="h">Leaves</div><ul><li><code>decision</code> on the row's own source ref, <code>match_status</code> new</li></ul>
+  <div class="cnt">0 entries in the published collections</div></div>
+ <div class="opc"><h3><code>merge</code></h3>
+  <div class="pair"><span class="r">T2</span><span class="j none"></span><span class="r">T1</span><span class="a">&rarr;</span><span class="r">T2</span><span class="j"></span><span class="r">T1</span></div>
+  <div class="say">The row joins the activity of the target row, whatever the score.</div>
+  <div class="h">Checked</div><ul><li>the merge does not happen by itself (then it is a keep)</li><li>the target's activity holds no row of the source table yet</li></ul>
+  <div class="h">Leaves</div><ul><li><code>match_status</code> decision, and <code>decision</code></li></ul>
+  <div class="ex"><span class="pid">NCT03402841 ccorr-003</span><div><span class="t">T2</span> Pregnancy test</div><div><span class="t">T1</span> Pregnancy test for women of childbearing potential</div><div class="why">Table 2 footnote e on the row says the tests are for women of childbearing potential.</div></div>
+  <div class="cnt">2 entries in the published collections</div></div>
+ <div class="opc"><h3><code>refines</code></h3>
+  <div class="pair"><span class="r">T3</span><span class="j ref"></span><span class="r">T1</span><span class="a">details, not merged</span></div>
+  <div class="say">The source, a row or a whole table, details the target row. A relation, not a merge.</div>
+  <div class="h">Checked</div><ul><li>source and target are not the same activity</li></ul>
+  <div class="h">Leaves</div><ul><li><code>refines</code> / <code>refined_by</code> on the activities, or <code>refines</code> on the source table</li></ul>
+  <div class="ex"><span class="pid">NCT03637764 ccorr-001</span><div><span class="t">T2</span> Pharmacokinetics</div><div><span class="t">T1</span> PK</div><div class="why">Table 1 note pr7 on this row: &#x27;See Pharmacokinetics and immunogenicity Flow Chart&#x27;; Table 2 gives the per-sample timing.</div></div><div class="ex"><span class="pid">NCT03637764 ccorr-003</span><div><span class="t">T3</span> the whole table</div><div><span class="t">T1</span> Tumor Biopsy, Archival Tumor Tissue Collection, Biomarker Blood Draw</div><div class="why">Table 1 note pr8 on this row: &#x27;See Biomarker Flow Chart&#x27;; Table 3 gives the collections by cycle.</div></div>
+  <div class="cnt">5 entries in the published collections</div></div>
+</div>
+<div class="side2">
+ <div class="panel"><h3 style="margin:0 0 6px;font-size:15px">An entry, as written</h3>
+  <div class="note" style="margin:0 0 8px">From NCT03402841_consolidation_corrections.json. Rows are named by table number and activity id; the activity name is carried as a check.</div>
+  <pre>{
+  &quot;id&quot;: &quot;ccorr-003&quot;,
+  &quot;op&quot;: &quot;merge&quot;,
+  &quot;source&quot;: {
+    &quot;table_number&quot;: 2,
+    &quot;activity_id&quot;: &quot;act-006&quot;,
+    &quot;activity_name&quot;: &quot;Pregnancy test&quot;
+  },
+  &quot;target&quot;: {
+    &quot;table_number&quot;: 1,
+    &quot;activity_id&quot;: &quot;act-013&quot;,
+    &quot;activity_name&quot;: &quot;Pregnancy test for women of childbearing potential&quot;
+  },
+  &quot;reason&quot;: &quot;Table 2 footnote e on the row says the tests are for women of childbearing potential.&quot;,
+  &quot;by&quot;: &quot;Kerstin Forsberg&quot;,
+  &quot;at&quot;: &quot;2026-10-04T08:20:00Z&quot;
+}</pre></div>
+ <div class="panel"><h3 style="margin:0 0 6px;font-size:15px">Every entry is checked</h3>
+  <ul class="checks">
+   <li>both rows exist, under the name the entry states</li>
+   <li>neither is in a <code>reference</code> table, and the two are in different tables</li>
+   <li>keep, split, merge: at most one per source row; the target's table is consolidated before the source's table, so a row of the base table cannot be a source; the premise of the op holds</li>
+   <li>no draft placeholder is left in <code>reason</code> or <code>by</code></li>
+  </ul>
+  <p class="note">The names are checked against the resolved tables before matching, the premises while matching. Any failure stops consolidation with the entry id: a decision is never silently dropped when the extraction or the matching changes underneath it.</p>
+  <h3 style="margin:14px 0 4px;font-size:15px">The review in the published collections</h3>
+  <p style="margin:0;font-size:13px">Rule applied: the same row only where the names differ in spelling, hyphen, case, word order or abbreviation, or a footnote states the difference. Rows that name different content or another population stay separate.</p>
+  <div class="status"><span>40 matches listed</span><span class="d">37 decided</span><span class="o">3 open</span><span>9 sidecars</span></div>
+ </div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">6</span><h2>What the consolidated file holds</h2></div>
+<p class="lead">One file per protocol, <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-tables-consolidated.schema.json">soa-tables-consolidated</a> v1.5. Nothing of the tables is replaced: every cross-table id lists the per-table ids it came from, so any element can be followed back to the printed page.</p>
+<div class="two">
+ <div class="panel">
+<div class="blk-row c-other"><code>consolidation_metadata</code><span>Metadata about the consolidation process and source tables</span></div>
+<div class="blk-row c-properties"><code>property_hierarchy</code><span>Unified property hierarchy across tables, ordered by level; rows without a level follow in print order (from 1.3; the position in the lowest-numbered table that prints the row). Note: per-table hierarchies may differ - see source_tables for individual structures.</span></div>
+<div class="blk-row c-activities"><code>unified_activities</code><span>Master activity list consolidated across all source tables</span></div>
+<div class="blk-row c-grid"><code>timeline_segments</code><span>Columns organized by segment type. Keys are segment names (main, domain, track, subsidiary).</span></div>
+<div class="blk-row c-schedule"><code>schedule_matrix</code><span>Consolidated schedule data at (activity × column) intersections. Only non-empty cells included.</span></div>
+<div class="blk-row c-annotations"><code>unified_annotations</code><span>Annotations consolidated across all source tables. Identical annotation text is deduplicated with source occurrences tracked.</span></div>
+<div class="blk-row c-other"><code>review_items</code><span>Open judgement calls from every table of the protocol, each with its table_number. Present only when at least one table carried review_items. Distinct from review_queue, which holds consolidation&#x27;s own low-confidence activity matches.</span></div>
+ </div>
+ <div class="panel"><h3 style="margin:0 0 8px;font-size:15px">One activity, followed back to the page</h3>
+  <div class="trace">
+   <div class="tr c-activities"><div class="lay">Layer 3 &middot; consolidated</div><code>xact-012</code> Adverse events and product complaints</div>
+   <div class="down">&darr; <code>source_refs[]</code></div>
+   <div class="tr c-activities"><div class="lay">source ref</div><code>table_num</code> 2, <code>activity_id</code> act-007 &middot; <code>match_status</code> fuzzy_auto, 0.92 &middot; <code>decision</code> ccorr-001 keep</div>
+   <div class="down">&darr; table 2, act-007</div>
+   <div class="tr c-activities"><div class="lay">Layer 2 &middot; resolved</div><code>act-007</code> Adverse events/Product Complaints <span class="q">&middot; row_position 12</span></div>
+   <div class="down">&darr; row_position 12</div>
+   <div class="tr c-activities"><div class="lay">Layer 1 &middot; extraction</div><span class="q">NCT04184622_Table_02_extraction.verified.json</span> &middot; row 12 &middot; <code>source_page</code> 22</div>
+   <div class="down">&darr;</div>
+   <div class="tr c-other"><div class="lay">protocol</div>the printed row on page 22</div>
+  </div>
+  <p class="note">The <code>decision</code> names the sidecar entry, so the provenance of the merge is in the file as well: who decided, when and why.</p>
+ </div>
+</div>
+</section>
+
+<section>
+<div class="sh"><span class="step">7</span><h2>The consolidated view</h2></div>
+<p class="lead">Each protocol's consolidated file is rendered as one page. The matches are reviewed there, against the schedule they shape. The page writes nothing: a choice drafts a sidecar entry, and the sidecar stays the only write path.</p>
+<div class="callouts">
+ <div><b>One grid per segment</b>The main schedule first, then each track, domain or subsidiary segment; the header rows from <code>property_hierarchy</code>, and an <em>In</em> column saying which tables print the row.</div>
+ <div><b>Matches across tables</b>Every match listed for review: its state, the two rows with the words that differ marked, what consolidation did and at what score, and the decision.</div>
+ <div><b>A decision drafts an entry</b>Choosing keep, split or merge writes the JSON to append to the sidecar. Consolidation is re-run; the page then shows the match as decided.</div>
+</div>
+<div class="shots">
+ <figure><img src="img/consolidation-view-grid.webp" alt="The consolidated view of NCT04184622: the main schedule grid with header rows, an In column with T1 or T1,T2, and the rows matched on a similar name shaded" loading="lazy" width="1500" height="1174">
+  <figcaption><b>The grid.</b> <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04184622/SoA2USDM/consolidated/NCT04184622_consolidated.html">NCT04184622</a>, segment main. Shaded rows are matches on a similar name; T1,T2 in the In column marks a row printed in both tables.</figcaption></figure>
+ <figure><img src="img/consolidation-view-matches.webp" alt="The Matches across tables section of NCT04730349 with two open and five decided matches" loading="lazy" width="1800" height="692">
+  <figcaption><b>Matches across tables.</b> <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04730349/SoA2USDM/consolidated/NCT04730349_consolidated.html">NCT04730349</a>: two matches open; five decided, all keep, for merged pairs and for pairs kept separate.</figcaption></figure>
+ <figure><img src="img/consolidation-view-draft.webp" alt="The draft area under the matches with a keep entry drafted for the sidecar" loading="lazy" width="1800" height="373">
+  <figcaption><b>The draft.</b> After choosing &ldquo;keep the merge&rdquo; on the first open match: the entry to append, with <code>&lt;why&gt;</code> left for the reviewer.</figcaption></figure>
+</div>
+<p class="note">Consolidated views: <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04184622/SoA2USDM/consolidated/NCT04184622_consolidated.html">NCT04184622</a> &middot; <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04730349/SoA2USDM/consolidated/NCT04730349_consolidated.html">NCT04730349</a> &middot; <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04557384/SoA2USDM/consolidated/NCT04557384_consolidated.html">NCT04557384</a> &middot; <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT03637764/SoA2USDM/consolidated/NCT03637764_consolidated.html">NCT03637764</a>.</p>
+</section>
+
+<footer><a href="./">SoA2USDM home</a> &middot; <a href="schema-chain.html">From the printed table to schemas</a> &middot; Generated by <code>tools/build_consolidation_explainer.py</code> from <code>schemas/*.json</code>, the thresholds and name score in <code>soa2usdm/consolidate.py</code>, and the consolidated files and sidecars of soa2usdm-collections at a80f334 2026-10-04. Screenshots are static.</footer>
+</main>
+<script>
+document.querySelectorAll("[data-c]").forEach(function (node) {
+    node.addEventListener("mouseenter", function () {
+        document.querySelectorAll("[data-c]").forEach(function (other) {
+            other.classList.toggle("dim", other.dataset.c !== node.dataset.c);
+        });
+    });
+    node.addEventListener("mouseleave", function () {
+        document.querySelectorAll(".dim").forEach(function (other) { other.classList.remove("dim"); });
+    });
+});
+
+(function () {
+    var MATCHES = [{"p": "NCT01847274", "s": "fuzzy_auto", "a": "Medical, cancer, surgical, medication history", "b": "Medical, surgical, cancer, medication history", "f": 1.0, "py": 1.0, "d": "ccorr-001 keep", "r": "Word order only."}, {"p": "NCT01847274", "s": "fuzzy_auto", "a": "Vital signs, weight", "b": "Vital signs, height, weight", "f": 0.9, "py": 0.9, "d": "ccorr-002 keep", "r": "Table 1 footnote 9 on the row: 'Height obtained at screening only'; Table 3 has no screening."}, {"p": "NCT01847274", "s": "fuzzy_auto", "a": "Serum chemistry", "b": "Coagulation/serum chemistry", "f": 0.8667, "py": 0.8667}, {"p": "NCT01847274", "s": "near", "a": "Hematology/serum chemistry", "b": "Coagulation/serum chemistry", "f": 0.6, "py": 0.6, "d": "ccorr-003 keep", "r": "Different tests: hematology, not coagulation."}, {"p": "NCT02107703", "s": "fuzzy_auto", "a": "Adverse Events Collection/CTCAE Grading", "b": "Adverse Event Collection/CTCAE Grading", "f": 1.0, "py": 1.0, "d": "ccorr-001 keep", "r": "Plural only; the same footnote text on both rows."}, {"p": "NCT02291289", "s": "near", "a": "Cohort-specific informed consent", "b": "Informed consent", "f": 0.8, "py": 0.8, "d": "ccorr-001 keep", "r": "A second, cohort-specific consent."}, {"p": "NCT03402841", "s": "decision", "a": "Vital signs, body weight (includes blood pressure, pulse and temperature)", "b": "Vital signs (includes blood pressure, pulse and temperature), body weight", "f": 1.0, "py": 0.69, "d": "ccorr-002 merge", "r": "Same words in another order."}, {"p": "NCT03402841", "s": "decision", "a": "Pregnancy test", "b": "Pregnancy test for women of childbearing potential", "f": 1.0, "py": 0.7333, "d": "ccorr-003 merge", "r": "Table 2 footnote e on the row says the tests are for women of childbearing potential."}, {"p": "NCT03402841", "s": "fuzzy_auto", "a": "AEs", "b": "AEs (from time of consent)", "f": 1.0, "py": 1.0, "d": "ccorr-001 keep", "r": "Same row; the parenthesis in Table 1 is a timing remark."}, {"p": "NCT03402841", "s": "near", "a": "Concomitant medications including blood transfusions", "b": "Concomitant medications", "f": 0.76, "py": 0.76, "d": "ccorr-004 keep", "r": "Table 2 adds blood transfusions."}, {"p": "NCT04184622", "s": "fuzzy_auto", "a": "Adverse events/Product Complaints", "b": "Adverse events and product complaints", "f": 0.92, "py": 0.92, "d": "ccorr-001 keep", "r": "'/' for 'and'; same row."}, {"p": "NCT04184622", "s": "fuzzy_auto", "a": "Review study participant diary, including study drug compliance", "b": "Review study participant diary, including study-drug compliance", "f": 1.0, "py": 1.0, "d": "ccorr-002 keep", "r": "Hyphen only; the same note n12 on both rows."}, {"p": "NCT04184622", "s": "fuzzy_auto", "a": "2 hour oral glucose tolerance test (includes glucose, insulin, c-peptide)", "b": "2-hour oral glucose tolerance test (includes glucose, insulin, c-peptide at each timepoint)", "f": 1.0, "py": 1.0, "d": "ccorr-003 keep", "r": "Same test; the same note n21 on both rows."}, {"p": "NCT04184622", "s": "fuzzy_auto", "a": "Chemistry panel (includes Cr for eGFR calculation and glucose)", "b": "Chemistry panel (include Cr for eGFR calculation and glucose)", "f": 1.0, "py": 1.0, "d": "ccorr-004 keep", "r": "'includes' for 'include'; the same note n23 on both rows."}, {"p": "NCT04184622", "s": "fuzzy_auto", "a": "Urinary albumin/creatinine ratio", "b": "Urinary albumin/creatinine", "f": 0.9, "py": 0.9, "d": "ccorr-005 keep", "r": "Same row; Table 2 adds the word 'ratio'."}, {"p": "NCT04184622", "s": "fuzzy_cross_parent", "a": "SF-36, version 2 acute", "b": "SF-36, version 2, acute form", "f": 0.9, "py": 0.9, "d": "ccorr-006 keep", "r": "Same instrument; the parent 'PROs' is 'Patient Reported Outcomes' abbreviated."}, {"p": "NCT04184622", "s": "fuzzy_cross_parent", "a": "IWQOL-Lite -CT", "b": "IWQOL-Lite CT", "f": 1.0, "py": 1.0, "d": "ccorr-007 keep", "r": "Hyphen only; the parent 'PROs' is 'Patient Reported Outcomes' abbreviated."}, {"p": "NCT04320615", "s": "fuzzy_auto", "a": "Serum SARS-Cov-2 antibody titer", "b": "Serum SARS-CoV-2 antibody titer", "f": 1.0, "py": 1.0, "d": "ccorr-001 keep", "r": "Case only."}, {"p": "NCT04557384", "s": "fuzzy_auto", "a": "AE Collection", "b": "AE collection", "f": 1.0, "py": 1.0, "d": "ccorr-001 keep", "r": "Case only."}, {"p": "NCT04557384", "s": "near", "a": "Sample 1", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-002 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 2", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-003 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 3", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-004 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 4", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-005 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 5", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-006 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 6", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-007 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 7", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-008 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 8", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-009 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 9", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-010 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 10", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-011 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 11", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-012 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 12", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-013 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 13", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-014 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04557384", "s": "near", "a": "Sample 14", "b": "Sample collection", "f": 0.8, "py": 0.8, "d": "ccorr-015 keep", "r": "A numbered sample row of the PK sampling schedule; the target is a section header."}, {"p": "NCT04730349", "s": "fuzzy_auto", "a": "Adverse Events Assessment (including Serious Adverse Events)", "b": "Serious Adverse Events (SAE) Assessment", "f": 0.9, "py": 0.9}, {"p": "NCT04730349", "s": "fuzzy_auto", "a": "Adverse Events and Serious Adverse Events (SAE) Assessment", "b": "Serious Adverse Events (SAE) Assessment", "f": 0.92, "py": 0.92}, {"p": "NCT04730349", "s": "near", "a": "Targeted Physical Examination, Vital Signs, and Performance Status", "b": "Performance Status", "f": 0.7, "py": 0.7, "d": "ccorr-001 keep", "r": "Table 2 is a combined row: physical examination, vital signs and performance status."}, {"p": "NCT04730349", "s": "near", "a": "Concomitant Medication Use", "b": "Prior and Concomitant Medication Use", "f": 0.84, "py": 0.84, "d": "ccorr-002 keep", "r": "Table 1 includes prior medication."}, {"p": "NCT04730349", "s": "near", "a": "CSF - solid tumors and leukemia", "b": "CSF - Solid tumors", "f": 0.84, "py": 0.84, "d": "ccorr-003 keep", "r": "Other population: Table 3 adds leukemia."}, {"p": "NCT04730349", "s": "near", "a": "Bone marrow aspirate - solid tumors and leukemia", "b": "Bone Marrow- Solid tumors", "f": 0.8286, "py": 0.8286, "d": "ccorr-004 keep", "r": "Other population: Table 3 adds leukemia."}, {"p": "NCT04730349", "s": "fuzzy_auto", "a": "Pharmacokinetics (PK)/Immunogenicity Assessment", "b": "Pharmacokinetic (PK)/Immunogenicity Assessments", "f": 1.0, "py": 1.0, "d": "ccorr-005 keep", "r": "Plural only; both are section headers."}];
+    var AUTO = 0.85, CROSS = 0.90, REVIEW = 0.60;
+    var LABEL = {fuzzy_auto: "merged on a similar name, same parent", fuzzy_cross_parent: "merged on a similar name, across parents",
+                 decision: "merged by a human decision", near: "kept separate: near match"};
+
+    function normalizeText(t) {
+        t = t.toLowerCase().replace(/-/g, " ").replace(/\//g, " ").replace(/\([^)]*\)/g, "");
+        return t.split(/\s+/).filter(Boolean).join(" ").trim();
+    }
+    function singular(w) { return (w.length > 3 && w.endsWith("s") && !/(ss|us|is)$/.test(w)) ? w.slice(0, -1) : w; }
+    function wordSet(t) {
+        var out = [];
+        normalizeText(t).split(" ").forEach(function (w) { if (w.length > 2) { w = singular(w); if (out.indexOf(w) < 0) out.push(w); } });
+        return out;
+    }
+    var $ = function (id) { return document.getElementById(id); };
+    var sel = $("preset");
+    ["fuzzy_auto", "fuzzy_cross_parent", "decision", "near"].forEach(function (s) {
+        var group = document.createElement("optgroup");
+        group.label = LABEL[s];
+        MATCHES.forEach(function (m, i) {
+            if (m.s !== s) return;
+            var o = document.createElement("option");
+            o.value = i;
+            o.textContent = m.p + ": " + m.a + "  ↔  " + m.b;
+            group.appendChild(o);
+        });
+        if (group.children.length) sel.appendChild(group);
+    });
+    var custom = document.createElement("option");
+    custom.value = ""; custom.textContent = "(your own names)";
+    sel.appendChild(custom);
+
+    function chips(el, words, other) {
+        el.innerHTML = "";
+        words.forEach(function (w) {
+            var s = document.createElement("span");
+            s.className = "w" + (other.indexOf(w) >= 0 ? " sh" : "");
+            s.textContent = w;
+            el.appendChild(s);
+        });
+    }
+    function pct(v) { return (v * 100) + "%"; }
+    function update() {
+        var a = $("na").value, b = $("nb").value;
+        var same = document.querySelector("input[name=par]:checked").value === "same";
+        var A = wordSet(a), B = wordSet(b);
+        chips($("wa"), A, B); chips($("wb"), B, A);
+        var shared = A.filter(function (w) { return B.indexOf(w) >= 0; }).length;
+        var union = A.length + B.length - shared;
+        var cov = (A.length && B.length) ? shared / Math.min(A.length, B.length) : 0;
+        var jac = (A.length && B.length) ? shared / union : 0;
+        var score = (A.length && B.length) ? 0.6 * cov + 0.4 * jac : 0;
+        $("o-sh").textContent = shared + " of " + A.length + " / " + B.length;
+        $("o-cov").textContent = cov.toFixed(2); $("o-jac").textContent = jac.toFixed(2); $("o-sc").textContent = score.toFixed(2);
+        var lo = same ? REVIEW : CROSS, hi = same ? AUTO : CROSS;
+        $("z0").style.width = pct(lo); $("z1").style.width = pct(hi - lo); $("z2").style.width = pct(1 - hi);
+        $("t-rev").style.left = pct(REVIEW); $("t-auto").style.left = pct(AUTO); $("t-cross").style.left = pct(CROSS);
+        $("t-rev").style.opacity = same ? 1 : .25; $("t-auto").style.opacity = same ? 1 : .25; $("t-cross").style.opacity = same ? .25 : 1;
+        $("ptr").style.left = pct(Math.min(score, 1));
+        var out = $("outcome");
+        if (a === b && a) {
+            out.className = "outcome m"; out.innerHTML = "<b>Identical names</b>: matched in step 1 or 2 as <code>exact</code>. Merged, not listed for review.";
+        } else if (same && score >= AUTO) {
+            out.className = "outcome m"; out.innerHTML = "<b>Merged</b> in step 3 as <code>fuzzy_auto</code> (score ≥ " + AUTO.toFixed(2) + "), and listed for review.";
+        } else if (same && score >= REVIEW) {
+            out.className = "outcome n"; out.innerHTML = "<b>Kept separate</b>: a near match. The row becomes an activity of its own and carries the other as a <code>near_matches</code> hint, listed for review.";
+        } else if (!same && score >= CROSS) {
+            out.className = "outcome m"; out.innerHTML = "<b>Merged</b> in step 4 as <code>fuzzy_cross_parent</code> (score ≥ " + CROSS.toFixed(2) + "), and listed for review.";
+        } else {
+            out.className = "outcome x"; out.innerHTML = "<b>No match</b> on this pair: below " + lo.toFixed(2) + (same ? "" : " across parents, where no near match is recorded") + ". The row becomes a new activity unless another candidate scores higher.";
+        }
+        var i = sel.value, info = $("infile");
+        if (i === "" || MATCHES[i].a !== a || MATCHES[i].b !== b) { info.textContent = ""; return; }
+        var m = MATCHES[i];
+        var txt = "In " + m.p + "'s consolidated file: <b>" + LABEL[m.s] + "</b>";
+        txt += m.s === "decision" ? " (score " + m.py.toFixed(2) + ", below what merges by itself)" : ", score " + m.f.toFixed(2);
+        if (m.d) txt += ". Decided: <b>" + m.d + "</b> — “" + m.r.replace(/</g, "&lt;") + "”";
+        else txt += ". <b>Open</b>: no decision yet.";
+        info.innerHTML = txt;
+    }
+    function pick() {
+        var i = sel.value;
+        if (i === "") return update();
+        var m = MATCHES[i];
+        $("na").value = m.a; $("nb").value = m.b;
+        document.querySelector("input[name=par][value=" + (m.s === "fuzzy_cross_parent" ? "other" : "same") + "]").checked = true;
+        update();
+    }
+    sel.addEventListener("change", pick);
+    ["na", "nb"].forEach(function (id) { $(id).addEventListener("input", function () { update(); }); });
+    document.querySelectorAll("input[name=par]").forEach(function (r) { r.addEventListener("change", update); });
+    for (var k = 0; k < sel.options.length; k++) {
+        var v = sel.options[k].value;
+        if (v !== "" && MATCHES[v].p === "NCT04184622") { sel.selectedIndex = k; break; }
+    }
+    pick();
+})();
+</script>
+</body>
+</html>
