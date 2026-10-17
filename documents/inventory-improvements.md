@@ -407,9 +407,25 @@ The remaining two differences are NCT04677179 T3 row 38, the CCI band of item 7d
 
 **Size.** (a) three lines at the next prompt revision; (b) small.
 
+## 32 — Consolidation: columns are placed, not matched (found writing the consolidation page, 2026-10-17)
+
+**Finding.** `ColumnConsolidator` makes one `xcol` for every data column of every table. No column is compared with another table's columns, and the segment comes from the table type alone. In the published collections, no unified column has more than one source column, and no `schedule_matrix` cell holds values from more than one table (5,814 cells). `docs/consolidation.html` describes this as it is. `soa_table_type_definitions.md` suggests more ('activities merge into a unified list aligned to the shared timeline'; the summary row says 'SAME as parent'), and so does the architecture doc ('timeline segments … with aligned columns').
+
+**Evidence.** NCT03283098: Tables 2 and 3 (`domain`) print the main table's 20 column labels in the same order. The consolidated file has 20 main + 40 domain columns. The corpus has no `continuation` table.
+
+**Three relations, by table type.** Measured against the main columns; this records the 2026-10-17 discussion, and nothing is decided.
+(a) *Identity*, for `domain` and `continuation`: the same columns, by definition of the type. Candidate: a mechanical check (same count, same property values in order) maps column to column and fails fast on a difference. A sidecar is needed only for the exception.
+(b) *Nesting*, for `subsidiary`: finer timepoints within a main visit (NCT03637764 T2 'Cycle 1 / D1 / SOI …'). No labels are shared. The relation is stated in a title, note or header text, so it is a human statement: the column-side counterpart of `refines`.
+(c) *Sequence and branching*, for a further `main_soa` (a later period) and for `track` (a branch). Identical labels are still other visits (NCT04677179 T2/T3 V10–V29). This is not structural matching; it belongs to the timeline-anchor / SoA-patterns work after Layer 3.
+(d) *Docs*: align the type definitions and the architecture doc once (a) is decided.
+
+**Side observation.** In NCT04557384 T3 (`subsidiary`) the column labels read like row headers ('Study Cycle', 'Day within Cycle', …). The table is extracted in its printed orientation (item 21g, the transpose); look at it together with (b).
+
+**Size.** (a) medium: consolidate, view, rebuild. The schema already allows an `xcol` with several `source_columns`. (b) together with designing a sidecar op for it. (c) outside Layer 3.
+
 ---
 
-2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment), item 28 added 2026-09-30 (collection index / activity inventory session), item 29 added 2026-09-30 (mark check). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
+2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment), item 28 added 2026-09-30 (collection index / activity inventory session), item 29 added 2026-09-30 (mark check), item 32 added 2026-10-17 (consolidation page). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
 
 **Status 2026-09-30 (evening):** mark check fixed (`e853ebb`, 24 review pages regenerated in collections `768ddb5`): 100 differences in 10 tables become 3 in 2, all known checker limits; follow-ups in item 29.
 
