@@ -1121,15 +1121,16 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
         return ' table-border' if idx in boundaries else ''
     
     rows.append(f'<tr><th class="frozen-col1 activity-header">Activity</th><th class="frozen-col2">In</th>')
-    runs = []  # [start index, table_num, span] per run of consecutive columns from one table
+    runs = []  # [start index, table_nums, span] per run of consecutive columns from the same tables
     for i, col in enumerate(columns):
-        tnum = col.get('source_columns', [{}])[0].get('table_num', '')
-        if runs and runs[-1][1] == tnum and i not in boundaries:
+        tnums = tuple(sc.get('table_num', '') for sc in col.get('source_columns', [{}]))
+        if runs and runs[-1][1] == tnums and i not in boundaries:
             runs[-1][2] += 1
         else:
-            runs.append([i, tnum, 1])
-    for start, tnum, span in runs:
-        rows.append(f'<th colspan="{span}" class="table-run{border_class(start)}">Table {tnum}</th>')
+            runs.append([i, tnums, 1])
+    for start, tnums, span in runs:
+        label = f"Table {tnums[0]}" if len(tnums) == 1 else f"Tables {', '.join(str(t) for t in tnums)}"
+        rows.append(f'<th colspan="{span}" class="table-run{border_class(start)}">{label}</th>')
     rows.append('</tr>')
     
     if segment == 'track':
@@ -1188,8 +1189,8 @@ def gen_schedule_grid(data: dict, segment: str, columns: List[dict], pop_colors:
         rows.append('</tr>')
     
     # Get table numbers that contribute columns to this segment
-    segment_tables = {col.get('source_columns', [{}])[0].get('table_num') 
-                      for col in columns}
+    segment_tables = {sc.get('table_num') for col in columns
+                      for sc in col.get('source_columns', [{}])}
     
     for ua in activities:
         xact_id = ua['xact_id']

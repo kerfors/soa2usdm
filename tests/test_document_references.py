@@ -85,7 +85,7 @@ def test_a_table_reference_to_an_extracted_table_carries_its_number():
     annotation's reference names it. NCT03637764 'Table 12' is a table of the
     protocol body; no extracted table prints that number."""
     out = consolidate_tables("NCT04677179", _published("NCT04677179"))
-    assert out["schema_version"] == "1.5"
+    assert out["schema_version"] == "1.6"
     by_text = {a["annotation_text"]: a for a in out["unified_annotations"]}
     assert by_text["For procedures at an ETV, see ETV in Table 4."]["document_references"] == [
         {"kind": "table", "target": "4", "table_num": 4}]

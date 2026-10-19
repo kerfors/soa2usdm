@@ -10,7 +10,9 @@ This is structural consolidation only:
   hint (near_matches)
 - Human decisions on those matches, read from the protocol's consolidation
   corrections sidecar when one exists (keep / split / merge / refines)
-- Column alignment into timeline segments (main, domain, track, subsidiary)
+- Column alignment into timeline segments (main, track, subsidiary); a continuation
+  or domain table prints the columns of one main_soa table and its columns join
+  those main columns (identity, inventory item 32 (a))
 - Annotation consolidation with deduplication; table-wide notes get annotation_scope 'table'
 - Schedule matrix construction
 
@@ -663,13 +665,12 @@ class ColumnConsolidator:
         for tnum in tables_by_type.get('main_soa', []):
             self._add_table_columns(tables[tnum], tnum, 'main', None)
 
-        # Continuation extends main
-        for tnum in tables_by_type.get('continuation', []):
-            self._add_table_columns(tables[tnum], tnum, 'main', None)
-
-        # Domain tables share main timeline columns (same column structure)
-        for tnum in tables_by_type.get('domain', []):
-            self._add_table_columns(tables[tnum], tnum, 'domain', None)
+        # Continuation and domain tables print the columns of a main_soa table
+        # (identity, inventory item 32 (a)): each column joins the main column it
+        # repeats as a further source column, it does not become a column of its own
+        for tnum in tables_by_type.get('continuation', []) + tables_by_type.get('domain', []):
+            self._align_table_columns(tables[tnum], tnum, tables,
+                                      sorted(tables_by_type.get('main_soa', [])))
 
         # Track tables have separate timelines for different populations/phases
         for tnum in tables_by_type.get('track', []):
@@ -713,6 +714,52 @@ class ColumnConsolidator:
                 'column_position': col['column_position']
             })
             self.columns.append(ucol)
+
+    def _column_signature(self, column: dict, prop_lookup: dict) -> list:
+        """What a column is, for identity: each header value with the property it
+        sits in (type, name, level) and its merge flag, in the column's order.
+        Markers and linked annotations are not part of it (item 32 (a))."""
+        return [
+            (prop_lookup[cv['property_id']]['property_type'],
+             prop_lookup[cv['property_id']]['property_name'],
+             prop_lookup[cv['property_id']]['hierarchical_level'],
+             cv.get('value', ''),
+             cv.get('is_merged', False))
+            for cv in column.get('column_values', [])
+        ]
+
+    def _align_table_columns(self, table: dict, table_num: int,
+                             tables: Dict[int, dict], main_nums: List[int]):
+        """Join a continuation or domain table's columns to the main_soa table it
+        prints the columns of: same number of data columns, and column by column
+        the same signature. Exactly one main_soa table must match; none, or more
+        than one, stops consolidation (item 32 (a))."""
+        meta = table['table_metadata']
+        prop_lookup = self._build_property_lookup(table)
+        data_cols = [c for c in table['schedule_columns'] if not c.get('is_label_column', False)]
+        signature = [self._column_signature(c, prop_lookup) for c in data_cols]
+
+        matches = []
+        for mnum in main_nums:
+            main = tables[mnum]
+            main_lookup = self._build_property_lookup(main)
+            main_cols = [c for c in main['schedule_columns'] if not c.get('is_label_column', False)]
+            if [self._column_signature(c, main_lookup) for c in main_cols] == signature:
+                matches.append(mnum)
+        if len(matches) != 1:
+            raise ValueError(
+                f"Table {table_num} ({meta['table_type']}) must print the columns of exactly "
+                f"one main_soa table; it matches {matches or 'none'} of {main_nums} "
+                f"(inventory item 32 (a))")
+
+        ucols = [u for u in self.columns if u.source_columns[0]['table_num'] == matches[0]]
+        for ucol, col in zip(ucols, data_cols):
+            ucol.source_columns.append({
+                'table_id': meta['table_id'],
+                'table_num': table_num,
+                'column_id': col['column_id'],
+                'column_position': col['column_position']
+            })
 
     def get_columns_by_segment(self) -> Dict[str, List[UnifiedColumn]]:
         """Get columns organized by segment."""
@@ -1170,6 +1217,37 @@ def find_header_bound_annotations(data: dict) -> List[Tuple[str, List[str]]]:
     return findings
 
 
+def find_column_note_differences(data: dict) -> List[Tuple[str, str, Dict[int, List[str]]]]:
+    """Unified columns with several source columns whose tables attach different
+    annotations to the column.
+
+    A continuation or domain table prints the main table's columns (item 32 (a)),
+    but each table prints its own header markers. Identity leaves the markers out,
+    and the annotations stay as printed; this reports where the tables differ, so
+    a reviewer can see one table carrying a note the others do not. Returned per
+    column: xcol_id, composite_label, and per table the markers it attaches.
+    """
+    findings = []
+    for cols in data.get("timeline_segments", {}).values():
+        for col in cols:
+            tnums = [sc["table_num"] for sc in col.get("source_columns", [])]
+            if len(tnums) < 2:
+                continue
+            annots = {t: set() for t in tnums}
+            markers = {t: [] for t in tnums}
+            for annot in data.get("unified_annotations", []):
+                if col["xcol_id"] not in annot.get("referenced_xcols", []):
+                    continue
+                for occ in annot.get("source_occurrences", []):
+                    if occ["table_num"] in annots:
+                        annots[occ["table_num"]].add(annot["xannot_id"])
+                        markers[occ["table_num"]].append(occ["marker"])
+            if len({frozenset(v) for v in annots.values()}) > 1:
+                findings.append((col["xcol_id"], col.get("composite_label", ""),
+                                 {t: sorted(m) for t, m in markers.items()}))
+    return findings
+
+
 def is_degenerate_annotation_typing(annotations: list) -> bool:
     """Every annotation typed source_note across a large set.
 
@@ -1337,6 +1415,14 @@ def validate_consolidated(data: dict) -> ConsolidationValidationResult:
             f"{xannot_id}: bound to section-header row(s) "
             f"({', '.join(names)}) — a group-scope note, or a marker "
             f"misbind onto the header; verify the intended scope"
+        )
+
+    for xcol_id, label, markers in find_column_note_differences(data):
+        shown = "; ".join(f"T{t}: {', '.join(m) or 'none'}" for t, m in markers.items())
+        result.warnings.append(
+            f"{xcol_id} ({label}): the tables that print this column attach different "
+            f"annotations to it ({shown}) \u2014 kept as printed; check whether one "
+            f"table carries a note the others do not"
         )
 
     if is_degenerate_annotation_typing(annotations):
@@ -1601,7 +1687,7 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path],
     # Build output
     return {
         "schema_name": "soa-tables-consolidated",
-        "schema_version": "1.5",
+        "schema_version": "1.6",
         "protocol_id": protocol_id,
         "consolidation_metadata": {
             "consolidated_at": datetime.now(timezone.utc).isoformat(),

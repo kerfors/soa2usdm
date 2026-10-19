@@ -23,8 +23,8 @@
     },
     "schema_version": {
       "type": "string",
-      "enum": ["1.1", "1.2", "1.3", "1.4", "1.5"],
-      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. 1.4 adds what the consolidation corrections sidecar (soa-consolidation-corrections) leaves in the output: 'decision' on a source reference or a near match, match_status 'decision', 'refines' / 'refined_by' on a unified activity, 'refines' on a source table, and review_stats / corrections_applied in consolidation_metadata. 1.5 adds document_references on a unified annotation. Files stamped 1.1 to 1.4 remain valid."
+      "enum": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"],
+      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. 1.4 adds what the consolidation corrections sidecar (soa-consolidation-corrections) leaves in the output: 'decision' on a source reference or a near match, match_status 'decision', 'refines' / 'refined_by' on a unified activity, 'refines' on a source table, and review_stats / corrections_applied in consolidation_metadata. 1.5 adds document_references on a unified annotation. 1.6: a continuation or domain table's columns join the main columns they repeat (one unified column, several source_columns); the segment 'domain' is no longer produced. Files stamped 1.1 to 1.5 remain valid."
     },
     "protocol_id": {
       "type": "string",
@@ -634,7 +634,7 @@
         "segment": {
           "type": "string",
           "enum": ["main", "domain", "track", "subsidiary"],
-          "description": "Timeline segment this column belongs to. 'main'=primary timeline; 'domain'=same timeline, different activity category; 'track'=a branch only some participants take; 'subsidiary'=finer timing detail."
+          "description": "Timeline segment this column belongs to. 'main'=primary timeline; 'domain'=same timeline, different activity category (files before 1.6; from 1.6 such columns join 'main'); 'track'=a branch only some participants take; 'subsidiary'=finer timing detail."
         },
         "population_track": {
           "type": ["string", "null"],
@@ -652,7 +652,7 @@
           "items": {
             "$ref": "#/definitions/column_source_ref"
           },
-          "description": "References to source table columns"
+          "description": "References to source table columns: the column's own table first, then each continuation or domain table that prints the same column (from 1.6)"
         }
       }
     },

@@ -42,6 +42,7 @@ from soa2usdm.resolve import (
 from soa2usdm.consolidate import (
     ConsolidateStep,
     find_adjacent_text_overlaps,
+    find_column_note_differences,
     find_cross_table_binding_conflicts,
     find_header_bound_annotations,
     find_over_merged_annotations,
@@ -513,6 +514,63 @@ def test_header_bound_detector_fires_on_header_binding():
     ua["is_section_header"] = True
     findings = find_header_bound_annotations(data)
     assert findings == [(annot["xannot_id"], [ua["activity_name"]])], findings
+
+
+# ---------------------------------------------------------------------------
+# Column identity for continuation and domain tables (inventory item 32 (a))
+# ---------------------------------------------------------------------------
+# NCT03283098 Tables 2 and 3 (domain) print Table 1's 20 columns; the 29/ET (HD)
+# column carries markers a, h in Table 1 and a in Tables 2 and 3, with three
+# different texts for 'a'.
+EXPECTED_COLUMN_NOTE_DIFFERENCES = {
+    "usdm_data/NCT03283098": 1,
+}
+
+
+def test_column_note_differences_match_expected(pipeline_output):
+    protocol, produced, _ = pipeline_output
+    cons = json.loads(
+        next((produced / "consolidated").glob("*_consolidated.json")).read_text())
+    findings = find_column_note_differences(cons)
+    assert len(findings) == EXPECTED_COLUMN_NOTE_DIFFERENCES.get(protocol, 0), \
+        f"{protocol}: {findings}"
+
+
+def test_domain_columns_join_main_columns(pipeline_output):
+    """No 'domain' segment; every column of a continuation or domain table is a
+    further source column of a main column, never a column of its own."""
+    protocol, produced, _ = pipeline_output
+    cons = json.loads(
+        next((produced / "consolidated").glob("*_consolidated.json")).read_text())
+    assert "domain" not in cons["timeline_segments"], protocol
+    types = {t["table_num"]: t["table_type"] for t in cons["consolidation_metadata"]["source_tables"]}
+    for seg, cols in cons["timeline_segments"].items():
+        for col in cols:
+            first, *rest = col["source_columns"]
+            assert types[first["table_num"]] not in ("continuation", "domain"), (protocol, col["xcol_id"])
+            for sc in rest:
+                assert seg == "main" and types[sc["table_num"]] in ("continuation", "domain"), \
+                    (protocol, col["xcol_id"])
+    aligned = [n for n, t in types.items() if t in ("continuation", "domain")]
+    for n in aligned:
+        n_cols = next(t["column_count"] for t in cons["consolidation_metadata"]["source_tables"]
+                      if t["table_num"] == n)
+        joined = sum(1 for col in cons["timeline_segments"]["main"]
+                     for sc in col["source_columns"] if sc["table_num"] == n)
+        assert joined == n_cols, (protocol, n, joined, n_cols)
+
+
+def test_domain_table_with_other_columns_stops_consolidation():
+    """Negative control: a domain table whose header differs from every main_soa
+    table in one value must stop consolidation, not add columns of its own."""
+    from soa2usdm.consolidate import ColumnConsolidator
+    golden = Path(config.COLLECTIONS["usdm_data"]) / "NCT03283098" / "SoA2USDM" / "resolved"
+    tables = {n: json.loads((golden / f"NCT03283098_Table_{n:02d}_resolved.json").read_text())
+              for n in (1, 2)}
+    col = next(c for c in tables[2]["schedule_columns"] if not c.get("is_label_column"))
+    col["column_values"][-1]["value"] += " (changed)"
+    with pytest.raises(ValueError, match="exactly one main_soa table"):
+        ColumnConsolidator().process_tables(tables, {"main_soa": [1], "domain": [2]})
 
 
 # ---------------------------------------------------------------------------
