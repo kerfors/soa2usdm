@@ -62,7 +62,7 @@ CONSTRUCTS = [
          {"block": "schedule_columns[]", "fields": ["column_id", "column_position", "column_values", "composite_label"],
           "note": "Header cells read downwards become columns."},
          {"block": "timeline_segments{}[]", "fields": ["xcol_id", "segment", "property_values", "source_columns"],
-          "note": "Columns of all tables aligned into segments (main, domain, track, subsidiary)."},
+          "note": "Columns of all tables placed into segments (main, track, subsidiary); a domain or continuation table's columns join the main columns they repeat."},
      ]},
     {"id": "activities", "name": "Activities", "block": "activities",
      "where": "the body rows",

@@ -10,14 +10,14 @@ Classification scheme for Schedule of Activities tables in clinical trial protoc
 The primary Schedule of Activities table that serves as the anchor for the study timeline. Contains the core activity × timepoint grid showing what procedures are performed at which visits/days/cycles. Every protocol has at least one. When multiple independent schedules exist (e.g., Screening table and Treatment table with different column structures), each is classified as main_soa. The same holds for any schedule that every participant passes through in sequence, even when it is printed as separate tables with their own visit numbering: sequence alone does not make a table a `track`.
 
 ### continuation
-A physical continuation of another table split across pages due to space constraints. Has identical column headers - the rows simply continue. Common in protocols with many activities. During consolidation, rows are appended to the parent table.
+A physical continuation of another table split across pages due to space constraints. Has identical column headers - the rows simply continue. Common in protocols with many activities. During consolidation, its rows are matched like any other table's, and its columns join the main columns they repeat (compared value by value; exactly one `main_soa` table must match, else consolidation stops).
 
 **A page break inside ONE printed table is not a `continuation`.** Where the source prints a single table whose rows simply run onto the next page under a reprinted header, extract it as one table spanning both pages: `page_start`/`page_end` already carry the extent, and §1b of the extraction prompt says to de-duplicate the reprinted header and `schedule_property` rows. Reserve `continuation` for a source that presents the overflow as a table **in its own right** - its own table number, caption or title. Ask what the source numbered, not where the paper ran out.
 
 *Not to be confused with a horizontally tiled table (§5), where a second spread reprints the SAME body rows under DIFFERENT columns. Same rows + different columns is one tiled table and the marks are unioned across tiles; different rows + same columns is a page split. Compare the body rows across the two spreads before typing either.*
 
 ### domain
-A table with the same column structure (timeline) as the main_soa, **applying to the same participants**, but containing a different category of activities. Sponsors sometimes split assessments into separate tables by domain for readability - Non-laboratory assessments, Laboratory assessments, PK assessments, etc. During consolidation, activities merge into a unified list aligned to the shared timeline.
+A table with the same column structure (timeline) as the main_soa, **applying to the same participants**, but containing a different category of activities. Sponsors sometimes split assessments into separate tables by domain for readability - Non-laboratory assessments, Laboratory assessments, PK assessments, etc. During consolidation, activities merge into a unified list, and the table's columns join the main columns they repeat (compared value by value; exactly one `main_soa` table must match, else consolidation stops), so its marks sit on the shared timeline.
 
 *Examples:*
 - *Amgen protocol with Table 1a (Non-lab), Table 1b (Lab), Table 1c (PK) - all sharing 20 columns but grouping different assessment types.*
@@ -55,8 +55,8 @@ A table containing non-activity content - sample specifications, timing paramete
 | Type | Column Structure | Row Content | Consolidation Action |
 |------|------------------|-------------|---------------------|
 | **main_soa** | Primary grid | Activities | Anchor table |
-| **continuation** | SAME as parent | Activities continue | Append rows |
-| **domain** | SAME as parent | Different activity category, SAME participants | Merge activities |
+| **continuation** | SAME as parent | Activities continue | Match rows; columns join the parent's |
+| **domain** | SAME as parent | Different activity category, SAME participants | Merge activities; columns join the parent's |
 | **subsidiary** | DIFFERENT (finer) | Activity subset, detailed timing | Link to parent activities |
 | **track** | DIFFERENT, or same | Branch only some participants take | Separate ScheduleTimeline |
 | **reference** | N/A | Non-activities | Annotations/metadata |

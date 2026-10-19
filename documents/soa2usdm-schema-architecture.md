@@ -132,7 +132,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 
 ## Layer 3: Study Schedule Logic
 
-**Schema:** `soa-tables-consolidated` v1.5
+**Schema:** `soa-tables-consolidated` v1.6
 
 **Implementation:** Programmatic (ConsolidateStep, no Claude API)
 
@@ -140,7 +140,7 @@ Human review findings are recorded as a `*_corrections.json` sidecar and applied
 - Table type classification (main_soa, continuation, domain, subsidiary, track, reference) drives consolidation strategy — see `soa_table_type_definitions.md`
 - Unified activities with cross-table matching (exact, fuzzy, cross-parent). Only the lowest-numbered `main_soa` table is the base; a further `main_soa` table is matched against it. A fuzzy match below the auto threshold is not merged on any table pair: the activity stays separate and carries the near match as a hint (`near_matches`)
 - Human decisions on cross-table matches through a per-protocol sidecar, `consolidated/{NCTID}_consolidation_corrections.json` (schema `soa-consolidation-corrections` v1.0), read before matching — the Layer 3 analogue of Layer 1.5. Ops: `keep`, `split`, `merge`, and `refines` (a table or row details a row of another table without being merged). Entries name source rows (table number + activity id, activity name as a check); a stale entry stops consolidation. The consolidated view lists the matches to review and drafts the entries; it writes nothing
-- Timeline segments (main, domain, track, subsidiary) with aligned columns
+- Timeline segments (main, track, subsidiary). Columns are placed by table type; a `domain` or `continuation` table's columns join the main columns they repeat — compared in every header row by property type, name, level, value and merge flag; exactly one `main_soa` table must match, else consolidation stops; header markers are not compared, and a difference in the notes attached to a joined column gives a warning. Columns of `subsidiary`, `track` and further `main_soa` tables are not matched (inventory item 32 (b), (c))
 - Schedule matrix mapping (xact_id, xcol_id) → cell values
 - Annotation deduplication with source occurrence tracking; table-wide notes carry `annotation_scope: "table"`
 - Validation of cross-references and structural integrity
@@ -266,6 +266,6 @@ The architecture acknowledges that SoA tables are lossy compressions of study lo
 
 ---
 
-**Version:** 4.7  
-**Date:** 2026-10-04  
-**Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.2, soa-tables-consolidated v1.5, soa-consolidation-corrections v1.0
+**Version:** 4.8  
+**Date:** 2026-10-19  
+**Schemas:** soa-table-extraction v1.1, soa-table-corrections v1.1, soa-table-resolved v1.2, soa-tables-consolidated v1.6, soa-consolidation-corrections v1.0

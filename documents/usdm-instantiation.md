@@ -298,7 +298,9 @@ the heading.
   readability and round-trip nuisance in this pipeline only.
 - **Segment type `domain`.** NCT03283098 has 40 `domain` columns — same timeline, different
   activity class. Arguably a presentation dimension outside USDM's scope; not verified
-  hard enough to claim as a gap.
+  hard enough to claim as a gap. *Update 2026-10-19:* since consolidated 1.6 (inventory
+  item 32 (a)) these columns join the 20 main columns and no `domain` segment is produced;
+  what is left is the activity class, which is a property of the source table.
 
 ### If any of this is ever raised with CDISC
 

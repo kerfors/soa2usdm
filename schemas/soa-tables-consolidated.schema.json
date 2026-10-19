@@ -57,7 +57,7 @@
     },
     "timeline_segments": {
       "type": "object",
-      "description": "Columns organized by segment type. Keys are segment names (main, domain, track, subsidiary).",
+      "description": "Columns organized by segment type. Keys are segment names (main, domain, track, subsidiary); from 1.6 no 'domain' key is produced, as a domain or continuation table's columns join the main columns they repeat.",
       "additionalProperties": {
         "type": "array",
         "items": {

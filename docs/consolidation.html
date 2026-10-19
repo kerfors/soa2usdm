@@ -202,7 +202,7 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
 <body>
 <header><div class="in">
 <h1>SoA2USDM - consolidation of tables</h1>
-<p>Consolidation is the point where the pipeline stops working per table. The resolved tables of one protocol become one schedule: rows that print the same activity are matched, the columns of each table are placed on timeline segments, and a note printed in several tables is kept once. It is done by program. Whether two rows are the same activity stays a human statement, made in a sidecar.</p>
+<p>Consolidation is the point where the pipeline stops working per table. The resolved tables of one protocol become one schedule: rows that print the same activity are matched, the columns of each table are placed on timeline segments (a domain or continuation table's columns join the main columns they repeat), and a note printed in several tables is kept once. It is done by program. Whether two rows are the same activity stays a human statement, made in a sidecar.</p>
 <nav><a href="./">SoA2USDM home</a><a href="schema-chain.html">From the printed table to schemas</a></nav>
 </div></header>
 <main>
@@ -218,7 +218,7 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
   <div class="op">&rarr;</div>
   <div class="bx prog"><b>Consolidation</b><span>ConsolidateStep, by program, deterministic</span></div>
   <div class="op">&rarr;</div>
-  <div class="bx"><b>Consolidated file</b><span>Layer 3, one file per protocol &middot; <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-tables-consolidated.schema.json">soa-tables-consolidated</a> v1.5 &middot; cross-table ids <code>xact-</code> <code>xcol-</code> <code>xannot-</code></span></div>
+  <div class="bx"><b>Consolidated file</b><span>Layer 3, one file per protocol &middot; <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-tables-consolidated.schema.json">soa-tables-consolidated</a> v1.6 &middot; cross-table ids <code>xact-</code> <code>xcol-</code> <code>xannot-</code></span></div>
  </div>
  <table class="ex-table">
   <tr><th>Running example: <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04184622/SoA2USDM/consolidated/NCT04184622_consolidated.html">NCT04184622</a></th><th title="Schedule of Activities covering visits to primary study endpoint">Table 1 &middot; <code>main_soa</code></th><th title="Schedule of Activities for additional 2-year treatment period for participants with prediabetes at randomization">Table 2 &middot; <code>track</code> (Prediabetes)</th><th>Consolidated</th></tr>
@@ -230,13 +230,14 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
   <div><h3>What consolidation does</h3><ul>
    <li>matches activity rows across tables</li>
    <li>places every column on a timeline segment, by table type</li>
+   <li>joins the columns of a domain or continuation table to the main columns it repeats, checked value by value</li>
    <li>keeps a note printed in several tables once, with every occurrence</li>
    <li>rebuilds the schedule matrix on the cross-table ids</li>
    <li>applies the human match decisions, and counts what is left to decide</li>
    <li>carries every table's extraction review items, tagged with the table</li>
   </ul></div>
   <div class="no"><h3>What it leaves</h3><ul>
-   <li>columns are not matched across tables</li>
+   <li>the columns of a subsidiary, a track or a further main table are not matched: finer timepoints, branches and later periods stay columns of their own</li>
    <li>no reading of what the timeline or the notes mean: epochs, timings, conditions</li>
    <li>no USDM objects. That is USDM Instantiation, a separate step</li>
   </ul></div>
@@ -256,8 +257,8 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
 </div>
 <div class="types">
 <div class="tt"><div class="tt-h"><code>main_soa</code><span class="cnt">29 tables in 24 protocols</span></div><p class="pr">The primary activity &times; timepoint grid. A protocol can have several, e.g. one per study period that every participant passes through.</p><div class="rc"><span class="lbl c-activities">rows</span><span>The lowest-numbered main_soa is the <b>base</b>: its rows become the first activities and are never matched. A further main_soa is matched against them.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>main</code>.</span></div></div>
-<div class="tt"><div class="tt-h"><code>continuation</code><span class="cnt">none in the published collections</span></div><p class="pr">The same table carried on under its own number or caption: same columns, the rows continue.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>main</code>, after the main_soa columns.</span></div></div>
-<div class="tt"><div class="tt-h"><code>domain</code><span class="cnt">2 tables in 1 protocol</span></div><p class="pr">Same columns, same participants, another category of activities (e.g. a laboratory table next to a non-laboratory table).</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>domain</code>. Printed on the main timeline, but kept as columns of their own.</span></div></div>
+<div class="tt"><div class="tt-h"><code>continuation</code><span class="cnt">none in the published collections</span></div><p class="pr">The same table carried on under its own number or caption: same columns, the rows continue.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Joins the main columns it repeats: compared value by value with each main_soa table; exactly one must match, or consolidation stops.</span></div></div>
+<div class="tt"><div class="tt-h"><code>domain</code><span class="cnt">2 tables in 1 protocol</span></div><p class="pr">Same columns, same participants, another category of activities (e.g. a laboratory table next to a non-laboratory table).</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Joins the main columns it repeats, as a continuation does. Segment <code>main</code>; no columns of its own.</span></div></div>
 <div class="tt"><div class="tt-h"><code>track</code><span class="cnt">12 tables in 6 protocols</span></div><p class="pr">A branch only some participants take: a cohort, responders vs non-responders, a later phase entered on a condition.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>track</code>, each column with a <code>population_track</code>: the table's track_label, else read from its purpose or title, else <code>Track-T&lt;n&gt;</code>.</span></div></div>
 <div class="tt"><div class="tt-h"><code>subsidiary</code><span class="cnt">4 tables in 3 protocols</span></div><p class="pr">Finer timing for a subset of activities, e.g. hour-by-hour PK sampling for days of the main table.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Matched.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Segment <code>subsidiary</code>.</span></div></div>
 <div class="tt off"><div class="tt-h"><code>reference</code><span class="cnt">none in the published collections</span></div><p class="pr">Rows that are not activities: sample specifications, timing parameters, abbreviations.</p><div class="rc"><span class="lbl c-activities">rows</span><span>Not consolidated: no activities.</span></div><div class="rc"><span class="lbl c-grid">columns</span><span>Not consolidated: no columns. A match decision may not name the table.</span></div></div>
@@ -490,11 +491,11 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
  <div class="axc c-activities" data-c="activities"><span class="v">Rows<br>matched</span><div><b>Activities</b> &rarr; <code>unified_activities[]</code>
   <p>A row of a later table joins an activity that already exists, or starts a new one (part 4). An activity takes at most one row per table. Every row it holds stays listed in <code>source_refs</code>, with how it came there: <code>match_status</code>, <code>match_confidence</code> and, when a human decided, <code>decision</code>.</p></div></div>
  <div class="axc c-grid" data-c="grid"><span class="v">Columns<br>placed</span><div><b>Columns</b> &rarr; <code>timeline_segments.&lt;segment&gt;[]</code>
-  <p>Not matched. Every data column of every table becomes its own <code>xcol</code>, on the segment its table type gives it. Columns of different tables line up only through <code>property_hierarchy</code>: header rows with a level unify by level, rows without one (window, modality, visit attribute) by type and name. Even a domain table, printed on the main timeline, keeps its own columns (NCT03283098: 20 main + 40 domain).</p></div></div>
+  <p>Placed by table type, and joined only where the type says the columns are the same. Every data column of a main_soa, track or subsidiary table becomes its own <code>xcol</code>, on the segment its table type gives it. A domain or continuation table prints the columns of a main table: each of its columns is compared with the main columns, in every header row by property type, name, level, value and merge flag, and joins the column it repeats as a further <code>source_columns</code> entry. Exactly one main_soa table must match, or consolidation stops. Header markers are not compared; where the tables attach different notes to a joined column, consolidation warns (NCT03283098: the 40 columns of Tables 2 and 3 join the 20 main columns; 1 warning). Other columns line up only through <code>property_hierarchy</code>: header rows with a level unify by level, rows without one (window, modality, visit attribute) by type and name.</p></div></div>
  <div class="axc c-annotations" data-c="annotations"><span class="v">Notes<br>deduplicated</span><div><b>Annotations</b> &rarr; <code>unified_annotations[]</code>
   <p>A note whose text is identical, after lower case and collapsed spaces, to a note already seen is the same note. It is kept once, with every <code>source_occurrences</code> entry (table, marker, annotation id). What each occurrence binds to is re-pointed to <code>xact</code>, <code>xcol</code> and unified property ids.</p></div></div>
  <div class="axc c-schedule" data-c="schedule"><span class="v">Cells<br>re-addressed</span><div><b>Schedule marks</b> &rarr; <code>schedule_matrix[]</code>
-  <p>One cell per <code>xact_id</code> &times; <code>xcol_id</code>, with <code>source_values</code> keyed by table. Since a column belongs to one table, a cell holds the value of exactly one table; true for all 5,814 cells in the published collections.</p></div></div>
+  <p>One cell per <code>xact_id</code> &times; <code>xcol_id</code>, with <code>source_values</code> keyed by table. A cell holds a value from each table that prints both the row and the column; that is more than one only where a matched activity meets a joined column. In the published collections each of the 5,814 cells holds the value of one table.</p></div></div>
 </div>
 </div>
 </section>
@@ -624,13 +625,13 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
 
 <section>
 <div class="sh"><span class="step">6</span><h2>What the consolidated file holds</h2></div>
-<p class="lead">One file per protocol, <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-tables-consolidated.schema.json">soa-tables-consolidated</a> v1.5. Nothing of the tables is replaced: every cross-table id lists the per-table ids it came from, so any element can be followed back to the printed page.</p>
+<p class="lead">One file per protocol, <a href="https://github.com/kerfors/soa2usdm/blob/main/schemas/soa-tables-consolidated.schema.json">soa-tables-consolidated</a> v1.6. Nothing of the tables is replaced: every cross-table id lists the per-table ids it came from, so any element can be followed back to the printed page.</p>
 <div class="two">
  <div class="panel">
 <div class="blk-row c-other"><code>consolidation_metadata</code><span>Metadata about the consolidation process and source tables</span></div>
 <div class="blk-row c-properties"><code>property_hierarchy</code><span>Unified property hierarchy across tables, ordered by level; rows without a level follow in print order (from 1.3; the position in the lowest-numbered table that prints the row). Note: per-table hierarchies may differ - see source_tables for individual structures.</span></div>
 <div class="blk-row c-activities"><code>unified_activities</code><span>Master activity list consolidated across all source tables</span></div>
-<div class="blk-row c-grid"><code>timeline_segments</code><span>Columns organized by segment type. Keys are segment names (main, domain, track, subsidiary).</span></div>
+<div class="blk-row c-grid"><code>timeline_segments</code><span>Columns organized by segment type. Keys are segment names (main, domain, track, subsidiary); from 1.6 no &#x27;domain&#x27; key is produced, as a domain or continuation table&#x27;s columns join the main columns they repeat.</span></div>
 <div class="blk-row c-schedule"><code>schedule_matrix</code><span>Consolidated schedule data at (activity × column) intersections. Only non-empty cells included.</span></div>
 <div class="blk-row c-annotations"><code>unified_annotations</code><span>Annotations consolidated across all source tables. Identical annotation text is deduplicated with source occurrences tracked.</span></div>
 <div class="blk-row c-other"><code>review_items</code><span>Open judgement calls from every table of the protocol, each with its table_number. Present only when at least one table carried review_items. Distinct from review_queue, which holds consolidation&#x27;s own low-confidence activity matches.</span></div>
@@ -656,7 +657,7 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
 <div class="sh"><span class="step">7</span><h2>The consolidated view</h2></div>
 <p class="lead">Each protocol's consolidated file is rendered as one page. The matches are reviewed there, against the schedule they shape. The page writes nothing: a choice drafts a sidecar entry, and the sidecar stays the only write path.</p>
 <div class="callouts">
- <div><b>One grid per segment</b>The main schedule first, then each track, domain or subsidiary segment; the header rows from <code>property_hierarchy</code>, and an <em>In</em> column saying which tables print the row.</div>
+ <div><b>One grid per segment</b>The main schedule first, then each track or subsidiary segment; the header rows from <code>property_hierarchy</code>, and an <em>In</em> column saying which tables print the row. Domain and continuation tables share the main grid, whose header names every table the columns come from.</div>
  <div><b>Matches across tables</b>Every match listed for review: its state, the two rows with the words that differ marked, what consolidation did and at what score, and the decision.</div>
  <div><b>A decision drafts an entry</b>Choosing keep, split or merge writes the JSON to append to the sidecar. Consolidation is re-run; the page then shows the match as decided.</div>
 </div>
@@ -671,7 +672,7 @@ footer{font-size:12px;color:var(--muted);margin-top:26px}
 <p class="note">Consolidated views: <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04184622/SoA2USDM/consolidated/NCT04184622_consolidated.html">NCT04184622</a> &middot; <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04730349/SoA2USDM/consolidated/NCT04730349_consolidated.html">NCT04730349</a> &middot; <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT04557384/SoA2USDM/consolidated/NCT04557384_consolidated.html">NCT04557384</a> &middot; <a href="https://kerfors.github.io/soa2usdm-collections/collections/usdm_data/protocols/NCT03637764/SoA2USDM/consolidated/NCT03637764_consolidated.html">NCT03637764</a>.</p>
 </section>
 
-<footer><a href="./">SoA2USDM home</a> &middot; <a href="schema-chain.html">From the printed table to schemas</a> &middot; Generated by <code>tools/build_consolidation_explainer.py</code> from <code>schemas/*.json</code>, the thresholds and name score in <code>soa2usdm/consolidate.py</code>, and the consolidated files and sidecars of soa2usdm-collections at a80f334 2026-10-04. Screenshots are static.</footer>
+<footer><a href="./">SoA2USDM home</a> &middot; <a href="schema-chain.html">From the printed table to schemas</a> &middot; Generated by <code>tools/build_consolidation_explainer.py</code> from <code>schemas/*.json</code>, the thresholds and name score in <code>soa2usdm/consolidate.py</code>, and the consolidated files and sidecars of soa2usdm-collections at f273349 2026-10-19. Screenshots are static.</footer>
 </main>
 <script>
 document.querySelectorAll("[data-c]").forEach(function (node) {

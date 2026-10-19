@@ -33,7 +33,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from soa2usdm.consolidate import (  # noqa: E402
-    AUTO_MATCH_THRESHOLD, CROSS_PARENT_THRESHOLD, REVIEW_THRESHOLD, word_overlap_score)
+    AUTO_MATCH_THRESHOLD, CROSS_PARENT_THRESHOLD, REVIEW_THRESHOLD, word_overlap_score,
+    find_column_note_differences)
 
 SCHEMAS = ROOT / "schemas"
 OUT = ROOT / "docs"
@@ -206,7 +207,7 @@ def corpus_figures(corpus):
     review = Counter()
     ops = Counter()
     segments = Counter()
-    cells = multi_cells = multi_cols = 0
+    cells = multi_cells = 0
     single = 0
     src_rows = unified = 0
     for pid, entry in corpus.items():
@@ -224,15 +225,21 @@ def corpus_figures(corpus):
         review.update(meta["review_stats"])
         src_rows += meta["source_activity_count"]
         unified += meta["unified_activity_count"]
+        types_here = {t["table_num"]: t["table_type"] for t in tables}
         for seg, cols in entry["data"]["timeline_segments"].items():
             segments[seg] += len(cols)
-            multi_cols += sum(1 for c in cols if len(c["source_columns"]) > 1)
+            for c in cols:
+                first, *rest = c["source_columns"]
+                if (types_here[first["table_num"]] in ("domain", "continuation")
+                        or any(types_here[sc["table_num"]] not in ("domain", "continuation") for sc in rest)):
+                    raise ValueError(f"{pid} {c['xcol_id']}: part 3 says only domain and continuation "
+                                     "columns join a main column")
         cells += len(entry["data"]["schedule_matrix"])
         multi_cells += sum(1 for c in entry["data"]["schedule_matrix"] if len(c["source_values"]) > 1)
         if entry["sidecar"]:
             ops.update(c["op"] for c in entry["sidecar"]["corrections"])
-    if multi_cols or multi_cells:
-        raise ValueError("a unified column or matrix cell has more than one source table; part 3 says it cannot")
+    if multi_cells:
+        raise ValueError("a matrix cell has more than one source table; part 3 says none in the published collections")
     return {
         "protocols": len(corpus), "tables": sum(types.values()), "types": types,
         "type_protocols": type_protocols, "single": single, "match": match, "review": review,
@@ -370,9 +377,9 @@ def type_cards(fig):
                      "The lowest-numbered main_soa is the <b>base</b>: its rows become the first activities and are never matched. A further main_soa is matched against them.",
                      "Segment <code>main</code>."),
         "continuation": ("The same table carried on under its own number or caption: same columns, the rows continue.",
-                         "Matched.", "Segment <code>main</code>, after the main_soa columns."),
+                         "Matched.", "Joins the main columns it repeats: compared value by value with each main_soa table; exactly one must match, or consolidation stops."),
         "domain": ("Same columns, same participants, another category of activities (e.g. a laboratory table next to a non-laboratory table).",
-                   "Matched.", "Segment <code>domain</code>. Printed on the main timeline, but kept as columns of their own."),
+                   "Matched.", "Joins the main columns it repeats, as a continuation does. Segment <code>main</code>; no columns of its own."),
         "track": ("A branch only some participants take: a cohort, responders vs non-responders, a later phase entered on a condition.",
                   "Matched.", "Segment <code>track</code>, each column with a <code>population_track</code>: the table's track_label, else read from its purpose or title, else <code>Track-T&lt;n&gt;</code>."),
         "subsidiary": ("Finer timing for a subset of activities, e.g. hour-by-hour PK sampling for days of the main table.",
@@ -418,7 +425,13 @@ def main():
     if len(matches) != fig["review"]["total"]:
         raise ValueError(f"{len(matches)} review matches listed, review_stats total is {fig['review']['total']}")
     domain = corpus[DOMAIN_EXAMPLE]["data"]
-    dom_seg = {s: len(c) for s, c in domain["timeline_segments"].items()}
+    dom_types = {t["table_num"]: t["table_type"] for t in domain["consolidation_metadata"]["source_tables"]}
+    dom_tables = sorted(n for n, t in dom_types.items() if t == "domain")
+    if list(domain["timeline_segments"]) != ["main"] or len(dom_tables) != 2:
+        raise ValueError(f"{DOMAIN_EXAMPLE}: the page describes one main segment and two domain tables")
+    dom_main = len(domain["timeline_segments"]["main"])
+    dom_joined = sum(len(c["source_columns"]) - 1 for c in domain["timeline_segments"]["main"])
+    dom_warn = len(find_column_note_differences(domain))
 
     parts = {
         "CONS_SCHEMA": schema_link("consolidated", schemas),
@@ -435,7 +448,8 @@ def main():
         "N_SIDECARS": num(fig["sidecars"]),
         "OPS_KEEP": num(fig["ops"]["keep"]), "OPS_SPLIT": num(fig["ops"]["split"]),
         "OPS_MERGE": num(fig["ops"]["merge"]), "OPS_REFINES": num(fig["ops"]["refines"]),
-        "DOM_PID": DOMAIN_EXAMPLE, "DOM_MAIN": num(dom_seg["main"]), "DOM_DOMAIN": num(dom_seg["domain"]),
+        "DOM_PID": DOMAIN_EXAMPLE, "DOM_MAIN": num(dom_main), "DOM_JOINED": num(dom_joined),
+        "DOM_TABLES": " and ".join(str(n) for n in dom_tables), "DOM_WARN": num(dom_warn),
         "TYPE_CARDS": type_cards(fig),
         "BLOCKS": block_list(schemas),
         "MATCHES_JSON": json.dumps(matches, ensure_ascii=False).replace("</", "<\\/"),
