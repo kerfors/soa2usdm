@@ -423,6 +423,14 @@ The remaining two differences are NCT04677179 T3 row 38, the CCI band of item 7d
 
 **Size.** (a) medium: consolidate, view, rebuild. The schema already allows an `xcol` with several `source_columns`. (b) together with designing a sidecar op for it. (c) outside Layer 3.
 
+## 33 — Prompt: a banner that captions the header row below it (found 2026-10-19, NCT03283098)
+
+**Finding.** NCT03283098 Tables 1a–1c print 'Study Visit (Day)' once, in a cell merged across all data columns, directly above the day values; the label cells of both header rows are empty. The extraction (prompt 3.8.1) made the banner a header row of its own (`other`, level null, the banner text as the value in every column) and gave the day row the synthesized name 'Study Day'; the consolidated view showed 'Study Visit (Day)' in every column. §3 ("each header row → one `schedule_property`") has no rule for a caption band, also in 3.9.4. The nearest rules point the other way: a title band inside the frame is not a row (§4), and label text that names something else stays in `property_name_source.cell_value` (§3).
+
+**Fixed in the data** by the NCT03283098 extraction sidecars (Tables 1a/1b corr-002–004, 1c corr-005–007): the banner row and its grid cells are removed, and the day row takes 'Study Visit (Day)' as its printed name (`property_name_source` row 1, not synthesized). It is the only case in the corpus: over the 47 resolved tables, no other header row carries one value across all data columns as a caption (NCT04677179's repeated '±3', '—' and empty fasting rows are values, not captions).
+
+**Proposed for the next prompt revision (§3).** A band printed across all data columns that names the header row directly below it, where that row's label cell is empty, is not a header row: it is that row's `property_name` (`property_name_source` = the band's cell, `synthesized: false`), recorded in the report. Acceptance: a blind re-extraction of NCT03283098 reproduces the sidecar result.
+
 ---
 
 2026-08-15, item 5 added 2026-08-17, items 7–8 added 2026-08-22, items 9–10 and 11–14 added 2026-09-27, items 15–19 added 2026-09-27 (review session), item 20 added 2026-09-27 (item-19 session), item 21 added 2026-09-27 (prompt 3.9.0 session), item 22 added 2026-09-27 (3.9.0 acceptance session), item 23 added 2026-09-27 (review-page header-row session), item 24 added 2026-09-27 (22i / 21a sidecar session), item 25 added 2026-09-28 (3.9.1 acceptance session; (l)–(n) from the item-25 sidecar session), item 26 added 2026-09-28 (3.9.2 acceptance session), item 27 added 2026-09-28 (documentation alignment), item 28 added 2026-09-30 (collection index / activity inventory session), item 29 added 2026-09-30 (mark check), item 32 added 2026-10-17 (consolidation page). Evidence: `collections/usdm_data/protocols/activities.json`, the per-protocol `*_resolved.json` annotation arrays, the NCT04677179 protocol markdown, and the two NCT02107703 Phase 2 pilot extractions.
