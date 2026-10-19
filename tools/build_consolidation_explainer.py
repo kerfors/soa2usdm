@@ -2,13 +2,14 @@
 """Build the consolidation explainer page docs/consolidation.html.
 
 One page, read top to bottom:
-  1. where consolidation sits, with NCT04184622 as the running example,
+  1. what consolidation does: where it sits, the three axes (rows matched,
+     columns placed, notes deduplicated), NCT04184622 as the running example,
   2. how the table type decides the route of a table,
-  3. the three axes (rows matched, columns placed, notes deduplicated),
-  4. how rows are matched (the four steps, the name score, a calculator),
-  5. the match decisions sidecar (keep, split, merge, refines),
-  6. what the consolidated file holds, and one row traced back to its page,
-  7. the consolidated view, where a reviewer sees and decides the matches.
+  3. how rows are matched (the four steps, the name score, a calculator),
+  4. the match decisions sidecar (keep, split, merge, refines),
+  5. the consolidated file, one row traced back to its page, and the view
+     where a reviewer sees and decides the matches.
+Detail sits in folds (details.more), closed by default.
 
 Everything the page states as a figure or an example is read here:
   - schema versions, ops, block descriptions and field paths from schemas/*.json
@@ -88,7 +89,7 @@ CHECKS = [
     ("consolidated", "consolidation_metadata.source_tables[].refines"),
 ]
 
-# Top-level blocks of the consolidated schema shown in part 6, with the construct colour.
+# Top-level blocks of the consolidated schema shown in part 5, with the construct colour.
 BLOCKS = [
     ("consolidation_metadata", "other"), ("property_hierarchy", "properties"),
     ("unified_activities", "activities"), ("timeline_segments", "grid"),
@@ -232,14 +233,14 @@ def corpus_figures(corpus):
                 first, *rest = c["source_columns"]
                 if (types_here[first["table_num"]] in ("domain", "continuation")
                         or any(types_here[sc["table_num"]] not in ("domain", "continuation") for sc in rest)):
-                    raise ValueError(f"{pid} {c['xcol_id']}: part 3 says only domain and continuation "
+                    raise ValueError(f"{pid} {c['xcol_id']}: part 1 says only domain and continuation "
                                      "columns join a main column")
         cells += len(entry["data"]["schedule_matrix"])
         multi_cells += sum(1 for c in entry["data"]["schedule_matrix"] if len(c["source_values"]) > 1)
         if entry["sidecar"]:
             ops.update(c["op"] for c in entry["sidecar"]["corrections"])
     if multi_cells:
-        raise ValueError("a matrix cell has more than one source table; part 3 says none in the published collections")
+        raise ValueError("a matrix cell has more than one source table; part 1 says none in the published collections")
     return {
         "protocols": len(corpus), "tables": sum(types.values()), "types": types,
         "type_protocols": type_protocols, "single": single, "match": match, "review": review,
@@ -387,18 +388,17 @@ def type_cards(fig):
         "reference": ("Rows that are not activities: sample specifications, timing parameters, abbreviations.",
                       "Not consolidated: no activities.", "Not consolidated: no columns. A match decision may not name the table."),
     }
-    out = []
+    out = ['<table class="ttab"><tr><th>Type</th><th>What it is</th><th>Rows</th><th>Columns</th><th>Published</th></tr>']
     for t in TYPE_ORDER:
         printed, rows, cols = text[t]
         n = fig["types"][t]
         pids = fig["type_protocols"][t]
         where = (f'{n} table{"s" if n != 1 else ""} in {len(pids)} protocol{"s" if len(pids) != 1 else ""}'
-                 if n else "none in the published collections")
+                 if n else "none")
         out.append(
-            f'<div class="tt{" off" if t == "reference" else ""}"><div class="tt-h"><code>{t}</code><span class="cnt">{where}</span></div>'
-            f'<p class="pr">{printed}</p>'
-            f'<div class="rc"><span class="lbl c-activities">rows</span><span>{rows}</span></div>'
-            f'<div class="rc"><span class="lbl c-grid">columns</span><span>{cols}</span></div></div>')
+            f'<tr{" class=\"off\"" if t == "reference" else ""}><td><code>{t}</code></td><td>{printed}</td>'
+            f'<td>{rows}</td><td>{cols}</td><td class="n">{where}</td></tr>')
+    out.append('</table>')
     return "\n".join(out)
 
 
