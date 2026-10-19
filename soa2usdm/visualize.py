@@ -1504,7 +1504,7 @@ def generate_consolidated_html(data: dict, nav=None, row_names: Optional[dict] =
 <body>
     <div class="header">
         <h1>{protocol_id} — consolidated Schedule of Activities</h1>
-        <div class="sub">{esc(nav.collection) + ' · ' if nav else ''}{num_tables} tables · {num_activities} activities ({compression}% compression) · {total_cols} columns · study-schedule-consolidated v1.0 · Layer 3</div>
+        <div class="sub">{esc(nav.collection) + ' · ' if nav else ''}{num_tables} tables · {num_activities} activities ({compression}% compression) · {total_cols} columns · {esc(data['schema_name'])} v{esc(data['schema_version'])} · Layer 3</div>
     </div>
     {gen_navigation(nav)}
     <div class="content">
