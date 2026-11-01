@@ -274,6 +274,8 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
     if ctx_json.exists():
         result['protocol_context'] = str(protocol_context_page.render(protocol_id, collection)
                                          .relative_to(collection_path))
+        result['protocol_context_json'] = str(ctx_json.relative_to(collection_path))
+        result['protocol_context_prompt'] = json.loads(ctx_json.read_text(encoding='utf-8'))['provenance']['prompt_version']
 
     # USDM readiness/evaluation markdown
     # Search protocol root, SoA2USDM folder, and consolidated/ subfolder.
@@ -616,6 +618,9 @@ def generate_index_html(collection: str) -> str:
     generated_at = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
     excl_meta = f' · {len(excluded)} excluded' if excluded else ''
     
+    # The protocol context column appears only in collections where some protocol has one.
+    has_context = any(p.get('protocol_context') for p in protocols)
+
     def protocol_row(p: dict) -> str:
         nct = p['nct_id']
         is_ready = p['has_resolved'] or p['has_consolidated']
@@ -700,6 +705,13 @@ def generate_index_html(collection: str) -> str:
         for infix, path in p.get('extra_reports', []):
             report_html += f' <a href="{path}" class="link-report" title="Extraction log of a later session on this protocol ({esc(infix)})">extraction log ({esc(infix)})</a>'
 
+        # Protocol context column (beyond the SoA): the page and its JSON, where extracted.
+        ctx_html = ''
+        if p.get('protocol_context'):
+            ctx_html = (f'<a href="{p["protocol_context"]}" class="link-table" title="Protocol context beyond the SoA (prompt {esc(p["protocol_context_prompt"])}): product, immunogenicity, panels, assays, abbreviations — each value with its page and quote">context</a>'
+                        f' <a href="{p["protocol_context_json"]}" class="link-json" title="Protocol context JSON">json</a>')
+        ctx_td = f'\n            <td class="viz grp-start">{ctx_html}</td>' if has_context else ''
+
         # USDM readiness column
         usdm_html = ''
         if p.get('usdm_evaluation'):
@@ -733,7 +745,7 @@ def generate_index_html(collection: str) -> str:
             <td class="viz">{review_html}</td>
             <td class="viz">{report_html}</td>
             <td class="viz grp-start">{cons_html}</td>
-            <td class="stats">{red_html}</td>
+            <td class="stats">{red_html}</td>{ctx_td}
         </tr>'''
     
     def excluded_row(e: dict) -> str:
@@ -743,7 +755,7 @@ def generate_index_html(collection: str) -> str:
             <td class="nct">{esc(e['nct_id'])}</td>{prov_td}
             <td class="study-code">{esc(e['study_code'])}</td>
             <td class="acronym">{esc(e['study_acronym'])}</td>
-            <td class="excluded-reason" colspan="8">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
+            <td class="excluded-reason" colspan="{9 if has_context else 8}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
         </tr>'''
 
     ready_rows = ''.join(protocol_row(p) for p in ready)
@@ -751,6 +763,10 @@ def generate_index_html(collection: str) -> str:
     excluded_rows = ''.join(excluded_row(e) for e in excluded)
     prov_th = f'<th>{esc(provenance["label"])}</th>' if provenance else ''
     id_cols = 6 if provenance else 5
+    ctx_grp_th = ('<th class="grp" title="Read from the full protocol, beyond the SoA tables">Beyond the SoA</th>'
+                  if has_context else '')
+    ctx_th = ('<th class="grp-start" title="Protocol context per study (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md): page and JSON">Protocol context</th>'
+              if has_context else '')
     
     css = """
         :root { --blue:#1F4788; --blue2:#2E75B6; --ink:#1f2933; --muted:#5f6b7a; --line:#d9dee5;
@@ -842,9 +858,9 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr class="groups">
-                <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>
+                <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>{ctx_grp_th}
             </tr><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}
             </tr></thead>
             <tbody>
                 {ready_rows}
