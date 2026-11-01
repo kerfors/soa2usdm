@@ -1,0 +1,667 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/kerstinforsberg/soa2usdm/schemas/soa2usdm-protocol-context-cgt.schema.json",
+  "title": "soa2usdm protocol context — cell and gene therapy profile",
+  "description": "Output of prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md. Values are protocol wording; null = not stated. No CDISC classification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "nct_id",
+    "document",
+    "pages_covered",
+    "page_numbers",
+    "provenance",
+    "product",
+    "immunogenicity",
+    "cross_references",
+    "abbreviations",
+    "panels",
+    "endpoint_assays",
+    "genetic_testing",
+    "lab_and_purpose",
+    "notes"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "soa2usdm-protocol-context-cgt"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "nct_id": {
+      "type": "string",
+      "pattern": "^NCT[0-9]{8}$"
+    },
+    "document": {
+      "type": "string"
+    },
+    "pages_covered": {
+      "type": "string",
+      "pattern": "^[0-9]+-[0-9]+$"
+    },
+    "page_numbers": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt_version",
+        "model",
+        "extracted_at",
+        "pdf_sha256",
+        "pages_file_sha256"
+      ],
+      "properties": {
+        "prompt_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "model": {
+          "type": "string"
+        },
+        "extracted_at": {
+          "type": "string"
+        },
+        "pdf_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "pages_file_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "product": {
+      "type": "array",
+      "description": "Study therapy and other investigational or lymphodepleting products.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "other_names",
+          "type",
+          "vector_or_capsid",
+          "transgene",
+          "manufacturing_or_source",
+          "evidence"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "other_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vector_or_capsid": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "transgene": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "manufacturing_or_source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "immunogenicity": {
+      "type": "array",
+      "description": "Antibody and immune-response assays.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "measure",
+          "target",
+          "specimen",
+          "method",
+          "units",
+          "purpose",
+          "timing",
+          "lab",
+          "evidence"
+        ],
+        "properties": {
+          "measure": {
+            "type": "string"
+          },
+          "target": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specimen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "units": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timing": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lab": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "cross_references": {
+      "type": "array",
+      "description": "One entry per soa_cross_references input item.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "soa_note",
+          "target_as_printed",
+          "target_found",
+          "target_heading",
+          "target_page",
+          "what_it_says",
+          "evidence"
+        ],
+        "properties": {
+          "soa_note": {
+            "type": "string"
+          },
+          "target_as_printed": {
+            "type": "string"
+          },
+          "target_found": {
+            "type": "boolean"
+          },
+          "target_heading": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "what_it_says": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "abbreviations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "term",
+          "definition",
+          "page"
+        ],
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "definition": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "read_from": {
+            "type": "string",
+            "enum": [
+              "text layer",
+              "page image"
+            ],
+            "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+          }
+        }
+      }
+    },
+    "panels": {
+      "type": "array",
+      "description": "Lab panel composition.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "panel_name",
+          "analytes",
+          "specimen",
+          "lab",
+          "evidence"
+        ],
+        "properties": {
+          "panel_name": {
+            "type": "string"
+          },
+          "analytes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "specimen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lab": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "endpoint_assays": {
+      "type": "array",
+      "description": "PK, kinetics, persistence, shedding, biodistribution, expression.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "topic",
+          "what",
+          "matrix",
+          "method",
+          "units",
+          "endpoint_text",
+          "evidence"
+        ],
+        "properties": {
+          "topic": {
+            "enum": [
+              "PK",
+              "cellular kinetics",
+              "persistence",
+              "shedding",
+              "biodistribution",
+              "expression/activity",
+              "other"
+            ]
+          },
+          "what": {
+            "type": "string"
+          },
+          "matrix": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "units": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endpoint_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "genetic_testing": {
+      "type": "array",
+      "description": "Genotyping, HLA/KIR, integration, replication-competent virus.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "what",
+          "gene_variant_or_hla",
+          "purpose",
+          "method",
+          "specimen",
+          "evidence"
+        ],
+        "properties": {
+          "what": {
+            "type": "string"
+          },
+          "gene_variant_or_hla": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specimen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lab_and_purpose": {
+      "type": "array",
+      "description": "SoA activities the text speaks to.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "soa_activity",
+          "lab",
+          "purpose",
+          "specimen",
+          "method",
+          "evidence"
+        ],
+        "properties": {
+          "soa_activity": {
+            "type": "string"
+          },
+          "lab": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specimen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

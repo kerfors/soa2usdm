@@ -20,6 +20,7 @@ from .base import PipelineStepBase
 from . import config
 from .corrections import review_status
 from .nav import NAV_CSS, nav_block, page_title
+from . import protocol_context_page
 
 
 # Short labels for table_type on the collection index.
@@ -267,6 +268,13 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                 except Exception:
                     pass
     
+    # Protocol context page (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md), rendered here so its
+    # navigation strip stays in step with the protocol's other pages.
+    ctx_json = soa_folder / "context" / f"{protocol_id}_protocol_context.json"
+    if ctx_json.exists():
+        result['protocol_context'] = str(protocol_context_page.render(protocol_id, collection)
+                                         .relative_to(collection_path))
+
     # USDM readiness/evaluation markdown
     # Search protocol root, SoA2USDM folder, and consolidated/ subfolder.
     # Match: {NCTID}_USDM_readiness*.md, {NCTID}_USDM_readiness_report*.md,

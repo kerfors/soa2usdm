@@ -94,6 +94,9 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
 
     cons = cons_dir / f"{protocol_id}_consolidated.html"
     review = ext_dir / f"{protocol_id}_review.html"
+    # Protocol context page (soa2usdm.protocol_context_page): linked when its JSON exists — the
+    # page is rendered from it in the same index batch.
+    context = soa / "context" / f"{protocol_id}_protocol_context.json"
     # Every uncertainty report of the protocol, its own first: a study can carry more than one
     # (NCT03637764 since item 19: '<pid>_flowcharts_uncertainty_report'). Item 20b.
     logs = []
@@ -109,6 +112,7 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
         "resolved": resolved,
         "consolidated": f"SoA2USDM/consolidated/{cons.name}" if cons.exists() else None,
         "review": f"SoA2USDM/extracted/{review.name}" if review.exists() else None,
+        "context": f"SoA2USDM/context/{context.stem}.html" if context.exists() else None,
         "logs": logs,
     }
 
@@ -118,7 +122,7 @@ def nav_block(collection: str, protocol_id: str, page_label: str, depth: int,
     """Breadcrumb + sibling strip for a per-protocol page.
 
     current = (kind, table_num): kind in {'extraction', 'resolved',
-    'consolidated', 'review', 'log'} marks that strip entry as the current
+    'consolidated', 'review', 'log', 'context'} marks that strip entry as the current
     page (rendered unlinked); table_num applies to the per-table kinds.
     """
     coll_index = "../" * depth + "index.html"
@@ -157,6 +161,8 @@ def nav_block(collection: str, protocol_id: str, page_label: str, depth: int,
     for infix, href in sib["logs"]:
         label = "extraction log" + (f" ({_esc(infix)})" if infix else "")
         groups.append(link(href, label, kind == "log" and cur_n == infix))
+    if sib["context"]:
+        groups.append(link(sib["context"], "protocol context", kind == "context"))
 
     strip = f'<div class="pnav-sib">{f" {dot} ".join(groups)}</div>' if groups else ""
     return (f'<nav class="pnav" aria-label="Breadcrumb">'
