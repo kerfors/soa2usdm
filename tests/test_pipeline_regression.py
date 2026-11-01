@@ -424,6 +424,7 @@ EXPECTED_REDACTED_UNIFIED = {
     "usdm_data/NCT05176314": 2,
     "usdm_data/NCT05324124": 1,
     "fixtures/NCT04677179": 6,
+    "cell_gene_therapy/NCT03489291": 12,  # T1 rows 26-31 + T3 rows 8-13, kept apart by sidecar (item 34)
 }
 
 
@@ -486,6 +487,7 @@ EXPECTED_HEADER_BOUND = {
     "usdm_data/NCT04573309": 2,
     "usdm_data/NCT04677179": 1,
     "usdm_data/NCT04730349": 1,
+    "cell_gene_therapy/NCT05714345": 1,   # footnote 19 printed on the Lymphodepletion group band
 }
 
 
