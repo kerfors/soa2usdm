@@ -21,6 +21,7 @@ from . import config
 from .corrections import review_status
 from .nav import NAV_CSS, nav_block, page_title
 from . import protocol_context_page
+from . import activity_grain_page
 
 
 # Short labels for table_type on the collection index.
@@ -276,6 +277,14 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
                                          .relative_to(collection_path))
         result['protocol_context_json'] = str(ctx_json.relative_to(collection_path))
         result['protocol_context_prompt'] = json.loads(ctx_json.read_text(encoding='utf-8'))['provenance']['prompt_version']
+
+    # Activity grain page (soa2usdm.activity_grain_page), rendered here like the context page
+    # (generate_index_html checks the grain file current before it calls this).
+    grain_json = soa_folder / "grain" / f"{protocol_id}_activity_grain.json"
+    if grain_json.exists():
+        result['activity_grain'] = str(activity_grain_page.render(protocol_id, collection)
+                                       .relative_to(collection_path))
+        result['activity_grain_json'] = str(grain_json.relative_to(collection_path))
 
     # USDM readiness/evaluation markdown
     # Search protocol root, SoA2USDM folder, and consolidated/ subfolder.
@@ -573,10 +582,9 @@ def generate_index_html(collection: str) -> str:
     all_protocols = config.list_protocols(collection)
     study_meta = load_study_metadata(collection_path)
     descriptor = config.load_collection_descriptor(collection)
-    # Optional provenance column, declared per collection in collection.json:
-    # {"label": ..., "field": <manifest column>, "url_template": "...{value}..."}.
-    # No descriptor / no provenance block -> the column is not rendered at all.
-    provenance = descriptor.get('provenance')
+    # Sponsor column: the manifest's sponsor, or derived as declared in collection.json
+    # (derived_metadata), the same values as on the Activities page.
+    from .activity_inventory import _study_fields
 
     # Studies the manifest marks as not extractable -- e.g. the posted protocol
     # carries no SoA table. Declared as data in the manifest's excluded_reason
@@ -585,7 +593,7 @@ def generate_index_html(collection: str) -> str:
     excluded = [
         {
             'nct_id': key,
-            'provenance_ref': meta.get(provenance['field'], '') if provenance else '',
+            'sponsor': _study_fields(meta, descriptor)[0],
             'study_code': meta.get('study_code', ''),
             'study_acronym': meta.get('study_acronym', ''),
             'excluded_reason': str(meta.get('excluded_reason') or '').strip(),
@@ -594,6 +602,17 @@ def generate_index_html(collection: str) -> str:
         if str(meta.get('excluded_reason') or '').strip()
     ]
     excluded_ids = {e['nct_id'] for e in excluded}
+
+    # Activity grain (SoA2USDM/grain/<id>_activity_grain.json): each file is checked current against
+    # its inputs before any page is rendered from it; a stale one stops the build.
+    grain = {}
+    grain_pids = [pid for pid in all_protocols if pid not in excluded_ids
+                  and (collection_path / pid / 'SoA2USDM' / 'grain' / f"{pid}_activity_grain.json").exists()]
+    if grain_pids:
+        from .activity_inventory import collect_rows
+        from .activity_grain import load_current_grain
+        inventory_rows = collect_rows(collection)
+        grain = {pid: load_current_grain(collection, pid, inventory_rows) for pid in grain_pids}
 
     # Discover outputs for each protocol
     protocols = []
@@ -604,7 +623,7 @@ def generate_index_html(collection: str) -> str:
         meta = study_meta.get(pid, {})
         protocols.append({
             'nct_id': pid,
-            'provenance_ref': meta.get(provenance['field'], '') if provenance else '',
+            'sponsor': _study_fields(meta, descriptor)[0],
             'study_code': meta.get('study_code', ''),
             'study_acronym': meta.get('study_acronym', ''),
             'soa_pages': meta.get('soa_pages', ''),
@@ -621,16 +640,6 @@ def generate_index_html(collection: str) -> str:
     # The protocol context column appears only in collections where some protocol has one.
     has_context = any(p.get('protocol_context') for p in protocols)
 
-    # Activity grain column (SoA2USDM/grain/<id>_activity_grain.json), only where some study
-    # has one. Each file is checked current against its inputs; a stale one stops the build.
-    grain = {}
-    grain_pids = [p['nct_id'] for p in protocols
-                  if (collection_path / p['nct_id'] / 'SoA2USDM' / 'grain' / f"{p['nct_id']}_activity_grain.json").exists()]
-    if grain_pids:
-        from .activity_inventory import collect_rows
-        from .activity_grain import load_current_grain
-        inventory_rows = collect_rows(collection)
-        grain = {pid: load_current_grain(collection, pid, inventory_rows) for pid in grain_pids}
     has_grain = bool(grain)
 
     def protocol_row(p: dict) -> str:
@@ -730,8 +739,9 @@ def generate_index_html(collection: str) -> str:
         if g:
             bg = g['counts']['by_grain']
             how = 'rules only' if g['inputs']['decisions'] is None else 'rules + decisions'
-            grain_html = (f'<a href="{esc(nct)}/SoA2USDM/grain/{esc(nct)}_activity_grain.json" class="link-json" title="Activity grain JSON ({how})">json</a>'
-                          f' <a href="activities.html?p={esc(nct)}" title="This study on the Activities page, with grain and kind ({how})">'
+            grain_html = (f'<a href="{p["activity_grain"]}" class="link-table" title="Activity grain per activity: grain, kind of finding, rule and evidence ({how})">grain</a>'
+                          f' <a href="{p["activity_grain_json"]}" class="link-json" title="Activity grain JSON">json</a>'
+                          f'<br><a href="activities.html?p={esc(nct)}" title="This study on the Activities page, with grain and kind ({how})">'
                           f'{bg["named test"]} named test{"" if bg["named test"] == 1 else "s"} · {bg["unsure"]} unsure</a>')
         grain_td = f'\n            <td class="viz grp-start">{grain_html}</td>' if has_grain else ''
 
@@ -745,20 +755,14 @@ def generate_index_html(collection: str) -> str:
         soa = esc(str(p['soa_pages'])) if p['soa_pages'] else ''
         study_code = esc(str(p['study_code'])) if p['study_code'] else ''
         acronym = esc(str(p['study_acronym'])) if p['study_acronym'] else ''
-        prov_td = ''
-        if provenance:
-            ref = esc(str(p['provenance_ref'])) if p['provenance_ref'] else ''
-            prov_cell = (f'<a href="{esc(provenance["url_template"].replace("{value}", str(p["provenance_ref"])))}" '
-                         f'target="_blank" rel="noopener">{ref}</a>'
-                         if ref else '')
-            prov_td = f'\n            <td class="prov-ref">{prov_cell}</td>'
+        sponsor_td = f'\n            <td class="sponsor">{esc(p["sponsor"])}</td>'
         nct_cell = (f'<a href="https://clinicaltrials.gov/study/{nct}" target="_blank">{nct}</a>'
                     if nct.startswith('NCT') else nct)
 
         row_cls = 'ready' if is_ready else 'pending-row'
 
         return f'''<tr class="{row_cls}" id="{esc(nct)}">
-            <td class="nct">{nct_cell}</td>{prov_td}
+            <td class="nct">{nct_cell}</td>{sponsor_td}
             <td class="study-code">{study_code}</td>
             <td class="acronym">{acronym}</td>
             <td class="soa-pages">{soa}</td>
@@ -772,10 +776,9 @@ def generate_index_html(collection: str) -> str:
         </tr>'''
     
     def excluded_row(e: dict) -> str:
-        prov_td = f'<td class="prov-ref">{esc(e["provenance_ref"])}</td>' if provenance else ''
         return f'''
         <tr class="excluded-row" id="{esc(e['nct_id'])}">
-            <td class="nct">{esc(e['nct_id'])}</td>{prov_td}
+            <td class="nct">{esc(e['nct_id'])}</td><td class="sponsor">{esc(e['sponsor'])}</td>
             <td class="study-code">{esc(e['study_code'])}</td>
             <td class="acronym">{esc(e['study_acronym'])}</td>
             <td class="excluded-reason" colspan="{8 + has_context + has_grain}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
@@ -784,8 +787,7 @@ def generate_index_html(collection: str) -> str:
     ready_rows = ''.join(protocol_row(p) for p in ready)
     pending_rows = ''.join(protocol_row(p) for p in pending)
     excluded_rows = ''.join(excluded_row(e) for e in excluded)
-    prov_th = f'<th>{esc(provenance["label"])}</th>' if provenance else ''
-    id_cols = 6 if provenance else 5
+    id_cols = 6
     ctx_grp_th = ('<th class="grp" title="Read from the full protocol, beyond the SoA tables">Beyond the SoA</th>'
                   if has_context else '')
     ctx_th = ('<th class="grp-start" title="Protocol context per study (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md): page and JSON">Protocol context</th>'
@@ -839,6 +841,7 @@ def generate_index_html(collection: str) -> str:
         .nct a:hover { text-decoration: underline; }
         .study-code, .prov-ref, .soa-pages, .stats { font-family: ui-monospace, "SF Mono", Menlo, monospace;
             font-size: 11px; color: var(--muted); white-space: nowrap; }
+        .sponsor { color: var(--muted); }
         .prov-ref a { color: var(--muted); text-decoration: none; }
         .prov-ref a:hover { color: var(--blue2); text-decoration: underline; }
         .acronym { white-space: nowrap; }
@@ -887,7 +890,7 @@ def generate_index_html(collection: str) -> str:
             <thead><tr class="groups">
                 <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>{ctx_grp_th}{grain_grp_th}
             </tr><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}{grain_th}
+                <th>NCT ID</th><th>Sponsor</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}{grain_th}
             </tr></thead>
             <tbody>
                 {ready_rows}

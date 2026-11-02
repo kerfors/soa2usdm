@@ -335,7 +335,7 @@ tr.open .nbtn{font-weight:600}
 .fn .where{color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-right:6px}
 .fn .ref{color:var(--muted);margin-left:6px;white-space:nowrap}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--muted)}
-td.gr{white-space:nowrap}.grole{color:var(--muted);font-style:italic}
+td.gr{white-space:nowrap}td.gr a{color:var(--ink);text-decoration:none}td.gr a:hover{color:var(--blue2);text-decoration:underline}.grole{color:var(--muted)!important;font-style:italic}
 .gai{font-size:10px;color:#8a5a00;background:#fff3d6;border-radius:3px;padding:0 3px;margin-left:4px}
 .gnote{padding:7px 12px;font-size:11.5px;color:var(--muted);border-bottom:1px solid var(--line)}
 .gnote a{color:var(--blue2)}
@@ -411,8 +411,9 @@ function row(r,i,term){
 }
 function grainCells(r){
  if(!r.grain)return '<td class="gr"></td><td class="gr"></td>';
- const t=`rule ${r._gr} · source ${r._gs}`;
- return `<td class="gr" title="${eh(t)}"><span${r._grole?' class="grole"':''}>${eh(r.grain)}</span>${r._gs==='ai_proposed'?'<span class="gai" title="AI proposal, not reviewed">AI</span>':''}</td><td class="gr" title="${eh(t)}">${eh(r.finding_kind)}</td>`;
+ const t=`rule ${r._gr} · source ${r._gs} — show on the study's activity grain page`;
+ const gp=`${encodeURIComponent(r.protocol_id)}/SoA2USDM/grain/${encodeURIComponent(r.protocol_id)}_activity_grain.html#${r.xact_id}`;
+ return `<td class="gr" title="${eh(t)}"><a href="${gp}"${r._grole?' class="grole"':''}>${eh(r.grain)}</a>${r._gs==='ai_proposed'?'<span class="gai" title="AI proposal, not reviewed">AI</span>':''}</td><td class="gr" title="${eh(t)}">${eh(r.finding_kind)}</td>`;
 }
 function detail(r){const term=q.value.trim().toLowerCase();
  const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(v=>hl(v,term)).join('</b> · <b>')}</b></div>`:'';

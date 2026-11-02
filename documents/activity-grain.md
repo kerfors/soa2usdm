@@ -142,8 +142,12 @@ python -m soa2usdm.activity_grain --collection cell_gene_therapy --protocol NCT0
 ```
 
 The step reads the study's rows as the inventory builds them (`activity_inventory.collect_rows`), so it runs after consolidation, before the
-collection pages are built. The collection index (column "Activity grain") and the Activities page (columns Grain and Kind) read the grain
-files. They check each file against its inputs, and **stop on a stale file** with the command to rerun. Notebook: `notebooks/02_activity_grain.ipynb`.
+collection pages are built. The collection index renders a page per study, `SoA2USDM/grain/<id>_activity_grain.html`
+(`soa2usdm.activity_grain_page`). The page shows counts, then every activity with its grain, kind, rule and evidence, and each decision with
+its basis resolved. It carries the shared navigation: "activity grain" in the strip of every protocol page, and the breadcrumb back to the
+study's row on the index. The index column "Activity grain" links the page, the JSON, and the study on the Activities page. On the Activities
+page, the Grain and Kind columns link each row to its row on the grain page. Before any page is rendered, the index and the Activities page
+check each grain file against its inputs, and **stop on a stale file** with the command to rerun. Notebook: `notebooks/02_activity_grain.ipynb`.
 
 ## Status
 

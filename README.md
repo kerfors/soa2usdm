@@ -98,6 +98,7 @@ soa2usdm/
 │   ├── collections_index.py         # Root index across collections
 │   ├── activity_inventory.py        # Collection activity inventory (activities.json/.html)
 │   ├── activity_grain.py            # Activity grain per study: rules, kind of finding, decisions
+│   ├── activity_grain_page.py       # Activity grain page per study (grain/*_activity_grain.html)
 │   ├── protocol_context_page.py     # Protocol context page per study (context/*_protocol_context.html)
 │   ├── nav.py                       # Shared navigation for all generated pages
 │   ├── page_grid.py                 # Rule-line cell geometry (vector + raster)
@@ -142,7 +143,7 @@ The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to
 Per protocol, beyond the SoA tables: `tools/protocol_context_inputs.py` prepares the inputs, a Claude session runs [`prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md`](prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md) (cell and gene therapy profile: product, immunogenicity, panels, assays, abbreviations and more, each value with its page and quote), and `tools/check_protocol_context.py` checks the result. Output: `SoA2USDM/context/{NCTID}_protocol_context.json`, shown on the collection index (column "Protocol context"). See [`tools/README.md`](tools/README.md).
 
 **Activity grain (Python):**
-`python -m soa2usdm.activity_grain --collection <name> [--protocol <NCTID>]` tags every activity of a study with its grain (named test, panel, procedure, instrument, sample collection, other, unsure) and, for a named test, the kind of finding. Each tag cites its rule and its public cdisc-for-ai lookup hits. A hand-kept decisions file per study holds AI proposals and reviews for what the rules leave open. Output: `SoA2USDM/grain/`, shown on the collection index and the Activities page. Needs the `grain` extra and a cdisc-for-ai checkout next to this repo. See [`documents/activity-grain.md`](documents/activity-grain.md).
+`python -m soa2usdm.activity_grain --collection <name> [--protocol <NCTID>]` tags every activity of a study with its grain (named test, panel, procedure, instrument, sample collection, other, unsure) and, for a named test, the kind of finding. Each tag cites its rule and its public cdisc-for-ai lookup hits. A hand-kept decisions file per study holds AI proposals and reviews for what the rules leave open. Output: `SoA2USDM/grain/`, with a page per study (shared navigation, linked from the collection index and the Activities page). Needs the `grain` extra and a cdisc-for-ai checkout next to this repo. See [`documents/activity-grain.md`](documents/activity-grain.md).
 
 **USDM Instantiation (manual step):**
 Per protocol: write the manifest, run `python -m soa2usdm.usdmgen`, then `tools/usdm_gate.py` — the steps are in [`documents/usdm-instantiation.md`](documents/usdm-instantiation.md), *Running it*. Needs `pip install -e '.[shell,usdm-gate]'` and the usdm-rdf checkout next to this repo.
