@@ -412,7 +412,7 @@ def esc(text) -> str:
 
 
 def render_review_html(model: dict) -> str:
-    data = json.dumps(model, ensure_ascii=False).replace("</", "<\\/")
+    data = json.dumps(model, ensure_ascii=False).translate(config.SYMBOL_FONT).replace("</", "<\\/")
     pid = esc(model["protocol_id"])
     n_tables = len(model["tables"])
     pages = sorted({p["doc_page"] for t in model["tables"] for p in t["pages"]})

@@ -50,6 +50,10 @@ RESOLVED_SCHEMA = SCHEMAS_DIR / "soa-table-resolved.schema.json"
 CONSOLIDATED_SCHEMA = SCHEMAS_DIR / "soa-tables-consolidated.schema.json"
 CORRECTIONS_SCHEMA = SCHEMAS_DIR / "soa-table-corrections.schema.json"
 
+# Private-use characters that the PDF text layer gives for Symbol-font glyphs. Generated pages display
+# them as the real character; the data keeps them verbatim (quotes must match the page text).
+SYMBOL_FONT = str.maketrans({"\uf0b7": "•", "\uf061": "α", "\uf067": "γ"})
+
 
 # =============================================================================
 # Path Discovery Functions

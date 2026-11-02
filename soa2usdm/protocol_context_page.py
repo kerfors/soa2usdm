@@ -37,7 +37,7 @@ SECTIONS = [
 
 
 def esc(v) -> str:
-    return html_lib.escape(str(v))
+    return html_lib.escape(str(v).translate(config.SYMBOL_FONT))
 
 
 def context_paths(protocol_id: str, collection: str) -> tuple:
