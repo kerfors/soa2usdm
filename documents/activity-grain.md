@@ -92,13 +92,15 @@ What the rules leave to decide is decided in a file per study, `SoA2USDM/grain/<
 AI proposals are made in three steps per study:
 
 1. **Gather (code).** `python -m soa2usdm.activity_grain_inputs --collection <name> [--protocol <NCTID>]` writes
-   `SoA2USDM/grain/<id>_grain_inputs.json` (schema `soa2usdm-activity-grain-inputs` 1.0) from public files only. Its items are the labels
+   `SoA2USDM/grain/<id>_grain_inputs.json` (schema `soa2usdm-activity-grain-inputs` 1.1) from public files only. Its items are the labels
    whose rule result leaves something to decide and that have a row without a role: **grain unsure** (no grain), **kind unsure** (a named
-   test without a single kind from K1) and **sample collection** (a finding may be named in it). Per item: spellings, rows and parents, the
-   rule result, the SoA annotations bound to its rows or their parents, the protocol context `lab_and_purpose` entries for the label, and the
-   abbreviations in the label. Per study: the context categories with no link to an SoA row (product, immunogenicity, endpoint assays,
-   genetic testing). CDISC: every Domain_Coverage row with the kind it gives, and the test rows the rules hit. Every context entry carries its
-   JSON Pointer. The file has no generation time: the same inputs give the same file. It needs the study's protocol context.
+   test without a single kind from K1), **sample collection** (a finding may be named in it) and **procedure by word list** (procedure from
+   W2 or a weak hit, not from a strong L3 METHOD phrase; a measure may be named in it, as in "ALLO-501A in BM aspirate"). Per item:
+   spellings, rows and parents, the rule result, the SoA annotations bound to its rows or their parents, the protocol context
+   `lab_and_purpose` entries for the label, and the abbreviations in the label. Per study: the context categories with no link to an SoA row
+   (product, immunogenicity, endpoint assays, genetic testing). CDISC: every Domain_Coverage row with the kind it gives, and the test rows
+   the rules hit. Every context entry carries its JSON Pointer. The file has no generation time: the same inputs give the same file. It
+   needs the study's protocol context.
 2. **Propose (prompt).** A Claude session runs [`prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md`](../prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md)
    on that one file and writes the decisions file: one decision per item, nothing else.
 3. **Check (generator).** `python -m soa2usdm.activity_grain` checks the decisions (below) and writes the grain file.
@@ -181,7 +183,7 @@ Status on 2026-11-02, with cdisc-for-ai `75ef8dd` (SDTM CT 2026-09-25):
 
 | Collection | Studies | Rows with a grain | named test | unsure | Decisions |
 |---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 229 | 56 | 7 | AI proposals (120, prompt 1.0.0, not reviewed) |
+| cell_gene_therapy | 5 | 229 | 59 | 7 | AI proposals (144, prompt 1.1.0, not reviewed) |
 | usdm_data | 22 | 811 | 70 | 337 | rules only |
 | cpmp | 13 | 303 | 27 | 107 | rules only |
 | misc_studies | 2 | 82 | 16 | 25 | rules only |

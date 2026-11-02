@@ -5,7 +5,7 @@ Gathers, by code, everything the activity grain decisions prompt
 (prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md) may use for one study, into one
 self-contained file:
 
-    SoA2USDM/grain/<id>_grain_inputs.json   (schema soa2usdm-activity-grain-inputs 1.0)
+    SoA2USDM/grain/<id>_grain_inputs.json   (schema soa2usdm-activity-grain-inputs 1.1)
 
 The prompt reads this file and nothing else. The generator
 (soa2usdm.activity_grain) accepts an ai_proposed decision only for a phrase
@@ -15,9 +15,12 @@ study's files as they are now.
 Items are the labels whose rule result leaves something to decide (rules
 alone, decisions ignored), and that have at least one row without a role:
 
-    grain unsure       the rules give no grain
-    kind unsure        the rules give a named test, but rule K1 no single kind
-    sample collection  the rules give sample collection (a finding may be named in it)
+    grain unsure              the rules give no grain
+    kind unsure               the rules give a named test, but rule K1 no single kind
+    sample collection         the rules give sample collection (a finding may be named in it)
+    procedure by word list    the rules give procedure from a word list or a weak hit, not
+                              from a strong whole-label METHOD phrase (L3); a measure may be
+                              named in it ("ALLO-501A in BM aspirate")
 
 Per item: the label's spellings and rows (xact_id, parent), the rule result,
 the SoA annotations bound to its rows or to their parents, the protocol context
@@ -42,8 +45,8 @@ from . import activity_grain as ag
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain-inputs"
-SCHEMA_VERSION = "1.0"
-ITEM_TYPES = ("grain unsure", "kind unsure", "sample collection")
+SCHEMA_VERSION = "1.1"
+ITEM_TYPES = ("grain unsure", "kind unsure", "sample collection", "procedure by word list")
 STUDY_CATEGORIES = ("product", "immunogenicity", "endpoint_assays", "genetic_testing")
 RULE_KEYS_LEFT_OUT = ("phrase", "spellings", "decision")
 
@@ -56,6 +59,8 @@ def item_type(label: dict) -> str | None:
         return "kind unsure"
     if label["grain"] == "sample collection":
         return "sample collection"
+    if label["grain"] == "procedure" and not (label["rule_id"] == "L3" and label["hit_strength"] == "strong"):
+        return "procedure by word list"
     return None
 
 

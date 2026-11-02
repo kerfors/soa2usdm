@@ -1,6 +1,6 @@
 # Activity grain decisions — grain and kind for what the rules leave to decide
 
-Prompt version: 1.0.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.0 · Output schema: `soa2usdm-activity-grain-decisions` 1.1
+Prompt version: 1.1.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.1 · Output schema: `soa2usdm-activity-grain-decisions` 1.1
 
 You decide the grain of SoA activities of ONE study and, for a named test, the kind of finding. The grain rules of
 `soa2usdm.activity_grain` have already run; you decide only the labels they left to decide. Every decision cites what it rests on, and
@@ -13,7 +13,8 @@ nothing else: not the protocol PDF, not other files of the repositories, not CDI
 
 - `items[]` — the labels to decide, one per `phrase`:
   - `item_type`: `grain unsure` (the rules give no grain), `kind unsure` (the rules give a named test but no single kind),
-    `sample collection` (the rules give sample collection; a finding may be named in it);
+    `sample collection` (the rules give sample collection; a finding may be named in it), `procedure by word list` (the rules give
+    procedure from a word such as biopsy, aspirate or ECG, or from a weak hit; a measure may be named in it);
   - `spellings`, `rows` (xact_id, parent, whether the parent is a section header);
   - `rule`: the rule result (rule_id, lookup hits, qualifiers, list members, flags, kind domains);
   - `annotations`: SoA footnotes bound to the rows (`via: row`) or to their parent (`via: parent`), with `xannot_id`;
@@ -49,6 +50,9 @@ a product, and cytokine-secreting cells → domain IS (kind immunogenicity); a d
    - `sample collection`: keep `sample collection` unless the label, a footnote or a cited context entry names what is measured. Then decide
      `named test` (one test) or `panel` (several), and say in the rationale which words name it.
    - `kind unsure`: decide the kind from the domains in `rule.kind_domains` and the cited facts, or keep `unsure`.
+   - `procedure by word list`: keep `procedure` unless the label, a footnote or a cited context entry names what is measured in the
+     material or images the procedure yields ("ALLO-501A in BM aspirate": the measure is ALLO-501A, the aspirate is where it is measured).
+     Then decide `named test` (one measure) or `panel` (several), and say in the rationale which words name it.
 3. **Kind rule.** A named test with a kind other than `unsure` cites at least one cdisc entry whose domain gives that kind: the
    Domain_Coverage row (`{"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}`), or a test row from `cdisc.tests`
    (`{"type": "cdisc", "file": "SDTM_Test_Identity", "code": "…", "testcd": "…"}`, copied exactly). If the input does not settle one

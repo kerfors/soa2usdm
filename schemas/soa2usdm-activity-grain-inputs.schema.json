@@ -44,7 +44,8 @@
     "schema_version": {
       "type": "string",
       "enum": [
-        "1.0"
+        "1.0",
+        "1.1"
       ]
     },
     "collection": {
@@ -121,8 +122,10 @@
             "enum": [
               "grain unsure",
               "kind unsure",
-              "sample collection"
-            ]
+              "sample collection",
+              "procedure by word list"
+            ],
+            "description": "procedure by word list (1.1): the rules gave procedure from a word list (W2) or a weak hit, not from a strong whole-label METHOD phrase (L3)."
           },
           "spellings": {
             "type": "array",
