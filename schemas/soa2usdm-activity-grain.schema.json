@@ -154,7 +154,7 @@
       "required": [
         "type"
       ],
-      "description": "What a decision rests on. label: the label text; annotation: a footnote or other SoA annotation (xannot_id in the study's consolidated.json); context: an entry of the study's protocol context file (JSON Pointer); page: a protocol page inside the context file's pages_covered, when no context entry holds the fact.",
+      "description": "What a decision rests on. label: the label text; annotation: a footnote or other SoA annotation (xannot_id in the study's consolidated.json); context: an entry of the study's protocol context file (JSON Pointer); page: a protocol page inside the context file's pages_covered, when no context entry holds the fact. cdisc (1.1): a row of a public cdisc-for-ai file at the commit the grain file records — Domain_Coverage (domain), SDTM_Test_Identity / SDTM_Instrument_Identity (NCIt code + TESTCD), Codelist_Phrases (codelist + term code).",
       "oneOf": [
         {
           "properties": {
@@ -208,6 +208,73 @@
             "page"
           ],
           "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "cdisc"
+            },
+            "file": {
+              "const": "Domain_Coverage"
+            },
+            "domain": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "file",
+            "domain"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "cdisc"
+            },
+            "file": {
+              "enum": [
+                "SDTM_Test_Identity",
+                "SDTM_Instrument_Identity"
+              ]
+            },
+            "code": {
+              "type": "string",
+              "pattern": "^C[0-9]+$"
+            },
+            "testcd": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "file",
+            "code",
+            "testcd"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "cdisc"
+            },
+            "file": {
+              "const": "Codelist_Phrases"
+            },
+            "codelist": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string",
+              "pattern": "^C[0-9]+$"
+            }
+          },
+          "required": [
+            "file",
+            "codelist",
+            "code"
+          ],
+          "additionalProperties": false
         }
       ]
     }
@@ -221,7 +288,8 @@
     "schema_version": {
       "type": "string",
       "enum": [
-        "1.0"
+        "1.0",
+        "1.1"
       ],
       "description": "Schema version."
     },
@@ -320,6 +388,22 @@
           ],
           "additionalProperties": false,
           "description": "The study's decisions file, when it has one; null = rules only.",
+          "properties": {
+            "sha256": {
+              "type": "string"
+            }
+          }
+        },
+        "grain_inputs": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "description": "The study's grain inputs file (<id>_grain_inputs.json), when it has one; required from 1.1 on.",
           "properties": {
             "sha256": {
               "type": "string"
@@ -642,6 +726,12 @@
               },
               "proposed_at": {
                 "type": "string"
+              },
+              "prompt_version": {
+                "type": "string"
+              },
+              "inputs_sha256": {
+                "type": "string"
               }
             }
           }
@@ -775,5 +865,25 @@
       },
       "description": "One entry per activity of the study, in inventory order."
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.1"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "inputs": {
+            "required": [
+              "grain_inputs"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }

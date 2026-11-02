@@ -1,0 +1,361 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-grain-inputs.json",
+  "title": "SoA2USDM Activity Grain Inputs Schema",
+  "description": "<id>_grain_inputs.json of a study (SoA2USDM/grain/): everything the grain decisions prompt (prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md) may use for the study, gathered by code (soa2usdm.activity_grain_inputs) from public files only. The prompt reads this file and nothing else; ai_proposed decisions are allowed only for the phrases of its items. No generation time: the same inputs give the same file.",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "collection",
+    "protocol_id",
+    "sources",
+    "items",
+    "study",
+    "cdisc"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "context_entry": {
+      "type": "object",
+      "required": [
+        "pointer",
+        "entry"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "pointer": {
+          "type": "string",
+          "pattern": "^/[a-z_]+/[0-9]+$",
+          "description": "JSON Pointer into the study's protocol context file."
+        },
+        "entry": {
+          "type": "object",
+          "description": "The context entry, copied as it is."
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "soa2usdm-activity-grain-inputs"
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "1.0"
+      ]
+    },
+    "collection": {
+      "type": "string"
+    },
+    "protocol_id": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "object",
+      "required": [
+        "inventory_rows",
+        "consolidated",
+        "protocol_context",
+        "cdisc_for_ai",
+        "rules_version",
+        "word_lists_date"
+      ],
+      "additionalProperties": false,
+      "description": "What the file was gathered from; the same records as the grain file's inputs.",
+      "properties": {
+        "inventory_rows": {
+          "type": "object"
+        },
+        "consolidated": {
+          "type": "object"
+        },
+        "protocol_context": {
+          "type": "object",
+          "required": [
+            "sha256",
+            "prompt_version"
+          ]
+        },
+        "cdisc_for_ai": {
+          "type": "object",
+          "required": [
+            "commit",
+            "reference_versions",
+            "files"
+          ]
+        },
+        "rules_version": {
+          "type": "string"
+        },
+        "word_lists_date": {
+          "type": "string"
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "description": "One per label left to decide (rules alone), sorted by phrase.",
+      "items": {
+        "type": "object",
+        "required": [
+          "phrase",
+          "item_type",
+          "spellings",
+          "rows",
+          "rule",
+          "annotations",
+          "lab_and_purpose",
+          "abbreviations"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "phrase": {
+            "type": "string",
+            "description": "Normalised label; the key of a decision."
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "grain unsure",
+              "kind unsure",
+              "sample collection"
+            ]
+          },
+          "spellings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "minItems": 1,
+            "description": "The label's rows without a role.",
+            "items": {
+              "type": "object",
+              "required": [
+                "xact_id",
+                "activity_name",
+                "parent_xact_id",
+                "parent_name",
+                "parent_is_section_header"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "xact_id": {
+                  "type": "string"
+                },
+                "activity_name": {
+                  "type": "string"
+                },
+                "parent_xact_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "parent_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "parent_is_section_header": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "rule": {
+            "type": "object",
+            "required": [
+              "grain",
+              "rule_id"
+            ],
+            "description": "The label's rule result as in the grain file's labels[] (grain, rule_id, hits, qualifiers, members, flags, kind fields)."
+          },
+          "annotations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "xannot_id",
+                "annotation_type",
+                "via",
+                "text"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "xannot_id": {
+                  "type": "string",
+                  "pattern": "^xannot-[0-9]+$"
+                },
+                "annotation_type": {
+                  "type": "string"
+                },
+                "via": {
+                  "type": "string",
+                  "enum": [
+                    "row",
+                    "parent"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "lab_and_purpose": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/context_entry"
+            },
+            "description": "Context entries whose soa_activity is one of the spellings."
+          },
+          "abbreviations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/context_entry"
+            },
+            "description": "Context abbreviations whose term occurs in the label (whole normalised tokens)."
+          }
+        }
+      }
+    },
+    "study": {
+      "type": "object",
+      "required": [
+        "product",
+        "immunogenicity",
+        "endpoint_assays",
+        "genetic_testing"
+      ],
+      "additionalProperties": false,
+      "description": "Protocol context categories with no link to an SoA row, whole.",
+      "properties": {
+        "product": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/context_entry"
+          }
+        },
+        "immunogenicity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/context_entry"
+          }
+        },
+        "endpoint_assays": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/context_entry"
+          }
+        },
+        "genetic_testing": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/context_entry"
+          }
+        }
+      }
+    },
+    "cdisc": {
+      "type": "object",
+      "required": [
+        "domains",
+        "tests"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "domains": {
+          "type": "array",
+          "description": "Every Domain_Coverage row, with the kind of finding it gives (rule K1 for one domain); kind null = no kind.",
+          "items": {
+            "type": "object",
+            "required": [
+              "domain",
+              "domain_name",
+              "observation_class",
+              "consumer",
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "domain": {
+                "type": "string"
+              },
+              "domain_name": {
+                "type": "string"
+              },
+              "observation_class": {
+                "type": "string"
+              },
+              "consumer": {
+                "type": "string"
+              },
+              "kind": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "specimen",
+                  "immunogenicity",
+                  "measurement",
+                  "instrument",
+                  "pc",
+                  "genomics",
+                  null
+                ]
+              }
+            }
+          }
+        },
+        "tests": {
+          "type": "array",
+          "description": "Test and instrument rows the rules hit for the items (and their list members).",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "code",
+              "testcd",
+              "test",
+              "domains"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "enum": [
+                  "SDTM_Test_Identity",
+                  "SDTM_Instrument_Identity"
+                ]
+              },
+              "code": {
+                "type": "string"
+              },
+              "testcd": {
+                "type": "string"
+              },
+              "test": {
+                "type": "string"
+              },
+              "domains": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

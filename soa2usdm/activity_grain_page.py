@@ -56,6 +56,11 @@ def _basis(b: dict, annotations: dict, context: dict | None) -> str:
         pages = sorted({ev["page"] for ev in e.get("evidence", [])}) if isinstance(e, dict) else []
         pg = f' (p.&nbsp;{esc(", ".join(map(str, pages)))})' if pages else ""
         return f'protocol context <code>{esc(b["pointer"])}</code>: {esc(head)}{pg}'
+    if t == "cdisc":
+        key = {"Domain_Coverage": lambda: b["domain"],
+               "Codelist_Phrases": lambda: f'{b["codelist"]} {b["code"]}'}.get(
+            b["file"], lambda: f'{b["code"]} {b["testcd"]}')()
+        return f'cdisc-for-ai {esc(b["file"])} <code>{esc(key)}</code>'
     return f'protocol p.&nbsp;{esc(b["page"])}'
 
 
@@ -125,6 +130,8 @@ def render(protocol_id: str, collection: str) -> Path:
                                    + ([f"{n_rv} reviewed decisions"] if n_rv else []))
            if decided else 'Rules only: <i>unsure</i> means not yet resolved')
     decisions_link = f' · <a href="{esc(decisions_name)}">decisions</a>' if ins["decisions"] else ""
+    if g["schema_version"] != "1.0" and ins["grain_inputs"]:
+        decisions_link += f' · <a href="{esc(protocol_id)}_grain_inputs.json">decision inputs</a>'
 
     rows = []
     for r in g["activities"]:

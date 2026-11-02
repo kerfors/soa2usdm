@@ -127,9 +127,17 @@ python -m soa2usdm.activity_grain --collection usdm_data                        
 python -m soa2usdm.activity_grain --collection usdm_data --protocol NCT00000000 # one study
 ```
 
-Order: consolidation → activity grain → collection index and activity inventory. The index and the Activities page check each grain file against its inputs (the study's inventory rows, `consolidated.json`, protocol context, decisions) and stop on a stale one with the command to rerun. A rerun of consolidation or of the protocol context therefore needs a rerun of the grain.
+Order: consolidation → activity grain → collection index and activity inventory. The index and the Activities page check each grain file against its inputs (the study's inventory rows, `consolidated.json`, protocol context, decisions, grain inputs) and stop on a stale one with the command to rerun. A rerun of consolidation or of the protocol context therefore needs a rerun of the grain.
 
-Decisions for what the rules leave unsure go in `SoA2USDM/grain/{NCTID}_activity_grain_decisions.json` (schema `soa2usdm-activity-grain-decisions`). The file is hand-kept and the generator only reads it. When the protocol context is extracted again, the generator stops until the decisions are checked against the new context and their `protocol_context` record is updated.
+Decisions for what the rules leave to decide go in `SoA2USDM/grain/{NCTID}_activity_grain_decisions.json` (schema `soa2usdm-activity-grain-decisions`); the generator only reads it. AI proposals, where the study has a protocol context:
+
+```
+python -m soa2usdm.activity_grain_inputs --collection cell_gene_therapy --protocol NCT00000000   # gather: grain/{NCTID}_grain_inputs.json
+# a Claude session runs prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md on that one file → grain/{NCTID}_activity_grain_decisions.json
+python -m soa2usdm.activity_grain --collection cell_gene_therapy --protocol NCT00000000          # check + generate
+```
+
+The generator stops when the grain inputs file is stale, when an AI decision was made from another inputs file, or when a cited entry or cdisc row does not check out (see `documents/activity-grain.md`). When the protocol context is extracted again, gather and propose again.
 
 ---
 
@@ -174,7 +182,8 @@ After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extr
 └── grain/                                            # where run
     ├── {NCTID}_activity_grain.json                   # generated
     ├── {NCTID}_activity_grain.html                   # page, rendered with the collection index
-    └── {NCTID}_activity_grain_decisions.json         # hand-kept (where needed)
+    ├── {NCTID}_grain_inputs.json                     # gathered for the decisions prompt (where AI proposals are made)
+    └── {NCTID}_activity_grain_decisions.json         # from the prompt and reviews (where needed)
 ```
 
 ---

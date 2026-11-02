@@ -9,7 +9,9 @@ parentheses, a word-list word after 'for', a dropped qualifier, the panel list
 gate. One case runs on the real cdisc-for-ai lookups and is skipped without it.
 
 The decisions tests are negative controls: one valid file, then one fault per
-check, each of which must stop the generator.
+check, each of which must stop the generator. They include the 1.1 checks: the
+grain inputs file (phrase listed, sha256 current), prompt_version, the cdisc
+basis entries (domain, code + TESTCD, codelist term) and the kind rule.
 """
 import json
 from pathlib import Path
@@ -38,19 +40,27 @@ def _test(value, code, testcd, domains, field="TEST", source="CT"):
 class Stub(ag.Lookups):
     """Lookups with hand-made indexes; the methods are the real ones."""
 
-    def __init__(self, tests=(), instruments=(), consumer=None):
+    def __init__(self, tests=(), instruments=(), consumer=None, phrase_codes=()):
         self.test, self.test_compact = {}, {}
         self.instrument, self.phrase, self.spectype_phrases = {}, {}, set()
+        self.test_by_code, self.instrument_by_code = {}, {}
         for h in tests:
             p = ag.normalise(h["as_published"])
             self.test.setdefault(p, []).append(h)
             self.test_compact.setdefault(p.replace(" ", ""), []).append(h)
+            self.test_by_code[h["code"]] = {"testcd": h["submission_value"], "test": h["as_published"],
+                                            "domains": h["domains"]}
         for h in instruments:
             self.instrument.setdefault(ag.normalise(h["as_published"]), []).append(h)
+            self.instrument_by_code[h["code"]] = {"testcd": h["submission_value"], "test": h["as_published"],
+                                                  "domains": h["domains"]}
         self.consumer = consumer or {"LB": "Specimen_Findings", "IS": "Immunogenicity_Findings",
                                      "VS": "Measurement_Findings", "CV": "Measurement_Findings",
                                      "QS": "Instrument_Findings", "PC": "Specimen_Findings",
                                      "GF": "", "SC": ""}
+        self.domain_rows = {d: {"domain": d, "domain_name": d, "observation_class": "Findings", "consumer": c}
+                            for d, c in self.consumer.items()}
+        self.phrase_codes = set(phrase_codes)
 
 
 CL = _test("CL", "C64495", "CL", "LB", field="TESTCD")
@@ -61,7 +71,9 @@ POTASSIUM = _test("Potassium", "C64853", "K", "LB")
 PHQ9 = {"file": "SDTM_Instrument_Identity", "sheet": "Instruments", "field": "Instrument_Label",
         "source": "CT", "as_published": "PHQ-9", "code": "C103534", "submission_value": "PHQ01",
         "domains": "QS"}
-LK = Stub(tests=[CL, CHLORIDE, BILI, SODIUM, POTASSIUM], instruments=[PHQ9])
+CYKSCCL = _test("Cytokine-secreting Cells", "C181400", "CYKSCCL", "IS")
+LK = Stub(tests=[CL, CHLORIDE, BILI, SODIUM, POTASSIUM, CYKSCCL], instruments=[PHQ9],
+          phrase_codes=[("SPECTYPE", "C13325")])
 
 
 # ---------------------------------------------------------------------------
@@ -187,6 +199,10 @@ CONTEXT = {"sha256": "c" * 64, "prompt_version": "1.0.0",
 ANNOTATIONS = {"xannot-001"}
 
 
+INPUTS = {"sha256": "e" * 64, "phrases": {"anti aav5 antibodies"}}
+IS_ROW = {"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}
+
+
 def _labels():
     return {"anti aav5 antibodies": {"grain": "unsure"}, "eligibility check": {"grain": "other"}}
 
@@ -195,14 +211,19 @@ def _decision(**kw):
     d = {"phrase": "anti aav5 antibodies", "grain": "named test", "finding_kind": "immunogenicity",
          "source": "ai_proposed", "rationale": "One assay.",
          "basis": [{"type": "label"}, {"type": "context", "pointer": "/immunogenicity/0"},
-                   {"type": "annotation", "xannot_id": "xannot-001"}, {"type": "page", "page": 7}],
-         "proposed_by": "test", "proposed_at": "2026-11-02"}
+                   {"type": "annotation", "xannot_id": "xannot-001"}, {"type": "page", "page": 7}, IS_ROW],
+         "proposed_by": "test", "proposed_at": "2026-11-02",
+         "prompt_version": "1.0.0", "inputs_sha256": INPUTS["sha256"]}
     d.update(kw)
     return {k: v for k, v in d.items() if v is not None}
 
 
-def _write(tmp_path, monkeypatch, decisions, context=CONTEXT):
-    doc = {"schema_name": "soa2usdm-activity-grain-decisions", "schema_version": "1.0",
+def _load(labels=None, context=CONTEXT, inputs=INPUTS):
+    return ag._load_decisions("NCT0", "c", labels or _labels(), context, ANNOTATIONS, LK, inputs)
+
+
+def _write(tmp_path, monkeypatch, decisions, context=CONTEXT, version="1.1"):
+    doc = {"schema_name": "soa2usdm-activity-grain-decisions", "schema_version": version,
            "protocol_id": "NCT0", "decisions": decisions,
            "protocol_context": ({"sha256": context["sha256"], "prompt_version": context["prompt_version"]}
                                 if context else None)}
@@ -216,14 +237,51 @@ def test_valid_decisions_pass_and_validate(tmp_path, monkeypatch):
     doc = _write(tmp_path, monkeypatch, [_decision()])
     jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
     labels = _labels()
-    out, sha = ag._load_decisions("NCT0", "c", labels, CONTEXT, ANNOTATIONS)
+    out, sha = _load(labels)
     assert list(out) == ["anti aav5 antibodies"] and len(sha) == 64
     assert labels["anti aav5 antibodies"]["decision"]["finding_kind"] == "immunogenicity"
+    assert labels["anti aav5 antibodies"]["decision"]["inputs_sha256"] == INPUTS["sha256"]
+
+
+@pytest.mark.parametrize("basis", [
+    [{"type": "label"}, {"type": "cdisc", "file": "SDTM_Test_Identity", "code": "C181400", "testcd": "CYKSCCL"}],
+    [{"type": "label"}, IS_ROW, {"type": "cdisc", "file": "Codelist_Phrases", "codelist": "SPECTYPE",
+                                 "code": "C13325"}],
+])
+def test_kind_from_a_cdisc_row_passes(tmp_path, monkeypatch, basis):
+    _write(tmp_path, monkeypatch, [_decision(basis=basis)])
+    _load()
+
+
+def test_kind_unsure_needs_no_cdisc_row(tmp_path, monkeypatch):
+    _write(tmp_path, monkeypatch, [_decision(finding_kind="unsure", basis=[{"type": "label"}])])
+    _load()
+
+
+def test_reviewed_decision_in_a_1_0_file_passes(tmp_path, monkeypatch):
+    d = _decision(phrase="eligibility check", grain="other", finding_kind=None, source="reviewed",
+                  basis=[{"type": "label"}], prompt_version=None, inputs_sha256=None)
+    doc = _write(tmp_path, monkeypatch, [d], version="1.0")
+    jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
+    _load(inputs=None)
 
 
 @pytest.mark.parametrize("decisions, message", [
     ([_decision(phrase="not in the study")], "stale decision"),
-    ([_decision(phrase="eligibility check", grain="other", finding_kind=None)], "rules resolved"),
+    ([_decision(phrase="eligibility check", grain="other", finding_kind=None)], "does not list"),
+    ([_decision(prompt_version=None)], "without prompt_version"),
+    ([_decision(inputs_sha256="f" * 64)], "another grain inputs file"),
+    ([_decision(basis=[{"type": "label"}])], "rests on no cdisc basis entry"),
+    ([_decision(finding_kind="specimen")], "rests on no cdisc basis entry"),
+    ([_decision(basis=[{"type": "cdisc", "file": "Domain_Coverage", "domain": "XX"}])], "not in Domain_Coverage"),
+    ([_decision(basis=[{"type": "cdisc", "file": "SDTM_Test_Identity", "code": "C999", "testcd": "X"}])],
+     "not in SDTM_Test_Identity"),
+    ([_decision(basis=[{"type": "cdisc", "file": "SDTM_Test_Identity", "code": "C181400", "testcd": "CYKSC"}])],
+     "not 'CYKSC'"),
+    ([_decision(basis=[IS_ROW, {"type": "cdisc", "file": "Codelist_Phrases", "codelist": "METHOD",
+                                "code": "C13325"}])], "not a METHOD term"),
+    ([_decision(basis=[{"type": "cdisc", "file": "Domain_Coverage", "code": "C1"}])], "cdisc basis entry not understood"),
+    ([_decision(basis=[{"type": "cdisc", "file": "Findings", "domain": "IS"}])], "cdisc basis entry not understood"),
     ([_decision(finding_kind=None)], "finding_kind is required"),
     ([_decision(grain="panel")], "finding_kind is required"),
     ([_decision(finding_kind="lab")], "unknown finding_kind"),
@@ -238,20 +296,39 @@ def test_valid_decisions_pass_and_validate(tmp_path, monkeypatch):
 def test_faulty_decision_stops(tmp_path, monkeypatch, decisions, message):
     _write(tmp_path, monkeypatch, decisions)
     with pytest.raises(ValueError, match=message):
-        ag._load_decisions("NCT0", "c", _labels(), CONTEXT, ANNOTATIONS)
+        _load()
+
+
+def test_ai_proposed_without_inputs_file_stops(tmp_path, monkeypatch):
+    _write(tmp_path, monkeypatch, [_decision()])
+    with pytest.raises(ValueError, match="no grain inputs file"):
+        _load(inputs=None)
+
+
+def test_ai_proposed_in_a_1_0_file_stops(tmp_path, monkeypatch):
+    _write(tmp_path, monkeypatch, [_decision(prompt_version=None, inputs_sha256=None)], version="1.0")
+    with pytest.raises(ValueError, match="in a 1.0 file"):
+        _load()
+
+
+def test_cdisc_basis_in_a_1_0_file_stops(tmp_path, monkeypatch):
+    d = _decision(source="reviewed", basis=[IS_ROW], prompt_version=None, inputs_sha256=None)
+    _write(tmp_path, monkeypatch, [d], version="1.0")
+    with pytest.raises(ValueError, match="basis entry not understood"):
+        _load()
 
 
 def test_changed_context_stops(tmp_path, monkeypatch):
     _write(tmp_path, monkeypatch, [_decision()])
     changed = CONTEXT | {"sha256": "d" * 64}
     with pytest.raises(ValueError, match="protocol context changed"):
-        ag._load_decisions("NCT0", "c", _labels(), changed, ANNOTATIONS)
+        _load(context=changed)
 
 
 def test_page_basis_without_context_stops(tmp_path, monkeypatch):
-    _write(tmp_path, monkeypatch, [_decision(basis=[{"type": "page", "page": 3}])], context=None)
+    _write(tmp_path, monkeypatch, [_decision(basis=[{"type": "page", "page": 3}, IS_ROW])], context=None)
     with pytest.raises(ValueError, match="without a protocol context file"):
-        ag._load_decisions("NCT0", "c", _labels(), None, ANNOTATIONS)
+        _load(context=None)
 
 
 # ---------------------------------------------------------------------------
@@ -266,15 +343,20 @@ def test_stale_grain_file_stops(tmp_path, monkeypatch):
         "schema_name": ag.SCHEMA_NAME, "schema_version": ag.SCHEMA_VERSION,
         "inputs": {"inventory_rows": {"rows": 1, "sha256": ag.rows_sha256(rows)},
                    "consolidated": {"sha256": ag.hashlib.sha256(b"{}").hexdigest()},
-                   "protocol_context": None, "decisions": None}}))
+                   "protocol_context": None, "decisions": None, "grain_inputs": None}}))
     monkeypatch.setattr(ag, "grain_path", lambda pid, c: grain)
     monkeypatch.setattr(ag, "context_path", lambda pid, c: tmp_path / "none.json")
     monkeypatch.setattr(ag, "decisions_path", lambda pid, c: tmp_path / "none2.json")
+    monkeypatch.setattr(ag, "inputs_path", lambda pid, c: tmp_path / "none3.json")
     monkeypatch.setattr(config, "find_consolidated_file", lambda pid, c: cons)
     assert ag.load_current_grain("c", "NCT0", rows) is not None
     renamed = [rows[0] | {"activity_name": "Chloride (serum)"}]
     with pytest.raises(RuntimeError, match="inventory rows changed"):
         ag.load_current_grain("c", "NCT0", renamed)
+    (tmp_path / "none3.json").write_text("{}")
+    with pytest.raises(RuntimeError, match="grain inputs changed"):
+        ag.load_current_grain("c", "NCT0", rows)
+    (tmp_path / "none3.json").unlink()
     cons.write_text('{"changed": 1}')
     with pytest.raises(RuntimeError, match="consolidated.json changed"):
         ag.load_current_grain("c", "NCT0", rows)

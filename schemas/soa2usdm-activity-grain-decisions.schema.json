@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-grain-decisions.json",
   "title": "SoA2USDM Activity Grain Decisions Schema",
-  "description": "<id>_activity_grain_decisions.json of a study (SoA2USDM/grain/): hand-kept grain decisions for labels of the study, keyed by phrase. ai_proposed decisions only on labels the rules left unsure; reviewed decisions on any label. Read by soa2usdm.activity_grain, never written by it. The checks the generator makes beyond this schema (phrase in the study, pointer resolves, page in pages_covered, xannot_id exists, context unchanged) are listed in documents/activity-grain.md.",
+  "description": "<id>_activity_grain_decisions.json of a study (SoA2USDM/grain/): hand-kept grain decisions for labels of the study, keyed by phrase. ai_proposed decisions only on phrases the study's grain inputs file lists (made by prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md from that file; schema 1.1); reviewed decisions on any label. Read by soa2usdm.activity_grain, never written by it. The checks the generator makes beyond this schema (phrase in the study, pointer resolves, page in pages_covered, xannot_id exists, context unchanged, grain inputs file current, cdisc rows as published, kind supported by a cdisc entry) are listed in documents/activity-grain.md.",
   "type": "object",
   "required": [
     "schema_name",
@@ -18,7 +18,7 @@
       "required": [
         "type"
       ],
-      "description": "label: the label text; annotation: a footnote or other SoA annotation (xannot_id in the study's consolidated.json); context: an entry of the study's protocol context file (JSON Pointer, e.g. /immunogenicity/3); page: a protocol page inside the context file's pages_covered, when no context entry holds the fact.",
+      "description": "label: the label text; annotation: a footnote or other SoA annotation (xannot_id in the study's consolidated.json); context: an entry of the study's protocol context file (JSON Pointer, e.g. /immunogenicity/3); page: a protocol page inside the context file's pages_covered, when no context entry holds the fact. cdisc (1.1): a row of a public cdisc-for-ai file at the commit the grain file records — Domain_Coverage (domain), SDTM_Test_Identity / SDTM_Instrument_Identity (NCIt code + TESTCD), Codelist_Phrases (codelist + term code).",
       "oneOf": [
         {
           "properties": {
@@ -72,6 +72,73 @@
             "page"
           ],
           "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "cdisc"
+            },
+            "file": {
+              "const": "Domain_Coverage"
+            },
+            "domain": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "file",
+            "domain"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "cdisc"
+            },
+            "file": {
+              "enum": [
+                "SDTM_Test_Identity",
+                "SDTM_Instrument_Identity"
+              ]
+            },
+            "code": {
+              "type": "string",
+              "pattern": "^C[0-9]+$"
+            },
+            "testcd": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "file",
+            "code",
+            "testcd"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "cdisc"
+            },
+            "file": {
+              "const": "Codelist_Phrases"
+            },
+            "codelist": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string",
+              "pattern": "^C[0-9]+$"
+            }
+          },
+          "required": [
+            "file",
+            "codelist",
+            "code"
+          ],
+          "additionalProperties": false
         }
       ]
     }
@@ -85,7 +152,8 @@
     "schema_version": {
       "type": "string",
       "enum": [
-        "1.0"
+        "1.0",
+        "1.1"
       ],
       "description": "Schema version."
     },
@@ -103,7 +171,7 @@
         "prompt_version"
       ],
       "additionalProperties": false,
-      "description": "The protocol context file the decisions were checked against; null when the study has none. When the context file changes, the generator stops until this record is updated.",
+      "description": "The protocol context file the decisions were checked against; null when the study has none. When the context file changes, the generator stops until this record is updated. prompt_version here is the protocol context prompt's version, not the version of the grain decisions prompt (that one is on each ai_proposed decision).",
       "properties": {
         "sha256": {
           "type": "string"
@@ -183,6 +251,15 @@
           "proposed_at": {
             "type": "string",
             "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "prompt_version": {
+            "type": "string",
+            "description": "Version of prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md that made the decision. Required for ai_proposed (checked by the generator)."
+          },
+          "inputs_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "SHA-256 of the study's <id>_grain_inputs.json the decision was made from. Required for ai_proposed (checked by the generator)."
           }
         },
         "if": {

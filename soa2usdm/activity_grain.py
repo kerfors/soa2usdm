@@ -36,11 +36,14 @@ Input: the study's rows as the activity inventory builds them
 parents (parent_xact_id) and annotation ids.
 
 Output: SoA2USDM/grain/<id>_activity_grain.json (schema_name
-soa2usdm-activity-grain, schema_version 1.0). The inventory is not changed.
+soa2usdm-activity-grain, schema_version 1.1). The inventory is not changed.
 
-Decisions: SoA2USDM/grain/<id>_activity_grain_decisions.json (hand-kept, read
-only; schema soa2usdm-activity-grain-decisions 1.0), keyed by phrase within
-the study. The rule result is kept on the label beside the decision.
+Decisions: SoA2USDM/grain/<id>_activity_grain_decisions.json (read only here;
+schema soa2usdm-activity-grain-decisions 1.1), keyed by phrase within the
+study. The rule result is kept on the label beside the decision. ai_proposed
+decisions are made by prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md from the
+study's grain inputs file (soa2usdm.activity_grain_inputs), and only for the
+phrases that file lists; the generator checks that the inputs file is current.
 """
 
 import hashlib
@@ -55,7 +58,8 @@ from pathlib import Path
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain"
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
+SCHEMA_VERSIONS = ("1.0", "1.1")
 RULES_VERSION = "1.0.0"
 WORD_LISTS_DATE = "2026-11-01"
 
@@ -160,6 +164,10 @@ class Lookups:
         self.phrase = defaultdict(list)
         self.spectype_phrases = set()
         self.consumer = {}
+        self.domain_rows = {}
+        self.test_by_code = {}
+        self.instrument_by_code = {}
+        self.phrase_codes = set()
         self._load_tests()
         self._load_instruments()
         self._load_phrases()
@@ -195,6 +203,8 @@ class Lookups:
 
     def _load_tests(self):
         for r in self._read("SDTM_Test_Identity").to_dict("records"):
+            self.test_by_code[r["NCIt_Code"]] = {"testcd": r["TESTCD"], "test": r["TEST"],
+                                                 "domains": r["SDTM_Domains"]}
             for col, field, source in TEST_FIELDS:
                 values = r[col].split("|") if col == "NCIt_Synonyms" else [r[col]]
                 for v in values:
@@ -209,6 +219,9 @@ class Lookups:
 
     def _load_instruments(self):
         for r in self._read("SDTM_Instrument_Identity").to_dict("records"):
+            self.instrument_by_code[r["Codelist_NCIt_Code"]] = {"testcd": r["Codelist_TESTCD"],
+                                                                "test": r["Instrument_Label"],
+                                                                "domains": r["Domain"]}
             for col, field, source in INSTRUMENT_FIELDS:
                 values = r[col].split("|") if col == "Instrument_NCIt_Synonyms" else [r[col]]
                 for v in values:
@@ -223,6 +236,7 @@ class Lookups:
         for r in self._read("Codelist_Phrases").to_dict("records"):
             if r["codelist_submission_value"] not in PHRASE_CODELIST_GRAIN:
                 continue
+            self.phrase_codes.add((r["codelist_submission_value"], r["term_concept_id"]))
             self.phrase[r["phrase"]].append({
                 "file": "Codelist_Phrases", "sheet": "Phrases", "field": r["field"],
                 "source": r["source"], "as_published": r["as_published"], "code": r["term_concept_id"],
@@ -235,6 +249,9 @@ class Lookups:
     def _load_domain_coverage(self):
         for r in self._read("Domain_Coverage").to_dict("records"):
             self.consumer[r["Domain"]] = r["Consumer"]
+            self.domain_rows[r["Domain"]] = {"domain": r["Domain"], "domain_name": r["Domain_Name"],
+                                             "observation_class": r["Observation_Class"],
+                                             "consumer": r["Consumer"]}
 
     def whole(self, phrase: str):
         """All whole-phrase hits, keyed by the grain they give, in rule order."""
@@ -319,6 +336,37 @@ def finding_kind(hits: list, lk: Lookups) -> dict:
         out["flags"].append("kind: " + (", ".join(f"{d} {kinds[d] or 'no Consumer'}" for d in domains)
                                        if domains else "hit has no domain"))
     return out
+
+
+def domain_kind(domain: str, lk: Lookups) -> str | None:
+    """The kind one domain gives (the K1 step for a single domain); None when
+    the domain has no kind. Fails on a domain not in Domain_Coverage."""
+    if domain not in lk.consumer:
+        raise ValueError(f"domain {domain!r} is not in Domain_Coverage")
+    return DOMAIN_KIND.get(domain) or CONSUMER_KIND.get(lk.consumer[domain])
+
+
+def _cdisc_basis_kinds(b: dict, lk: Lookups, where: str) -> set:
+    """Check one cdisc basis entry against the lookups; return the kinds it
+    supports (empty for a Codelist_Phrases entry)."""
+    f = b.get("file")
+    if f not in CDISC_BASIS_KEYS or set(b) != {"type", "file"} | CDISC_BASIS_KEYS[f]:
+        raise ValueError(f"{where}: cdisc basis entry not understood: {b}")
+    if f == "Domain_Coverage":
+        if b["domain"] not in lk.domain_rows:
+            raise ValueError(f"{where}: domain {b['domain']!r} is not in Domain_Coverage")
+        return {domain_kind(b["domain"], lk)} - {None}
+    if f == "Codelist_Phrases":
+        if (b["codelist"], b["code"]) not in lk.phrase_codes:
+            raise ValueError(f"{where}: {b['code']!r} is not a {b['codelist']} term in Codelist_Phrases")
+        return set()
+    index = lk.test_by_code if f == "SDTM_Test_Identity" else lk.instrument_by_code
+    if b["code"] not in index:
+        raise ValueError(f"{where}: {b['code']!r} is not in {f}")
+    if index[b["code"]]["testcd"] != b["testcd"]:
+        raise ValueError(f"{where}: {b['code']} is {index[b['code']]['testcd']!r} in {f}, not {b['testcd']!r}")
+    domains = [d.strip() for d in index[b["code"]]["domains"].split(";") if d.strip()]
+    return {domain_kind(d, lk) for d in domains} - {None}
 
 
 # ---------------------------------------------------------------------------
@@ -493,8 +541,12 @@ def label_grain(text: str, lk: Lookups) -> dict:
 # ---------------------------------------------------------------------------
 DECISIONS_SCHEMA = "soa2usdm-activity-grain-decisions"
 DECISION_SOURCES = ("ai_proposed", "reviewed")
+DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1")
 # Basis entry type → its keys besides 'type'.
 BASIS_TYPES = {"label": set(), "annotation": {"xannot_id"}, "context": {"pointer"}, "page": {"page"}}
+# cdisc basis (decisions 1.1): file → its keys besides 'type' and 'file'.
+CDISC_BASIS_KEYS = {"Domain_Coverage": {"domain"}, "SDTM_Test_Identity": {"code", "testcd"},
+                    "SDTM_Instrument_Identity": {"code", "testcd"}, "Codelist_Phrases": {"codelist", "code"}}
 
 
 def grain_dir(protocol_id: str, collection: str) -> Path:
@@ -507,6 +559,10 @@ def grain_path(protocol_id: str, collection: str) -> Path:
 
 def decisions_path(protocol_id: str, collection: str) -> Path:
     return grain_dir(protocol_id, collection) / f"{protocol_id}_activity_grain_decisions.json"
+
+
+def inputs_path(protocol_id: str, collection: str) -> Path:
+    return grain_dir(protocol_id, collection) / f"{protocol_id}_grain_inputs.json"
 
 
 def context_path(protocol_id: str, collection: str) -> Path:
@@ -563,14 +619,21 @@ def resolve_pointer(doc, pointer: str):
 
 
 def _load_decisions(protocol_id: str, collection: str, labels: dict, context: dict | None,
-                    annotation_ids: set) -> tuple[dict, str | None]:
-    """Read the study's decisions file (hand-kept, never written here), if present.
+                    annotation_ids: set, lk: Lookups, inputs: dict | None) -> tuple[dict, str | None]:
+    """Read the study's decisions file (never written here), if present.
     Keyed by phrase. Returns (decisions by phrase, sha256 of the file or None).
 
+    inputs: the study's current grain inputs file as {"sha256", "phrases"}, or
+    None when it has none.
+
     Fails fast on: a phrase not in the study (stale); an unknown grain, kind or
-    source; ai_proposed on a label the rules resolved; two decisions for one
-    phrase; finding_kind missing on a named test or present on another grain;
-    an empty basis or a basis entry of unknown shape; an xannot_id not in the
+    source; ai_proposed on a phrase the grain inputs file does not list, in a
+    1.0 file, without prompt_version / inputs_sha256, or with an inputs_sha256
+    that is not the current inputs file's; a named test with a kind other than
+    unsure decided by ai_proposed without a cdisc basis entry giving that kind;
+    a cdisc basis entry whose domain, code, TESTCD or codelist term is not as
+    published; two decisions for one phrase; finding_kind missing on a named
+    test or present on another grain; an empty basis or a basis entry of unknown shape; an xannot_id not in the
     study's consolidated.json; a context pointer that does not resolve; a page
     outside the context's pages_covered; a context or page basis without a
     protocol context file; a protocol_context record that differs from the
@@ -581,8 +644,8 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
         return {}, None
     raw = path.read_bytes()
     doc = json.loads(raw)
-    if doc["schema_name"] != DECISIONS_SCHEMA or doc["schema_version"] != "1.0":
-        raise ValueError(f"{path}: expected {DECISIONS_SCHEMA} 1.0")
+    if doc["schema_name"] != DECISIONS_SCHEMA or doc["schema_version"] not in DECISIONS_SCHEMA_VERSIONS:
+        raise ValueError(f"{path}: expected {DECISIONS_SCHEMA} {' or '.join(DECISIONS_SCHEMA_VERSIONS)}")
     if doc["protocol_id"] != protocol_id:
         raise ValueError(f"{path}: protocol_id {doc['protocol_id']!r}, expected {protocol_id!r}")
     rec = doc["protocol_context"]
@@ -604,8 +667,18 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
             raise ValueError(f"{path}: stale decision, phrase not in the study: {p!r}")
         if d["grain"] not in GRAINS or d["source"] not in DECISION_SOURCES:
             raise ValueError(f"{where}: unknown grain or source")
-        if d["source"] == "ai_proposed" and labels[p]["grain"] != "unsure":
-            raise ValueError(f"{where}: ai_proposed on a label the rules resolved")
+        if d["source"] == "ai_proposed":
+            if doc["schema_version"] == "1.0":
+                raise ValueError(f"{where}: ai_proposed in a 1.0 file; ai_proposed decisions come from the "
+                                 f"prompt and need schema 1.1 (prompt_version, inputs_sha256)")
+            if "prompt_version" not in d or "inputs_sha256" not in d:
+                raise ValueError(f"{where}: ai_proposed without prompt_version and inputs_sha256")
+            if inputs is None:
+                raise ValueError(f"{where}: ai_proposed, but the study has no grain inputs file")
+            if p not in inputs["phrases"]:
+                raise ValueError(f"{where}: ai_proposed on a phrase the grain inputs file does not list")
+            if d["inputs_sha256"] != inputs["sha256"]:
+                raise ValueError(f"{where}: made from another grain inputs file (inputs_sha256 differs)")
         if p in out:
             raise ValueError(f"{where}: two decisions")
         if (d["grain"] == "named test") != ("finding_kind" in d):
@@ -614,8 +687,12 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
             raise ValueError(f"{where}: unknown finding_kind {d['finding_kind']!r}")
         if not d["basis"]:
             raise ValueError(f"{where}: empty basis")
+        kinds_cited = set()
         for b in d["basis"]:
             t = b.get("type") if isinstance(b, dict) else None
+            if t == "cdisc" and doc["schema_version"] != "1.0":
+                kinds_cited |= _cdisc_basis_kinds(b, lk, where)
+                continue
             if t not in BASIS_TYPES or set(b) != {"type"} | BASIS_TYPES[t]:
                 raise ValueError(f"{where}: basis entry not understood: {b}")
             if t == "annotation" and b["xannot_id"] not in annotation_ids:
@@ -630,15 +707,22 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
             if t == "page" and b["page"] not in pages:
                 raise ValueError(f"{where}: page {b['page']} is outside pages_covered "
                                  f"{context['doc']['pages_covered']!r}")
+        if (d["source"] == "ai_proposed" and d["grain"] == "named test" and d["finding_kind"] != "unsure"
+                and d["finding_kind"] not in kinds_cited):
+            raise ValueError(f"{where}: kind {d['finding_kind']!r} rests on no cdisc basis entry giving it "
+                             f"(cited: {sorted(kinds_cited) or 'none'})")
         out[p] = d
         labels[p]["decision"] = {k: d[k] for k in ("grain", "finding_kind", "source", "rationale", "basis",
-                                                   "proposed_by", "proposed_at") if k in d}
+                                                   "proposed_by", "proposed_at", "prompt_version",
+                                                   "inputs_sha256") if k in d}
     return out, hashlib.sha256(raw).hexdigest()
 
 
 def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None = None,
-                         all_rows: list | None = None) -> dict:
-    """Build the <id>_activity_grain.json payload for one study."""
+                         all_rows: list | None = None, use_decisions: bool = True) -> dict:
+    """Build the <id>_activity_grain.json payload for one study.
+    use_decisions=False gives the rules alone (the grain inputs file is built
+    from that); the payload is then not meant to be written."""
     rows_in = study_rows(collection, protocol_id, all_rows)
     cons_path = config.find_consolidated_file(protocol_id, collection)
     if cons_path is None:
@@ -670,7 +754,11 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
         if a["activity_name"] not in labels[p]["spellings"]:
             labels[p]["spellings"].append(a["activity_name"])
 
-    decisions, decisions_sha = _load_decisions(protocol_id, collection, labels, context, annotation_ids)
+    decisions, decisions_sha, inputs = {}, None, None
+    if use_decisions:
+        inputs = _current_inputs(collection, protocol_id, lk, all_rows)
+        decisions, decisions_sha = _load_decisions(protocol_id, collection, labels, context, annotation_ids,
+                                                   lk, inputs)
 
     rows = []
     for a in rows_in:
@@ -737,6 +825,7 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
             "protocol_context": ({"sha256": context["sha256"], "prompt_version": context["prompt_version"]}
                                  if context else None),
             "decisions": {"sha256": decisions_sha} if decisions_sha else None,
+            "grain_inputs": {"sha256": inputs["sha256"]} if inputs else None,
             "cdisc_for_ai": lk.provenance,
         },
         "counts": counts,
@@ -745,26 +834,45 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
     }
 
 
+def _current_inputs(collection: str, protocol_id: str, lk: Lookups, all_rows: list | None) -> dict | None:
+    """The study's grain inputs file as {"sha256", "phrases"}, or None when it
+    has none. Fails when the file differs from the inputs rebuilt now."""
+    path = inputs_path(protocol_id, collection)
+    if not path.exists():
+        return None
+    from .activity_grain_inputs import build_grain_inputs
+    raw = path.read_bytes()
+    if json.loads(raw) != build_grain_inputs(collection, protocol_id, lk, all_rows):
+        raise RuntimeError(f"{path}: stale, its inputs changed; rerun: python -m soa2usdm.activity_grain_inputs "
+                           f"--collection {collection} --protocol {protocol_id}, then the decisions prompt")
+    return {"sha256": hashlib.sha256(raw).hexdigest(),
+            "phrases": {i["phrase"] for i in json.loads(raw)["items"]}}
+
+
 def load_current_grain(collection: str, protocol_id: str, all_rows: list | None = None) -> dict | None:
     """The study's grain file, checked against its inputs as they are now; None
     when the study has none. Fails when an input changed since the file was
-    generated (inventory rows, consolidated.json, protocol context, decisions)."""
+    generated (inventory rows, consolidated.json, protocol context, decisions,
+    grain inputs)."""
     path = grain_path(protocol_id, collection)
     if not path.exists():
         return None
     g = json.loads(path.read_text(encoding="utf-8"))
-    if g["schema_name"] != SCHEMA_NAME or g["schema_version"] != SCHEMA_VERSION:
-        raise ValueError(f"{path}: expected {SCHEMA_NAME} {SCHEMA_VERSION}")
+    if g["schema_name"] != SCHEMA_NAME or g["schema_version"] not in SCHEMA_VERSIONS:
+        raise ValueError(f"{path}: expected {SCHEMA_NAME} {' or '.join(SCHEMA_VERSIONS)}")
     sha = lambda f: hashlib.sha256(f.read_bytes()).hexdigest() if f.exists() else None
     ins = g["inputs"]
     now = {"inventory rows": rows_sha256(study_rows(collection, protocol_id, all_rows)),
            "consolidated.json": sha(config.find_consolidated_file(protocol_id, collection)),
            "protocol context": sha(context_path(protocol_id, collection)),
-           "decisions": sha(decisions_path(protocol_id, collection))}
+           "decisions": sha(decisions_path(protocol_id, collection)),
+           "grain inputs": sha(inputs_path(protocol_id, collection))}
     was = {"inventory rows": ins["inventory_rows"]["sha256"],
            "consolidated.json": ins["consolidated"]["sha256"],
            "protocol context": (ins["protocol_context"] or {}).get("sha256"),
-           "decisions": (ins["decisions"] or {}).get("sha256")}
+           "decisions": (ins["decisions"] or {}).get("sha256"),
+           # 1.0 files were made before grain inputs files existed
+           "grain inputs": (None if g["schema_version"] == "1.0" else (ins["grain_inputs"] or {}).get("sha256"))}
     changed = [k for k in now if now[k] != was[k]]
     if changed:
         raise RuntimeError(f"{path}: stale ({', '.join(changed)} changed since it was generated); rerun: "

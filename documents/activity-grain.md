@@ -86,22 +86,47 @@ and source versions.
 
 ## Decisions (AI proposals and reviews)
 
-Labels the rules leave unsure can be decided in a hand-kept file per study, `SoA2USDM/grain/<id>_activity_grain_decisions.json` (schema
-`soa2usdm-activity-grain-decisions` 1.0). The generator reads this file and never writes it.
+What the rules leave to decide is decided in a file per study, `SoA2USDM/grain/<id>_activity_grain_decisions.json` (schema
+`soa2usdm-activity-grain-decisions` 1.1; 1.0 files stay valid for reviewed decisions). The generator reads this file and never writes it.
 
-- `source: ai_proposed` is allowed only on a label the rules left unsure. `source: reviewed` is allowed on any label, and can set the kind of a
-  rule-hit named test.
+AI proposals are made in three steps per study:
+
+1. **Gather (code).** `python -m soa2usdm.activity_grain_inputs --collection <name> [--protocol <NCTID>]` writes
+   `SoA2USDM/grain/<id>_grain_inputs.json` (schema `soa2usdm-activity-grain-inputs` 1.0) from public files only. Its items are the labels
+   whose rule result leaves something to decide and that have a row without a role: **grain unsure** (no grain), **kind unsure** (a named
+   test without a single kind from K1) and **sample collection** (a finding may be named in it). Per item: spellings, rows and parents, the
+   rule result, the SoA annotations bound to its rows or their parents, the protocol context `lab_and_purpose` entries for the label, and the
+   abbreviations in the label. Per study: the context categories with no link to an SoA row (product, immunogenicity, endpoint assays,
+   genetic testing). CDISC: every Domain_Coverage row with the kind it gives, and the test rows the rules hit. Every context entry carries its
+   JSON Pointer. The file has no generation time: the same inputs give the same file. It needs the study's protocol context.
+2. **Propose (prompt).** A Claude session runs [`prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md`](../prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md)
+   on that one file and writes the decisions file: one decision per item, nothing else.
+3. **Check (generator).** `python -m soa2usdm.activity_grain` checks the decisions (below) and writes the grain file.
+
+A person then reviews the decisions per study.
+
+- `source: ai_proposed` is allowed only on a phrase the study's current grain inputs file lists, and must carry `prompt_version` and
+  `inputs_sha256` (the sha256 of that inputs file). `source: reviewed` is allowed on any label, and can set the kind of a rule-hit named test.
 - `finding_kind` is present exactly when the decided grain is named test.
 - `basis` lists what the decision rests on:
   - `{"type": "label"}` — the label text;
   - `{"type": "annotation", "xannot_id": …}` — a footnote or other SoA annotation in the study's `consolidated.json`;
   - `{"type": "context", "pointer": "/immunogenicity/3"}` — an entry of the study's protocol context file (JSON Pointer);
-  - `{"type": "page", "page": n}` — a protocol page, used only when no context entry holds the fact.
+  - `{"type": "page", "page": n}` — a protocol page, used only when no context entry holds the fact;
+  - `{"type": "cdisc", "file": …, …}` (1.1) — a row of a public cdisc-for-ai file at the commit the grain file records:
+    `{"file": "Domain_Coverage", "domain": "IS"}`, `{"file": "SDTM_Test_Identity", "code": "C181400", "testcd": "CYKSCCL"}` (also
+    `SDTM_Instrument_Identity`), `{"file": "Codelist_Phrases", "codelist": "SPECTYPE", "code": "C13325"}`.
+- **Kind rule:** an `ai_proposed` named test with a kind other than `unsure` cites at least one `cdisc` entry whose domain gives that kind
+  (rule K1 for one domain: PC → pc, GF → genomics, otherwise the Domain_Coverage Consumer).
 - The rule result stays on the label beside the decision.
 
 **The generator stops** on any of these:
 - a phrase that is no longer in the study;
-- `ai_proposed` on a label the rules resolved;
+- `ai_proposed` on a phrase the grain inputs file does not list, in a 1.0 file, without `prompt_version` / `inputs_sha256`, or with an
+  `inputs_sha256` that is not the current inputs file's;
+- a grain inputs file that differs from the inputs rebuilt from the study's files now (rerun the gathering, then the prompt);
+- a `cdisc` entry whose domain, code, TESTCD or codelist term is not as published;
+- an `ai_proposed` kind that no cited `cdisc` entry gives;
 - two decisions for one phrase;
 - a missing or misplaced `finding_kind`;
 - an empty basis, or a basis entry of unknown shape;
@@ -112,23 +137,24 @@ Labels the rules leave unsure can be decided in a hand-kept file per study, `SoA
 - a `protocol_context` record (sha256, prompt version) that differs from the current context file. After the context is extracted again, check
   the decisions against it, then update the record.
 
-**What the checks prove:** that a cited entry, annotation or page exists. They do not prove that it supports the decision. A person reviews that.
+**What the checks prove:** that a cited entry, annotation, page or cdisc row exists and is as published, and that a kind rests on a cited
+domain. They do not prove that it supports the decision. A person reviews that.
 
-AI proposals rest on public material only: the label, the SoA annotations, the published protocol context, and the public cdisc-for-ai
-files. Where that material does not settle the kind, the kind stays `unsure`, and the rationale says what is open (for example, vector-DNA
-shedding by PCR: PC, MB or GF).
+AI proposals rest on public material only, and only on what the grain inputs file holds. Where that material does not settle the kind, the
+kind stays `unsure`, and the rationale says what is open (for example, vector-DNA shedding by PCR: PC, MB or GF).
 
 ## Files
 
 ```
 {NCTID}/SoA2USDM/grain/
-├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.0)
-└── {NCTID}_activity_grain_decisions.json   # hand-kept, where decisions exist
+├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.1)
+├── {NCTID}_grain_inputs.json               # gathered for the decisions prompt (where AI proposals are made)
+└── {NCTID}_activity_grain_decisions.json   # from the prompt and reviews, where decisions exist
 ```
 
 `<id>_activity_grain.json` holds:
-- `inputs`: the sha256 of the study's inventory rows (canonical JSON), of `consolidated.json`, of the protocol context file and of the
-  decisions file, plus the cdisc-for-ai provenance;
+- `inputs`: the sha256 of the study's inventory rows (canonical JSON), of `consolidated.json`, of the protocol context file, of the
+  decisions file and of the grain inputs file, plus the cdisc-for-ai provenance;
 - `counts`: by grain, by kind and by role, each with and without decisions;
 - `labels[]`: one per distinct phrase, with the rule result, hits, flags and any decision;
 - `activities[]`: one per inventory row, with grain, kind, role, rule, source, the section header it sits under, and its parent.
@@ -155,7 +181,7 @@ Status on 2026-11-02, with cdisc-for-ai `75ef8dd` (SDTM CT 2026-09-25):
 
 | Collection | Studies | Rows with a grain | named test | unsure | Decisions |
 |---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 229 | 50 | 11 | AI proposals (89, not reviewed) |
+| cell_gene_therapy | 5 | 229 | 56 | 7 | AI proposals (120, prompt 1.0.0, not reviewed) |
 | usdm_data | 22 | 811 | 70 | 337 | rules only |
 | cpmp | 13 | 303 | 27 | 107 | rules only |
 | misc_studies | 2 | 82 | 16 | 25 | rules only |
