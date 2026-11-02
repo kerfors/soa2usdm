@@ -56,15 +56,20 @@ soa2usdm/
 │   ├── soa-tables-consolidated.schema.json  # Layer 3
 │   ├── soa-consolidation-corrections.schema.json  # Layer 3 corrections sidecar (match decisions)
 │   ├── usdm-manifest.schema.json            # USDM Instantiation manifest
-│   └── soa2usdm-activity-inventory.schema.json  # Activity inventory (activities.json)
+│   ├── soa2usdm-activity-inventory.schema.json  # Activity inventory (activities.json)
+│   ├── soa2usdm-protocol-context-cgt.schema.json  # Protocol context beyond the SoA (CGT profile)
+│   ├── soa2usdm-activity-grain.schema.json  # Activity grain per study
+│   └── soa2usdm-activity-grain-decisions.schema.json  # Activity grain decisions sidecar
 │
 ├── prompts/
 │   ├── EXTRACTION_WORKFLOW_GUIDE.md          # How to run extraction and the pipeline
-│   └── PDF_TO_JSON_PROMPT.md                 # Layer 1 extraction, single pass
+│   ├── PDF_TO_JSON_PROMPT.md                 # Layer 1 extraction, single pass
+│   └── PROTOCOL_CONTEXT_CGT_PROMPT.md        # Protocol context beyond the SoA (cell and gene therapy)
 │
 ├── documents/
 │   ├── soa2usdm-schema-architecture.md       # Three-layer design rationale
 │   ├── usdm-instantiation.md                 # USDM Instantiation: procedure, design, decisions
+│   ├── activity-grain.md                     # Activity grain: values, rules, decisions, status
 │   ├── background-and-challenges.md          # Project history and key challenges
 │   ├── soa_table_type_definitions.md         # Table classification (taxonomy)
 │   ├── inventory-improvements.md             # Backlog: open and done items
@@ -92,6 +97,8 @@ soa2usdm/
 │   ├── index_generator.py           # Collection index page; renders reports, refreshes nav
 │   ├── collections_index.py         # Root index across collections
 │   ├── activity_inventory.py        # Collection activity inventory (activities.json/.html)
+│   ├── activity_grain.py            # Activity grain per study: rules, kind of finding, decisions
+│   ├── protocol_context_page.py     # Protocol context page per study (context/*_protocol_context.html)
 │   ├── nav.py                       # Shared navigation for all generated pages
 │   ├── page_grid.py                 # Rule-line cell geometry (vector + raster)
 │   ├── row_audit.py                 # RowAuditStep — extracted rows vs the pages
@@ -107,7 +114,8 @@ soa2usdm/
 │
 ├── notebooks/
 │   ├── 00_download_extract.ipynb    # Download PDFs, extract SoA pages, scaffold folders
-│   └── 01_batch.ipynb               # Batch processing across a collection
+│   ├── 01_batch.ipynb               # Batch processing across a collection
+│   └── 02_activity_grain.ipynb      # Activity grain across a collection: counts, samples, unsure, weak hits
 │
 ├── tests/
 │   ├── test_pipeline_regression.py  # Golden-output regression over discovered protocols
@@ -116,6 +124,7 @@ soa2usdm/
 │   ├── test_review_page.py          # Review page: model, tiled-table column map
 │   ├── test_consolidation_corrections.py  # Consolidation sidecar: ops, stale entries, the matches view
 │   ├── test_document_references.py  # document_references on annotations
+│   ├── test_activity_grain.py       # Grain rules, kind of finding, decisions checks (negative controls), stale check
 │   └── fixtures/                    # Golden protocols (JSON only), negative controls, pages — tests run standalone
 │
 └── pyproject.toml
@@ -128,6 +137,12 @@ Attach the prompt file + your data to a new Claude conversation. See [`prompts/E
 
 **Layers 2–3 — Resolution, Consolidation & Visualization (Python):**
 The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to run across a protocol collection — set `COLLECTION` in the config cell and execute.
+
+**Protocol context (Claude, then Python):**
+Per protocol, beyond the SoA tables: `tools/protocol_context_inputs.py` prepares the inputs, a Claude session runs [`prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md`](prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md) (cell and gene therapy profile: product, immunogenicity, panels, assays, abbreviations and more, each value with its page and quote), and `tools/check_protocol_context.py` checks the result. Output: `SoA2USDM/context/{NCTID}_protocol_context.json`, shown on the collection index (column "Protocol context"). See [`tools/README.md`](tools/README.md).
+
+**Activity grain (Python):**
+`python -m soa2usdm.activity_grain --collection <name> [--protocol <NCTID>]` tags every activity of a study with its grain (named test, panel, procedure, instrument, sample collection, other, unsure) and, for a named test, the kind of finding. Each tag cites its rule and its public cdisc-for-ai lookup hits. A hand-kept decisions file per study holds AI proposals and reviews for what the rules leave open. Output: `SoA2USDM/grain/`, shown on the collection index and the Activities page. Needs the `grain` extra and a cdisc-for-ai checkout next to this repo. See [`documents/activity-grain.md`](documents/activity-grain.md).
 
 **USDM Instantiation (manual step):**
 Per protocol: write the manifest, run `python -m soa2usdm.usdmgen`, then `tools/usdm_gate.py` — the steps are in [`documents/usdm-instantiation.md`](documents/usdm-instantiation.md), *Running it*. Needs `pip install -e '.[shell,usdm-gate]'` and the usdm-rdf checkout next to this repo.

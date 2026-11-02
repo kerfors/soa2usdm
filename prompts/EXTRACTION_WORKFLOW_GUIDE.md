@@ -60,7 +60,7 @@ The batch notebook runs five steps in sequence:
 
 After all protocols: `IndexGeneratorStep` builds the collection index and renders the reports (refreshing each page's navigation), `CollectionsIndexStep` the root index, `ActivityInventoryStep` the activity inventory.
 
-The collection index follows the workflow. Per table, against the source pages: Source, 1. Extraction, 2. Resolution, Extraction review, Log. Per protocol, across tables: 3. Consolidation (view, JSON, 'matches: n open of N'), Redacted.
+The collection index follows the workflow. Per table, against the source pages: Source, 1. Extraction, 2. Resolution, Extraction review, Log. Per protocol, across tables: 3. Consolidation (view, JSON, 'matches: n open of N'), Redacted. Where a collection has them: Beyond the SoA (Protocol context) and Towards CDISC (Activity grain).
 
 **Errors are collected, not raised** — partial success matters when one table out of four has issues. Check the batch output for error summaries.
 
@@ -105,6 +105,34 @@ print(errors.has_errors(), errors.summary())
 
 ---
 
+## Protocol context (beyond the SoA)
+
+Where a collection needs facts the SoA tables do not carry (product, immunogenicity, panels, assays, abbreviations), they are extracted per protocol from the full protocol:
+
+1. `python tools/protocol_context_inputs.py` prepares `{NCTID}_pages.txt` (local only) and `SoA2USDM/context/{NCTID}_soa_inputs.json`.
+2. A Claude session runs [`PROTOCOL_CONTEXT_CGT_PROMPT.md`](PROTOCOL_CONTEXT_CGT_PROMPT.md) (cell and gene therapy profile) and writes `SoA2USDM/context/{NCTID}_protocol_context.json`.
+3. `python tools/check_protocol_context.py` checks the schema, and that every evidence quote and abbreviation is on its cited page.
+
+The collection index renders the context page (`{NCTID}_protocol_context.html`). Details: [`tools/README.md`](../tools/README.md).
+
+---
+
+## Activity grain (after consolidation)
+
+The grain of every activity, per study, and for a named test the kind of finding. It is the first cut towards CDISC; see [`documents/activity-grain.md`](../documents/activity-grain.md).
+
+```
+pip install -e '.[grain]'          # pandas, openpyxl; cdisc-for-ai checked out next to this repo
+python -m soa2usdm.activity_grain --collection usdm_data                        # every study
+python -m soa2usdm.activity_grain --collection usdm_data --protocol NCT00000000 # one study
+```
+
+Order: consolidation → activity grain → collection index and activity inventory. The index and the Activities page check each grain file against its inputs (the study's inventory rows, `consolidated.json`, protocol context, decisions) and stop on a stale one with the command to rerun. A rerun of consolidation or of the protocol context therefore needs a rerun of the grain.
+
+Decisions for what the rules leave unsure go in `SoA2USDM/grain/{NCTID}_activity_grain_decisions.json` (schema `soa2usdm-activity-grain-decisions`). The file is hand-kept and the generator only reads it. When the protocol context is extracted again, the generator stops until the decisions are checked against the new context and their `protocol_context` record is updated.
+
+---
+
 ## Consolidation review (cross-table matches)
 
 Consolidation merges rows of different tables with the same name, and rows with a name similarity at or above the auto threshold. Below the threshold nothing is merged; the row stays separate and carries the near match as a hint (`near_matches`).
@@ -135,10 +163,17 @@ After the pipeline, `soa2usdm-row-audit --collection <name>` compares every extr
 ├── resolved/
 │   ├── {NCTID}_Table_{NN}_resolved.json
 │   └── {NCTID}_Table_{NN}_resolved_viewer.html
-└── consolidated/
-    ├── {NCTID}_consolidated.json
-    ├── {NCTID}_consolidation_corrections.json        # match decisions sidecar (where needed)
-    └── {NCTID}_consolidated.html
+├── consolidated/
+│   ├── {NCTID}_consolidated.json
+│   ├── {NCTID}_consolidation_corrections.json        # match decisions sidecar (where needed)
+│   └── {NCTID}_consolidated.html
+├── context/                                          # where extracted
+│   ├── {NCTID}_soa_inputs.json                       # inputs from the consolidated SoA
+│   ├── {NCTID}_protocol_context.json
+│   └── {NCTID}_protocol_context.html
+└── grain/                                            # where run
+    ├── {NCTID}_activity_grain.json                   # generated
+    └── {NCTID}_activity_grain_decisions.json         # hand-kept (where needed)
 ```
 
 ---

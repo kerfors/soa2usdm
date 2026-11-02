@@ -621,6 +621,18 @@ def generate_index_html(collection: str) -> str:
     # The protocol context column appears only in collections where some protocol has one.
     has_context = any(p.get('protocol_context') for p in protocols)
 
+    # Activity grain column (SoA2USDM/grain/<id>_activity_grain.json), only where some study
+    # has one. Each file is checked current against its inputs; a stale one stops the build.
+    grain = {}
+    grain_pids = [p['nct_id'] for p in protocols
+                  if (collection_path / p['nct_id'] / 'SoA2USDM' / 'grain' / f"{p['nct_id']}_activity_grain.json").exists()]
+    if grain_pids:
+        from .activity_inventory import collect_rows
+        from .activity_grain import load_current_grain
+        inventory_rows = collect_rows(collection)
+        grain = {pid: load_current_grain(collection, pid, inventory_rows) for pid in grain_pids}
+    has_grain = bool(grain)
+
     def protocol_row(p: dict) -> str:
         nct = p['nct_id']
         is_ready = p['has_resolved'] or p['has_consolidated']
@@ -712,6 +724,17 @@ def generate_index_html(collection: str) -> str:
                         f' <a href="{p["protocol_context_json"]}" class="link-json" title="Protocol context JSON">json</a>')
         ctx_td = f'\n            <td class="viz grp-start">{ctx_html}</td>' if has_context else ''
 
+        # Activity grain column: the JSON, and named tests / unsure linked to the Activities page.
+        grain_html = ''
+        g = grain.get(nct)
+        if g:
+            bg = g['counts']['by_grain']
+            how = 'rules only' if g['inputs']['decisions'] is None else 'rules + decisions'
+            grain_html = (f'<a href="{esc(nct)}/SoA2USDM/grain/{esc(nct)}_activity_grain.json" class="link-json" title="Activity grain JSON ({how})">json</a>'
+                          f' <a href="activities.html?p={esc(nct)}" title="This study on the Activities page, with grain and kind ({how})">'
+                          f'{bg["named test"]} named test{"" if bg["named test"] == 1 else "s"} · {bg["unsure"]} unsure</a>')
+        grain_td = f'\n            <td class="viz grp-start">{grain_html}</td>' if has_grain else ''
+
         # USDM readiness column
         usdm_html = ''
         if p.get('usdm_evaluation'):
@@ -745,7 +768,7 @@ def generate_index_html(collection: str) -> str:
             <td class="viz">{review_html}</td>
             <td class="viz">{report_html}</td>
             <td class="viz grp-start">{cons_html}</td>
-            <td class="stats">{red_html}</td>{ctx_td}
+            <td class="stats">{red_html}</td>{ctx_td}{grain_td}
         </tr>'''
     
     def excluded_row(e: dict) -> str:
@@ -755,7 +778,7 @@ def generate_index_html(collection: str) -> str:
             <td class="nct">{esc(e['nct_id'])}</td>{prov_td}
             <td class="study-code">{esc(e['study_code'])}</td>
             <td class="acronym">{esc(e['study_acronym'])}</td>
-            <td class="excluded-reason" colspan="{9 if has_context else 8}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
+            <td class="excluded-reason" colspan="{8 + has_context + has_grain}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
         </tr>'''
 
     ready_rows = ''.join(protocol_row(p) for p in ready)
@@ -767,6 +790,10 @@ def generate_index_html(collection: str) -> str:
                   if has_context else '')
     ctx_th = ('<th class="grp-start" title="Protocol context per study (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md): page and JSON">Protocol context</th>'
               if has_context else '')
+    grain_grp_th = ('<th class="grp" title="First cut towards CDISC: which rows are findings, and of which kind">Towards CDISC</th>'
+                    if has_grain else '')
+    grain_th = ('<th class="grp-start" title="Activity grain per study (documents/activity-grain.md): JSON, and named tests / unsure on the Activities page">Activity grain</th>'
+                if has_grain else '')
     
     css = """
         :root { --blue:#1F4788; --blue2:#2E75B6; --ink:#1f2933; --muted:#5f6b7a; --line:#d9dee5;
@@ -858,9 +885,9 @@ def generate_index_html(collection: str) -> str:
         <div class="table-wrap">
         <table>
             <thead><tr class="groups">
-                <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>{ctx_grp_th}
+                <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>{ctx_grp_th}{grain_grp_th}
             </tr><tr>
-                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}
+                <th>NCT ID</th>{prov_th}<th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}{grain_th}
             </tr></thead>
             <tbody>
                 {ready_rows}

@@ -233,6 +233,12 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
 │   ├── {NCTID}_consolidated.json    # Single file per protocol
 │   ├── {NCTID}_consolidation_corrections.json  # Match decisions sidecar (where needed)
 │   └── {NCTID}_consolidated.html    # Consolidated visualization
+├── context/                         # Protocol context beyond the SoA (where extracted)
+│   ├── {NCTID}_protocol_context.json  # prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md
+│   └── {NCTID}_protocol_context.html
+├── grain/                           # Activity grain sidecar (documents/activity-grain.md)
+│   ├── {NCTID}_activity_grain.json            # Generated
+│   └── {NCTID}_activity_grain_decisions.json  # Hand-kept decisions (where needed)
 └── usdm/                            # Only where a USDM document was built
     ├── {NCTID}_usdm_manifest.yaml   # Hand-written
     ├── {NCTID}_usdm.json            # USDM v4 document

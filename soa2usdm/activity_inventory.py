@@ -217,6 +217,30 @@ def _collect(collection: str):
     return consolidated_rows, source_rows
 
 
+def collect_rows(collection: str) -> list:
+    """The inventory rows (activities[] of activities.json) as built now. Used by
+    the activity grain step, so its input is the inventory's own rows."""
+    return _collect(collection)[0]
+
+
+def _grain_rows(collection: str, protocols: list, cons: list) -> tuple[dict | None, list]:
+    """Per (protocol_id|xact_id): [grain or role, finding_kind, rule_id, source, is_role],
+    from each study's grain file, checked current (activity_grain.load_current_grain fails
+    on a stale file). None when no study has one. Also the studies graded by rules only."""
+    from .activity_grain import load_current_grain
+    out, rules_only = {}, []
+    for pid in protocols:
+        g = load_current_grain(collection, pid, cons)
+        if g is None:
+            continue
+        if g["inputs"]["decisions"] is None:
+            rules_only.append(pid)
+        for r in g["activities"]:
+            out[f"{pid}|{r['xact_id']}"] = [r["role"] or r["grain"], r["finding_kind"], r["rule_id"],
+                                            r["source"], r["role"] is not None]
+    return (out or None), rules_only
+
+
 def generate_activity_inventory(collection: str):
     """Build (html, payload) for the collection activity inventory."""
     cons, src = _collect(collection)
@@ -243,9 +267,16 @@ def generate_activity_inventory(collection: str):
                "counts": counts, "activities": cons}
     data_json = json.dumps(cons, ensure_ascii=False).replace("</", "<\\/")
     types_json = json.dumps(TABLE_TYPE_SHORT)
+    grain, rules_only = _grain_rows(collection, protocols, cons)
+    grain_json = json.dumps(grain, ensure_ascii=False).replace("</", "<\\/")
+    grain_note = (f'<div class="gnote">Grain and kind: rules only for {esc(", ".join(rules_only))} &mdash; '
+                  f'there, <i>unsure</i> means not yet resolved, not "not a finding". '
+                  f'<a href="https://github.com/kerfors/soa2usdm/blob/main/documents/activity-grain.md">How the grain is set</a></div>'
+                  if rules_only else '')
 
     html = _TEMPLATE
-    rep = {"__DATA__": data_json, "__TYPES__": types_json, "__SPOPTS__": spopts, "__PROPTS__": propts,
+    rep = {"__DATA__": data_json, "__TYPES__": types_json, "__GRAIN__": grain_json, "__GNOTE__": grain_note,
+           "__SPOPTS__": spopts, "__PROPTS__": propts,
            "__COLLECTION__": esc(collection), "__GENERATED__": generated_at,
            "__PROT__": counts["protocols"], "__CON__": counts["activities"]}
     for k, v in rep.items():
@@ -304,6 +335,10 @@ tr.open .nbtn{font-weight:600}
 .fn .where{color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-right:6px}
 .fn .ref{color:var(--muted);margin-left:6px;white-space:nowrap}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--muted)}
+td.gr{white-space:nowrap}.grole{color:var(--muted);font-style:italic}
+.gai{font-size:10px;color:#8a5a00;background:#fff3d6;border-radius:3px;padding:0 3px;margin-left:4px}
+.gnote{padding:7px 12px;font-size:11.5px;color:var(--muted);border-bottom:1px solid var(--line)}
+.gnote a{color:var(--blue2)}
 footer{padding:12px 22px 20px;color:var(--muted);font-size:11.5px}
 </style></head><body>
 <div class="header"><h1>Activities — __COLLECTION__</h1>
@@ -314,19 +349,27 @@ footer{padding:12px 22px 20px;color:var(--muted);font-size:11.5px}
 <input id="q" placeholder="Search activity, parent, wording, annotation, protocol, sponsor…" autocomplete="off">
 <select id="sponsorf"><option value="">all sponsors</option>__SPOPTS__</select>
 <select id="protof"><option value="">all protocols</option>__PROPTS__</select>
+<select id="grainf" hidden><option value="">all grains</option></select>
 <label class="chk"><input type="checkbox" id="showsec" checked> section headers</label>
 <span id="count"></span>
 </div>
+__GNOTE__
 <table><thead id="thead"></thead><tbody id="tb"></tbody></table>
 </div></div>
 <footer>Generated __GENERATED__ by <code>soa2usdm.activity_inventory</code> · data: <a href="activities.json">activities.json</a> · Built iteratively with Claude (Anthropic). Content under CC-BY-4.0.</footer>
 <script>
-const D=__DATA__, TT=__TYPES__;
+const D=__DATA__, TT=__TYPES__, GR=__GRAIN__;
 let sortk='__default__', asc=true;
 const $=id=>document.getElementById(id);
-const q=$('q'),sponsorf=$('sponsorf'),protof=$('protof'),showsec=$('showsec'),tb=$('tb'),thead=$('thead'),cnt=$('count');
+const q=$('q'),sponsorf=$('sponsorf'),protof=$('protof'),grainf=$('grainf'),showsec=$('showsec'),tb=$('tb'),thead=$('thead'),cnt=$('count');
 function eh(s){return (s===null||s===undefined?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 const HEAD=[['protocol_id','Protocol'],['sponsor','Sponsor'],['activity_name','Activity'],['parent_name','Parent'],['table_count','Tables'],['n_notes','Annotations']];
+// Activity grain (per-study grain files), shown when some study has one: Grain and Kind after Parent.
+if(GR){HEAD.splice(4,0,['grain','Grain'],['finding_kind','Kind']);
+ D.forEach(r=>{const g=GR[r.protocol_id+'|'+r.xact_id];if(g){r.grain=g[0];r.finding_kind=g[1]||'';r._gr=g[2];r._gs=g[3];r._grole=g[4];}});
+ [...new Set(D.map(r=>r.grain).filter(Boolean))].sort().forEach(g=>grainf.insertAdjacentHTML('beforeend',`<option value="${eh(g)}">${eh(g)}</option>`));
+ grainf.hidden=false;}
+{const P=new URLSearchParams(location.search).get('p');if(P&&[...protof.options].some(o=>o.value===P))protof.value=P;}
 thead.innerHTML='<tr>'+HEAD.map(([k,l])=>`<th data-k="${k}">${l}<span class="ar"></span></th>`).join('')+'</tr>';
 thead.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortk===k)asc=!asc;else{sortk=k;asc=true;}
  thead.querySelectorAll('.ar').forEach(a=>a.textContent='');th.querySelector('.ar').textContent=asc?' ▲':' ▼';render();});
@@ -343,6 +386,7 @@ function cmp(a,b){
 function passes(r,term){
  if(sponsorf.value&&r.sponsor!==sponsorf.value)return false;
  if(protof.value&&r.protocol_id!==protof.value)return false;
+ if(grainf.value&&r.grain!==grainf.value)return false;
  if(!showsec.checked&&r.is_section_header)return false;
  return !term||r._h.includes(term);
 }
@@ -363,13 +407,18 @@ function row(r,i,term){
  return `<tr class="r${r.is_section_header?' sec':''}"><td class="pid"><a href="index.html#${eh(r.protocol_id)}" title="${eh(r.d4k_folder)} — this protocol's row on the collection index">${eh(r.protocol_id)}</a></td>`+
   `<td class="sp">${eh(r.sponsor)}</td>`+
   `<td class="act"><a href="${cv}" title="Show in the consolidated view"${ind}>${hl(r.activity_name,term)}</a>${flags}</td>`+
-  `<td class="par">${hl(r.parent_name,term)}</td><td class="tables">${tl.join('')}</td><td class="nt">${nb}</td></tr>`;
+  `<td class="par">${hl(r.parent_name,term)}</td>`+(GR?grainCells(r):'')+`<td class="tables">${tl.join('')}</td><td class="nt">${nb}</td></tr>`;
+}
+function grainCells(r){
+ if(!r.grain)return '<td class="gr"></td><td class="gr"></td>';
+ const t=`rule ${r._gr} · source ${r._gs}`;
+ return `<td class="gr" title="${eh(t)}"><span${r._grole?' class="grole"':''}>${eh(r.grain)}</span>${r._gs==='ai_proposed'?'<span class="gai" title="AI proposal, not reviewed">AI</span>':''}</td><td class="gr" title="${eh(t)}">${eh(r.finding_kind)}</td>`;
 }
 function detail(r){const term=q.value.trim().toLowerCase();
  const vars=(r.variants||[]).length>1?`<div class="var">wordings in the source tables: <b>${r.variants.map(v=>hl(v,term)).join('</b> · <b>')}</b></div>`:'';
  const occ=`<div class="dh">As printed</div><table class="otab">`+(r.occurrences||[]).map(o=>`<tr><td class="mono">T${eh(o.table_number)} row ${eh(o.row_position)}</td><td>${hl(o.verbatim_name,term)}</td><td class="mono">${o.has_schedule_data===false?'no marks':''}</td></tr>`).join('')+'</table>';
  const fns=r.n_notes?`<div class="dh">Annotations</div>`+r.annotations.map(a=>`<div class="fn"><b>${eh(a.marker)}</b><span class="where">T${eh(a.table_number)}${a.columns?' · '+eh(a.columns.join('; ')):''}</span>${hl(a.text,term)}${a.document_references?`<span class="ref" title="What the text points at in the protocol">→ ${a.document_references.map(d=>eh(REFKIND[d.kind]+' '+d.target)).join(' · ')}</span>`:''}</div>`).join(''):'';
- return `<tr class="detail"><td colspan="6">${vars}${occ}${fns}</td></tr>`;
+ return `<tr class="detail"><td colspan="${HEAD.length}">${vars}${occ}${fns}</td></tr>`;
 }
 let ARR=[];
 function toggle(i,tr){const nx=tr.nextElementSibling;
@@ -383,7 +432,7 @@ function render(){
  tb.querySelectorAll('.nbtn').forEach(b=>b.onclick=()=>toggle(+b.dataset.i,b.closest('tr')));
  cnt.textContent=`${ARR.length} of ${D.length} activities`;
 }
-q.oninput=render;[sponsorf,protof,showsec].forEach(e=>e.onchange=render);
+q.oninput=render;[sponsorf,protof,grainf,showsec].forEach(e=>e.onchange=render);
 // Column headings stick just below the sticky search bar, whatever its wrapped height.
 function stick(){const h=document.querySelector('.controls').offsetHeight;thead.querySelectorAll('th').forEach(th=>th.style.top=h+'px');}
 window.addEventListener('resize',stick);stick();

@@ -1,0 +1,779 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-grain.json",
+  "title": "SoA2USDM Activity Grain Schema",
+  "description": "<id>_activity_grain.json of a study (SoA2USDM/grain/): the grain of every activity of the study in the collection's activity inventory (named test, panel, procedure, instrument, sample collection, other, unsure) or its structural role (section header, specimen of parent, redacted); for a named test the kind of finding (specimen, immunogenicity, measurement, instrument, pc, genomics, unsure); the rule that fired and the cdisc-for-ai lookup hits it cites. A sidecar: activities.json is not changed. Design and rule table: documents/activity-grain.md.",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "collection",
+    "protocol_id",
+    "generated_at",
+    "rules_version",
+    "word_lists_date",
+    "inputs",
+    "counts",
+    "labels",
+    "activities"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "hit": {
+      "type": "object",
+      "required": [
+        "file",
+        "sheet",
+        "field",
+        "source",
+        "code",
+        "submission_value",
+        "as_published"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "file": {
+          "type": "string",
+          "enum": [
+            "SDTM_Test_Identity",
+            "SDTM_Instrument_Identity",
+            "Codelist_Phrases"
+          ],
+          "description": "cdisc-for-ai lookup file."
+        },
+        "sheet": {
+          "type": "string",
+          "description": "Sheet of the file."
+        },
+        "field": {
+          "type": "string",
+          "description": "Column (or Codelist_Phrases field) the phrase matched."
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "CT",
+            "NCIt"
+          ],
+          "description": "CT: published in SDTM CT; NCIt: NCIt FLAT file synonym."
+        },
+        "code": {
+          "type": "string",
+          "description": "NCIt code of the term (for an instrument: of its Test Code codelist)."
+        },
+        "submission_value": {
+          "type": "string",
+          "description": "TESTCD, Codelist_TESTCD or term submission value."
+        },
+        "as_published": {
+          "type": "string",
+          "description": "The matched string as published."
+        },
+        "codelist": {
+          "type": "string",
+          "description": "Codelist_Phrases only: codelist submission value (QSCAT, METHOD, SPECTYPE)."
+        },
+        "domains": {
+          "type": "string",
+          "description": "Domains of the test or instrument, as in the lookup ('; '-separated); for a test, the input of rule K1."
+        }
+      }
+    },
+    "member": {
+      "type": "object",
+      "required": [
+        "text",
+        "phrase",
+        "from"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "Member as split from the label."
+        },
+        "phrase": {
+          "type": "string",
+          "description": "Normalised member."
+        },
+        "from": {
+          "type": "string",
+          "enum": [
+            "parenthesis",
+            "label"
+          ],
+          "description": "Split from a trailing parenthesis or from the label text."
+        },
+        "hits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/hit"
+          },
+          "description": "Lookup hits, one per distinct file/code/field."
+        },
+        "hit_strength": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "strong",
+            "weak",
+            null
+          ],
+          "description": "strong: one code, matched on a CT-published field, on the whole phrase, not only through a string of 3 characters or fewer. weak otherwise; null without hits."
+        },
+        "weak_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Why a hit is weak."
+        }
+      }
+    },
+    "finding_kind": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "specimen",
+        "immunogenicity",
+        "measurement",
+        "instrument",
+        "pc",
+        "genomics",
+        "unsure",
+        null
+      ],
+      "description": "Kind of finding of a named test: the Domain_Coverage Consumer of its domains (specimen, immunogenicity, measurement, instrument), or pc / genomics for the PC and GF domains; unsure when the domains give no single kind. null when the grain is not named test."
+    },
+    "basis": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "description": "What a decision rests on. label: the label text; annotation: a footnote or other SoA annotation (xannot_id in the study's consolidated.json); context: an entry of the study's protocol context file (JSON Pointer); page: a protocol page inside the context file's pages_covered, when no context entry holds the fact.",
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "label"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "annotation"
+            },
+            "xannot_id": {
+              "type": "string",
+              "pattern": "^xannot-[0-9]+$"
+            }
+          },
+          "required": [
+            "xannot_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "context"
+            },
+            "pointer": {
+              "type": "string",
+              "pattern": "^/.+"
+            }
+          },
+          "required": [
+            "pointer"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "page"
+            },
+            "page": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "page"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "properties": {
+    "schema_name": {
+      "type": "string",
+      "const": "soa2usdm-activity-grain",
+      "description": "Schema identifier."
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": [
+        "1.0"
+      ],
+      "description": "Schema version."
+    },
+    "collection": {
+      "type": "string",
+      "description": "Collection the study was read in."
+    },
+    "protocol_id": {
+      "type": "string",
+      "description": "The study (protocol folder name)."
+    },
+    "generated_at": {
+      "type": "string",
+      "description": "When the file was generated (UTC)."
+    },
+    "rules_version": {
+      "type": "string",
+      "description": "Version of the rules in soa2usdm/activity_grain.py."
+    },
+    "word_lists_date": {
+      "type": "string",
+      "description": "Date of the word lists."
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "inventory_rows",
+        "consolidated",
+        "protocol_context",
+        "decisions",
+        "cdisc_for_ai"
+      ],
+      "additionalProperties": false,
+      "description": "What the file was built from.",
+      "properties": {
+        "inventory_rows": {
+          "type": "object",
+          "required": [
+            "rows",
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "description": "The study's rows as the activity inventory builds them (activity_inventory.collect_rows).",
+          "properties": {
+            "rows": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of rows."
+            },
+            "sha256": {
+              "type": "string",
+              "description": "SHA-256 of the rows as canonical JSON (sorted keys, separators ',' ':', UTF-8). The pages check it to find a stale file."
+            }
+          }
+        },
+        "consolidated": {
+          "type": "object",
+          "required": [
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "type": "string",
+              "description": "SHA-256 of the study's consolidated.json (parents, annotation ids)."
+            }
+          }
+        },
+        "protocol_context": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "sha256",
+            "prompt_version"
+          ],
+          "additionalProperties": false,
+          "description": "The study's protocol context file, when it has one.",
+          "properties": {
+            "sha256": {
+              "type": "string"
+            },
+            "prompt_version": {
+              "type": "string"
+            }
+          }
+        },
+        "decisions": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "description": "The study's decisions file, when it has one; null = rules only.",
+          "properties": {
+            "sha256": {
+              "type": "string"
+            }
+          }
+        },
+        "cdisc_for_ai": {
+          "type": "object",
+          "required": [
+            "commit",
+            "reference_versions",
+            "files"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "commit": {
+              "type": "string",
+              "description": "git HEAD of the cdisc-for-ai checkout (lookup files clean)."
+            },
+            "reference_versions": {
+              "type": "object",
+              "description": "Reference_Versions.json."
+            },
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "path",
+                  "sheet",
+                  "file_sha256",
+                  "sheet_content_sha256",
+                  "generated",
+                  "sdtm_ct",
+                  "ncit"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "sheet": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "file_sha256": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "sheet_content_sha256": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "generated": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "sdtm_ct": {
+                    "type": "string",
+                    "description": ""
+                  },
+                  "ncit": {
+                    "type": "string",
+                    "description": ""
+                  }
+                }
+              },
+              "description": "Lookup files and their Provenance values."
+            }
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "activities",
+        "by_role",
+        "by_grain",
+        "by_rule",
+        "by_source",
+        "distinct_labels",
+        "by_grain_rules_only",
+        "by_finding_kind",
+        "by_finding_kind_rules_only"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "activities": {
+          "type": "integer"
+        },
+        "by_role": {
+          "type": "object"
+        },
+        "by_grain": {
+          "type": "object",
+          "description": "Grain of rows after decisions."
+        },
+        "by_rule": {
+          "type": "object"
+        },
+        "by_source": {
+          "type": "object"
+        },
+        "distinct_labels": {
+          "type": "integer"
+        },
+        "by_grain_rules_only": {
+          "type": "object",
+          "description": "Grain of rows with a grain as the rules alone give it (decisions ignored)."
+        },
+        "by_finding_kind": {
+          "type": "object",
+          "description": "Kind of rows after decisions."
+        },
+        "by_finding_kind_rules_only": {
+          "type": "object",
+          "description": "Kind of rows without a role as the rules alone give it (decisions ignored)."
+        }
+      },
+      "description": "Totals."
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "phrase",
+          "spellings",
+          "grain",
+          "rule_id",
+          "hits",
+          "hit_strength",
+          "weak_reasons",
+          "qualifiers",
+          "members",
+          "flags",
+          "finding_kind",
+          "kind_rule",
+          "kind_domains"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "phrase": {
+            "type": "string",
+            "description": "Normalised label (Codelist_Phrases rule); the key of the label."
+          },
+          "spellings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Verbatim activity names with this phrase; the first is the one the rules read."
+          },
+          "grain": {
+            "type": "string",
+            "enum": [
+              "named test",
+              "panel",
+              "procedure",
+              "instrument",
+              "sample collection",
+              "other",
+              "unsure"
+            ],
+            "description": "Grain the text rules give."
+          },
+          "rule_id": {
+            "type": "string",
+            "description": "Rule that fired (see the module docstring and the schema doc); 'none' when no rule fired."
+          },
+          "finding_kind": {
+            "$ref": "#/definitions/finding_kind"
+          },
+          "kind_rule": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "K1",
+              null
+            ],
+            "description": "K1 when the rules gave the label grain named test; null otherwise."
+          },
+          "kind_domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "K1: the domains of the hits."
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/hit"
+            },
+            "description": "Lookup hits, one per distinct file/code/field."
+          },
+          "hit_strength": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "strong",
+              "weak",
+              null
+            ],
+            "description": "strong: one code, matched on a CT-published field, on the whole phrase, not only through a string of 3 characters or fewer. weak otherwise; null without hits."
+          },
+          "weak_reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Why a hit is weak."
+          },
+          "qualifiers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Contents of trailing parentheses."
+          },
+          "specimen_qualifier_hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/hit"
+            },
+            "description": "SPECTYPE hits for a qualifier ('TBNK (blood)')."
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/member"
+            },
+            "description": "List members, kept only when at least two hit a test."
+          },
+          "words": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": ""
+            },
+            "description": "Words that fired, per word-list rule."
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Review flags."
+          },
+          "decision": {
+            "type": "object",
+            "required": [
+              "grain",
+              "source",
+              "rationale",
+              "basis"
+            ],
+            "additionalProperties": false,
+            "description": "Present when the study's decisions file holds a decision for this phrase; it sets the grain (and, for a named test, the kind) of the label's rows. The rule result above is kept.",
+            "properties": {
+              "grain": {
+                "type": "string",
+                "enum": [
+                  "named test",
+                  "panel",
+                  "procedure",
+                  "instrument",
+                  "sample collection",
+                  "other",
+                  "unsure"
+                ]
+              },
+              "finding_kind": {
+                "type": "string",
+                "enum": [
+                  "specimen",
+                  "immunogenicity",
+                  "measurement",
+                  "instrument",
+                  "pc",
+                  "genomics",
+                  "unsure"
+                ],
+                "description": "Present exactly when the decided grain is named test."
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "ai_proposed",
+                  "reviewed"
+                ]
+              },
+              "rationale": {
+                "type": "string"
+              },
+              "basis": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/definitions/basis"
+                },
+                "description": "What the decision rests on."
+              },
+              "proposed_by": {
+                "type": "string"
+              },
+              "proposed_at": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "description": "One entry per distinct phrase (section headers and redacted rows excluded)."
+    },
+    "activities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "protocol_id",
+          "xact_id",
+          "activity_name",
+          "phrase",
+          "hierarchy_level",
+          "parent_name",
+          "role",
+          "grain",
+          "finding_kind",
+          "rule_id",
+          "context",
+          "parent_xact_id",
+          "source",
+          "flags"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "protocol_id": {
+            "type": "string",
+            "description": "As in activities.json."
+          },
+          "xact_id": {
+            "type": "string",
+            "pattern": "^xact-[0-9]+$",
+            "description": "As in activities.json."
+          },
+          "activity_name": {
+            "type": "string",
+            "description": "As in activities.json."
+          },
+          "phrase": {
+            "type": "string",
+            "description": "Normalised activity_name; key into labels[]."
+          },
+          "hierarchy_level": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "As in activities.json."
+          },
+          "parent_name": {
+            "type": "string",
+            "description": "As in activities.json."
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "section header",
+              "specimen of parent",
+              "redacted",
+              null
+            ],
+            "description": "Structural role; a row with a role has no grain."
+          },
+          "grain": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "named test",
+              "panel",
+              "procedure",
+              "instrument",
+              "sample collection",
+              "other",
+              "unsure",
+              null
+            ],
+            "description": "Grain; null when the row has a role."
+          },
+          "finding_kind": {
+            "$ref": "#/definitions/finding_kind"
+          },
+          "rule_id": {
+            "type": "string",
+            "description": "S1 redacted, S2 section header, S3 specimen of parent, else the label's rule."
+          },
+          "context": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Name of the section header the row sits under (consolidated parent_xact_id)."
+          },
+          "parent_xact_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Parent row (consolidated parent_xact_id) when the parent is not a section header."
+          },
+          "specimen_hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/hit"
+            },
+            "description": "S3 only: the SPECTYPE hit of the row."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "rule",
+              "ai_proposed",
+              "reviewed"
+            ],
+            "description": "Who set the grain (and kind): rule, or the source of the study's decision."
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Review flags."
+          }
+        }
+      },
+      "description": "One entry per activity of the study, in inventory order."
+    }
+  }
+}
