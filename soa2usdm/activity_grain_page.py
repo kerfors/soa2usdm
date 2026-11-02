@@ -92,16 +92,12 @@ def _evidence(row: dict, lab: dict | None, annotations: dict, context: dict | No
     return "".join(parts) or '<span class="ns">—</span>'
 
 
-def _counts(c: dict) -> str:
-    def line(title, keys, now, rules):
-        cells = "".join(f'<td><b>{now.get(k, 0)}</b>'
-                        + (f' <span class="ns">({rules.get(k, 0)})</span>' if rules is not None and rules.get(k, 0) != now.get(k, 0) else "")
-                        + "</td>" for k in keys)
-        return f'<tr><th>{esc(title)}</th>{cells}</tr>'
-    head = lambda keys: "<tr><th></th>" + "".join(f"<th>{esc(k)}</th>" for k in keys) + "</tr>"
-    return (f'<table class="cnt">{head(GRAINS)}{line("grain", GRAINS, c["by_grain"], c["by_grain_rules_only"])}</table>'
-            f'<table class="cnt">{head(FINDING_KINDS)}{line("kind of named tests", FINDING_KINDS, c["by_finding_kind"], c["by_finding_kind_rules_only"])}</table>'
-            f'<table class="cnt">{head(ROLES)}{line("role", ROLES, c["by_role"], None)}</table>')
+def _summary(c: dict) -> str:
+    """One line of counts after decisions: named tests with their kinds, then the other grains."""
+    kinds = " · ".join(f"{k} {c['by_finding_kind'][k]}" for k in FINDING_KINDS if c["by_finding_kind"].get(k))
+    nt = c["by_grain"]["named test"]
+    others = " · ".join(f"{g} {c['by_grain'][g]}" for g in GRAINS[1:])
+    return f'<b>{nt} named tests</b>{f" ({esc(kinds)})" if kinds else ""} · {esc(others)}'
 
 
 def render(protocol_id: str, collection: str) -> Path:
@@ -117,15 +113,18 @@ def render(protocol_id: str, collection: str) -> Path:
     labels = {l["phrase"]: l for l in g["labels"]}
     depth = len(out.relative_to(config.get_collection_path(collection)).parts) - 1
     nav = nav_block(collection, protocol_id, PAGE_LABEL, depth=depth, current=("grain", None))
-    to_coll = "../" * depth
     cons_html = f"../consolidated/{protocol_id}_consolidated.html"
     c = g["counts"]
     ins = g["inputs"]
     cdisc = ins["cdisc_for_ai"]
     decisions_name = f"{protocol_id}_activity_grain_decisions.json"
-    how = (f'rules and {c["by_source"].get("ai_proposed", 0) + c["by_source"].get("reviewed", 0)} rows set by decisions '
-           f'(<a href="{esc(decisions_name)}">decisions JSON</a>)' if ins["decisions"]
-           else 'rules only: <i>unsure</i> means not yet resolved, not "not a finding"')
+    decided = [l["decision"] for l in g["labels"] if l.get("decision")]
+    n_ai = sum(1 for d in decided if d["source"] == "ai_proposed")
+    n_rv = len(decided) - n_ai
+    how = ("Rules + " + " + ".join(([f"{n_ai} AI decisions (not reviewed)"] if n_ai else [])
+                                   + ([f"{n_rv} reviewed decisions"] if n_rv else []))
+           if decided else 'Rules only: <i>unsure</i> means not yet resolved')
+    decisions_link = f' · <a href="{esc(decisions_name)}">decisions</a>' if ins["decisions"] else ""
 
     rows = []
     for r in g["activities"]:
@@ -166,10 +165,9 @@ def render(protocol_id: str, collection: str) -> Path:
     .meta a, .act a {{ color: #1F4788; text-decoration: none; }}
     .meta a:hover, .act a:hover {{ text-decoration: underline; }}
     .meta code {{ font-size: 11px; }}
+    .sum {{ font-size: 13px; margin: 2px 0 4px; }}
     .tw {{ overflow-x: auto; }}
     table {{ border-collapse: collapse; width: 100%; }}
-    table.cnt {{ width: auto; margin-top: 8px; font-size: 12px; }}
-    table.cnt th, table.cnt td {{ padding: 2px 10px 2px 0; border: 0; white-space: nowrap; }}
     th {{ text-align: left; font-size: 11px; color: #666; font-weight: 600; border-bottom: 2px solid #e0e0e0; padding: 5px 8px; white-space: nowrap; }}
     td {{ vertical-align: top; border-bottom: 1px solid #eee; padding: 6px 8px; }}
     tr:target td {{ background: #fff8e1; }}
@@ -207,14 +205,9 @@ def render(protocol_id: str, collection: str) -> Path:
 {nav}
 <header>
 <h1>{esc(protocol_id)} — activity grain</h1>
-<div class="meta">Grain of each SoA activity and, for a named test, the kind of finding: {how}.<br>
-Rules {esc(g["rules_version"])} · word lists {esc(g["word_lists_date"])} · cdisc-for-ai <code>{esc(cdisc["commit"][:7])}</code>
-(SDTM CT {esc(cdisc["files"][0]["sdtm_ct"])}) · generated {esc(g["generated_at"])} ·
-<a href="{esc(src.name)}">raw JSON</a> ·
-<a href="{to_coll}activities.html?p={esc(protocol_id)}">this study on the Activities page</a> ·
-<a href="{DOC_URL}">how the grain is set</a></div>
-{_counts(c)}
-<div class="meta">Bold: after decisions; in brackets: the rules alone, where different.</div>
+<div class="sum">{_summary(c)}</div>
+<div class="meta">{how} · cdisc-for-ai <code>{esc(cdisc["commit"][:7])}</code> (SDTM CT {esc(cdisc["files"][0]["sdtm_ct"])}) ·
+<a href="{esc(src.name)}">JSON</a>{decisions_link} · <a href="{DOC_URL}">how the grain is set</a></div>
 </header>
 <section>
 <div class="ctl"><input id="q" type="search" placeholder="Search activity, rule, code, evidence…" aria-label="Search">

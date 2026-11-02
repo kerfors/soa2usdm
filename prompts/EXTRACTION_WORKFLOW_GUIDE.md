@@ -60,7 +60,7 @@ The batch notebook runs five steps in sequence:
 
 After all protocols: `IndexGeneratorStep` builds the collection index and renders the reports (refreshing each page's navigation), `CollectionsIndexStep` the root index, `ActivityInventoryStep` the activity inventory.
 
-The collection index follows the workflow. Per table, against the source pages: Source, 1. Extraction, 2. Resolution, Extraction review, Log. Per protocol, across tables: 3. Consolidation (view, JSON, 'matches: n open of N'), Redacted. Where a collection has them: Beyond the SoA (Protocol context) and Towards CDISC (Activity grain: the study's grain page, its JSON, and named tests / unsure on the Activities page). The first identity columns are NCT ID (linked to ClinicalTrials.gov) and Sponsor.
+The collection index follows the workflow. Per table, against the source pages: Source, 1. Extraction, 2. Resolution, Extraction review, Log. Per protocol, across tables: 3. Consolidation (view, JSON, 'matches: n open of N'), Redacted. Where a collection has them: Beyond the SoA (Protocol context) and Towards CDISC (Activity grain: the study's grain page and its JSON, with named tests / unsure counted). The first identity columns are NCT ID (linked to ClinicalTrials.gov) and Sponsor.
 
 **Errors are collected, not raised** — partial success matters when one table out of four has issues. Check the batch output for error summaries.
 

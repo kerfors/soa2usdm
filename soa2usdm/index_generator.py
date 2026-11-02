@@ -741,8 +741,7 @@ def generate_index_html(collection: str) -> str:
             how = 'rules only' if g['inputs']['decisions'] is None else 'rules + decisions'
             grain_html = (f'<a href="{p["activity_grain"]}" class="link-table" title="Activity grain per activity: grain, kind of finding, rule and evidence ({how})">grain</a>'
                           f' <a href="{p["activity_grain_json"]}" class="link-json" title="Activity grain JSON">json</a>'
-                          f'<br><a href="activities.html?p={esc(nct)}" title="This study on the Activities page, with grain and kind ({how})">'
-                          f'{bg["named test"]} named test{"" if bg["named test"] == 1 else "s"} · {bg["unsure"]} unsure</a>')
+                          f'<br><span class="grain-n">{bg["named test"]} named test{"" if bg["named test"] == 1 else "s"} · {bg["unsure"]} unsure</span>')
         grain_td = f'\n            <td class="viz grp-start">{grain_html}</td>' if has_grain else ''
 
         # USDM readiness column
@@ -842,6 +841,7 @@ def generate_index_html(collection: str) -> str:
         .study-code, .prov-ref, .soa-pages, .stats { font-family: ui-monospace, "SF Mono", Menlo, monospace;
             font-size: 11px; color: var(--muted); white-space: nowrap; }
         .sponsor { color: var(--muted); }
+        .grain-n { color: var(--muted); font-size: 11.5px; }
         .prov-ref a { color: var(--muted); text-decoration: none; }
         .prov-ref a:hover { color: var(--blue2); text-decoration: underline; }
         .acronym { white-space: nowrap; }
