@@ -236,7 +236,9 @@ def _grain_rows(collection: str, protocols: list, cons: list) -> tuple[dict | No
         if g["inputs"]["decisions"] is None:
             rules_only.append(pid)
         for r in g["activities"]:
-            out[f"{pid}|{r['xact_id']}"] = [r["role"] or r["grain"], r["finding_kind"], r["rule_id"],
+            kind = (f"{r['finding_kind']} ({' · '.join(r['kind_candidates'])})" if r.get("kind_candidates")
+                    else r["finding_kind"])
+            out[f"{pid}|{r['xact_id']}"] = [r["role"] or r["grain"], kind, r["rule_id"],
                                             r["source"], r["role"] is not None]
     return (out or None), rules_only
 

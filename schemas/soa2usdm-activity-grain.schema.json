@@ -289,7 +289,8 @@
       "type": "string",
       "enum": [
         "1.0",
-        "1.1"
+        "1.1",
+        "1.2"
       ],
       "description": "Schema version."
     },
@@ -584,6 +585,22 @@
           "finding_kind": {
             "$ref": "#/definitions/finding_kind"
           },
+          "kind_candidates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "specimen",
+                "immunogenicity",
+                "measurement",
+                "instrument",
+                "pc",
+                "genomics"
+              ]
+            },
+            "uniqueItems": true,
+            "description": "1.2: when finding_kind is unsure, the kinds the row is narrowed to (two or more; from rule K1 or a decision); empty otherwise."
+          },
           "kind_rule": {
             "type": [
               "string",
@@ -703,6 +720,22 @@
                 ],
                 "description": "Present exactly when the decided grain is named test."
               },
+              "kind_candidates": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "specimen",
+                    "immunogenicity",
+                    "measurement",
+                    "instrument",
+                    "pc",
+                    "genomics"
+                  ]
+                },
+                "uniqueItems": true,
+                "minItems": 2
+              },
               "source": {
                 "type": "string",
                 "enum": [
@@ -820,6 +853,22 @@
           "finding_kind": {
             "$ref": "#/definitions/finding_kind"
           },
+          "kind_candidates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "specimen",
+                "immunogenicity",
+                "measurement",
+                "instrument",
+                "pc",
+                "genomics"
+              ]
+            },
+            "uniqueItems": true,
+            "description": "1.2: when finding_kind is unsure, the kinds the row is narrowed to (two or more; from rule K1 or a decision); empty otherwise."
+          },
           "rule_id": {
             "type": "string",
             "description": "S1 redacted, S2 section header, S3 specimen of parent, else the label's rule."
@@ -871,7 +920,10 @@
       "if": {
         "properties": {
           "schema_version": {
-            "const": "1.1"
+            "enum": [
+              "1.1",
+              "1.2"
+            ]
           }
         }
       },
@@ -881,6 +933,33 @@
             "required": [
               "grain_inputs"
             ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.2"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "labels": {
+            "items": {
+              "required": [
+                "kind_candidates"
+              ]
+            }
+          },
+          "activities": {
+            "items": {
+              "required": [
+                "kind_candidates"
+              ]
+            }
           }
         }
       }

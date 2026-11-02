@@ -1,6 +1,6 @@
 # Activity grain decisions — grain and kind for what the rules leave to decide
 
-Prompt version: 1.1.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.1 · Output schema: `soa2usdm-activity-grain-decisions` 1.1
+Prompt version: 1.2.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.1 · Output schema: `soa2usdm-activity-grain-decisions` 1.2
 
 You decide the grain of SoA activities of ONE study and, for a named test, the kind of finding. The grain rules of
 `soa2usdm.activity_grain` have already run; you decide only the labels they left to decide. Every decision cites what it rests on, and
@@ -55,8 +55,10 @@ a product, and cytokine-secreting cells → domain IS (kind immunogenicity); a d
      Then decide `named test` (one measure) or `panel` (several), and say in the rationale which words name it.
 3. **Kind rule.** A named test with a kind other than `unsure` cites at least one cdisc entry whose domain gives that kind: the
    Domain_Coverage row (`{"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}`), or a test row from `cdisc.tests`
-   (`{"type": "cdisc", "file": "SDTM_Test_Identity", "code": "…", "testcd": "…"}`, copied exactly). If the input does not settle one
-   domain, the kind is `unsure`.
+   (`{"type": "cdisc", "file": "SDTM_Test_Identity", "code": "…", "testcd": "…"}`, copied exactly). Give one kind only when the input
+   settles one domain. If it narrows the row to two or more kinds, the kind is `unsure` and `kind_candidates` lists those kinds, each
+   given by a cited cdisc entry (for example IS and LB → `["immunogenicity", "specimen"]`). If it does not narrow the kind at all, the
+   kind is `unsure` without `kind_candidates`.
 4. **Unsure stays unsure.** Where the input does not settle the grain or the kind, the value is `unsure`, and the rationale names what is open
    (for example: "PC or MB: vector DNA by PCR, the input does not say which").
 5. **Basis.** Every decision cites `{"type": "label"}` and every other entry it rests on: `{"type": "annotation", "xannot_id": "…"}`,
@@ -73,7 +75,7 @@ a product, and cytokine-secreting cells → domain IS (kind immunogenicity); a d
 ```json
 {
   "schema_name": "soa2usdm-activity-grain-decisions",
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "protocol_id": "{NCTID}",
   "protocol_context": {"sha256": "<sources.protocol_context.sha256>", "prompt_version": "<sources.protocol_context.prompt_version>"},
   "decisions": [
@@ -87,7 +89,7 @@ a product, and cytokine-secreting cells → domain IS (kind immunogenicity); a d
                 {"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}],
       "proposed_by": "<model id>",
       "proposed_at": "YYYY-MM-DD",
-      "prompt_version": "1.0.0",
+      "prompt_version": "1.2.0",
       "inputs_sha256": "<sha256 of the inputs file as read>"
     }
   ]
@@ -95,10 +97,11 @@ a product, and cytokine-secreting cells → domain IS (kind immunogenicity); a d
 ```
 
 - `finding_kind` is present exactly when `grain` is `named test`.
+- `kind_candidates` (two or more kinds, sorted) only together with `"finding_kind": "unsure"`, and only when the input narrows the kind.
 - `decisions` sorted by `phrase`.
 - `inputs_sha256` is the sha256 of the inputs file's bytes; `protocol_context` is copied from the input's `sources`.
 
 ## After writing
 
 Run `python -m soa2usdm.activity_grain --collection <name> --protocol {NCTID}`. It stops on any decision that does not check out; fix the
-decision, never the input. Report per study: decisions by grain, named tests by kind, and every `unsure` with its open question.
+decision, never the input. Report per study: decisions by grain, named tests by kind, and every `unsure` with its candidates and open question.

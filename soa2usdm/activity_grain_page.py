@@ -145,6 +145,8 @@ def render(protocol_id: str, collection: str) -> Path:
                      if r["source"] != "rule" and lab["grain"] != r["grain"] else "")
             grain = f'<span class="g g-{esc(r["grain"].replace(" ", "-"))}">{esc(r["grain"])}</span>{ai}{rv}{rules}'
         kind = esc(r["finding_kind"]) if r["finding_kind"] else '<span class="ns">—</span>'
+        if r.get("kind_candidates"):
+            kind += f' <span class="ns sub">{esc(" · ".join(r["kind_candidates"]))}</span>'
         where = f'<div class="ctx">under {esc(" / ".join(r["context"]))}</div>' if r["context"] else ""
         ind = f' style="padding-left:{r["hierarchy_level"] * 14}px"' if r["hierarchy_level"] else ""
         rows.append(

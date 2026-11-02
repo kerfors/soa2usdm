@@ -222,7 +222,7 @@ def _load(labels=None, context=CONTEXT, inputs=INPUTS):
     return ag._load_decisions("NCT0", "c", labels or _labels(), context, ANNOTATIONS, LK, inputs)
 
 
-def _write(tmp_path, monkeypatch, decisions, context=CONTEXT, version="1.1"):
+def _write(tmp_path, monkeypatch, decisions, context=CONTEXT, version="1.2"):
     doc = {"schema_name": "soa2usdm-activity-grain-decisions", "schema_version": version,
            "protocol_id": "NCT0", "decisions": decisions,
            "protocol_context": ({"sha256": context["sha256"], "prompt_version": context["prompt_version"]}
@@ -251,6 +251,23 @@ def test_valid_decisions_pass_and_validate(tmp_path, monkeypatch):
 def test_kind_from_a_cdisc_row_passes(tmp_path, monkeypatch, basis):
     _write(tmp_path, monkeypatch, [_decision(basis=basis)])
     _load()
+
+
+def test_kind_candidates_from_cited_rows_pass(tmp_path, monkeypatch):
+    lb = {"type": "cdisc", "file": "Domain_Coverage", "domain": "LB"}
+    doc = _write(tmp_path, monkeypatch, [_decision(finding_kind="unsure", kind_candidates=["immunogenicity", "specimen"],
+                                                   basis=[{"type": "label"}, IS_ROW, lb])])
+    jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
+    labels = _labels()
+    _load(labels)
+    assert labels["anti aav5 antibodies"]["decision"]["kind_candidates"] == ["immunogenicity", "specimen"]
+
+
+def test_k1_gives_candidates_for_several_kinds():
+    k = ag.finding_kind([_test("Temperature", "C1", "TEMP", "LB; VS")], LK)
+    assert (k["finding_kind"], k["kind_candidates"]) == ("unsure", ["measurement", "specimen"])
+    k = ag.finding_kind([_test("Thing", "C2", "THING", "LB; SC")], LK)
+    assert (k["finding_kind"], k["kind_candidates"]) == ("unsure", [])
 
 
 def test_kind_unsure_needs_no_cdisc_row(tmp_path, monkeypatch):
@@ -282,6 +299,11 @@ def test_reviewed_decision_in_a_1_0_file_passes(tmp_path, monkeypatch):
                                 "code": "C13325"}])], "not a METHOD term"),
     ([_decision(basis=[{"type": "cdisc", "file": "Domain_Coverage", "code": "C1"}])], "cdisc basis entry not understood"),
     ([_decision(basis=[{"type": "cdisc", "file": "Findings", "domain": "IS"}])], "cdisc basis entry not understood"),
+    ([_decision(kind_candidates=["immunogenicity", "specimen"])], "only with finding_kind unsure"),
+    ([_decision(finding_kind="unsure", kind_candidates=["immunogenicity"])], "two or more distinct kinds"),
+    ([_decision(finding_kind="unsure", kind_candidates=["immunogenicity", "immunogenicity"])], "two or more distinct kinds"),
+    ([_decision(finding_kind="unsure", kind_candidates=["immunogenicity", "unsure"])], "two or more distinct kinds"),
+    ([_decision(finding_kind="unsure", kind_candidates=["immunogenicity", "specimen"])], "rest on no cdisc"),
     ([_decision(finding_kind=None)], "finding_kind is required"),
     ([_decision(grain="panel")], "finding_kind is required"),
     ([_decision(finding_kind="lab")], "unknown finding_kind"),
@@ -303,6 +325,13 @@ def test_ai_proposed_without_inputs_file_stops(tmp_path, monkeypatch):
     _write(tmp_path, monkeypatch, [_decision()])
     with pytest.raises(ValueError, match="no grain inputs file"):
         _load(inputs=None)
+
+
+def test_kind_candidates_in_a_1_1_file_stop(tmp_path, monkeypatch):
+    _write(tmp_path, monkeypatch, [_decision(finding_kind="unsure", kind_candidates=["immunogenicity", "specimen"])],
+           version="1.1")
+    with pytest.raises(ValueError, match="need schema 1.2"):
+        _load()
 
 
 def test_ai_proposed_in_a_1_0_file_stops(tmp_path, monkeypatch):

@@ -36,10 +36,10 @@ Input: the study's rows as the activity inventory builds them
 parents (parent_xact_id) and annotation ids.
 
 Output: SoA2USDM/grain/<id>_activity_grain.json (schema_name
-soa2usdm-activity-grain, schema_version 1.1). The inventory is not changed.
+soa2usdm-activity-grain, schema_version 1.2). The inventory is not changed.
 
 Decisions: SoA2USDM/grain/<id>_activity_grain_decisions.json (read only here;
-schema soa2usdm-activity-grain-decisions 1.1), keyed by phrase within the
+schema soa2usdm-activity-grain-decisions 1.2), keyed by phrase within the
 study. The rule result is kept on the label beside the decision. ai_proposed
 decisions are made by prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md from the
 study's grain inputs file (soa2usdm.activity_grain_inputs), and only for the
@@ -58,8 +58,8 @@ from pathlib import Path
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain"
-SCHEMA_VERSION = "1.1"
-SCHEMA_VERSIONS = ("1.0", "1.1")
+SCHEMA_VERSION = "1.2"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
 RULES_VERSION = "1.0.0"
 WORD_LISTS_DATE = "2026-11-01"
 
@@ -321,18 +321,22 @@ def _cite(hits: list) -> list:
 def finding_kind(hits: list, lk: Lookups) -> dict:
     """K1: kind of a named test from the domains of its hits (SDTM_Domains,
     '; '-separated), through DOMAIN_KIND, then the Domain_Coverage Consumer.
-    One kind for all domains, or 'unsure' with a flag."""
+    One kind for all domains, or 'unsure' with a flag; when the domains give
+    two or more kinds, those kinds are the kind_candidates."""
     domains = sorted({d.strip() for h in hits for d in h["domains"].split(";") if d.strip()})
     kinds = {}
     for d in domains:
         if d not in lk.consumer:
             raise ValueError(f"domain {d!r} of a test hit is not in Domain_Coverage")
         kinds[d] = DOMAIN_KIND.get(d) or CONSUMER_KIND.get(lk.consumer[d])
-    out = {"finding_kind": "unsure", "kind_rule": "K1", "kind_domains": domains, "flags": []}
+    out = {"finding_kind": "unsure", "kind_rule": "K1", "kind_domains": domains, "kind_candidates": [],
+           "flags": []}
     distinct = set(kinds.values())
     if len(distinct) == 1 and None not in distinct:
         out["finding_kind"] = distinct.pop()
     else:
+        if len(distinct - {None}) >= 2:
+            out["kind_candidates"] = sorted(distinct - {None})
         out["flags"].append("kind: " + (", ".join(f"{d} {kinds[d] or 'no Consumer'}" for d in domains)
                                        if domains else "hit has no domain"))
     return out
@@ -430,7 +434,7 @@ def label_grain(text: str, lk: Lookups) -> dict:
     phrase = normalise(text)
     rec = {"phrase": phrase, "grain": "unsure", "rule_id": None, "hits": [], "hit_strength": None,
            "weak_reasons": [], "qualifiers": [], "members": [], "flags": [],
-           "finding_kind": None, "kind_rule": None, "kind_domains": []}
+           "finding_kind": None, "kind_rule": None, "kind_domains": [], "kind_candidates": []}
     if re.search(r"[^\x00-\x7f]", text):
         rec["flags"].append("non-ASCII characters split by normalisation")
 
@@ -541,7 +545,7 @@ def label_grain(text: str, lk: Lookups) -> dict:
 # ---------------------------------------------------------------------------
 DECISIONS_SCHEMA = "soa2usdm-activity-grain-decisions"
 DECISION_SOURCES = ("ai_proposed", "reviewed")
-DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1")
+DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
 # Basis entry type → its keys besides 'type'.
 BASIS_TYPES = {"label": set(), "annotation": {"xannot_id"}, "context": {"pointer"}, "page": {"page"}}
 # cdisc basis (decisions 1.1): file → its keys besides 'type' and 'file'.
@@ -632,7 +636,9 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
     that is not the current inputs file's; a named test with a kind other than
     unsure decided by ai_proposed without a cdisc basis entry giving that kind;
     a cdisc basis entry whose domain, code, TESTCD or codelist term is not as
-    published; two decisions for one phrase; finding_kind missing on a named
+    published; kind_candidates outside a 1.2 file, without finding_kind unsure,
+    with fewer than two kinds, or with a kind no cited cdisc entry gives; two
+    decisions for one phrase; finding_kind missing on a named
     test or present on another grain; an empty basis or a basis entry of unknown shape; an xannot_id not in the
     study's consolidated.json; a context pointer that does not resolve; a page
     outside the context's pages_covered; a context or page basis without a
@@ -711,10 +717,21 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
                 and d["finding_kind"] not in kinds_cited):
             raise ValueError(f"{where}: kind {d['finding_kind']!r} rests on no cdisc basis entry giving it "
                              f"(cited: {sorted(kinds_cited) or 'none'})")
+        if "kind_candidates" in d:
+            cands = d["kind_candidates"]
+            if doc["schema_version"] in ("1.0", "1.1"):
+                raise ValueError(f"{where}: kind_candidates need schema 1.2")
+            if d.get("finding_kind") != "unsure":
+                raise ValueError(f"{where}: kind_candidates only with finding_kind unsure")
+            if len(cands) < 2 or len(set(cands)) != len(cands) or not set(cands) <= set(FINDING_KINDS) - {"unsure"}:
+                raise ValueError(f"{where}: kind_candidates must be two or more distinct kinds: {cands}")
+            if not set(cands) <= kinds_cited:
+                raise ValueError(f"{where}: kind_candidates {sorted(set(cands) - kinds_cited)} rest on no cdisc "
+                                 f"basis entry giving them (cited: {sorted(kinds_cited) or 'none'})")
         out[p] = d
-        labels[p]["decision"] = {k: d[k] for k in ("grain", "finding_kind", "source", "rationale", "basis",
-                                                   "proposed_by", "proposed_at", "prompt_version",
-                                                   "inputs_sha256") if k in d}
+        labels[p]["decision"] = {k: d[k] for k in ("grain", "finding_kind", "kind_candidates", "source",
+                                                   "rationale", "basis", "proposed_by", "proposed_at",
+                                                   "prompt_version", "inputs_sha256") if k in d}
     return out, hashlib.sha256(raw).hexdigest()
 
 
@@ -765,7 +782,8 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
         phrase = normalise(a["activity_name"])
         row = {"protocol_id": protocol_id, "xact_id": a["xact_id"], "activity_name": a["activity_name"],
                "phrase": phrase, "hierarchy_level": a["hierarchy_level"], "parent_name": a["parent_name"],
-               "role": None, "grain": None, "finding_kind": None, "rule_id": None, "context": [],
+               "role": None, "grain": None, "finding_kind": None, "kind_candidates": [], "rule_id": None,
+               "context": [],
                "parent_xact_id": None, "source": "rule", "flags": []}
         if a["is_redacted"]:
             row.update(role="redacted", rule_id="S1")
@@ -776,10 +794,12 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
             rows.append(row)
             continue
         lab = labels[phrase]
-        row.update(grain=lab["grain"], finding_kind=lab["finding_kind"], rule_id=lab["rule_id"])
+        row.update(grain=lab["grain"], finding_kind=lab["finding_kind"], kind_candidates=lab["kind_candidates"],
+                   rule_id=lab["rule_id"])
         if phrase in decisions:
             d = decisions[phrase]
-            row.update(grain=d["grain"], finding_kind=d.get("finding_kind"), source=d["source"])
+            row.update(grain=d["grain"], finding_kind=d.get("finding_kind"),
+                       kind_candidates=d.get("kind_candidates", []), source=d["source"])
         # Parent by id (consolidated parent_xact_id), not by name
         par_id = unified[a["xact_id"]]["parent_xact_id"]
         if a["parent_name"] and not par_id:
@@ -796,7 +816,7 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
                 par_lab = labels.get(normalise(par["activity_name"]))
                 spec = [h for h in lk.phrase.get(phrase, []) if h["codelist"] == "SPECTYPE"]
                 if par_lab and par_lab["grain"] == "sample collection" and spec:
-                    row.update(role="specimen of parent", grain=None, finding_kind=None, rule_id="S3",
+                    row.update(role="specimen of parent", grain=None, finding_kind=None, kind_candidates=[], rule_id="S3",
                                specimen_hits=_cite(spec))
         rows.append(row)
 

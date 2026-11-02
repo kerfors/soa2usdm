@@ -153,7 +153,8 @@
       "type": "string",
       "enum": [
         "1.0",
-        "1.1"
+        "1.1",
+        "1.2"
       ],
       "description": "Schema version."
     },
@@ -225,6 +226,23 @@
               "unsure"
             ],
             "description": "Required when grain is named test; absent otherwise."
+          },
+          "kind_candidates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "specimen",
+                "immunogenicity",
+                "measurement",
+                "instrument",
+                "pc",
+                "genomics"
+              ]
+            },
+            "uniqueItems": true,
+            "minItems": 2,
+            "description": "1.2: with finding_kind unsure only, the two or more kinds the input narrows the row to; each must be given by a cited cdisc entry (checked by the generator)."
           },
           "source": {
             "type": "string",

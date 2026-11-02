@@ -13,6 +13,7 @@ The step is a per-study sidecar. It does not change the activity inventory (`act
 | `grain` | named test · panel · procedure · instrument · sample collection · other · unsure | every row without a role |
 | `role` | section header · specimen of parent · redacted | structural rows; a row with a role has no grain |
 | `finding_kind` | specimen · immunogenicity · measurement · instrument · pc · genomics · unsure | named tests only; `null` otherwise |
+| `kind_candidates` | two or more of the kinds above | with `finding_kind` unsure, when the domains or the input narrow the row to those kinds; empty otherwise |
 
 `unsure` means **not resolved yet**. It does not mean "not a finding". In a study graded by rules only, most unsure rows are still open.
 
@@ -59,7 +60,8 @@ fires wins. Every row cites the rule that fired and every lookup hit it used. Ex
 | K1 | finding_kind | for L1, L1q, L1a: the hit's `SDTM_Domains` through the table above | "Weight" (CV; VS) → measurement |
 
 K1 gives `unsure`, with a flag naming the domains, when the domains point to more than one kind or to a domain with no Consumer. Examples:
-"Temperature" (BS, DO, VS) and "Neurological assessment" (NV).
+"Temperature" (BS, DO, VS) and "Neurological assessment" (NV). When the domains give two or more kinds, those kinds are the row's
+`kind_candidates`; a later step can route the row to each of them.
 
 **Short codes.** A test hit made only through a string of three characters or fewer is not taken (L1, L1q, L1a). It stays on the label as
 the flag "short code only, not taken: …", and the next rule is tried. Short codes collide with protocol abbreviations: "PK" (pharmacokinetics)
@@ -87,7 +89,7 @@ and source versions.
 ## Decisions (AI proposals and reviews)
 
 What the rules leave to decide is decided in a file per study, `SoA2USDM/grain/<id>_activity_grain_decisions.json` (schema
-`soa2usdm-activity-grain-decisions` 1.1; 1.0 files stay valid for reviewed decisions). The generator reads this file and never writes it.
+`soa2usdm-activity-grain-decisions` 1.2; earlier files stay valid, 1.0 for reviewed decisions only). The generator reads this file and never writes it.
 
 AI proposals are made in three steps per study:
 
@@ -120,6 +122,8 @@ A person then reviews the decisions per study.
     `SDTM_Instrument_Identity`), `{"file": "Codelist_Phrases", "codelist": "SPECTYPE", "code": "C13325"}`.
 - **Kind rule:** an `ai_proposed` named test with a kind other than `unsure` cites at least one `cdisc` entry whose domain gives that kind
   (rule K1 for one domain: PC → pc, GF → genomics, otherwise the Domain_Coverage Consumer).
+- **Kind candidates (1.2):** when the input narrows a named test to two or more kinds without settling one, the kind is `unsure` and
+  `kind_candidates` lists them; each candidate rests on a cited `cdisc` entry giving it. The FIX inhibitor rows are an example: IS or LB.
 - The rule result stays on the label beside the decision.
 
 **The generator stops** on any of these:
@@ -129,6 +133,7 @@ A person then reviews the decisions per study.
 - a grain inputs file that differs from the inputs rebuilt from the study's files now (rerun the gathering, then the prompt);
 - a `cdisc` entry whose domain, code, TESTCD or codelist term is not as published;
 - an `ai_proposed` kind that no cited `cdisc` entry gives;
+- `kind_candidates` outside a 1.2 file, without `finding_kind` unsure, with fewer than two kinds, or with a kind no cited `cdisc` entry gives;
 - two decisions for one phrase;
 - a missing or misplaced `finding_kind`;
 - an empty basis, or a basis entry of unknown shape;
@@ -149,7 +154,7 @@ kind stays `unsure`, and the rationale says what is open (for example, vector-DN
 
 ```
 {NCTID}/SoA2USDM/grain/
-├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.1)
+├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.2)
 ├── {NCTID}_grain_inputs.json               # gathered for the decisions prompt (where AI proposals are made)
 └── {NCTID}_activity_grain_decisions.json   # from the prompt and reviews, where decisions exist
 ```
@@ -183,7 +188,7 @@ Status on 2026-11-02, with cdisc-for-ai `75ef8dd` (SDTM CT 2026-09-25):
 
 | Collection | Studies | Rows with a grain | named test | unsure | Decisions |
 |---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 229 | 59 | 7 | AI proposals (144, prompt 1.1.0, not reviewed) |
+| cell_gene_therapy | 5 | 229 | 60 | 8 | AI proposals (144, prompt 1.2.0, not reviewed) |
 | usdm_data | 22 | 811 | 70 | 337 | rules only |
 | cpmp | 13 | 303 | 27 | 107 | rules only |
 | misc_studies | 2 | 82 | 16 | 25 | rules only |
