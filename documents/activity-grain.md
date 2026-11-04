@@ -198,11 +198,11 @@ check each grain file against its inputs, and **stop on a stale file** with the 
 
 ## Status
 
-Status on 2026-11-02, with cdisc-for-ai `75ef8dd` (SDTM CT 2026-09-25):
+Status on 2026-11-04, with cdisc-for-ai `82559eb` (SDTM CT 2026-09-25):
 
 | Collection | Studies | Rows with a grain | named test | unsure | Decisions |
 |---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 229 | 60 | 8 | AI proposals (144, prompt 1.2.0, not reviewed) |
+| cell_gene_therapy | 5 | 229 | 60 | 8 | AI proposals (144, prompt 1.2.0, not reviewed; decisions schema 1.3 since 2026-11-04) |
 | usdm_data | 22 | 811 | 70 | 337 | rules only |
 | cpmp | 13 | 303 | 27 | 107 | rules only |
 | misc_studies | 2 | 82 | 16 | 25 | rules only |
