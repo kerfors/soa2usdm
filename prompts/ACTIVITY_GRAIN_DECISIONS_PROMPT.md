@@ -1,6 +1,6 @@
 # Activity grain decisions — grain and kind for what the rules leave to decide
 
-Prompt version: 1.2.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.1 · Output schema: `soa2usdm-activity-grain-decisions` 1.2
+Prompt version: 1.3.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.1 · Output schema: `soa2usdm-activity-grain-decisions` 1.2
 
 You decide the grain of SoA activities of ONE study and, for a named test, the kind of finding. The grain rules of
 `soa2usdm.activity_grain` have already run; you decide only the labels they left to decide. Every decision cites what it rests on, and
@@ -39,8 +39,8 @@ nothing else: not the protocol PDF, not other files of the repositories, not CDI
 ## Kinds of finding (named test only)
 
 `specimen` · `immunogenicity` · `measurement` · `instrument` · `pc` · `genomics` · `unsure`. A kind is the `kind` of a Domain_Coverage row
-in `cdisc.domains`. Decide the kind by the SDTM domain the result belongs to, and cite that domain row. Example: antibodies to a vector or to
-a product, and cytokine-secreting cells → domain IS (kind immunogenicity); a drug concentration → PC (kind pc).
+in `cdisc.domains`. Decide the kind from the domains of the cited test row or Domain_Coverage row. Where the input leaves the domain to an
+SDTMIG statement or a protocol fact, the kind is `unsure` with `kind_candidates`. Example: a drug concentration → PC (kind pc).
 
 ## Rules
 

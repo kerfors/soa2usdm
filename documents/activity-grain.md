@@ -1,8 +1,8 @@
 # Activity grain
 
 `soa2usdm.activity_grain` tags every SoA activity of a study with its **grain**: how many tests the row names, or what else it is. For a named
-test it also gives the **kind of finding**. This is the cheap first cut towards matching activities to CDISC. It decides which rows go to a
-later, per-row mapping step and routes each one there. Most SoA rows are not findings and only need to be routed out.
+test it also gives the **kind of finding**. It is the first step towards linking activities to CDISC terms: it selects the rows that name a
+test or an instrument, which later steps take further. Most SoA rows are neither and stop here.
 
 The step is a per-study sidecar. It does not change the activity inventory (`activities.json`) or any layer of the pipeline.
 
@@ -19,7 +19,8 @@ The step is a per-study sidecar. It does not change the activity inventory (`act
 
 ### Kinds of finding
 
-The kind picks the Findings file of [cdisc-for-ai](https://github.com/kerfors/cdisc-for-ai) that a later step reads candidate tests from. Each kind
+The kind names the Findings file of [cdisc-for-ai](https://github.com/kerfors/cdisc-for-ai) that the rule hit points to. It is a coarse pointer:
+the domain is decided in a later step, from cited SDTMIG statements, and the kind is used there only where no statement applies. Each kind
 rests on a public row of `sdtm-findings-graph/machine_actionable/Domain_Coverage.xlsx`:
 
 | Kind | Domain_Coverage basis |
@@ -31,7 +32,7 @@ rests on a public row of `sdtm-findings-graph/machine_actionable/Domain_Coverage
 | pc | domain PC: in the Specimen_Findings scope, but with no test codes, because the analyte is sponsor-defined |
 | genomics | domain GF: excluded from Specimen_Findings, so it has no Consumer |
 
-PC and GF are their own kinds because what a later step needs for them differs from the rest of Specimen.
+PC and GF are their own kinds because Domain_Coverage gives PC no test codes and GF no Consumer.
 
 ## Rules
 
@@ -61,7 +62,7 @@ fires wins. Every row cites the rule that fired and every lookup hit it used. Ex
 
 K1 gives `unsure`, with a flag naming the domains, when the domains point to more than one kind or to a domain with no Consumer. Examples:
 "Temperature" (BS, DO, VS) and "Neurological assessment" (NV). When the domains give two or more kinds, those kinds are the row's
-`kind_candidates`; a later step can route the row to each of them.
+`kind_candidates`; the domain step takes them as candidates.
 
 **Short codes.** A test hit made only through a string of three characters or fewer is not taken (L1, L1q, L1a). It stays on the label as
 the flag "short code only, not taken: …", and the next rule is tried. Short codes collide with protocol abbreviations: "PK" (pharmacokinetics)
@@ -149,6 +150,13 @@ domain. They do not prove that it supports the decision. A person reviews that.
 
 AI proposals rest on public material only, and only on what the grain inputs file holds. Where that material does not settle the kind, the
 kind stays `unsure`, and the rationale says what is open (for example, vector-DNA shedding by PCR: PC, MB or GF).
+
+## After the grain
+
+Activities and tests are linked as the protocol documents them: each named test or instrument gets the CDISC terms the protocol supports,
+as specifically as the protocol states them, and no more. The steps after the grain are the domain (from cited SDTMIG v3.4 statements), the
+test with its target and the facets the protocol states (specimen, method, condition), and an optional COSMoS pointer where exactly one BC
+or DSS applies. These steps are not in this repository yet. Panels wait for panel splitting.
 
 ## Files
 
