@@ -1,6 +1,6 @@
 # Activity grain decisions — grain and kind for what the rules leave to decide
 
-Prompt version: 1.3.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.1 · Output schema: `soa2usdm-activity-grain-decisions` 1.2
+Prompt version: 1.4.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.2 · Output schema: `soa2usdm-activity-grain-decisions` 1.3
 
 You decide the grain of SoA activities of ONE study and, for a named test, the kind of finding. The grain rules of
 `soa2usdm.activity_grain` have already run; you decide only the labels they left to decide. Every decision cites what it rests on, and
@@ -75,7 +75,7 @@ SDTMIG statement or a protocol fact, the kind is `unsure` with `kind_candidates`
 ```json
 {
   "schema_name": "soa2usdm-activity-grain-decisions",
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "protocol_id": "{NCTID}",
   "protocol_context": {"sha256": "<sources.protocol_context.sha256>", "prompt_version": "<sources.protocol_context.prompt_version>"},
   "decisions": [
@@ -89,8 +89,8 @@ SDTMIG statement or a protocol fact, the kind is `unsure` with `kind_candidates`
                 {"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}],
       "proposed_by": "<model id>",
       "proposed_at": "YYYY-MM-DD",
-      "prompt_version": "1.2.0",
-      "inputs_sha256": "<sha256 of the inputs file as read>"
+      "prompt_version": "1.4.0",
+      "inputs_content_sha256": "<content_sha256 of the inputs file, copied>"
     }
   ]
 }
@@ -99,7 +99,7 @@ SDTMIG statement or a protocol fact, the kind is `unsure` with `kind_candidates`
 - `finding_kind` is present exactly when `grain` is `named test`.
 - `kind_candidates` (two or more kinds, sorted) only together with `"finding_kind": "unsure"`, and only when the input narrows the kind.
 - `decisions` sorted by `phrase`.
-- `inputs_sha256` is the sha256 of the inputs file's bytes; `protocol_context` is copied from the input's `sources`.
+- `inputs_content_sha256` is the input's `content_sha256`, copied; `protocol_context` is copied from the input's `sources`.
 
 ## After writing
 

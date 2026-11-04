@@ -90,12 +90,12 @@ and source versions.
 ## Decisions (AI proposals and reviews)
 
 What the rules leave to decide is decided in a file per study, `SoA2USDM/grain/<id>_activity_grain_decisions.json` (schema
-`soa2usdm-activity-grain-decisions` 1.2; earlier files stay valid, 1.0 for reviewed decisions only). The generator reads this file and never writes it.
+`soa2usdm-activity-grain-decisions` 1.3; earlier files stay valid, 1.0 for reviewed decisions only). The generator reads this file and never writes it.
 
 AI proposals are made in three steps per study:
 
 1. **Gather (code).** `python -m soa2usdm.activity_grain_inputs --collection <name> [--protocol <NCTID>]` writes
-   `SoA2USDM/grain/<id>_grain_inputs.json` (schema `soa2usdm-activity-grain-inputs` 1.1) from public files only. Its items are the labels
+   `SoA2USDM/grain/<id>_grain_inputs.json` (schema `soa2usdm-activity-grain-inputs` 1.2) from public files only. Its items are the labels
    whose rule result leaves something to decide and that have a row without a role: **grain unsure** (no grain), **kind unsure** (a named
    test without a single kind from K1), **sample collection** (a finding may be named in it) and **procedure by word list** (procedure from
    W2 or a weak hit, not from a strong L3 METHOD phrase; a measure may be named in it, as in "ALLO-501A in BM aspirate"). Per item:
@@ -103,7 +103,8 @@ AI proposals are made in three steps per study:
    `lab_and_purpose` entries for the label, and the abbreviations in the label. Per study: the context categories with no link to an SoA row
    (product, immunogenicity, endpoint assays, genetic testing). CDISC: every Domain_Coverage row with the kind it gives, and the test rows
    the rules hit. Every context entry carries its JSON Pointer. The file has no generation time: the same inputs give the same file. It
-   needs the study's protocol context.
+   needs the study's protocol context. `content_sha256` (1.2) is the sha256 of what the prompt decides from (collection, protocol_id,
+   items, study, cdisc) as canonical JSON; it leaves out `sources`, the recorded versions.
 2. **Propose (prompt).** A Claude session runs [`prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md`](../prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md)
    on that one file and writes the decisions file: one decision per item, nothing else.
 3. **Check (generator).** `python -m soa2usdm.activity_grain` checks the decisions (below) and writes the grain file.
@@ -111,7 +112,10 @@ AI proposals are made in three steps per study:
 A person then reviews the decisions per study.
 
 - `source: ai_proposed` is allowed only on a phrase the study's current grain inputs file lists, and must carry `prompt_version` and
-  `inputs_sha256` (the sha256 of that inputs file). `source: reviewed` is allowed on any label, and can set the kind of a rule-hit named test.
+  `inputs_content_sha256` (1.3: the inputs file's `content_sha256`). Decisions in 1.1 / 1.2 files carry `inputs_sha256` (the sha256 of the
+  whole inputs file) instead; it is checked when `inputs_content_sha256` is absent, and kept as a record when it is added
+  (`tools/grain_decisions_record_content_sha.py`). A new cdisc-for-ai commit that changes nothing the prompt reads therefore needs a
+  new gathering, not a new prompt run. `source: reviewed` is allowed on any label, and can set the kind of a rule-hit named test.
 - `finding_kind` is present exactly when the decided grain is named test.
 - `basis` lists what the decision rests on:
   - `{"type": "label"}` — the label text;
@@ -129,9 +133,11 @@ A person then reviews the decisions per study.
 
 **The generator stops** on any of these:
 - a phrase that is no longer in the study;
-- `ai_proposed` on a phrase the grain inputs file does not list, in a 1.0 file, without `prompt_version` / `inputs_sha256`, or with an
+- `ai_proposed` on a phrase the grain inputs file does not list, in a 1.0 file, without `prompt_version`, without
+  `inputs_content_sha256` in a 1.3 file, with an `inputs_content_sha256` that is not the current `content_sha256`, or (without it) with an
   `inputs_sha256` that is not the current inputs file's;
-- a grain inputs file that differs from the inputs rebuilt from the study's files now (rerun the gathering, then the prompt);
+- a grain inputs file whose content differs from the inputs rebuilt from the study's files now (rerun the gathering, then the prompt);
+- a grain inputs file whose content is the same but whose recorded versions differ (rerun the gathering; the decisions stay valid);
 - a `cdisc` entry whose domain, code, TESTCD or codelist term is not as published;
 - an `ai_proposed` kind that no cited `cdisc` entry gives;
 - `kind_candidates` outside a 1.2 file, without `finding_kind` unsure, with fewer than two kinds, or with a kind no cited `cdisc` entry gives;
@@ -162,7 +168,7 @@ or DSS applies. These steps are not in this repository yet. Panels wait for pane
 
 ```
 {NCTID}/SoA2USDM/grain/
-├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.2)
+├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.3)
 ├── {NCTID}_grain_inputs.json               # gathered for the decisions prompt (where AI proposals are made)
 └── {NCTID}_activity_grain_decisions.json   # from the prompt and reviews, where decisions exist
 ```

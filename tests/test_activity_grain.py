@@ -199,7 +199,7 @@ CONTEXT = {"sha256": "c" * 64, "prompt_version": "1.0.0",
 ANNOTATIONS = {"xannot-001"}
 
 
-INPUTS = {"sha256": "e" * 64, "phrases": {"anti aav5 antibodies"}}
+INPUTS = {"sha256": "e" * 64, "content_sha256": "d" * 64, "phrases": {"anti aav5 antibodies"}}
 IS_ROW = {"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}
 
 
@@ -317,6 +317,33 @@ def test_reviewed_decision_in_a_1_0_file_passes(tmp_path, monkeypatch):
 ])
 def test_faulty_decision_stops(tmp_path, monkeypatch, decisions, message):
     _write(tmp_path, monkeypatch, decisions)
+    with pytest.raises(ValueError, match=message):
+        _load()
+
+
+def test_content_fingerprint_in_a_1_3_file_passes(tmp_path, monkeypatch):
+    doc = _write(tmp_path, monkeypatch, [_decision(inputs_content_sha256=INPUTS["content_sha256"])], version="1.3")
+    jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
+    labels = _labels()
+    _load(labels)
+    assert labels["anti aav5 antibodies"]["decision"]["inputs_content_sha256"] == INPUTS["content_sha256"]
+
+
+def test_content_fingerprint_replaces_the_whole_file_check(tmp_path, monkeypatch):
+    # inputs_sha256 stays as a record from the earlier file; with the content fingerprint it is not checked
+    _write(tmp_path, monkeypatch, [_decision(inputs_sha256="f" * 64, inputs_content_sha256=INPUTS["content_sha256"])],
+           version="1.3")
+    _load()
+
+
+@pytest.mark.parametrize("decisions, version, message", [
+    ([_decision(inputs_content_sha256="f" * 64)], "1.3", "inputs_content_sha256 differs"),
+    ([_decision()], "1.3", "without inputs_content_sha256 in a 1.3 file"),
+    ([_decision(inputs_content_sha256=INPUTS["content_sha256"])], "1.2", "needs schema 1.3"),
+    ([_decision(inputs_sha256=None)], "1.2", "without inputs_sha256 or inputs_content_sha256"),
+])
+def test_faulty_content_fingerprint_stops(tmp_path, monkeypatch, decisions, version, message):
+    _write(tmp_path, monkeypatch, decisions, version=version)
     with pytest.raises(ValueError, match=message):
         _load()
 

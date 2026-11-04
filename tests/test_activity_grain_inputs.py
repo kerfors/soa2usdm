@@ -6,7 +6,9 @@ Item selection runs on hand-made labels. The cases on real data need the
 cell_gene_therapy collection (with protocol context) and a cdisc-for-ai
 checkout, and are skipped without them: the inputs are the same on a rebuild,
 validate against their schema, list exactly the labels left to decide, and a
-changed inputs file stops the generator. Published inputs files validate.
+changed inputs file stops the generator (with its own message when only the
+recorded versions changed). content_sha256 covers the content, not the
+version records. Published inputs files validate.
 """
 import json
 from pathlib import Path
@@ -82,12 +84,34 @@ def test_every_pointer_resolves(built):
 
 
 @needs_study
+def test_content_sha256_covers_content_not_sources(built):
+    _, _, payload = built
+    assert payload["content_sha256"] == gi.content_sha256(payload)
+    moved = payload | {"sources": payload["sources"] | {"rules_version": "0.0.0"}, "schema_version": "1.1"}
+    assert gi.content_sha256(moved) == payload["content_sha256"]
+    assert gi.content_sha256(payload | {"items": payload["items"][1:]}) != payload["content_sha256"]
+
+
+@needs_study
+def test_changed_versions_only_stop_with_their_own_message(built, tmp_path, monkeypatch):
+    lk, rows, payload = built
+    path = tmp_path / f"{STUDY}_grain_inputs.json"
+    monkeypatch.setattr(ag, "inputs_path", lambda pid, c: path)
+    cdisc = payload["sources"]["cdisc_for_ai"] | {"commit": "0" * 40}
+    path.write_text(json.dumps(payload | {"sources": payload["sources"] | {"cdisc_for_ai": cdisc}}))
+    with pytest.raises(RuntimeError, match="only the recorded versions changed"):
+        ag._current_inputs(COLLECTION, STUDY, lk, rows)
+
+
+@needs_study
 def test_changed_inputs_file_stops_the_generator(built, tmp_path, monkeypatch):
     lk, rows, payload = built
     path = tmp_path / f"{STUDY}_grain_inputs.json"
     monkeypatch.setattr(ag, "inputs_path", lambda pid, c: path)
     path.write_text(json.dumps(payload))
-    assert ag._current_inputs(COLLECTION, STUDY, lk, rows)["phrases"] == {i["phrase"] for i in payload["items"]}
+    current = ag._current_inputs(COLLECTION, STUDY, lk, rows)
+    assert current["phrases"] == {i["phrase"] for i in payload["items"]}
+    assert current["content_sha256"] == payload["content_sha256"]
     path.write_text(json.dumps(payload | {"items": payload["items"][1:]}))
     with pytest.raises(RuntimeError, match="stale, its inputs changed"):
         ag._current_inputs(COLLECTION, STUDY, lk, rows)

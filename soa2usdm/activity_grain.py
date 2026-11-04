@@ -58,8 +58,8 @@ from pathlib import Path
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain"
-SCHEMA_VERSION = "1.2"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
+SCHEMA_VERSION = "1.3"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
 RULES_VERSION = "1.0.0"
 WORD_LISTS_DATE = "2026-11-01"
 
@@ -545,7 +545,7 @@ def label_grain(text: str, lk: Lookups) -> dict:
 # ---------------------------------------------------------------------------
 DECISIONS_SCHEMA = "soa2usdm-activity-grain-decisions"
 DECISION_SOURCES = ("ai_proposed", "reviewed")
-DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
+DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
 # Basis entry type → its keys besides 'type'.
 BASIS_TYPES = {"label": set(), "annotation": {"xannot_id"}, "context": {"pointer"}, "page": {"page"}}
 # cdisc basis (decisions 1.1): file → its keys besides 'type' and 'file'.
@@ -627,13 +627,17 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
     """Read the study's decisions file (never written here), if present.
     Keyed by phrase. Returns (decisions by phrase, sha256 of the file or None).
 
-    inputs: the study's current grain inputs file as {"sha256", "phrases"}, or
-    None when it has none.
+    inputs: the study's current grain inputs file as {"sha256", "content_sha256",
+    "phrases"}, or None when it has none.
 
     Fails fast on: a phrase not in the study (stale); an unknown grain, kind or
     source; ai_proposed on a phrase the grain inputs file does not list, in a
-    1.0 file, without prompt_version / inputs_sha256, or with an inputs_sha256
-    that is not the current inputs file's; a named test with a kind other than
+    1.0 file, without prompt_version, without inputs_content_sha256 in a 1.3
+    file, without inputs_sha256 or inputs_content_sha256 in a 1.1 / 1.2 file,
+    with an inputs_content_sha256 outside a 1.3 file, with an
+    inputs_content_sha256 that is not the current inputs file's content_sha256,
+    or (without inputs_content_sha256) with an inputs_sha256 that is not the
+    current inputs file's sha256; a named test with a kind other than
     unsure decided by ai_proposed without a cdisc basis entry giving that kind;
     a cdisc basis entry whose domain, code, TESTCD or codelist term is not as
     published; kind_candidates outside a 1.2 file, without finding_kind unsure,
@@ -677,13 +681,22 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
             if doc["schema_version"] == "1.0":
                 raise ValueError(f"{where}: ai_proposed in a 1.0 file; ai_proposed decisions come from the "
                                  f"prompt and need schema 1.1 (prompt_version, inputs_sha256)")
-            if "prompt_version" not in d or "inputs_sha256" not in d:
-                raise ValueError(f"{where}: ai_proposed without prompt_version and inputs_sha256")
+            if "prompt_version" not in d:
+                raise ValueError(f"{where}: ai_proposed without prompt_version")
+            if "inputs_content_sha256" in d and doc["schema_version"] != "1.3":
+                raise ValueError(f"{where}: inputs_content_sha256 needs schema 1.3")
+            if doc["schema_version"] == "1.3" and "inputs_content_sha256" not in d:
+                raise ValueError(f"{where}: ai_proposed without inputs_content_sha256 in a 1.3 file")
+            if "inputs_content_sha256" not in d and "inputs_sha256" not in d:
+                raise ValueError(f"{where}: ai_proposed without inputs_sha256 or inputs_content_sha256")
             if inputs is None:
                 raise ValueError(f"{where}: ai_proposed, but the study has no grain inputs file")
             if p not in inputs["phrases"]:
                 raise ValueError(f"{where}: ai_proposed on a phrase the grain inputs file does not list")
-            if d["inputs_sha256"] != inputs["sha256"]:
+            if "inputs_content_sha256" in d:
+                if d["inputs_content_sha256"] != inputs["content_sha256"]:
+                    raise ValueError(f"{where}: made from other grain inputs (inputs_content_sha256 differs)")
+            elif d["inputs_sha256"] != inputs["sha256"]:
                 raise ValueError(f"{where}: made from another grain inputs file (inputs_sha256 differs)")
         if p in out:
             raise ValueError(f"{where}: two decisions")
@@ -731,7 +744,8 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
         out[p] = d
         labels[p]["decision"] = {k: d[k] for k in ("grain", "finding_kind", "kind_candidates", "source",
                                                    "rationale", "basis", "proposed_by", "proposed_at",
-                                                   "prompt_version", "inputs_sha256") if k in d}
+                                                   "prompt_version", "inputs_sha256", "inputs_content_sha256")
+                                     if k in d}
     return out, hashlib.sha256(raw).hexdigest()
 
 
@@ -855,18 +869,27 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
 
 
 def _current_inputs(collection: str, protocol_id: str, lk: Lookups, all_rows: list | None) -> dict | None:
-    """The study's grain inputs file as {"sha256", "phrases"}, or None when it
-    has none. Fails when the file differs from the inputs rebuilt now."""
+    """The study's grain inputs file as {"sha256", "content_sha256", "phrases"},
+    or None when it has none. Fails when the file differs from the inputs rebuilt
+    now: in content (CONTENT_KEYS) — rerun the gathering, then the decisions
+    prompt; or only in the version records and schema version — rerun the
+    gathering; decisions made from the same content stay valid."""
     path = inputs_path(protocol_id, collection)
     if not path.exists():
         return None
-    from .activity_grain_inputs import build_grain_inputs
+    from .activity_grain_inputs import CONTENT_KEYS, build_grain_inputs, content_sha256
     raw = path.read_bytes()
-    if json.loads(raw) != build_grain_inputs(collection, protocol_id, lk, all_rows):
+    doc = json.loads(raw)
+    now = build_grain_inputs(collection, protocol_id, lk, all_rows)
+    if any(doc[k] != now[k] for k in CONTENT_KEYS):
         raise RuntimeError(f"{path}: stale, its inputs changed; rerun: python -m soa2usdm.activity_grain_inputs "
                            f"--collection {collection} --protocol {protocol_id}, then the decisions prompt")
-    return {"sha256": hashlib.sha256(raw).hexdigest(),
-            "phrases": {i["phrase"] for i in json.loads(raw)["items"]}}
+    if doc != now:
+        raise RuntimeError(f"{path}: only the recorded versions changed (content the same); rerun: python -m "
+                           f"soa2usdm.activity_grain_inputs --collection {collection} --protocol {protocol_id}; "
+                           f"decisions made from the same content stay valid")
+    return {"sha256": hashlib.sha256(raw).hexdigest(), "content_sha256": content_sha256(doc),
+            "phrases": {i["phrase"] for i in doc["items"]}}
 
 
 def load_current_grain(collection: str, protocol_id: str, all_rows: list | None = None) -> dict | None:

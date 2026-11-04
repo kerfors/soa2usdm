@@ -154,7 +154,8 @@
       "enum": [
         "1.0",
         "1.1",
-        "1.2"
+        "1.2",
+        "1.3"
       ],
       "description": "Schema version."
     },
@@ -277,7 +278,12 @@
           "inputs_sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$",
-            "description": "SHA-256 of the study's <id>_grain_inputs.json the decision was made from. Required for ai_proposed (checked by the generator)."
+            "description": "SHA-256 of the study's <id>_grain_inputs.json the decision was made from. For ai_proposed in a 1.1 / 1.2 file (checked by the generator when inputs_content_sha256 is absent); kept as a record once inputs_content_sha256 is added."
+          },
+          "inputs_content_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "1.3: the content_sha256 of the study's grain inputs file the decision was made from (its content without the version records). Required for ai_proposed in a 1.3 file; when present, the generator checks it instead of inputs_sha256."
           }
         },
         "if": {

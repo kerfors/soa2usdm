@@ -5,7 +5,7 @@ Gathers, by code, everything the activity grain decisions prompt
 (prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md) may use for one study, into one
 self-contained file:
 
-    SoA2USDM/grain/<id>_grain_inputs.json   (schema soa2usdm-activity-grain-inputs 1.1)
+    SoA2USDM/grain/<id>_grain_inputs.json   (schema soa2usdm-activity-grain-inputs 1.2)
 
 The prompt reads this file and nothing else. The generator
 (soa2usdm.activity_grain) accepts an ai_proposed decision only for a phrase
@@ -35,8 +35,14 @@ decision can cite it.
 Only public files are read: the study's inventory rows, consolidated.json and
 protocol context, and the cdisc-for-ai lookups. The file has no generation
 time, so the same inputs give the same file (and the same sha256).
+
+content_sha256 (1.2) is the SHA-256 of what the prompt decides from
+(CONTENT_KEYS: collection, protocol_id, items, study, cdisc) as canonical JSON.
+It leaves out the version records in sources, so a decision made from the same
+content stays valid when only a recorded version changes.
 """
 
+import hashlib
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -45,10 +51,19 @@ from . import activity_grain as ag
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain-inputs"
-SCHEMA_VERSION = "1.1"
+SCHEMA_VERSION = "1.2"
+# What the prompt decides from; content_sha256 covers these keys only (not sources).
+CONTENT_KEYS = ("collection", "protocol_id", "items", "study", "cdisc")
 ITEM_TYPES = ("grain unsure", "kind unsure", "sample collection", "procedure by word list")
 STUDY_CATEGORIES = ("product", "immunogenicity", "endpoint_assays", "genetic_testing")
 RULE_KEYS_LEFT_OUT = ("phrase", "spellings", "decision")
+
+
+def content_sha256(doc: dict) -> str:
+    """SHA-256 of the CONTENT_KEYS of a grain inputs file as canonical JSON (sorted keys, compact)."""
+    content = {k: doc[k] for k in CONTENT_KEYS}
+    text = json.dumps(content, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def item_type(label: dict) -> str | None:
@@ -135,7 +150,7 @@ def build_grain_inputs(collection: str, protocol_id: str, lk: ag.Lookups | None 
                       "annotations": annotations, "lab_and_purpose": lap, "abbreviations": abbrev})
 
     domains = [row | {"kind": ag.domain_kind(d, lk)} for d, row in sorted(lk.domain_rows.items())]
-    return {
+    doc = {
         "schema_name": SCHEMA_NAME, "schema_version": SCHEMA_VERSION,
         "collection": collection, "protocol_id": protocol_id,
         "sources": {
@@ -149,6 +164,8 @@ def build_grain_inputs(collection: str, protocol_id: str, lk: ag.Lookups | None 
         "study": {c: _entries(ctx, c) for c in STUDY_CATEGORIES},
         "cdisc": {"domains": domains, "tests": [test_rows[k] for k in sorted(test_rows)]},
     }
+    doc["content_sha256"] = content_sha256(doc)
+    return doc
 
 
 def write_grain_inputs(collection: str, protocol_id: str, lk: ag.Lookups | None = None,
