@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-routing.json",
   "title": "SoA2USDM Activity Routing Schema",
-  "description": "<id>_activity_routing.json of a study (SoA2USDM/routing/): for every named test of the study's activity grain that is not itself a parent, a target SDTMIG v3.4 domain (routed), or the candidate domains with the question that stays open (open), or rule domains as hints when the match is only in SoA annotations (weak), or candidates from the grain kind when no rule fired (not routed). Each result cites the rule, where it matched, and the public SDTMIG v3.4 statements it rests on (cdisc-for-ai SDTMIG_Statements), by Statement_ID and text sha256; the statements are quoted once per file. No CDISC members-only material. Design: documents/activity-routing.md.",
+  "description": "<id>_activity_routing.json of a study (SoA2USDM/routing/): for every named test of the study's activity grain that is not itself a parent, a target SDTMIG v3.4 domain (routed), or the candidate domains with the question that stays open (open), or rule domains as hints when the match is only in SoA annotations (weak), or candidates from the grain kind when no rule fired (not routed). Version 1.1: where no rule fired, the SDTM_Test_Identity hits of the activity label (from the grain file) route the row when strong with one domain (route_source 'test identity'), make it open when strong with several domains, and give hints when weak; a rule always ranks above them. Each result cites the rule, where it matched, and the public SDTMIG v3.4 statements it rests on (cdisc-for-ai SDTMIG_Statements), by Statement_ID and text sha256; the statements are quoted once per file. No CDISC members-only material. Design: documents/activity-routing.md.",
   "type": "object",
   "required": [
     "schema_name",
@@ -278,6 +278,95 @@
             "string",
             "null"
           ]
+        },
+        "route_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "rule",
+            "test identity",
+            null
+          ],
+          "description": "1.1: what routed the row; null unless status is routed, or open on a strong multi-domain test identity."
+        },
+        "test_identity": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "1.1: the SDTM_Test_Identity hits of the activity label as the grain file cites them; null when there are none. Recorded also where a rule fired (it then changes nothing).",
+          "required": [
+            "phrase",
+            "hit_strength",
+            "weak_reasons",
+            "domains",
+            "codes",
+            "matched_on"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "phrase": {
+              "type": "string"
+            },
+            "hit_strength": {
+              "type": "string",
+              "enum": [
+                "strong",
+                "weak"
+              ]
+            },
+            "weak_reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "domains": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              }
+            },
+            "codes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "testcd",
+                  "domains"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^C[0-9]+$"
+                  },
+                  "testcd": {
+                    "type": "string"
+                  },
+                  "domains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z]{2}$"
+                    }
+                  }
+                }
+              }
+            },
+            "matched_on": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     }
@@ -287,7 +376,11 @@
       "const": "soa2usdm-activity-routing"
     },
     "schema_version": {
-      "const": "1.0"
+      "type": "string",
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
     },
     "collection": {
       "type": "string"
@@ -506,6 +599,11 @@
         "not routed": {
           "type": "integer",
           "minimum": 0
+        },
+        "routed_by_test_identity": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "1.1: routed rows whose route_source is 'test identity'."
         }
       }
     },

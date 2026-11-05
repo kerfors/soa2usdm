@@ -19,6 +19,13 @@ Status:
     not routed  no rule fired: candidates from the grain kind through Domain_Coverage
                 (PP left out, per PP-OV and PP-A1)
 
+Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
+row's own activity label (from the grain file) are a second source. A strong hit with
+one domain routes the row (route_source "test identity"); a strong hit with several
+domains makes it open with those domains as candidates; a weak hit gives hints only.
+A rule always ranks above the test identity: where a rule fired, the hits are recorded
+and change nothing.
+
 Statements: public cdisc-for-ai SDTMIG_Statements only. CDISC members-only
 material is not used (documents/activity-routing.md, "Members-only material").
 Rule IDs keep the numbering of the wider rule set; RT-2, RT-4, RT-5 and RT-6 rest
@@ -28,7 +35,7 @@ Input: the study's grain file (checked current, activity_grain.load_current_grai
 and its consolidated.json (parents, annotations).
 
 Output: SoA2USDM/routing/<id>_activity_routing.json (schema_name
-soa2usdm-activity-routing, schema_version 1.0). Design: documents/activity-routing.md.
+soa2usdm-activity-routing, schema_version 1.1). Design: documents/activity-routing.md.
 """
 
 import hashlib
@@ -42,9 +49,9 @@ from . import config
 from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_current_grain
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.0"
-SCHEMA_VERSIONS = ("1.0",)
-RULES_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1"
+SCHEMA_VERSIONS = ("1.0", "1.1")
+RULES_VERSION = "1.1.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -53,6 +60,8 @@ LOOKUP_FILES = {
 
 STATUSES = ("routed", "open", "weak", "not routed")
 WHERE = ("label", "parent_label", "annotation")
+ROUTE_SOURCES = ("rule", "test identity")
+TEST_IDENTITY_FILE = "SDTM_Test_Identity"
 
 # Domains left out of the fallback, with the SDTMIG v3.4 statements that say why:
 # PP holds parameters derived from PC data (PP-OV) and is a derived dataset (PP-A1).
@@ -258,7 +267,45 @@ def match_rules(sources: list) -> list:
     return fired
 
 
-def route(fired: list, grain_kinds: list, lk: RoutingLookups) -> dict:
+def test_identity(label: dict | None) -> dict | None:
+    """The SDTM_Test_Identity hits of the row's activity label, as the grain file cites them;
+    None when there are none. Domains as the hits give them (a hit's domains are '; '-separated)."""
+    hits = [h for h in (label["hits"] if label else []) if h["file"] == TEST_IDENTITY_FILE]
+    if not hits:
+        return None
+    codes = sorted({(h["code"], h["submission_value"], h["domains"]) for h in hits})
+    return {
+        "phrase": label["phrase"],
+        "hit_strength": label["hit_strength"],
+        "weak_reasons": label["weak_reasons"],
+        "domains": sorted({d.strip() for h in hits for d in h["domains"].split(";") if d.strip()}),
+        "codes": [{"code": c, "testcd": t, "domains": [d.strip() for d in ds.split(";") if d.strip()]}
+                  for c, t, ds in codes],
+        "matched_on": sorted({h["field"] for h in hits}),
+    }
+
+
+def route(fired: list, grain_kinds: list, lk: RoutingLookups, ti: dict | None = None) -> dict:
+    """The routing result of one row from the rules that fired, then (only where no rule fired)
+    from the test identity of the activity label."""
+    res = _route_rules(fired, grain_kinds, lk)
+    res["route_source"] = "rule" if res["status"] == "routed" else None
+    res["test_identity"] = ti
+    if ti is None or res["basis"]:
+        return res
+    if ti["hit_strength"] == "strong" and len(ti["domains"]) == 1:
+        return res | {"status": "routed", "domain": ti["domains"][0], "candidates": None,
+                      "fallback": None, "route_source": "test identity"}
+    if ti["hit_strength"] == "strong":
+        return res | {"status": "open", "candidates": ti["domains"], "fallback": None,
+                      "route_source": "test identity",
+                      "question": "test code " + "/".join(sorted({c["testcd"] for c in ti["codes"]}))
+                                  + " is in " + ", ".join(ti["domains"])
+                                  + " (SDTM_Test_Identity); the protocol must say which"}
+    return res | {"hints": ti["domains"]}
+
+
+def _route_rules(fired: list, grain_kinds: list, lk: RoutingLookups) -> dict:
     """The routing result of one row from the rules that fired."""
     fired_ids = {rule["rule_id"] for rule, _ in fired}
     dropped = {}
@@ -330,6 +377,7 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
     cons = json.loads(cons_raw)
     unified = {u["xact_id"]: u for u in cons["unified_activities"]}
     acts = g["activities"]
+    labels = {lb["phrase"]: lb for lb in g["labels"]}
     children = {}
     for a in acts:
         if a["parent_xact_id"]:
@@ -363,7 +411,7 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
                 sources.append({"where": "annotation", "xannot_id": an["xannot_id"], "text": an["annotation_text"]})
         grain_kinds = ([a["finding_kind"]] if a["finding_kind"] and a["finding_kind"] != "unsure"
                        else list(a["kind_candidates"]))
-        res = route(match_rules(sources), grain_kinds, lk)
+        res = route(match_rules(sources), grain_kinds, lk, test_identity(labels.get(a["phrase"])))
         rows.append({
             "xact_id": x,
             "activity_name": a["activity_name"],
@@ -390,7 +438,9 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
         "fallback_excluded": lk.fallback_excluded,
         "statements": {sid: lk.cited[sid] for sid in cited},
         "counts": {"rows": len(rows), "not_reached": len(not_reached)}
-                  | {st: sum(1 for r in rows if r["status"] == st) for st in STATUSES},
+                  | {st: sum(1 for r in rows if r["status"] == st) for st in STATUSES}
+                  | {"routed_by_test_identity": sum(1 for r in rows if r["status"] == "routed"
+                                                    and r["route_source"] == "test identity")},
         "rows": rows,
         "not_reached": not_reached,
     }

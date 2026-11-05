@@ -5,7 +5,8 @@ Renders SoA2USDM/routing/{pid}_activity_routing.json as SoA2USDM/routing/{pid}_a
 with the shared navigation block (soa2usdm.nav). Counts per status; then one row per routed
 named test: status, domain or candidates, the question that stays open, each fired rule with
 our reading, and each matched phrase in its source (label, parent label, footnote text from
-consolidated.json); then the rows not reached, and the cited SDTMIG v3.4 statements verbatim.
+consolidated.json), and the test codes of the label (SDTM_Test_Identity) where the file has them;
+then the rows not reached, and the cited SDTMIG v3.4 statements verbatim.
 Each statement text is checked against its text_sha256 before it is shown. Nothing is decided
 here: the page shows what the JSON holds.
 
@@ -68,7 +69,23 @@ def _basis(r: dict, annotations: dict) -> str:
                      f'<div class="why">{esc(rule["our_reading"])}</div><ul class="m">{"".join(hits)}</ul></div>')
     for rid, d in r["dropped"].items():
         parts.append(f'<div class="ns">{esc(rid)} set aside by {esc(d["by_rule"])} ({esc(d["statement_id"])})</div>')
-    return "".join(parts) or '<span class="ns">no rule fired</span>'
+    if not parts:
+        parts.append('<span class="ns">no rule fired</span>')
+    ti = r.get("test_identity")
+    if ti:
+        codes = " · ".join(f'{esc(c["testcd"])} <span class="ns">{esc(c["code"])}</span> → {esc("/".join(c["domains"]))}'
+                           for c in ti["codes"])
+        if r["basis"]:
+            use = "recorded; the rule ranks above it"
+        elif r.get("route_source") == "test identity":
+            use = "routes the row" if r["status"] == "routed" else "candidates: the protocol must say which"
+        else:
+            use = "hints only"
+        reasons = f' ({esc(", ".join(ti["weak_reasons"]))})' if ti["weak_reasons"] else ""
+        parts.append(f'<div class="rb"><span class="rid">SDTM_Test_Identity</span> test code of the label: {codes}'
+                     f'<div class="why">{esc(ti["hit_strength"])} hit{reasons} on {esc(", ".join(ti["matched_on"]))}: '
+                     f'{esc(use)}</div></div>')
+    return "".join(parts)
 
 
 def render(protocol_id: str, collection: str) -> Path:
@@ -87,7 +104,10 @@ def render(protocol_id: str, collection: str) -> Path:
     grain_html = f"../grain/{protocol_id}_activity_grain.html"
     c = d["counts"]
     cdisc = d["inputs"]["cdisc_for_ai"]
-    summary = (f'<b>{c["rows"]} named tests</b> · ' + " · ".join(f'{st} {c[st]}' for st in STATUSES)
+    by_ti = c.get("routed_by_test_identity")
+    summary = (f'<b>{c["rows"]} named tests</b> · '
+               + " · ".join(f'{st} {c[st]}' + (f' ({by_ti} by test code)' if st == "routed" and by_ti else "")
+                            for st in STATUSES)
                + f' · not reached {c["not_reached"]}')
 
     order = {st: i for i, st in enumerate(("open", "weak", "routed", "not routed"))}
@@ -170,7 +190,7 @@ def render(protocol_id: str, collection: str) -> Path:
 <header>
 <h1>{esc(protocol_id)} — activity routing</h1>
 <div class="sum">{summary}</div>
-<div class="meta">Rules {esc(d["rules_version"])} · public SDTMIG v3.4 statements only · cdisc-for-ai <code>{esc(cdisc["commit"][:7])}</code> ·
+<div class="meta">Rules {esc(d["rules_version"])} · public SDTMIG v3.4 statements and SDTM test codes only · cdisc-for-ai <code>{esc(cdisc["commit"][:7])}</code> ·
 <a href="{esc(src.name)}">JSON</a> · <a href="{grain_html}">activity grain</a> · <a href="{DOC_URL}">how routing is done</a></div>
 <div class="note">CDISC members-only material also bears on routing (for example on antibodies induced by a therapy,
 vector shedding and replication-competent vectors). It is not used here; <a href="{MEMBERS_URL}">what it is</a>.</div>

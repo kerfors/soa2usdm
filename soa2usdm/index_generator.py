@@ -765,7 +765,7 @@ def generate_index_html(collection: str) -> str:
         r = routing.get(nct)
         if r:
             rc = r['counts']
-            routing_html = (f'<a href="{p["activity_routing"]}" class="link-table" title="Activity routing per named test: SDTMIG v3.4 domain, or candidates with the question that stays open (public statements only)">routing</a>'
+            routing_html = (f'<a href="{p["activity_routing"]}" class="link-table" title="Activity routing per named test: SDTMIG v3.4 domain, or candidates with the question that stays open (public SDTMIG v3.4 statements and SDTM test codes only)">routing</a>'
                             f' <a href="{p["activity_routing_json"]}" class="link-json" title="Activity routing JSON">json</a>'
                             f'<br><span class="grain-n">{rc["routed"]} routed · {rc["open"]} open<br>{rc["weak"]} weak · {rc["not routed"]} not routed</span>')
         routing_td = f'\n            <td class="viz">{routing_html}</td>' if has_routing else ''

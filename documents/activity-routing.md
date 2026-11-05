@@ -3,7 +3,7 @@
 `soa2usdm.activity_routing` gives each named test of a study a target SDTMIG v3.4 domain, or the candidate domains and the
 question that stays open. It is the step after the [activity grain](activity-grain.md): the grain selects the rows that name a
 test, routing says where such a test belongs. Each result cites the rule that fired, where it matched, and the SDTMIG v3.4
-statements it rests on.
+statements it rests on, or, where no rule fires, the SDTM test code of the activity label.
 
 The step is a per-study sidecar. It does not change the grain file, the activity inventory or any layer of the pipeline.
 
@@ -32,6 +32,27 @@ tests than the row's own, so it never decides alone.
 
 A condition on a statement is our reading of what the protocol must settle before the statement applies. Code never decides
 a condition: a condition makes the result open, with the condition as the question.
+
+## Test identity
+
+Where no rule fires, the SDTM test codes the grain found for the activity label are a second source: the grain's
+`SDTM_Test_Identity` hits (TESTCD, TEST, NCIt preferred term or synonym), with the domains the test code is published for.
+Only the row's own label is used, as for the rules.
+
+| Test identity hit | Result |
+|---|---|
+| strong, one domain | routed, `route_source` "test identity" (e.g. "HbA1c" → HBA1C → LB) |
+| strong, several domains | open: those domains are the candidates; the question names the test code (e.g. "Weight" → WEIGHT → CV, VS) |
+| weak (NCIt synonym only, qualifier dropped, several codes …) | not routed: the domains are hints; the candidates come from the grain kind |
+
+A rule always ranks above the test identity. Where a rule fired, the hits are recorded and change nothing: "PK (Glucagon)"
+is routed to PC by RT-9, although GLUCAGON is an LB test code. A weak hit never routes: "Pregnancy test" reaches HCG only
+through an NCIt synonym, and "eGFR (CKD-EPI)" also hits EGFR, an MI test code. A strong hit routes also to a domain the
+grain kind has no fallback for (RP "Childbearing potential", SS "Survival Status"): the domain is where the test code is
+published.
+
+The hits come from the grain file, which is an input of the routing file (sha256) and is made at the same cdisc-for-ai
+commit, so no other lookup is read.
 
 The fallback (weak, not routed) maps the grain kind back to domains through the public `Domain_Coverage` file (the reverse of
 grain rule K1). PP is left out: PP holds parameters derived from PC data (PP-OV) and is a derived dataset (PP-A1).
@@ -77,7 +98,7 @@ rows fall back to the grain kind (status `not routed`), and RT-1 stays open.
 
 ```
 {NCTID}/SoA2USDM/routing/
-├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.0)
+├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.1; 1.0 files stay valid)
 └── {NCTID}_activity_routing.html   # page, rendered with the collection index
 ```
 
@@ -86,9 +107,10 @@ rows fall back to the grain kind (status `not routed`), and RT-1 stays open.
   file sha256, sheet content sha256) of `SDTMIG_Statements` and `Domain_Coverage`;
 - `fallback_excluded`: PP, with PP-OV and PP-A1;
 - `statements`: each cited statement once, verbatim, with source, section, page and text sha256;
-- `counts`: rows, not reached, and one count per status;
+- `counts`: rows, not reached, one count per status, and the routed rows routed by test identity;
 - `rows[]`: one per routed named test, with the grain kind, status, domain or candidates, hints, the basis (rule, statements,
-  matched phrases with where they matched), the rules set aside, the fallback and the question;
+  matched phrases with where they matched), the rules set aside, the fallback, the question, `route_source` (rule or test
+  identity) and `test_identity` (the label's SDTM_Test_Identity hits: strength, domains, codes);
 - `not_reached[]`: panels and named-test parents, with the reason.
 
 ## Running it
@@ -109,18 +131,18 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-05, with cdisc-for-ai `82559eb`:
+Status on 2026-11-05, with cdisc-for-ai `82559eb` (rules 1.1.0; routed by test identity in brackets):
 
 | Collection | Studies | Named tests | routed | open | weak | not routed | not reached |
 |---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 59 | 2 | 19 | 1 | 37 | 58 |
-| usdm_data | 22 | 70 | 1 | 0 | 0 | 69 | 73 |
-| cpmp | 13 | 27 | 0 | 0 | 0 | 27 | 52 |
-| misc_studies | 2 | 16 | 0 | 0 | 1 | 15 | 15 |
+| cell_gene_therapy | 5 | 59 | 4 (2) | 20 | 1 | 34 | 58 |
+| usdm_data | 22 | 70 | 36 (35) | 10 | 0 | 24 | 73 |
+| cpmp | 13 | 27 | 20 (20) | 4 | 0 | 3 | 52 |
+| misc_studies | 2 | 16 | 10 (10) | 1 | 1 | 4 | 15 |
 
 Outside cell_gene_therapy the named tests are mostly routine laboratory tests and vital signs (HbA1c, height, weight, blood
-pressure). No rule names them, so they fall back to the grain kind. The grain hits already carry the domain of the test code
-(`SDTM_Test_Identity`); using it as a routing source is not designed yet.
+pressure). No rule names them; the test identity routes most of them. Weight and pulse stay open (CV or VS); the rows left
+not routed have a weak test identity hit (pregnancy test, FSH, temperature …) or none.
 
 In the rules-only collections many rows are still `unsure` in the grain (usdm_data 337 of 811, cpmp 107 of 303, misc_studies
 25 of 82), so they do not reach routing yet.

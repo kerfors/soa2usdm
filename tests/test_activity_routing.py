@@ -8,7 +8,9 @@ to 2026-11-05): an antibody test (open while no public statement covers
 antibodies induced by a therapy), IFN-gamma ELISpot (open IS/LB, not LB), flow
 cytometry, an Ag/Ab combination test setting the antibody rule aside, a match
 only in a footnote (weak), a match only in the parent label (open), and no
-match (not routed, PP left out of the fallback).
+match (not routed, PP left out of the fallback). Test identity (schema 1.1): a
+strong hit with one domain routes, with several domains opens, a weak hit gives
+hints only, and a rule ranks above it (PK (Glucagon)).
 
 The guard runs on the real cdisc-for-ai lookups and is skipped without them:
 every statement a rule cites is a routing statement of the public
@@ -41,13 +43,21 @@ class Stub(ar.RoutingLookups):
 LK = Stub()
 
 
-def _route(label, parent=None, annotations=(), kinds=("specimen",)):
+def _route(label, parent=None, annotations=(), kinds=("specimen",), ti=None):
     sources = [{"where": "label", "xannot_id": None, "text": label}]
     if parent:
         sources.append({"where": "parent_label", "xannot_id": None, "text": parent})
     for i, t in enumerate(annotations):
         sources.append({"where": "annotation", "xannot_id": f"xannot-{i:03d}", "text": t})
-    return ar.route(ar.match_rules(sources), list(kinds), LK)
+    return ar.route(ar.match_rules(sources), list(kinds), LK, ti)
+
+
+def _label(phrase, strength, *hits, reasons=()):
+    """A grain label entry with SDTM_Test_Identity hits (code, testcd, domains) and one non-test hit."""
+    return {"phrase": phrase, "hit_strength": strength, "weak_reasons": list(reasons),
+            "hits": [{"file": "SDTM_Test_Identity", "field": "TESTCD", "code": c, "submission_value": t, "domains": d}
+                     for c, t, d in hits]
+                    + [{"file": "Codelist_Phrases", "field": "submission value", "code": "C0", "submission_value": "X"}]}
 
 
 def test_antibody_open_until_public_statement():
@@ -106,6 +116,47 @@ def test_routed_needs_label_match_and_no_condition():
         assert not any(s["condition"] for b in r["basis"] for s in b["statements"])
 
 
+def test_test_identity_strong_one_domain_routes():
+    ti = ar.test_identity(_label("hba1c", "strong", ("C64849", "HBA1C", "LB")))
+    r = _route("HbA1c", ti=ti)
+    assert (r["status"], r["domain"], r["route_source"], r["basis"], r["fallback"]) == \
+        ("routed", "LB", "test identity", [], None)
+    assert r["test_identity"]["codes"] == [{"code": "C64849", "testcd": "HBA1C", "domains": ["LB"]}]
+
+
+def test_test_identity_strong_several_domains_open():
+    ti = ar.test_identity(_label("weight", "strong", ("C25208", "WEIGHT", "CV; VS")))
+    r = _route("Weight", kinds=("measurement",), ti=ti)
+    assert (r["status"], r["candidates"], r["route_source"], r["fallback"]) == \
+        ("open", ["CV", "VS"], "test identity", None)
+    assert "WEIGHT" in r["question"] and "CV, VS" in r["question"]
+
+
+def test_test_identity_weak_gives_hints_only():
+    ti = ar.test_identity(_label("pregnancy test", "weak", ("C64858", "HCG", "LB"), reasons=["NCIt synonym only"]))
+    r = _route("Pregnancy test", ti=ti)
+    assert (r["status"], r["hints"], r["candidates"], r["route_source"]) == \
+        ("not routed", ["LB"], LK.kind_domains["specimen"], None)
+
+
+def test_rule_ranks_above_test_identity():
+    ti = ar.test_identity(_label("pk glucagon", "weak", ("C74786", "GLUCAGON", "LB")))
+    r = _route("PK (Glucagon)", ti=ti)
+    assert (r["status"], r["domain"], r["route_source"]) == ("routed", "PC", "rule")
+    assert r["test_identity"]["domains"] == ["LB"]
+    strong = ar.test_identity(_label("anti drug antibody", "strong", ("C1", "X", "LB")))
+    assert _route("Anti-Drug Antibody", kinds=("immunogenicity",), ti=strong)["status"] == "open"
+
+
+def test_test_identity_reads_only_test_identity_hits():
+    assert ar.test_identity(None) is None
+    assert ar.test_identity({"phrase": "x", "hit_strength": "strong", "weak_reasons": [],
+                             "hits": [{"file": "Codelist_Phrases", "field": "f", "code": "C1",
+                                       "submission_value": "BLOOD"}]}) is None
+    ti = ar.test_identity(_label("temperature", "weak", ("C174446", "TEMP", "VS"), ("C25206", "TEMP", "BS; DO")))
+    assert ti["domains"] == ["BS", "DO", "VS"]
+
+
 @pytest.mark.skipif(not ar.CDISC_FOR_AI.is_dir(), reason="needs a cdisc-for-ai checkout")
 def test_rules_cite_public_routing_statements_only():
     lk = ar.RoutingLookups()
@@ -155,3 +206,30 @@ def test_routing_file_consistent(path):
         assert d["counts"][r["status"]] >= 1
     assert d["counts"]["rows"] == len(d["rows"])
     assert not any(re.search(r"-R-\d+$", sid) for sid in d["statements"])
+
+
+@pytest.mark.parametrize("path", ROUTING_FILES, ids=lambda p: p.name)
+def test_routing_file_test_identity(path):
+    """1.1 files: the test identity of a row is the one its grain file gives the label, and it routes or
+    opens a row only where no rule fired, strong, as the status rule says."""
+    d = json.loads(path.read_text())
+    if d["schema_version"] == "1.0":
+        pytest.skip("1.0 file: no test identity")
+    grain = json.loads((path.parent.parent / "grain" / f"{d['protocol_id']}_activity_grain.json").read_text())
+    labels = {lb["phrase"]: lb for lb in grain["labels"]}
+    phrase = {a["xact_id"]: a["phrase"] for a in grain["activities"]}
+    for r in d["rows"]:
+        ti = r["test_identity"]
+        assert ti == ar.test_identity(labels.get(phrase[r["xact_id"]])), r["xact_id"]
+        if r["route_source"] == "test identity":
+            assert r["basis"] == [] and ti["hit_strength"] == "strong" and r["fallback"] is None
+            if r["status"] == "routed":
+                assert ti["domains"] == [r["domain"]]
+            else:
+                assert r["status"] == "open" and r["candidates"] == ti["domains"] and len(ti["domains"]) > 1
+        elif r["status"] == "routed":
+            assert r["route_source"] == "rule" and r["basis"]
+        if not r["basis"] and ti and ti["hit_strength"] == "weak":
+            assert r["status"] == "not routed" and r["hints"] == ti["domains"]
+    assert d["counts"]["routed_by_test_identity"] == sum(
+        1 for r in d["rows"] if r["status"] == "routed" and r["route_source"] == "test identity")
