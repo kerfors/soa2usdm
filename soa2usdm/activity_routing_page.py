@@ -192,8 +192,8 @@ def render(protocol_id: str, collection: str) -> Path:
 <div class="sum">{summary}</div>
 <div class="meta">Rules {esc(d["rules_version"])} · public SDTMIG v3.4 statements and SDTM test codes only · cdisc-for-ai <code>{esc(cdisc["commit"][:7])}</code> ·
 <a href="{esc(src.name)}">JSON</a> · <a href="{grain_html}">activity grain</a> · <a href="{DOC_URL}">how routing is done</a></div>
-<div class="note">CDISC members-only material also bears on routing (for example on antibodies induced by a therapy,
-vector shedding and replication-competent vectors). It is not used here; <a href="{MEMBERS_URL}">what it is</a>.</div>
+<div class="note">CDISC members-only material also bears on routing (for example on vector shedding and
+replication-competent vectors). It is not used here; <a href="{MEMBERS_URL}">what it is</a>.</div>
 </header>
 <section>
 <div class="ctl"><input id="q" type="search" placeholder="Search activity, rule, statement, phrase…" aria-label="Search">

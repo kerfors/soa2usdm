@@ -51,7 +51,7 @@ from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_curre
 SCHEMA_NAME = "soa2usdm-activity-routing"
 SCHEMA_VERSION = "1.1"
 SCHEMA_VERSIONS = ("1.0", "1.1")
-RULES_VERSION = "1.1.0"
+RULES_VERSION = "1.2.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -84,12 +84,14 @@ RULES = [
         "name": "antibody test",
         "patterns": [r"\bantibod(?:y|ies)\b", r"\bnabs?\b", r"\btabs?\b", r"\bbabs?\b", r"\bada\b",
                      r"\b(?:factor\s+(?:ix|viii|9|8)|fix|fviii)\s+inhibitors?\b"],
-        "statements": [S("IS-A2", ["IS"],
-                         "the antibody is to an allergen, a microorganism or a self-antigen (IS-A2); "
-                         "no SDTMIG_Statements row covers antibodies induced by a therapy")],
+        "statements": [S("IS-OV", ["IS"]), S("IS-A1", ["IS"]), S("IS-A2", ["IS"]), S("IS-A3", ["IS"])],
         "exception_over": [],
         "our_reading": "nAb, TAb, BAb, ADA and factor IX / VIII inhibitor name antibody tests. 'Inhibitor' "
-                       "only as factor IX / VIII inhibitor: SoA footnotes name other inhibitors.",
+                       "only as factor IX / VIII inhibitor: SoA footnotes name other inhibitors. Each kind of "
+                       "induced antibody falls under one statement: induced by a therapy (IS-A1), to an allergen, "
+                       "a microorganism or a self-antigen (IS-A2), any other induced humoral response such as "
+                       "anti-HLA (IS-A3). All give IS, so the kind is not settled here: it belongs to the target "
+                       "(binding agent).",
     },
     {
         "rule_id": "RT-3",

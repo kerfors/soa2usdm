@@ -4,8 +4,8 @@ public-only guard, and the published routing files.
 
 The rule cases run on a small stub of the lookups (Stub below), so they need no
 cdisc-for-ai checkout. They are the cases met on cell_gene_therapy (2026-11-03
-to 2026-11-05): an antibody test (open while no public statement covers
-antibodies induced by a therapy), IFN-gamma ELISpot (open IS/LB, not LB), flow
+to 2026-11-05): an antibody test (routed IS: IS-OV, IS-A1, IS-A2, IS-A3, no
+condition), IFN-gamma ELISpot (open IS/LB, not LB), flow
 cytometry, an Ag/Ab combination test setting the antibody rule aside, a match
 only in a footnote (weak), a match only in the parent label (open), and no
 match (not routed, PP left out of the fallback). Test identity (schema 1.1): a
@@ -60,10 +60,12 @@ def _label(phrase, strength, *hits, reasons=()):
                     + [{"file": "Codelist_Phrases", "field": "submission value", "code": "C0", "submission_value": "X"}]}
 
 
-def test_antibody_open_until_public_statement():
-    r = _route("Anti-Drug Antibody/ADA (CL)", kinds=("immunogenicity",))
-    assert (r["status"], r["domain"], r["candidates"]) == ("open", None, ["IS"])
-    assert "RT-1 IS-A2" in r["question"]
+def test_antibody_routed_is():
+    for label in ("Anti-Drug Antibody/ADA (CL)", "Neutralizing antibodies to AAV5", "hFVIII TAb",
+                  "ALLO-501A donor-specific anti-HLA antibodies(serum)"):
+        r = _route(label, kinds=("immunogenicity",))
+        assert (r["status"], r["domain"], r["question"]) == ("routed", "IS", None), label
+        assert [s["statement_id"] for s in r["basis"][0]["statements"]] == ["IS-OV", "IS-A1", "IS-A2", "IS-A3"]
 
 
 def test_factor_inhibitor_only():
@@ -145,7 +147,8 @@ def test_rule_ranks_above_test_identity():
     assert (r["status"], r["domain"], r["route_source"]) == ("routed", "PC", "rule")
     assert r["test_identity"]["domains"] == ["LB"]
     strong = ar.test_identity(_label("anti drug antibody", "strong", ("C1", "X", "LB")))
-    assert _route("Anti-Drug Antibody", kinds=("immunogenicity",), ti=strong)["status"] == "open"
+    r = _route("Anti-Drug Antibody", kinds=("immunogenicity",), ti=strong)
+    assert (r["status"], r["domain"], r["route_source"]) == ("routed", "IS", "rule")
 
 
 def test_test_identity_reads_only_test_identity_hits():

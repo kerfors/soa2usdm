@@ -65,7 +65,7 @@ sha256 of their text. The routing file quotes each cited statement once, so the 
 
 | Rule | Name | Patterns (case-insensitive) | Statements → domain | Condition |
 |---|---|---|---|---|
-| RT-1 | antibody test | antibody, nAb, TAb, BAb, ADA, factor IX / VIII inhibitor | IS-A2 → IS | the antibody is to an allergen, a microorganism or a self-antigen (IS-A2); no SDTMIG_Statements row covers antibodies induced by a therapy |
+| RT-1 | antibody test | antibody, nAb, TAb, BAb, ADA, factor IX / VIII inhibitor | IS-OV, IS-A1, IS-A2, IS-A3 → IS | — |
 | RT-3 | cytokine, chemokine, complement | cytokine, chemokine, complement, interferon, IFN, IL-*n* | IS-A6 → LB; IS-A4 → IS | (IS-A4) a cellular immune response measured by a non-flow-cytometry technique |
 | RT-7 | flow cytometry | flow cytometry, FACS, (immuno)phenotyping | IS-A4, CP-OV, CP-A1, CP-A2 → CP | — |
 | RT-8 | microbial Ag/Ab combination | Ag/Ab | IS-A5 → MB (sets RT-1 aside, as IS-A5 states the exception) | — |
@@ -73,9 +73,14 @@ sha256 of their text. The routing file quotes each cited statement once, so the 
 | RT-10 | routine laboratory test | hematology, clinical chemistry, urinalysis | LB-OV → LB | — |
 
 Notes on the rules:
-- RT-1 is open by design. IS-A2 names antibodies to allergens, microorganisms and self-antigens. No public SDTMIG statement in
-  `SDTMIG_Statements` covers antibodies induced by a therapy (anti-drug antibodies, antibodies to a vector, factor IX
-  inhibitors). Every RT-1 row stays open with IS as the only candidate until such a statement is in the file.
+- RT-1 routes to IS without a condition. Each kind of induced antibody falls under one of the cited assumptions: induced by
+  a therapy (IS-A1: anti-drug antibodies, antibodies to a vector capsid or a transgene product, factor IX inhibitors), to an
+  allergen, a microorganism or a self-antigen (IS-A2), any other induced humoral response such as anti-HLA (IS-A3). All
+  give IS, so which kind a row is does not change the domain; it belongs to the target (binding agent), a later step.
+  (Until cdisc-for-ai `a7d5821` only IS-A2 was in `SDTMIG_Statements`, and RT-1 stayed open.)
+- Watch point: without a condition, any label with antibody, nAb, TAb, BAb or ADA routes to IS; only RT-8 (Ag/Ab, IS-A5)
+  sets RT-1 aside. A test named after an antibody that SDTM places in another domain would be routed wrongly. In the
+  collections so far RT-1 fires only on antibodies to a therapy, a vector capsid, a transgene product or HLA.
 - RT-3 is open when it fires: IS-A6 sends cytokine measurements to LB, IS-A4 keeps cellular immune responses measured by
   non-flow techniques in IS (for example IFN-gamma ELISpot). Which one applies is a protocol question.
 - "Inhibitor" only as factor IX / VIII inhibitor: SoA footnotes name other inhibitors (concomitant medication).
@@ -86,13 +91,13 @@ Notes on the rules:
 ## Members-only material
 
 CDISC also has material for its members that bears on routing, mainly the CDISC Controlled Terminology Rules. It has
-statements on where some tests belong that SDTMIG v3.4 does not cover, for example total immunoglobulins, antibodies induced
-by a therapy, cytokines tested as an antigen-stimulated immune response, vector shedding, replication-competent vectors and
-transgene integration. It is useful here, but it is for CDISC members only, so it is not used in this repository. Every
-statement cited here is a public SDTMIG v3.4 statement.
+statements on where some tests belong that SDTMIG v3.4 does not cover, for example total immunoglobulins, cytokines tested
+as an antigen-stimulated immune response, vector shedding, replication-competent vectors and transgene integration. It is
+useful here, but it is for CDISC members only, so it is not used in this repository. Every statement cited here is a public
+SDTMIG v3.4 statement.
 
 The gaps in the rule IDs (RT-2, RT-4, RT-5, RT-6) are rules that rest on members-only statements alone. Without them, those
-rows fall back to the grain kind (status `not routed`), and RT-1 stays open.
+rows fall back to the grain kind (status `not routed`).
 
 ## Files
 
@@ -131,18 +136,20 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-05, with cdisc-for-ai `82559eb` (rules 1.1.0; routed by test identity in brackets):
+Status on 2026-11-05, with cdisc-for-ai `a7d5821` (rules 1.2.0; routed by test identity in brackets):
 
 | Collection | Studies | Named tests | routed | open | weak | not routed | not reached |
 |---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 59 | 4 (2) | 20 | 1 | 34 | 58 |
+| cell_gene_therapy | 5 | 59 | 17 (2) | 7 | 1 | 34 | 58 |
 | usdm_data | 22 | 70 | 36 (35) | 10 | 0 | 24 | 73 |
 | cpmp | 13 | 27 | 20 (20) | 4 | 0 | 3 | 52 |
 | misc_studies | 2 | 16 | 10 (10) | 1 | 1 | 4 | 15 |
 
 Outside cell_gene_therapy the named tests are mostly routine laboratory tests and vital signs (HbA1c, height, weight, blood
 pressure). No rule names them; the test identity routes most of them. Weight and pulse stay open (CV or VS); the rows left
-not routed have a weak test identity hit (pregnancy test, FSH, temperature …) or none.
+not routed have a weak test identity hit (pregnancy test, FSH, temperature …) or none. In cell_gene_therapy the antibody
+tests route to IS (RT-1); what stays open is IFN-gamma ELISpot (RT-3, IS or LB), weight (CV or VS) and the ALLO-501A /
+ALLO-647 rows (CP or PC, or matched only in the parent label or a footnote).
 
 In the rules-only collections many rows are still `unsure` in the grain (usdm_data 337 of 811, cpmp 107 of 303, misc_studies
 25 of 82), so they do not reach routing yet.

@@ -199,7 +199,7 @@ check each grain file against its inputs, and **stop on a stale file** with the 
 
 ## Status
 
-Status on 2026-11-04, with cdisc-for-ai `82559eb` (SDTM CT 2026-09-25):
+Status on 2026-11-05, with cdisc-for-ai `a7d5821` (SDTM CT 2026-09-25; re-run from `82559eb`, grain results unchanged):
 
 | Collection | Studies | Rows with a grain | named test | unsure | Decisions |
 |---|---|---|---|---|---|
