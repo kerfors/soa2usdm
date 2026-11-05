@@ -293,6 +293,7 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
     if routing_json.exists():
         result['activity_routing'] = str(activity_routing_page.render(protocol_id, collection)
                                          .relative_to(collection_path))
+        result['activity_routing_json'] = str(routing_json.relative_to(collection_path))
 
     # USDM readiness/evaluation markdown
     # Search protocol root, SoA2USDM folder, and consolidated/ subfolder.
@@ -614,6 +615,7 @@ def generate_index_html(collection: str) -> str:
     # Activity grain (SoA2USDM/grain/<id>_activity_grain.json): each file is checked current against
     # its inputs before any page is rendered from it; a stale one stops the build.
     grain = {}
+    routing = {}
     grain_pids = [pid for pid in all_protocols if pid not in excluded_ids
                   and (collection_path / pid / 'SoA2USDM' / 'grain' / f"{pid}_activity_grain.json").exists()]
     if grain_pids:
@@ -624,8 +626,8 @@ def generate_index_html(collection: str) -> str:
         # Activity routing (SoA2USDM/routing/<id>_activity_routing.json): checked current against the
         # grain file and consolidated.json; a stale one stops the build.
         from .activity_routing import load_current_routing
-        for pid in grain_pids:
-            load_current_routing(collection, pid)
+        routing = {pid: load_current_routing(collection, pid) for pid in grain_pids}
+        routing = {pid: r for pid, r in routing.items() if r is not None}
 
     # Discover outputs for each protocol
     protocols = []
@@ -654,6 +656,7 @@ def generate_index_html(collection: str) -> str:
     has_context = any(p.get('protocol_context') for p in protocols)
 
     has_grain = bool(grain)
+    has_routing = bool(routing)
 
     def protocol_row(p: dict) -> str:
         nct = p['nct_id']
@@ -757,6 +760,16 @@ def generate_index_html(collection: str) -> str:
                           f'<br><span class="grain-n">{bg["named test"]} named test{"" if bg["named test"] == 1 else "s"} · {bg["unsure"]} unsure</span>')
         grain_td = f'\n            <td class="viz grp-start">{grain_html}</td>' if has_grain else ''
 
+        # Activity routing column: the page and JSON, with the count per status.
+        routing_html = ''
+        r = routing.get(nct)
+        if r:
+            rc = r['counts']
+            routing_html = (f'<a href="{p["activity_routing"]}" class="link-table" title="Activity routing per named test: SDTMIG v3.4 domain, or candidates with the question that stays open (public statements only)">routing</a>'
+                            f' <a href="{p["activity_routing_json"]}" class="link-json" title="Activity routing JSON">json</a>'
+                            f'<br><span class="grain-n">{rc["routed"]} routed · {rc["open"]} open<br>{rc["weak"]} weak · {rc["not routed"]} not routed</span>')
+        routing_td = f'\n            <td class="viz">{routing_html}</td>' if has_routing else ''
+
         # USDM readiness column
         usdm_html = ''
         if p.get('usdm_evaluation'):
@@ -784,7 +797,7 @@ def generate_index_html(collection: str) -> str:
             <td class="viz">{review_html}</td>
             <td class="viz">{report_html}</td>
             <td class="viz grp-start">{cons_html}</td>
-            <td class="stats">{red_html}</td>{ctx_td}{grain_td}
+            <td class="stats">{red_html}</td>{ctx_td}{grain_td}{routing_td}
         </tr>'''
     
     def excluded_row(e: dict) -> str:
@@ -793,7 +806,7 @@ def generate_index_html(collection: str) -> str:
             <td class="nct">{esc(e['nct_id'])}</td><td class="sponsor">{esc(e['sponsor'])}</td>
             <td class="study-code">{esc(e['study_code'])}</td>
             <td class="acronym">{esc(e['study_acronym'])}</td>
-            <td class="excluded-reason" colspan="{8 + has_context + has_grain}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
+            <td class="excluded-reason" colspan="{8 + has_context + has_grain + has_routing}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
         </tr>'''
 
     ready_rows = ''.join(protocol_row(p) for p in ready)
@@ -804,10 +817,12 @@ def generate_index_html(collection: str) -> str:
                   if has_context else '')
     ctx_th = ('<th class="grp-start" title="Protocol context per study (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md): page and JSON">Protocol context</th>'
               if has_context else '')
-    grain_grp_th = ('<th class="grp" title="First cut towards CDISC: which rows are findings, and of which kind">Towards CDISC</th>'
+    grain_grp_th = (f'<th class="grp" colspan="{1 + has_routing}" title="Early work towards CDISC: which rows are findings, of which kind, and in which SDTMIG v3.4 domain">Towards CDISC</th>'
                     if has_grain else '')
     grain_th = ('<th class="grp-start" title="Activity grain per study (documents/activity-grain.md): JSON, and named tests / unsure on the Activities page">Activity grain</th>'
                 if has_grain else '')
+    routing_th = ('<th title="Activity routing per study (documents/activity-routing.md): page and JSON, named tests by status (routed, open, weak, not routed)">Activity routing</th>'
+                  if has_routing else '')
     
     css = """
         :root { --blue:#1F4788; --blue2:#2E75B6; --ink:#1f2933; --muted:#5f6b7a; --line:#d9dee5;
@@ -903,7 +918,7 @@ def generate_index_html(collection: str) -> str:
             <thead><tr class="groups">
                 <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>{ctx_grp_th}{grain_grp_th}
             </tr><tr>
-                <th>NCT ID</th><th>Sponsor</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}{grain_th}
+                <th>NCT ID</th><th>Sponsor</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}{grain_th}{routing_th}
             </tr></thead>
             <tbody>
                 {ready_rows}

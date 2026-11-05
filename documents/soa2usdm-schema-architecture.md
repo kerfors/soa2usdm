@@ -240,6 +240,9 @@ Neither check trusts the model's read of the grid; both re-derive from the sourc
 │   ├── {NCTID}_activity_grain.json            # Generated
 │   ├── {NCTID}_grain_inputs.json              # Gathered for the decisions prompt (where AI proposals are made)
 │   └── {NCTID}_activity_grain_decisions.json  # Decisions from the prompt and reviews (where needed)
+├── routing/                         # Activity routing sidecar (documents/activity-routing.md)
+│   ├── {NCTID}_activity_routing.json          # Generated
+│   └── {NCTID}_activity_routing.html          # Page
 └── usdm/                            # Only where a USDM document was built
     ├── {NCTID}_usdm_manifest.yaml   # Hand-written
     ├── {NCTID}_usdm.json            # USDM v4 document
