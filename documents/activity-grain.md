@@ -162,7 +162,8 @@ kind stays `unsure`, and the rationale says what is open (for example, vector-DN
 Activities and tests are linked as the protocol documents them: each named test or instrument gets the CDISC terms the protocol supports,
 as specifically as the protocol states them, and no more. The steps after the grain are the domain (from cited SDTMIG v3.4 statements), the
 test with its target and the facets the protocol states (specimen, method, condition), and an optional COSMoS pointer where exactly one BC
-or DSS applies. These steps are not in this repository yet. Panels wait for panel splitting.
+or DSS applies. The domain step is in this repository: [activity-routing.md](activity-routing.md). The others are not in
+this repository yet. Panels wait for panel splitting.
 
 ## Files
 

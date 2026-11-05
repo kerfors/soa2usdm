@@ -1,0 +1,579 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-routing.json",
+  "title": "SoA2USDM Activity Routing Schema",
+  "description": "<id>_activity_routing.json of a study (SoA2USDM/routing/): for every named test of the study's activity grain that is not itself a parent, a target SDTMIG v3.4 domain (routed), or the candidate domains with the question that stays open (open), or rule domains as hints when the match is only in SoA annotations (weak), or candidates from the grain kind when no rule fired (not routed). Each result cites the rule, where it matched, and the public SDTMIG v3.4 statements it rests on (cdisc-for-ai SDTMIG_Statements), by Statement_ID and text sha256; the statements are quoted once per file. No CDISC members-only material. Design: documents/activity-routing.md.",
+  "type": "object",
+  "required": [
+    "schema_name",
+    "schema_version",
+    "collection",
+    "protocol_id",
+    "generated_at",
+    "rules_version",
+    "inputs",
+    "fallback_excluded",
+    "statements",
+    "counts",
+    "rows",
+    "not_reached"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "statement_ref": {
+      "type": "object",
+      "required": [
+        "statement_id",
+        "domains",
+        "condition",
+        "text_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "statement_id": {
+          "type": "string"
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "condition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "text_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "match": {
+      "type": "object",
+      "required": [
+        "where",
+        "xannot_id",
+        "phrase"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "where": {
+          "type": "string",
+          "enum": [
+            "label",
+            "parent_label",
+            "annotation"
+          ]
+        },
+        "xannot_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "phrase": {
+          "type": "string"
+        }
+      }
+    },
+    "basis": {
+      "type": "object",
+      "required": [
+        "rule_id",
+        "statements",
+        "matched",
+        "label_match"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^RT-[0-9]+$"
+        },
+        "statements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/statement_ref"
+          }
+        },
+        "matched": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/match"
+          }
+        },
+        "label_match": {
+          "type": "boolean"
+        }
+      }
+    },
+    "row": {
+      "type": "object",
+      "required": [
+        "xact_id",
+        "activity_name",
+        "parent_xact_id",
+        "parent_name",
+        "parent_is_section_header",
+        "grain",
+        "status",
+        "domain",
+        "candidates",
+        "hints",
+        "basis",
+        "dropped",
+        "fallback",
+        "question"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "xact_id": {
+          "type": "string"
+        },
+        "activity_name": {
+          "type": "string"
+        },
+        "parent_xact_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parent_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parent_is_section_header": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "grain": {
+          "type": "object",
+          "required": [
+            "grain",
+            "finding_kind",
+            "kind_candidates",
+            "source"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "grain": {
+              "type": "string",
+              "enum": [
+                "named test"
+              ]
+            },
+            "finding_kind": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "kind_candidates": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "source": {
+              "type": "string"
+            }
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "routed",
+            "open",
+            "weak",
+            "not routed"
+          ]
+        },
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Z]{2}$"
+        },
+        "candidates": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "hints": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "basis": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/basis"
+          }
+        },
+        "dropped": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "by_rule",
+              "statement_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "by_rule": {
+                "type": "string"
+              },
+              "statement_id": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "fallback": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "from",
+            "kinds"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "kinds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "question": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema_name": {
+      "const": "soa2usdm-activity-routing"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "collection": {
+      "type": "string"
+    },
+    "protocol_id": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "rules_version": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "activity_grain",
+        "consolidated",
+        "cdisc_for_ai"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "activity_grain": {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "schema_version": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "consolidated": {
+          "type": "object",
+          "required": [
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "cdisc_for_ai": {
+          "type": "object",
+          "required": [
+            "commit",
+            "files"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "commit": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "path",
+                  "sheet",
+                  "file_sha256",
+                  "sheet_content_sha256",
+                  "generated",
+                  "sdtm_ct",
+                  "sdtmig"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "enum": [
+                      "SDTMIG_Statements",
+                      "Domain_Coverage"
+                    ]
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "sheet": {
+                    "type": "string"
+                  },
+                  "file_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "sheet_content_sha256": {
+                    "type": "string"
+                  },
+                  "generated": {
+                    "type": "string"
+                  },
+                  "sdtm_ct": {
+                    "type": "string"
+                  },
+                  "sdtmig": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "fallback_excluded": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "domain",
+          "statement_ids",
+          "text_sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "statement_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "text_sha256": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "statements": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "domain",
+          "source",
+          "section",
+          "page",
+          "text",
+          "text_sha256"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "page": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "text_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": [
+        "rows",
+        "not_reached",
+        "routed",
+        "open",
+        "weak",
+        "not routed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_reached": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "routed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "weak": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not routed": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/row"
+      }
+    },
+    "not_reached": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "xact_id",
+          "activity_name",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "xact_id": {
+            "type": "string"
+          },
+          "activity_name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "panel, not split",
+              "named-test row that is a parent"
+            ]
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "xact_id",
+                "activity_name",
+                "grain",
+                "role"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "xact_id": {
+                  "type": "string"
+                },
+                "activity_name": {
+                  "type": "string"
+                },
+                "grain": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "role": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

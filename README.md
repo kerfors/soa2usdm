@@ -60,7 +60,8 @@ soa2usdm/
 │   ├── soa2usdm-protocol-context-cgt.schema.json  # Protocol context beyond the SoA (CGT profile)
 │   ├── soa2usdm-activity-grain.schema.json  # Activity grain per study
 │   ├── soa2usdm-activity-grain-inputs.schema.json  # Inputs of the grain decisions prompt, per study
-│   └── soa2usdm-activity-grain-decisions.schema.json  # Activity grain decisions sidecar
+│   ├── soa2usdm-activity-grain-decisions.schema.json  # Activity grain decisions sidecar
+│   └── soa2usdm-activity-routing.schema.json  # Activity routing per study
 │
 ├── prompts/
 │   ├── EXTRACTION_WORKFLOW_GUIDE.md          # How to run extraction and the pipeline
@@ -72,6 +73,7 @@ soa2usdm/
 │   ├── soa2usdm-schema-architecture.md       # Three-layer design rationale
 │   ├── usdm-instantiation.md                 # USDM Instantiation: procedure, design, decisions
 │   ├── activity-grain.md                     # Activity grain: values, rules, decisions, status
+│   ├── activity-routing.md                   # Activity routing: rows, status, rules, members-only material, status
 │   ├── background-and-challenges.md          # Project history and key challenges
 │   ├── soa_table_type_definitions.md         # Table classification (taxonomy)
 │   ├── inventory-improvements.md             # Backlog: open and done items
@@ -102,6 +104,8 @@ soa2usdm/
 │   ├── activity_grain.py            # Activity grain per study: rules, kind of finding, decisions
 │   ├── activity_grain_inputs.py     # Inputs of the grain decisions prompt, per study (grain/*_grain_inputs.json)
 │   ├── activity_grain_page.py       # Activity grain page per study (grain/*_activity_grain.html)
+│   ├── activity_routing.py          # Activity routing per study: named test -> SDTMIG v3.4 domain, cited
+│   ├── activity_routing_page.py     # Activity routing page per study (routing/*_activity_routing.html)
 │   ├── protocol_context_page.py     # Protocol context page per study (context/*_protocol_context.html)
 │   ├── nav.py                       # Shared navigation for all generated pages
 │   ├── page_grid.py                 # Rule-line cell geometry (vector + raster)
@@ -130,6 +134,7 @@ soa2usdm/
 │   ├── test_document_references.py  # document_references on annotations
 │   ├── test_activity_grain.py       # Grain rules, kind of finding, decisions checks (negative controls), stale check
 │   ├── test_activity_grain_inputs.py  # Grain inputs: items, stable rebuild, pointers, stale inputs stop the generator
+│   ├── test_activity_routing.py     # Routing rules and status, public-only guard, published routing files
 │   └── fixtures/                    # Golden protocols (JSON only), negative controls, pages — tests run standalone
 │
 └── pyproject.toml
@@ -148,6 +153,9 @@ Per protocol, beyond the SoA tables: `tools/protocol_context_inputs.py` prepares
 
 **Activity grain (Python):**
 `python -m soa2usdm.activity_grain --collection <name> [--protocol <NCTID>]` tags every activity of a study with its grain (named test, panel, procedure, instrument, sample collection, other, unsure) and, for a named test, the kind of finding. Each tag cites its rule and its public cdisc-for-ai lookup hits. A decisions file per study holds AI proposals and reviews for what the rules leave open; the AI proposals come from [`prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md`](prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md), run on inputs gathered by code (`python -m soa2usdm.activity_grain_inputs`). Output: `SoA2USDM/grain/`, with a page per study (shared navigation, linked from the collection index and the Activities page). Needs the `grain` extra and a cdisc-for-ai checkout next to this repo. See [`documents/activity-grain.md`](documents/activity-grain.md).
+
+**Activity routing (Python):**
+`python -m soa2usdm.activity_routing --collection <name> [--protocol <NCTID>]` gives each named test of the grain a target SDTMIG v3.4 domain (routed), or the candidate domains and the question that stays open (open, weak, not routed). Each result cites its rule, where it matched (label, parent label, footnote) and the public SDTMIG v3.4 statements it rests on. CDISC members-only material is not used. Output: `SoA2USDM/routing/`, with a page per study (shared navigation). Same requirements as the grain. See [`documents/activity-routing.md`](documents/activity-routing.md).
 
 **USDM Instantiation (manual step):**
 Per protocol: write the manifest, run `python -m soa2usdm.usdmgen`, then `tools/usdm_gate.py` — the steps are in [`documents/usdm-instantiation.md`](documents/usdm-instantiation.md), *Running it*. Needs `pip install -e '.[shell,usdm-gate]'` and the usdm-rdf checkout next to this repo.

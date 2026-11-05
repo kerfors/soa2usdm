@@ -22,6 +22,7 @@ from .corrections import review_status
 from .nav import NAV_CSS, nav_block, page_title
 from . import protocol_context_page
 from . import activity_grain_page
+from . import activity_routing_page
 
 
 # Short labels for table_type on the collection index.
@@ -285,6 +286,13 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
         result['activity_grain'] = str(activity_grain_page.render(protocol_id, collection)
                                        .relative_to(collection_path))
         result['activity_grain_json'] = str(grain_json.relative_to(collection_path))
+
+    # Activity routing page (soa2usdm.activity_routing_page), rendered here like the grain page
+    # (generate_index_html checks the routing file current before it calls this).
+    routing_json = soa_folder / "routing" / f"{protocol_id}_activity_routing.json"
+    if routing_json.exists():
+        result['activity_routing'] = str(activity_routing_page.render(protocol_id, collection)
+                                         .relative_to(collection_path))
 
     # USDM readiness/evaluation markdown
     # Search protocol root, SoA2USDM folder, and consolidated/ subfolder.
@@ -613,6 +621,11 @@ def generate_index_html(collection: str) -> str:
         from .activity_grain import load_current_grain
         inventory_rows = collect_rows(collection)
         grain = {pid: load_current_grain(collection, pid, inventory_rows) for pid in grain_pids}
+        # Activity routing (SoA2USDM/routing/<id>_activity_routing.json): checked current against the
+        # grain file and consolidated.json; a stale one stops the build.
+        from .activity_routing import load_current_routing
+        for pid in grain_pids:
+            load_current_routing(collection, pid)
 
     # Discover outputs for each protocol
     protocols = []
