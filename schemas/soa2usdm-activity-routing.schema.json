@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-routing.json",
   "title": "SoA2USDM Activity Routing Schema",
-  "description": "<id>_activity_routing.json of a study (SoA2USDM/routing/): for every named test of the study's activity grain that is not itself a parent, a target SDTMIG v3.4 domain (routed), or the candidate domains with the question that stays open (open), or rule domains as hints when the match is only in SoA annotations (weak), or candidates from the grain kind when no rule fired (not routed). Version 1.1: where no rule fired, the SDTM_Test_Identity hits of the activity label (from the grain file) route the row when strong with one domain (route_source 'test identity'), make it open when strong with several domains, and give hints when weak; a rule always ranks above them. Each result cites the rule, where it matched, and the public SDTMIG v3.4 statements it rests on (cdisc-for-ai SDTMIG_Statements), by Statement_ID and text sha256; the statements are quoted once per file. No CDISC members-only material. Design: documents/activity-routing.md.",
+  "description": "<id>_activity_routing.json of a study (SoA2USDM/routing/): for every named test of the study's activity grain that is not itself a parent, a target SDTMIG v3.4 domain (routed), or the candidate domains with the question that stays open (open), or rule domains as hints when the match is only in SoA annotations (weak), or candidates from the grain kind when no rule fired (not routed). Version 1.1: where no rule fired, the SDTM_Test_Identity hits of the activity label (from the grain file) route the row when strong with one domain (route_source 'test identity'), make it open when strong with several domains, and give hints when weak; a rule always ranks above them. Version 1.2: a weak hit with one code and one domain routes the row too (route_source 'test identity, weak hit'). Each result cites the rule, where it matched, and the public SDTMIG v3.4 statements it rests on (cdisc-for-ai SDTMIG_Statements), by Statement_ID and text sha256; the statements are quoted once per file. No CDISC members-only material. Design: documents/activity-routing.md.",
   "type": "object",
   "required": [
     "schema_name",
@@ -287,9 +287,10 @@
           "enum": [
             "rule",
             "test identity",
+            "test identity, weak hit",
             null
           ],
-          "description": "1.1: what routed the row; null unless status is routed, or open on a strong multi-domain test identity."
+          "description": "1.1: what routed the row; null unless status is routed, or open on a strong multi-domain test identity. 1.2: 'test identity, weak hit' for a weak hit with one code and one domain."
         },
         "test_identity": {
           "type": [
@@ -379,7 +380,8 @@
       "type": "string",
       "enum": [
         "1.0",
-        "1.1"
+        "1.1",
+        "1.2"
       ]
     },
     "collection": {
@@ -604,6 +606,11 @@
           "type": "integer",
           "minimum": 0,
           "description": "1.1: routed rows whose route_source is 'test identity'."
+        },
+        "routed_by_weak_test_identity": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "1.2: routed rows whose route_source is 'test identity, weak hit'."
         }
       }
     },

@@ -134,15 +134,26 @@ def test_test_identity_strong_several_domains_open():
     assert "WEIGHT" in r["question"] and "CV, VS" in r["question"]
 
 
-def test_test_identity_weak_gives_hints_only():
-    ti = ar.test_identity(_label("pregnancy test", "weak", ("C64858", "HCG", "LB"), reasons=["NCIt synonym only"]))
+def test_test_identity_weak_one_code_one_domain_routes():
+    # 1.3.0: one code in one domain routes, marked as a weak hit
+    ti = ar.test_identity(_label("pregnancy test", "weak", ("C64851", "HCG", "LB"), reasons=["NCIt synonym only"]))
     r = _route("Pregnancy test", ti=ti)
-    assert (r["status"], r["hints"], r["candidates"], r["route_source"]) == \
-        ("not routed", ["LB"], LK.kind_domains["specimen"], None)
+    assert (r["status"], r["domain"], r["route_source"], r["fallback"]) == \
+        ("routed", "LB", "test identity, weak hit", None)
+
+
+def test_test_identity_weak_several_codes_or_domains_gives_hints_only():
+    ti = ar.test_identity(_label("temperature", "weak", ("C174446", "TEMP", "VS"), ("C25206", "TEMP", "BS; DO"),
+                                 reasons=["several codes"]))
+    r = _route("Temperature", ti=ti)
+    assert (r["status"], r["hints"], r["route_source"]) == ("not routed", ["BS", "DO", "VS"], None)
+    ti = ar.test_identity(_label("pao2 fio2", "weak", ("C119293", "PO2FIO2", "LB; RE"), reasons=["NCIt synonym only"]))
+    r = _route("PaO2/FiO2", ti=ti)
+    assert (r["status"], r["hints"], r["route_source"]) == ("not routed", ["LB", "RE"], None)
 
 
 def test_rule_ranks_above_test_identity():
-    ti = ar.test_identity(_label("pk glucagon", "weak", ("C74786", "GLUCAGON", "LB")))
+    ti = ar.test_identity(_label("pk glucagon", "weak", ("C74859", "GLUCAGON", "LB")))
     r = _route("PK (Glucagon)", ti=ti)
     assert (r["status"], r["domain"], r["route_source"]) == ("routed", "PC", "rule")
     assert r["test_identity"]["domains"] == ["LB"]
@@ -224,7 +235,10 @@ def test_routing_file_test_identity(path):
     for r in d["rows"]:
         ti = r["test_identity"]
         assert ti == ar.test_identity(labels.get(phrase[r["xact_id"]])), r["xact_id"]
-        if r["route_source"] == "test identity":
+        if r["route_source"] == "test identity, weak hit":
+            assert r["basis"] == [] and ti["hit_strength"] == "weak" and r["fallback"] is None
+            assert r["status"] == "routed" and len(ti["codes"]) == 1 and ti["domains"] == [r["domain"]]
+        elif r["route_source"] == "test identity":
             assert r["basis"] == [] and ti["hit_strength"] == "strong" and r["fallback"] is None
             if r["status"] == "routed":
                 assert ti["domains"] == [r["domain"]]
@@ -232,7 +246,8 @@ def test_routing_file_test_identity(path):
                 assert r["status"] == "open" and r["candidates"] == ti["domains"] and len(ti["domains"]) > 1
         elif r["status"] == "routed":
             assert r["route_source"] == "rule" and r["basis"]
-        if not r["basis"] and ti and ti["hit_strength"] == "weak":
+        if not r["basis"] and ti and ti["hit_strength"] == "weak" and r["route_source"] is None:
             assert r["status"] == "not routed" and r["hints"] == ti["domains"]
+            assert len(ti["codes"]) > 1 or len(ti["domains"]) > 1
     assert d["counts"]["routed_by_test_identity"] == sum(
         1 for r in d["rows"] if r["status"] == "routed" and r["route_source"] == "test identity")

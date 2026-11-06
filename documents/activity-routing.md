@@ -43,11 +43,14 @@ Only the row's own label is used, as for the rules.
 |---|---|
 | strong, one domain | routed, `route_source` "test identity" (e.g. "HbA1c" → HBA1C → LB) |
 | strong, several domains | open: those domains are the candidates; the question names the test code (e.g. "Weight" → WEIGHT → CV, VS) |
-| weak (NCIt synonym only, qualifier dropped, several codes …) | not routed: the domains are hints; the candidates come from the grain kind |
+| weak, one code in one domain (NCIt synonym only, qualifier dropped, peeled …) | routed, `route_source` "test identity, weak hit" (rules 1.3.0; e.g. "Pregnancy test" → HCG → LB) |
+| weak, several codes or several domains | not routed: the domains are hints; the candidates come from the grain kind |
 
 A rule always ranks above the test identity. Where a rule fired, the hits are recorded and change nothing: "PK (Glucagon)"
-is routed to PC by RT-9, although GLUCAGON is an LB test code. A weak hit never routes: "Pregnancy test" reaches HCG only
-through an NCIt synonym, and "eGFR (CKD-EPI)" also hits EGFR, an MI test code. A strong hit routes also to a domain the
+is routed to PC by RT-9, although GLUCAGON is an LB test code. A weak hit routes only with one code in one domain: the
+domain is then not in doubt, even where the test is ("Pregnancy test" reaches HCG only through an NCIt synonym; "Calcium
+(cCa)" reaches CA only by dropping the qualifier, and cCa is corrected calcium). The route source keeps the weakness
+visible. "eGFR (CKD-EPI)" hits GFRE and EGFR (LB, MI) and is not routed. A strong hit routes also to a domain the
 grain kind has no fallback for (RP "Childbearing potential", SS "Survival Status"): the domain is where the test code is
 published.
 
@@ -112,10 +115,10 @@ rows fall back to the grain kind (status `not routed`).
   file sha256, sheet content sha256) of `SDTMIG_Statements` and `Domain_Coverage`;
 - `fallback_excluded`: PP, with PP-OV and PP-A1;
 - `statements`: each cited statement once, verbatim, with source, section, page and text sha256;
-- `counts`: rows, not reached, one count per status, and the routed rows routed by test identity;
+- `counts`: rows, not reached, one count per status, and the routed rows routed by test identity (strong, and 1.2 weak);
 - `rows[]`: one per routed named test, with the grain kind, status, domain or candidates, hints, the basis (rule, statements,
-  matched phrases with where they matched), the rules set aside, the fallback, the question, `route_source` (rule or test
-  identity) and `test_identity` (the label's SDTM_Test_Identity hits: strength, domains, codes);
+  matched phrases with where they matched), the rules set aside, the fallback, the question, `route_source` (rule, test
+  identity, or test identity, weak hit) and `test_identity` (the label's SDTM_Test_Identity hits: strength, domains, codes);
 - `not_reached[]`: panels and named-test parents, with the reason.
 
 ## Running it
@@ -136,20 +139,22 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-05, with cdisc-for-ai `a7d5821` (rules 1.2.0; routed by test identity in brackets):
+Status on 2026-11-06, with cdisc-for-ai `a7d5821` (rules 1.3.0, grain rules 1.1.0; routed by test identity in brackets,
+strong and weak):
 
 | Collection | Studies | Named tests | routed | open | weak | not routed | not reached |
 |---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 59 | 17 (2) | 7 | 1 | 34 | 58 |
-| usdm_data | 22 | 70 | 36 (35) | 10 | 0 | 24 | 73 |
-| cpmp | 13 | 27 | 20 (20) | 4 | 0 | 3 | 52 |
-| misc_studies | 2 | 16 | 10 (10) | 1 | 1 | 4 | 15 |
+| cell_gene_therapy | 5 | 60 | 19 (2, weak 2) | 7 | 1 | 33 | 58 |
+| usdm_data | 22 | 93 | 81 (36, weak 44) | 10 | 0 | 2 | 73 |
+| cpmp | 13 | 40 | 36 (20, weak 16) | 4 | 0 | 0 | 52 |
+| misc_studies | 2 | 17 | 14 (13, weak 1) | 1 | 1 | 1 | 15 |
 
 Outside cell_gene_therapy the named tests are mostly routine laboratory tests and vital signs (HbA1c, height, weight, blood
-pressure). No rule names them; the test identity routes most of them. Weight and pulse stay open (CV or VS); the rows left
-not routed have a weak test identity hit (pregnancy test, FSH, temperature …) or none. In cell_gene_therapy the antibody
-tests route to IS (RT-1); what stays open is IFN-gamma ELISpot (RT-3, IS or LB), weight (CV or VS) and the ALLO-501A /
-ALLO-647 rows (CP or PC, or matched only in the parent label or a footnote).
+pressure, pregnancy test, drug screen). No rule names them; the test identity routes almost all of them, a weak hit with
+one code in one domain included. Weight and pulse stay open (CV or VS); not routed are the rows whose weak hit has several
+codes or domains (temperature, PaO2/FiO2, eGFR). In cell_gene_therapy the antibody tests route to IS (RT-1); what stays open
+is IFN-gamma ELISpot (RT-3, IS or LB), weight (CV or VS) and the ALLO-501A / ALLO-647 rows (CP or PC, or matched only in the
+parent label or a footnote).
 
-In the rules-only collections many rows are still `unsure` in the grain (usdm_data 337 of 811, cpmp 107 of 303, misc_studies
-25 of 82), so they do not reach routing yet.
+In the rules-only collections many rows are still `unsure` in the grain (usdm_data 314 of 811, cpmp 94 of 303, misc_studies
+24 of 82), so they do not reach routing yet.

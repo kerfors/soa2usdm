@@ -88,8 +88,8 @@ def test_short_code_in_parentheses_is_no_hit():
 
 def test_whole_label_short_code_is_no_hit():
     # 'PK' = pharmacokinetics, not pyruvate kinase; also with a qualifier ('PK (Day 1)')
-    lk = Stub(tests=[_test("PK", "C111292", "PYK", "LB", field="NCIt_Synonyms", source="NCIt"),
-                     _test("Pyruvate Kinase", "C111292", "PYK", "LB")])
+    lk = Stub(tests=[_test("PK", "C156470", "PYK", "LB", field="NCIt_Synonyms", source="NCIt"),
+                     _test("Pyruvate Kinase", "C156470", "PYK", "LB")])
     for label in ("PK", "PK (Day 1)"):
         rec = ag.label_grain(label, lk)
         assert rec["grain"] == "unsure" and rec["rule_id"] == "none", label

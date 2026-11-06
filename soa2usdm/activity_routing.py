@@ -22,7 +22,9 @@ Status:
 Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
 row's own activity label (from the grain file) are a second source. A strong hit with
 one domain routes the row (route_source "test identity"); a strong hit with several
-domains makes it open with those domains as candidates; a weak hit gives hints only.
+domains makes it open with those domains as candidates. Rules 1.3.0 (schema 1.2): a weak
+hit with one code and one domain routes the row too, marked route_source "test identity,
+weak hit"; any other weak hit gives hints only.
 A rule always ranks above the test identity: where a rule fired, the hits are recorded
 and change nothing.
 
@@ -35,7 +37,7 @@ Input: the study's grain file (checked current, activity_grain.load_current_grai
 and its consolidated.json (parents, annotations).
 
 Output: SoA2USDM/routing/<id>_activity_routing.json (schema_name
-soa2usdm-activity-routing, schema_version 1.1). Design: documents/activity-routing.md.
+soa2usdm-activity-routing, schema_version 1.2). Design: documents/activity-routing.md.
 """
 
 import hashlib
@@ -49,9 +51,9 @@ from . import config
 from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_current_grain
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.1"
-SCHEMA_VERSIONS = ("1.0", "1.1")
-RULES_VERSION = "1.2.0"
+SCHEMA_VERSION = "1.2"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
+RULES_VERSION = "1.3.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -60,7 +62,7 @@ LOOKUP_FILES = {
 
 STATUSES = ("routed", "open", "weak", "not routed")
 WHERE = ("label", "parent_label", "annotation")
-ROUTE_SOURCES = ("rule", "test identity")
+ROUTE_SOURCES = ("rule", "test identity", "test identity, weak hit")
 TEST_IDENTITY_FILE = "SDTM_Test_Identity"
 
 # Domains left out of the fallback, with the SDTMIG v3.4 statements that say why:
@@ -298,6 +300,11 @@ def route(fired: list, grain_kinds: list, lk: RoutingLookups, ti: dict | None = 
     if ti["hit_strength"] == "strong" and len(ti["domains"]) == 1:
         return res | {"status": "routed", "domain": ti["domains"][0], "candidates": None,
                       "fallback": None, "route_source": "test identity"}
+    if len(ti["codes"]) == 1 and len(ti["domains"]) == 1:
+        # Weak (NCIt synonym only, qualifier dropped, peeled ...) but one code in one domain:
+        # the domain is not in doubt, the test may be; marked so the weakness stays visible
+        return res | {"status": "routed", "domain": ti["domains"][0], "candidates": None,
+                      "fallback": None, "route_source": "test identity, weak hit"}
     if ti["hit_strength"] == "strong":
         return res | {"status": "open", "candidates": ti["domains"], "fallback": None,
                       "route_source": "test identity",
@@ -442,7 +449,9 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
         "counts": {"rows": len(rows), "not_reached": len(not_reached)}
                   | {st: sum(1 for r in rows if r["status"] == st) for st in STATUSES}
                   | {"routed_by_test_identity": sum(1 for r in rows if r["status"] == "routed"
-                                                    and r["route_source"] == "test identity")},
+                                                    and r["route_source"] == "test identity"),
+                     "routed_by_weak_test_identity": sum(1 for r in rows if r["status"] == "routed"
+                                                         and r["route_source"] == "test identity, weak hit")},
         "rows": rows,
         "not_reached": not_reached,
     }

@@ -77,6 +77,8 @@ def _basis(r: dict, annotations: dict) -> str:
                            for c in ti["codes"])
         if r["basis"]:
             use = "recorded; the rule ranks above it"
+        elif r.get("route_source") == "test identity, weak hit":
+            use = "routes the row: one code in one domain, the hit itself is weak"
         elif r.get("route_source") == "test identity":
             use = "routes the row" if r["status"] == "routed" else "candidates: the protocol must say which"
         else:
@@ -105,8 +107,11 @@ def render(protocol_id: str, collection: str) -> Path:
     c = d["counts"]
     cdisc = d["inputs"]["cdisc_for_ai"]
     by_ti = c.get("routed_by_test_identity")
+    by_weak = c.get("routed_by_weak_test_identity")
+    by = ", ".join(t for t in ((f"{by_ti} by test code" if by_ti else ""),
+                               (f"{by_weak} by weak test code" if by_weak else "")) if t)
     summary = (f'<b>{c["rows"]} named tests</b> · '
-               + " · ".join(f'{st} {c[st]}' + (f' ({by_ti} by test code)' if st == "routed" and by_ti else "")
+               + " · ".join(f'{st} {c[st]}' + (f' ({by})' if st == "routed" and by else "")
                             for st in STATUSES)
                + f' · not reached {c["not_reached"]}')
 
