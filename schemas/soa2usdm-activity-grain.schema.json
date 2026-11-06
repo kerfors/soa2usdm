@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-activity-grain.json",
   "title": "SoA2USDM Activity Grain Schema",
-  "description": "<id>_activity_grain.json of a study (SoA2USDM/grain/): the grain of every activity of the study in the collection's activity inventory (named test, panel, procedure, instrument, sample collection, other, unsure) or its structural role (section header, specimen of parent, redacted); for a named test the kind of finding (specimen, immunogenicity, measurement, instrument, pc, genomics, unsure); the rule that fired and the cdisc-for-ai lookup hits it cites. A sidecar: activities.json is not changed. Design and rule table: documents/activity-grain.md.",
+  "description": "<id>_activity_grain.json of a study (SoA2USDM/grain/): the grain of every activity of the study in the collection's activity inventory (named test, panel, instrument list, procedure, instrument, sample collection, other, unsure) or its structural role (section header, specimen of parent, redacted); for a named test the kind of finding (specimen, immunogenicity, measurement, instrument, pc, genomics, unsure); the rule that fired and the cdisc-for-ai lookup hits it cites. A sidecar: activities.json is not changed. Design and rule table: documents/activity-grain.md.",
   "type": "object",
   "required": [
     "schema_name",
@@ -102,7 +102,71 @@
             "parenthesis",
             "label"
           ],
-          "description": "Split from a trailing parenthesis or from the label text."
+          "description": "Split from a trailing parenthesis or from the label text. 1.5: 'parenthesis' = a member of a group (in_group)."
+        },
+        "member_id": {
+          "type": "string",
+          "pattern": "^m[0-9]{2}$",
+          "description": "1.5: m01, m02 ... in label order, depth-first; with the row's xact_id it names the member (xact-013.m05). Stable while the label text and the rules version are the same."
+        },
+        "in_group": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "1.5: member_id of the member whose parenthesis lists this one ('Electrolytes (K, Na)'); null at the top level."
+        },
+        "qualifiers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "1.5: parentheses of the member that are not a list, as stated ('at baseline only', 'for HCC', 'SGOT')."
+        },
+        "member_grain": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "named test",
+            "instrument",
+            "panel",
+            null
+          ],
+          "description": "1.5: test hit (whole, compact, qualifier dropped, or peeled), instrument hit (L2), a member that names a panel (panel words, MEMBER_PANEL_PHRASES), or null (no hit)."
+        },
+        "peeled": {
+          "$ref": "#/properties/labels/items/properties/peeled"
+        },
+        "finding_kind": {
+          "$ref": "#/definitions/finding_kind"
+        },
+        "kind_rule": {
+          "type": "string",
+          "enum": [
+            "K1"
+          ],
+          "description": "1.5: on a named-test member."
+        },
+        "kind_domains": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "kind_candidates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "1.5: review flags of the member (kind)."
         },
         "hits": {
           "type": "array",
@@ -292,7 +356,8 @@
         "1.1",
         "1.2",
         "1.3",
-        "1.4"
+        "1.4",
+        "1.5"
       ],
       "description": "Schema version."
     },
@@ -572,13 +637,14 @@
             "enum": [
               "named test",
               "panel",
+              "instrument list",
               "procedure",
               "instrument",
               "sample collection",
               "other",
               "unsure"
             ],
-            "description": "Grain the text rules give."
+            "description": "Grain the text rules give ('instrument list': 1.5, rule P2i)."
           },
           "rule_id": {
             "type": "string",
@@ -698,7 +764,7 @@
             "items": {
               "$ref": "#/definitions/member"
             },
-            "description": "List members, kept only when at least two hit a test."
+            "description": "List members. Up to 1.4: kept only when at least two hit a test. 1.5 (rules 1.2.0): kept when P1, P2 or P2i takes the list (see documents/activity-grain.md)."
           },
           "words": {
             "type": "object",
@@ -802,6 +868,10 @@
               },
               "inputs_content_sha256": {
                 "type": "string"
+              },
+              "carried_over_from": {
+                "type": "string",
+                "description": "1.5: as in the decisions file (decisions 1.4)."
               }
             }
           }
@@ -878,6 +948,7 @@
             "enum": [
               "named test",
               "panel",
+              "instrument list",
               "procedure",
               "instrument",
               "sample collection",
@@ -885,7 +956,7 @@
               "unsure",
               null
             ],
-            "description": "Grain; null when the row has a role."
+            "description": "Grain; null when the row has a role ('instrument list': 1.5, rule P2i)."
           },
           "finding_kind": {
             "$ref": "#/definitions/finding_kind"

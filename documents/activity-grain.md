@@ -10,7 +10,7 @@ The step is a per-study sidecar. It does not change the activity inventory (`act
 
 | Field | Values | Set on |
 |---|---|---|
-| `grain` | named test · panel · procedure · instrument · sample collection · other · unsure | every row without a role |
+| `grain` | named test · panel · instrument list · procedure · instrument · sample collection · other · unsure | every row without a role (instrument list: schema 1.5) |
 | `role` | section header · specimen of parent · redacted | structural rows; a row with a role has no grain |
 | `finding_kind` | specimen · immunogenicity · measurement · instrument · pc · genomics · unsure | named tests only; `null` otherwise |
 | `kind_candidates` | two or more of the kinds above | with `finding_kind` unsure, when the domains or the input narrow the row to those kinds; empty otherwise |
@@ -57,7 +57,8 @@ fires wins. Every row cites the rule that fired and every lookup hit it used. Ex
 | W3, W4 | other | administrative and record words (consent, dosing, diary; adverse events, history) | NCT03489291 "Informed consent" |
 | W-conflict | unsure | word lists that give different grains | NCT03402841 "Archival or fresh tumour biopsy sample …" |
 | P1 | panel | panel words (panel, chemistry, serology, markers …) | NCT03489291 "Inflammatory markers IL-1β, IL-2, IL-6, IFNγ, MCP-1" |
-| P2 | panel | a list in the label or in a parenthesis with at least two members that hit a test | NCT03489291 "Vital signs (blood pressure, pulse, body temperature)" |
+| P2 | panel | a list in the label (rules 1.2.0, see "Lists" below): two members with evidence (a test, an instrument or a member that names a panel), or one test hit that is neither peeled nor by short code only; not a history label, not a mixed row | NCT04184622 "Pancreatic amylase, lipase"; NCT03489291 "Vital signs (blood pressure, pulse, body temperature)" |
+| P2i | instrument list | a list with two instrument hits and no test (1.2.0) | NCT01847274 "FOSI, EQ-5D-5L, neuropathy questionnaire" |
 | L1x | named test, always weak | peel-off, only where no rule above fired: brackets, specimen (SPECTYPE phrases), method (METHOD phrases), lab, condition and activity words are peeled off, and the rest is looked up as a test (see below) | NCT03548935 "Fasting plasma glucose" → GLUC |
 | none | unsure | no rule fired | |
 | K1 | finding_kind | for L1, L1q, L1a, L1p, L1x: the hit's `SDTM_Domains` through the table above | "Weight" (CV; VS) → measurement |
@@ -78,6 +79,22 @@ lists, and looks up the rest as a test. What it peeled is kept on the label (`pe
 the row. Two guards: an activity word that is part of a test name is kept ("Pregnancy Test", "Drug Screen" and "Neurological Assessment"
 hold "test", "screen" and "assessment"); a rest that is a generic word ("clinical", "concentration", "diagnosis" …, `PEEL_GENERIC_REST`)
 or a hit only through a short code ("Serum PK") is not taken. An L1x hit is always weak ("peeled"): the rest is not the label.
+
+**Lists (rules 1.2.0).** A label that lists several tests is split into members, recorded on the label (`members`, schema 1.5).
+The split is made at commas, "and", "&" and "/" outside parentheses only. A trailing parenthesis that is not a list qualifies the whole
+label ("INR, aPTT (select patients)"); a list in a member's parenthesis is a group under that member ("Electrolytes (K, Na, Cl, CO2)": K,
+Na, Cl and CO2 have `in_group` the id of "Electrolytes"), also after "includes"; other parentheses of a member are its `qualifiers` ("AFP
+(for HCC)", "AST (SGOT)"). A slash whose neighbouring words join to a test is part of the test name and not split ("Urinary
+albumin/creatinine" → ALBCREAT, flagged). Each member has an id (`member_id` m01, m02 … in label order, depth-first; with the row's xact_id
+it names the member, e.g. xact-013.m05) and a `member_grain`: named test (test lookup on the member, or peel-off, always weak), instrument
+(L2), panel (the member names a panel: panel words, or "vital signs", "electrolytes"), or none. A short code is taken as a member, weak
+("short code only"): inside a list of tests "K", "Cl" or "CO2" are credible. Named-test members carry their kind (K1). Guards: a list in a
+history label ("use": "Substance use (alcohol, caffeine, tobacco use)") is not taken, with a flag; a member without a hit that holds
+"exam", "examination" or "check" makes a mixed row ("Physical Exam, Weight, and Vital Signs", "Pregnancy test and contraception check"),
+not a panel; one member hit by short code only is not enough ("CT/MRI", "PK, IG …"), nor one peeled hit. P1 keeps the listed members of
+a label that names a panel ("Fasting lipid panel (triglycerides, …)"). Members are kept only where P1, P2 or P2i takes the list. A
+member without a hit stays on the label, so the gap is visible. Panels named only ("Hematology", "Chemistry") have no members: they
+need the protocol's lab appendix.
 
 The word lists are dated (`word_lists_date`) and kept small. The step does not tune them further: named tests that are specific to a product
 or an assay are not in CT, and no word list finds them.
@@ -127,6 +144,14 @@ A person then reviews the decisions per study.
   whole inputs file) instead; it is checked when `inputs_content_sha256` is absent, and kept as a record when it is added
   (`tools/grain_decisions_record_content_sha.py`). A new cdisc-for-ai commit that changes nothing the prompt reads therefore needs a
   new gathering, not a new prompt run. `source: reviewed` is allowed on any label, and can set the kind of a rule-hit named test.
+- **Carry-over (decisions 1.4).** A grain rules change can change the inputs content while most items stay as they were.
+  `tools/grain_decisions_carry_over.py --collection <name> [--protocol <NCTID>]` keeps an ai_proposed decision whose item is unchanged:
+  its `inputs_content_sha256` becomes the new one and `carried_over_from` keeps the one it was made from; the decision is not changed.
+  A decision whose phrase is no longer an item (the rules now give the label a grain with nothing to decide) is removed and recorded in
+  `carry_overs[].dropped` with the rule result. The tool stops and writes nothing when a decision was not made from the inputs file on
+  disk, when an item changed, when the study block or the cdisc domains changed, or when the new inputs hold a cdisc test row the old did
+  not: those need the prompt. It runs before the inputs are gathered again; it writes the decisions file and then the new inputs file.
+  The grain page marks a carried decision "AI proposal (carried over)".
 - `finding_kind` is present exactly when the decided grain is named test.
 - `basis` lists what the decision rests on:
   - `{"type": "label"}` — the label text;
@@ -174,13 +199,14 @@ Activities and tests are linked as the protocol documents them: each named test 
 as specifically as the protocol states them, and no more. The steps after the grain are the domain (from cited SDTMIG v3.4 statements), the
 test with its target and the facets the protocol states (specimen, method, condition), and an optional COSMoS pointer where exactly one BC
 or DSS applies. The domain step is in this repository: [activity-routing.md](activity-routing.md). The others are not in
-this repository yet. Panels wait for panel splitting.
+this repository yet. Panels whose label lists their members are split (rules 1.2.0, "Lists" above) and routed per member; panels
+named only wait for the protocol's lab appendix.
 
 ## Files
 
 ```
 {NCTID}/SoA2USDM/grain/
-├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.4)
+├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.5)
 ├── {NCTID}_grain_inputs.json               # gathered for the decisions prompt (where AI proposals are made)
 └── {NCTID}_activity_grain_decisions.json   # from the prompt and reviews, where decisions exist
 ```
@@ -210,13 +236,13 @@ check each grain file against its inputs, and **stop on a stale file** with the 
 
 ## Status
 
-Status on 2026-11-06, grain rules 1.1.0 (L1p, L1x), with cdisc-for-ai `a7d5821` (SDTM CT 2026-09-25):
+Status on 2026-11-06, grain rules 1.2.0 (lists), with cdisc-for-ai `a7d5821` (SDTM CT 2026-09-25):
 
-| Collection | Studies | Rows with a grain | named test | unsure | Decisions |
-|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 229 | 61 | 7 | AI proposals (144: 63 prompt 1.2.0, 81 prompt 1.5.0 for NCT04323098 and NCT05714345 since 2026-11-06; not reviewed; decisions schema 1.3 since 2026-11-04) |
-| usdm_data | 22 | 811 | 93 | 314 | rules only |
-| cpmp | 13 | 303 | 40 | 94 | rules only |
-| misc_studies | 2 | 82 | 17 | 24 | rules only |
+| Collection | Studies | Rows with a grain | named test | panel | instrument list | unsure | Decisions |
+|---|---|---|---|---|---|---|---|
+| cell_gene_therapy | 5 | 229 | 61 | 57 | 0 | 7 | AI proposals (143: 63 prompt 1.2.0, 80 prompt 1.5.0 for NCT04323098 and NCT05714345 since 2026-11-06; not reviewed; NCT05714345 carried over to rules 1.2.0, decisions schema 1.4, one decision dropped) |
+| usdm_data | 22 | 811 | 93 | 83 | 2 | 302 | rules only |
+| cpmp | 13 | 303 | 40 | 52 | 0 | 94 | rules only |
+| misc_studies | 2 | 82 | 17 | 14 | 0 | 25 | rules only |
 
 AI proposals for the rules-only collections wait for their protocol context.

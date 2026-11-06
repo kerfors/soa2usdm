@@ -155,7 +155,8 @@
         "1.0",
         "1.1",
         "1.2",
-        "1.3"
+        "1.3",
+        "1.4"
       ],
       "description": "Schema version."
     },
@@ -180,6 +181,71 @@
         },
         "prompt_version": {
           "type": "string"
+        }
+      }
+    },
+    "carry_overs": {
+      "type": "array",
+      "description": "1.4: one record per run of tools/grain_decisions_carry_over.py, oldest first.",
+      "items": {
+        "type": "object",
+        "required": [
+          "from_inputs_content_sha256",
+          "to_inputs_content_sha256",
+          "grain_rules_version",
+          "carried_on",
+          "carried",
+          "dropped"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from_inputs_content_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "to_inputs_content_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "grain_rules_version": {
+            "type": "string",
+            "description": "RULES_VERSION of soa2usdm.activity_grain that made the new inputs."
+          },
+          "carried_on": {
+            "type": "string",
+            "description": "Date (YYYY-MM-DD)."
+          },
+          "carried": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "ai_proposed decisions carried (item unchanged)."
+          },
+          "dropped": {
+            "type": "array",
+            "description": "ai_proposed decisions removed because their phrase is no longer an item: the rules now give the label a grain with nothing to decide.",
+            "items": {
+              "type": "object",
+              "required": [
+                "phrase",
+                "grain",
+                "rule_result"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "phrase": {
+                  "type": "string"
+                },
+                "grain": {
+                  "type": "string",
+                  "description": "The grain the dropped decision gave."
+                },
+                "rule_result": {
+                  "type": "string",
+                  "description": "grain/rule_id the rules give the label now."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -283,7 +349,12 @@
           "inputs_content_sha256": {
             "type": "string",
             "pattern": "^[0-9a-f]{64}$",
-            "description": "1.3: the content_sha256 of the study's grain inputs file the decision was made from (its content without the version records). Required for ai_proposed in a 1.3 file; when present, the generator checks it instead of inputs_sha256."
+            "description": "1.3: the content_sha256 of the study's grain inputs file the decision was made from (its content without the version records). Required for ai_proposed in a 1.3 / 1.4 file; when present, the generator checks it instead of inputs_sha256. 1.4: on a carried decision, the content_sha256 of the inputs it was carried to."
+          },
+          "carried_over_from": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "1.4: set by tools/grain_decisions_carry_over.py on an ai_proposed decision whose item is unchanged in new grain inputs: the content_sha256 of the inputs the decision was made from (or last carried from). The decision itself is unchanged."
           }
         },
         "if": {

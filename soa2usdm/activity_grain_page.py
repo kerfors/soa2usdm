@@ -72,7 +72,8 @@ def _evidence(row: dict, lab: dict | None, annotations: dict, context: dict | No
         return "".join(parts) + "".join(f'<div class="flag">{esc(f)}</div>' for f in row["flags"])
     d = lab.get("decision")
     if d:
-        who = "reviewed" if d["source"] == "reviewed" else "AI proposal"
+        who = "reviewed" if d["source"] == "reviewed" else (
+            "AI proposal (carried over)" if "carried_over_from" in d else "AI proposal")
         basis = "".join(f"<li>{_basis(b, annotations, context)}</li>" for b in d["basis"])
         parts.append(f'<div class="dec"><b>{who}:</b> {esc(d["rationale"])}<ul class="basis">{basis}</ul></div>')
     if lab["hits"]:
@@ -86,8 +87,7 @@ def _evidence(row: dict, lab: dict | None, annotations: dict, context: dict | No
     for rule, words in (lab.get("words") or {}).items():
         parts.append(f'<div class="why">{esc(rule)} words: {esc(", ".join(words))}</div>')
     if lab["members"]:
-        ms = "; ".join(f'{esc(m["text"])} → <code>{esc(m["hits"][0]["submission_value"])}</code>'
-                       if m.get("hits") else f'{esc(m["text"])} → no hit' for m in lab["members"])
+        ms = "; ".join(_member(m) for m in lab["members"])
         parts.append(f'<div class="why">members: {ms}</div>')
     if lab["qualifiers"]:
         parts.append(f'<div class="why">qualifier: {esc(" · ".join(lab["qualifiers"]))}</div>')
@@ -95,6 +95,17 @@ def _evidence(row: dict, lab: dict | None, annotations: dict, context: dict | No
     if flags:
         parts.append(f'<div class="flag">{esc("; ".join(flags))}</div>')
     return "".join(parts) or '<span class="ns">—</span>'
+
+
+def _member(m: dict) -> str:
+    """One list member: id (1.5), group, text, and its hit or member grain."""
+    head = (f'{esc(m["member_id"])} ' if "member_id" in m else "") + esc(m["text"])
+    if m.get("in_group"):
+        head += f' <span class="ns">(in {esc(m["in_group"])})</span>'
+    if m.get("hits"):
+        return f'{head} → <code>{esc(m["hits"][0]["submission_value"])}</code>' + (
+            f' <span class="ns">weak: {esc(", ".join(m["weak_reasons"]))}</span>' if m["weak_reasons"] else "")
+    return f'{head} → ' + ("panel (name only)" if m.get("member_grain") == "panel" else "no hit")
 
 
 def _summary(c: dict) -> str:

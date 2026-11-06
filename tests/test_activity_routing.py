@@ -172,6 +172,43 @@ def test_test_identity_reads_only_test_identity_hits():
 
 
 @pytest.mark.skipif(not ar.CDISC_FOR_AI.is_dir(), reason="needs a cdisc-for-ai checkout")
+def _member(mid, text, *hits, strength="strong", reasons=(), grain="named test", kind="specimen"):
+    lab = _label(text.lower(), strength, *hits, reasons=reasons)
+    return {"member_id": mid, "text": text, "phrase": text.lower(), "from": "label", "in_group": None,
+            "qualifiers": [], "member_grain": grain, "hits": lab["hits"], "hit_strength": strength,
+            "weak_reasons": list(reasons), "finding_kind": kind, "kind_candidates": []}
+
+
+def _split(label, members):
+    a = {"protocol_id": "NCT0", "xact_id": "xact-002", "activity_name": label, "parent_xact_id": "xact-001"}
+    unified = {"xact-001": {"activity_name": "Laboratory Assessments", "is_section_header": False,
+                            "parent_xact_id": None},
+               "xact-002": {"activity_name": label, "is_section_header": False, "parent_xact_id": "xact-001"}}
+    cons = {"unified_annotations": []}
+    return ar._member_rows(a, members, unified, cons, LK)
+
+
+def test_member_rows_route_on_the_member_and_its_own_test_identity():
+    rows = _split("PT, aPTT", [_member("m01", "PT", ("C62656", "PT", "LB"), strength="weak",
+                                       reasons=("short code only",)),
+                               _member("m02", "aPTT", ("C38462", "APTT", "LB")),
+                               _member("m03", "xyz", grain=None)])
+    assert [(r["member_id"], r["status"], r["domain"], r["route_source"]) for r in rows] == \
+        [("m01", "routed", "LB", "test identity, weak hit"), ("m02", "routed", "LB", "test identity")]
+    assert rows[0]["activity_name"] == "PT" and rows[0]["panel_name"] == "PT, aPTT"
+    assert rows[0]["parent_name"] == "Laboratory Assessments" and rows[0]["grain"]["source"] == "panel member"
+
+
+def test_panel_label_only_supports():
+    # 'Hematology' in the panel label fires RT-10 (LB); it is recorded and does not block the test identity
+    rows = _split("Hematology, aPTT", [_member("m01", "Hematology", grain="panel"),
+                                       _member("m02", "aPTT", ("C38462", "APTT", "LB"))])
+    assert len(rows) == 1
+    r = rows[0]
+    assert (r["status"], r["domain"], r["route_source"], r["basis"]) == ("routed", "LB", "test identity", [])
+    assert [s["rule_id"] for s in r["panel_label_support"]] == ["RT-10"]
+
+
 def test_rules_cite_public_routing_statements_only():
     lk = ar.RoutingLookups()
     for rule in ar.RULES:
@@ -234,7 +271,11 @@ def test_routing_file_test_identity(path):
     phrase = {a["xact_id"]: a["phrase"] for a in grain["activities"]}
     for r in d["rows"]:
         ti = r["test_identity"]
-        assert ti == ar.test_identity(labels.get(phrase[r["xact_id"]])), r["xact_id"]
+        if "member_id" in r:  # 1.3: a member row's test identity is the member's own
+            member = {m["member_id"]: m for m in labels[phrase[r["xact_id"]]]["members"]}[r["member_id"]]
+            assert ti == ar.test_identity(member), (r["xact_id"], r["member_id"])
+        else:
+            assert ti == ar.test_identity(labels.get(phrase[r["xact_id"]])), r["xact_id"]
         if r["route_source"] == "test identity, weak hit":
             assert r["basis"] == [] and ti["hit_strength"] == "weak" and r["fallback"] is None
             assert r["status"] == "routed" and len(ti["codes"]) == 1 and ti["domains"] == [r["domain"]]

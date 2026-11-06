@@ -189,12 +189,84 @@ def test_peel_off_needs_something_peeled():
     assert rec["rule_id"] == "none"
 
 
-def test_panel_list_needs_two_member_hits():
-    rec = ag.label_grain("Sodium, potassium", LK)
+GAD7 = {"file": "SDTM_Instrument_Identity", "sheet": "Instruments", "field": "Instrument_Label",
+        "source": "CT", "as_published": "GAD-7", "code": "C103518", "submission_value": "GAD01",
+        "domains": "QS"}
+ALBCREAT = _test("Albumin/Creatinine", "C74761", "ALBCREAT", "LB")
+LISTS = Stub(tests=[CL, CHLORIDE, BILI, SODIUM, POTASSIUM, ALBCREAT], instruments=[PHQ9, GAD7])
+
+
+def test_panel_list_two_member_hits():
+    rec = ag.label_grain("Sodium, potassium", LISTS)
     assert rec["grain"] == "panel" and rec["rule_id"] == "P2"
-    assert [m["phrase"] for m in rec["members"]] == ["sodium", "potassium"]
-    rec = ag.label_grain("Sodium, factor xyz", LK)
+    assert [(m["member_id"], m["phrase"], m["member_grain"]) for m in rec["members"]] == \
+        [("m01", "sodium", "named test"), ("m02", "potassium", "named test")]
+    assert rec["members"][0]["finding_kind"] == "specimen"
+
+
+def test_panel_list_one_hit_neither_peeled_nor_short_code():
+    # rules 1.2.0: one good hit is enough ('Pancreatic amylase, lipase'); the member without a hit is kept
+    rec = ag.label_grain("Factor xyz, sodium", LISTS)
+    assert rec["grain"] == "panel" and rec["rule_id"] == "P2"
+    assert [m["member_grain"] for m in rec["members"]] == [None, "named test"]
+    # control: one hit by short code only is not enough ('CT/MRI', 'PK, IG ...')
+    rec = ag.label_grain("Factor xyz, CL", LISTS)
     assert rec["grain"] == "unsure" and rec["members"] == []
+
+
+def test_list_is_split_outside_parentheses_only():
+    rec = ag.label_grain("Vital signs (includes sodium, potassium and chloride), bilirubin", LISTS)
+    assert rec["grain"] == "panel" and rec["rule_id"] == "P2"
+    assert [(m["member_id"], m["text"], m["from"], m["in_group"], m["member_grain"]) for m in rec["members"]] == [
+        ("m01", "Vital signs", "label", None, "panel"),
+        ("m02", "sodium", "parenthesis", "m01", "named test"),
+        ("m03", "potassium", "parenthesis", "m01", "named test"),
+        ("m04", "chloride", "parenthesis", "m01", "named test"),
+        ("m05", "bilirubin", "label", None, "named test")]
+
+
+def test_trailing_parenthesis_qualifies_the_label_and_inner_one_the_member():
+    rec = ag.label_grain("Sodium (at baseline only) / potassium (select patients)", LISTS)
+    assert rec["grain"] == "panel" and rec["qualifiers"] == ["select patients"]
+    assert [(m["text"], m["qualifiers"]) for m in rec["members"]] == \
+        [("Sodium (at baseline only)", ["at baseline only"]), ("potassium", [])]
+
+
+def test_slash_that_is_part_of_a_test_name_is_no_separator():
+    rec = ag.label_grain("Urinary albumin/creatinine", LISTS)
+    assert rec["members"] == [] and rec["grain"] != "panel"
+    assert "slash is part of a test name: albumin/creatinine (ALBCREAT)" in rec["flags"]
+
+
+def test_history_label_is_not_a_list():
+    rec = ag.label_grain("Substance use (sodium, potassium)", LISTS)
+    assert rec["grain"] != "panel" and rec["members"] == []
+    assert "list members not taken: history word ('use')" in rec["flags"]
+
+
+def test_mixed_row_is_not_a_list():
+    rec = ag.label_grain("Sodium and contraception check", LISTS)
+    assert rec["grain"] != "panel" and rec["members"] == []
+
+
+def test_one_peeled_hit_is_not_enough():
+    rec = ag.label_grain("Serum glucose, xyz", PK)
+    assert rec["grain"] != "panel" and rec["members"] == []
+
+
+def test_panel_word_label_keeps_its_listed_members():
+    rec = ag.label_grain("Chemistry (sodium, potassium)", LISTS)
+    assert rec["grain"] == "panel" and rec["rule_id"] == "P1"
+    assert [(m["text"], m["in_group"], m["member_grain"]) for m in rec["members"]] == \
+        [("Chemistry", None, "panel"), ("sodium", "m01", "named test"), ("potassium", "m01", "named test")]
+
+
+def test_instrument_list_needs_two_instruments():
+    rec = ag.label_grain("PHQ-9, GAD-7", LISTS)
+    assert rec["grain"] == "instrument list" and rec["rule_id"] == "P2i"
+    assert [m["member_grain"] for m in rec["members"]] == ["instrument", "instrument"]
+    rec = ag.label_grain("PHQ-9, neuropathy questionnaire", LISTS)
+    assert rec["grain"] != "instrument list" and rec["members"] == []
 
 
 # ---------------------------------------------------------------------------
@@ -411,6 +483,31 @@ def test_content_fingerprint_replaces_the_whole_file_check(tmp_path, monkeypatch
     ([_decision(inputs_sha256=None)], "1.2", "without inputs_sha256 or inputs_content_sha256"),
 ])
 def test_faulty_content_fingerprint_stops(tmp_path, monkeypatch, decisions, version, message):
+    _write(tmp_path, monkeypatch, decisions, version=version)
+    with pytest.raises(ValueError, match=message):
+        _load()
+
+
+def test_carried_decision_in_a_1_4_file_passes(tmp_path, monkeypatch):
+    doc = _write(tmp_path, monkeypatch, [_decision(inputs_content_sha256=INPUTS["content_sha256"],
+                                                   carried_over_from="a" * 64)], version="1.4")
+    jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
+    labels = _labels()
+    _load(labels)
+    assert labels["anti aav5 antibodies"]["decision"]["carried_over_from"] == "a" * 64
+
+
+@pytest.mark.parametrize("decisions, version, message", [
+    ([_decision(inputs_content_sha256=INPUTS["content_sha256"], carried_over_from="a" * 64)], "1.3",
+     "carried_over_from needs schema 1.4"),
+    ([_decision(inputs_content_sha256=INPUTS["content_sha256"], carried_over_from=INPUTS["content_sha256"])],
+     "1.4", "carried_over_from needs schema 1.4 and other inputs"),
+    ([_decision()], "1.4", "without inputs_content_sha256 in a 1.4 file"),
+    ([_decision(phrase="eligibility check", grain="other", finding_kind=None, source="reviewed",
+                basis=[{"type": "label"}], prompt_version=None, inputs_sha256=None,
+                carried_over_from="a" * 64)], "1.4", "carried_over_from on a decision that is not ai_proposed"),
+])
+def test_faulty_carry_over_stops(tmp_path, monkeypatch, decisions, version, message):
     _write(tmp_path, monkeypatch, decisions, version=version)
     with pytest.raises(ValueError, match=message):
         _load()

@@ -12,7 +12,8 @@ The step is a per-study sidecar. It does not change the grain file, the activity
 | Rows | Treatment |
 |---|---|
 | grain `named test`, not a parent | routed (one result per row) |
-| grain `panel` | not reached: panels are not split yet |
+| grain `panel` whose label lists members (grain rules 1.2.0) | one row per named-test member (schema 1.3); the panel row is not reached, "panel, split from label", with its members |
+| grain `panel` named only | not reached, "panel, not split": the members need the protocol's lab appendix |
 | grain `named test` that is a parent | not reached: the children carry the tests |
 | every other grain, and rows with a role | not part of the step |
 
@@ -106,7 +107,7 @@ rows fall back to the grain kind (status `not routed`).
 
 ```
 {NCTID}/SoA2USDM/routing/
-├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.1; 1.0 files stay valid)
+├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.3; earlier files stay valid)
 └── {NCTID}_activity_routing.html   # page, rendered with the collection index
 ```
 
@@ -119,7 +120,13 @@ rows fall back to the grain kind (status `not routed`).
 - `rows[]`: one per routed named test, with the grain kind, status, domain or candidates, hints, the basis (rule, statements,
   matched phrases with where they matched), the rules set aside, the fallback, the question, `route_source` (rule, test
   identity, or test identity, weak hit) and `test_identity` (the label's SDTM_Test_Identity hits: strength, domains, codes);
-- `not_reached[]`: panels and named-test parents, with the reason.
+- `not_reached[]`: panels and named-test parents, with the reason; a split panel with its members (1.3).
+
+**Member rows (1.3).** A member row has the panel's `xact_id`, the `member_id` from the grain file, the member text as
+`activity_name` and the panel label as `panel_name`. The member text is its label and routes on its own; the panel's parent
+label and the SoA annotations of the panel row or its parent support or open, as for any row; its test identity is the
+member's own hits. Rules that match the panel label ("Hematology" → RT-10, LB) are recorded as `panel_label_support` and never
+route, open or block the test identity. `counts.rows_from_panel_members` counts the member rows.
 
 ## Running it
 
@@ -139,15 +146,15 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-06, with cdisc-for-ai `a7d5821` (rules 1.3.0, grain rules 1.1.0; routed by test identity in brackets,
-strong and weak):
+Status on 2026-11-06, with cdisc-for-ai `a7d5821` (rules 1.4.0, grain rules 1.2.0; routed by test identity in brackets,
+strong and weak; named tests include the panel members):
 
-| Collection | Studies | Named tests | routed | open | weak | not routed | not reached |
+| Collection | Studies | Named tests (members) | routed | open | weak | not routed | not reached (split) |
 |---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 60 | 19 (2, weak 2) | 7 | 1 | 33 | 58 |
-| usdm_data | 22 | 93 | 81 (36, weak 44) | 10 | 0 | 2 | 73 |
-| cpmp | 13 | 40 | 36 (20, weak 16) | 4 | 0 | 0 | 52 |
-| misc_studies | 2 | 17 | 14 (13, weak 1) | 1 | 1 | 1 | 15 |
+| cell_gene_therapy | 5 | 86 (26) | 37 (9, weak 13) | 11 | 3 | 35 | 58 (11) |
+| usdm_data | 22 | 137 (44) | 105 (48, weak 56) | 20 | 2 | 10 | 83 (27) |
+| cpmp | 13 | 40 (0) | 36 (20, weak 16) | 4 | 0 | 0 | 52 (0) |
+| misc_studies | 2 | 43 (26) | 36 (18, weak 18) | 4 | 1 | 2 | 14 (6) |
 
 Outside cell_gene_therapy the named tests are mostly routine laboratory tests and vital signs (HbA1c, height, weight, blood
 pressure, pregnancy test, drug screen). No rule names them; the test identity routes almost all of them, a weak hit with

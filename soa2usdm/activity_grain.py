@@ -4,7 +4,7 @@ SoA2USDM Activity Grain (per-study sidecar to the activity inventory)
 Tags the grain of every activity of a study, as a first step towards matching
 activities to CDISC:
 
-    named test / panel / procedure / instrument / sample collection / other / unsure
+    named test / panel / instrument list / procedure / instrument / sample collection / other / unsure
 
 plus structural roles that take a row out of the grain count:
 
@@ -39,7 +39,8 @@ Input: the study's rows as the activity inventory builds them
 parents (parent_xact_id) and annotation ids.
 
 Output: SoA2USDM/grain/<id>_activity_grain.json (schema_name
-soa2usdm-activity-grain, schema_version 1.4). The inventory is not changed.
+soa2usdm-activity-grain, schema_version 1.5: list members with ids, groups,
+qualifiers and kind, rules 1.2.0). The inventory is not changed.
 
 Decisions: SoA2USDM/grain/<id>_activity_grain_decisions.json (read only here;
 schema soa2usdm-activity-grain-decisions 1.2), keyed by phrase within the
@@ -61,9 +62,9 @@ from pathlib import Path
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain"
-SCHEMA_VERSION = "1.4"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4")
-RULES_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.5"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5")
+RULES_VERSION = "1.2.0"
 WORD_LISTS_DATE = "2026-11-06"
 
 CDISC_FOR_AI = Path(os.environ.get(
@@ -79,7 +80,7 @@ LOOKUP_FILES = {
 # Codelists of Codelist_Phrases used here, and the grain a whole-label hit gives.
 PHRASE_CODELIST_GRAIN = {"QSCAT": "instrument", "METHOD": "procedure", "SPECTYPE": "sample collection"}
 
-GRAINS = ("named test", "panel", "procedure", "instrument", "sample collection", "other", "unsure")
+GRAINS = ("named test", "panel", "instrument list", "procedure", "instrument", "sample collection", "other", "unsure")
 ROLES = ("section header", "specimen of parent", "redacted")
 FINDING_KINDS = ("specimen", "immunogenicity", "measurement", "instrument", "pc", "genomics", "unsure")
 # K1: kind of a named test from its domains. A domain here is taken before the
@@ -501,6 +502,125 @@ def peel_label(text: str, lk: Lookups):
     return None
 
 
+# ---------------------------------------------------------------------------
+# List members (rules 1.2.0)
+# ---------------------------------------------------------------------------
+# A parenthesis that starts with one of these introduces a member list ('(includes BP, pulse)')
+LIST_INTRO = re.compile(r"^\s*(includes?|including|incl\.?)\s+", re.I)
+# Dated word lists (WORD_LISTS_DATE), read on members only:
+# a member that names a panel without being a test ('Vital signs (BP, HR)', 'Electrolytes (K, Na)')
+MEMBER_PANEL_PHRASES = {"vital signs", "electrolytes"}
+# a list in a history label is not a list of tests ('Substance use (alcohol, caffeine, tobacco use)')
+HISTORY_WORDS = {"use"}
+# a member without a hit that holds one of these is not a test, the row is mixed
+# ('Physical Exam, Weight, and Vital Signs', 'Pregnancy test and contraception check')
+MIXED_ROW_WORDS = {"exam", "examination", "check"}
+
+
+def split_top(text: str) -> list:
+    """Split at LIST_SEPARATORS outside parentheses only."""
+    sep = re.compile(LIST_SEPARATORS, re.I)
+    out, depth, start, i = [], 0, 0, 0
+    while i < len(text):
+        c = text[i]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth = max(0, depth - 1)
+        elif depth == 0:
+            m = sep.match(text, i)
+            if m:
+                out.append(text[start:i])
+                i = start = m.end()
+                continue
+        i += 1
+    out.append(text[start:])
+    return [p.strip(" .:;-") for p in out if p.strip(" .:;-")]
+
+
+def _is_list(content: str) -> bool:
+    """A parenthesis content that is a member list: separators, no qualifier cue
+    (after an 'includes' introduction)."""
+    c = LIST_INTRO.sub("", content)
+    return re.search(LIST_SEPARATORS, c, re.I) is not None and not c.strip().lower().startswith(QUALIFIER_CUES)
+
+
+def _join_slashes(pieces: list, text: str, lk: Lookups) -> tuple[list, list]:
+    """A slash whose neighbouring words join to a test ('albumin/creatinine' = ALBCREAT) is part of
+    the test name, not a separator: the two pieces are joined again. Returns (pieces, flags)."""
+    out, flags = [], []
+    for p in pieces:
+        if out and re.search(re.escape(out[-1]) + r"\s*/\s*" + re.escape(p), text):
+            left, right = out[-1].split()[-1], p.split()[0]
+            hits = lk.test.get(normalise(left + "/" + right), [])
+            if hits:
+                flags.append(f"slash is part of a test name: {left}/{right} ("
+                             + ", ".join(sorted({h["submission_value"] for h in hits})) + ")")
+                out[-1] = out[-1] + "/" + p
+                continue
+        out.append(p)
+    return out, flags
+
+
+def _member_lookup(text: str, lk: Lookups) -> dict:
+    """Member grain from the lookups: test (whole, compact, qualifier dropped), instrument
+    (whole label lookup L2), test after peel-off (L1x, always weak), name-only panel, or none."""
+    attempt, hits = lk.test_hit(text)
+    if hits:
+        strength, reasons = hit_strength(hits, attempt)
+        return {"member_grain": "named test", "hits": _cite(hits), "hit_strength": strength,
+                "weak_reasons": reasons} | finding_kind(hits, lk)
+    outer = normalise(split_trailing_parens(text)[0])
+    for rule, grain, hh in lk.whole(outer):
+        if rule == "L2":
+            strength, reasons = hit_strength(hh)
+            return {"member_grain": "instrument", "hits": _cite(hh), "hit_strength": strength,
+                    "weak_reasons": reasons, "flags": []}
+    peeled = peel_label(text, lk)
+    if peeled:
+        rest, parts, hh = peeled
+        strength, reasons = hit_strength(hh, "peeled")
+        return {"member_grain": "named test", "hits": _cite(hh), "hit_strength": strength,
+                "weak_reasons": reasons, "peeled": {"rest": rest} | parts} | finding_kind(hh, lk)
+    if outer in MEMBER_PANEL_PHRASES or set(outer.split()) & PANEL_WORDS:
+        return {"member_grain": "panel", "flags": []}
+    return {"member_grain": None, "flags": []}
+
+
+def label_members(text: str, lk: Lookups) -> tuple[list, list, bool]:
+    """The list members of a label, depth-first, member ids m01, m02 ... A trailing parenthesis that
+    is not a list qualifies the whole label and is left out; a list in a member's parenthesis is a
+    group under that member (in_group); other parentheses of a member are its qualifiers.
+    Returns (members, label flags, history word in the label). Members [] when the label is not a list."""
+    body = text.strip()
+    while True:
+        m = re.search(r"\(([^()]*)\)\s*[:.]?\s*$", body)
+        if not m or _is_list(m.group(1)):
+            break
+        body = body[:m.start()].strip()
+    pieces, flags = _join_slashes(split_top(body), body, lk)
+    entries = []
+    for piece in pieces:
+        head, quals = split_trailing_parens(piece)
+        lists = [q for q in quals if _is_list(q)]
+        entries.append((piece, head, [q for q in quals if q not in lists], lists))
+    n = len(entries) + sum(len(split_top(LIST_INTRO.sub("", q))) for *_, lists in entries for q in lists)
+    if n < 2:
+        return [], flags, False
+    history = bool(set(normalise(re.sub(r"\([^()]*\)", " ", body)).split()) & HISTORY_WORDS)
+    members = []
+    for piece, head, quals, lists in entries:
+        mid = f"m{len(members) + 1:02d}"
+        own = head if lists else piece
+        members.append({"member_id": mid, "text": own, "phrase": normalise(own), "from": "label",
+                        "in_group": None, "qualifiers": quals} | _member_lookup(own, lk))
+        for q in lists:
+            for sub in split_top(LIST_INTRO.sub("", q)):
+                members.append({"member_id": f"m{len(members) + 1:02d}", "text": sub, "phrase": normalise(sub),
+                                "from": "parenthesis", "in_group": mid, "qualifiers": []} | _member_lookup(sub, lk))
+    return members, flags, history
+
+
 def label_grain(text: str, lk: Lookups) -> dict:
     """Grain of one distinct label. Rules in order; the first that fires wins."""
     phrase = normalise(text)
@@ -586,36 +706,41 @@ def label_grain(text: str, lk: Lookups) -> dict:
             rec["flags"].append("word lists disagree: " + ", ".join(f"{r} {g}" for r, g, _ in fired))
         return rec
 
-    # Lists: inside a parenthesis (not mid-label, not a qualifier) and outside.
-    # A list counts when at least two of its members hit a test.
-    lists = []
-    for q in quals:
-        if _is_member_list(q):
-            lists.append(("parenthesis", _split_members(q)))
-    outer_members = _split_members(outer)
-    if len(outer_members) > 1:
-        lists.append(("label", outer_members))
-    members = []
-    for where, ms in lists:
-        looked = []
-        for mtext in ms:
-            attempt, hits = lk.test_hit(mtext)
-            entry = {"text": mtext, "phrase": normalise(mtext), "from": where}
-            if hits:
-                strength, reasons = hit_strength(hits, attempt)
-                entry |= {"hits": _cite(hits), "hit_strength": strength, "weak_reasons": reasons}
-            looked.append(entry)
-        if sum(1 for e in looked if "hits" in e) >= 2:
-            members += looked
-    rec["members"] = members
-
+    # Lists (rules 1.2.0): split at the top level only, a list in a member's parenthesis
+    # is a group under that member, a trailing non-list parenthesis qualifies the label.
+    # Lists (rules 1.2.0). P1 keeps the listed members of a label that names a panel.
+    # P2: two members with evidence (test, instrument, name-only panel), or one test hit that is
+    # neither peeled nor by short code only ('Pancreatic amylase, lipase'); not a history label,
+    # not a mixed row. P2i: two instrument hits and no test.
+    members, list_flags, history = label_members(text, lk)
+    rec["flags"] += list_flags
+    tests = [m for m in members if m["member_grain"] == "named test"]
+    instruments = [m for m in members if m["member_grain"] == "instrument"]
     panel_words = sorted(toks & PANEL_WORDS)
+    taken = None
+    if panel_words:
+        taken = "P1" if tests or instruments else None
+    elif history and (tests or instruments):
+        rec["flags"].append("list members not taken: history word ('use')")
+    elif tests:
+        evidence = [m for m in members if m["member_grain"] in ("named test", "instrument", "panel")]
+        one_good = len(tests) == 1 and not {"peeled", "short code only"} & set(tests[0]["weak_reasons"])
+        mixed = any(m["member_grain"] is None and set(m["phrase"].split()) & MIXED_ROW_WORDS for m in members)
+        if (len(evidence) >= 2 or one_good) and not mixed:
+            taken = "P2"
+    elif len(instruments) >= 2:
+        taken = "P2i"
+    rec["members"] = members if taken else []
+
     if panel_words:
         rec.update(grain="panel", rule_id="P1")
         rec["words"] = {"P1": panel_words}
         return rec
-    if members:
+    if taken == "P2":
         rec.update(grain="panel", rule_id="P2")
+        return rec
+    if taken == "P2i":
+        rec.update(grain="instrument list", rule_id="P2i")
         return rec
     # L1x: peel-off. Brackets, specimen (SPECTYPE), method (METHOD), lab, condition and
     # activity words are peeled off; the rest is looked up as a test (always weak).
@@ -633,7 +758,7 @@ def label_grain(text: str, lk: Lookups) -> dict:
 # ---------------------------------------------------------------------------
 DECISIONS_SCHEMA = "soa2usdm-activity-grain-decisions"
 DECISION_SOURCES = ("ai_proposed", "reviewed")
-DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
+DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4")
 # Basis entry type → its keys besides 'type'.
 BASIS_TYPES = {"label": set(), "annotation": {"xannot_id"}, "context": {"pointer"}, "page": {"page"}}
 # cdisc basis (decisions 1.1): file → its keys besides 'type' and 'file'.
@@ -771,10 +896,15 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
                                  f"prompt and need schema 1.1 (prompt_version, inputs_sha256)")
             if "prompt_version" not in d:
                 raise ValueError(f"{where}: ai_proposed without prompt_version")
-            if "inputs_content_sha256" in d and doc["schema_version"] != "1.3":
+            if "inputs_content_sha256" in d and doc["schema_version"] not in ("1.3", "1.4"):
                 raise ValueError(f"{where}: inputs_content_sha256 needs schema 1.3")
-            if doc["schema_version"] == "1.3" and "inputs_content_sha256" not in d:
-                raise ValueError(f"{where}: ai_proposed without inputs_content_sha256 in a 1.3 file")
+            if doc["schema_version"] in ("1.3", "1.4") and "inputs_content_sha256" not in d:
+                raise ValueError(f"{where}: ai_proposed without inputs_content_sha256 in a "
+                                 f"{doc['schema_version']} file")
+            if "carried_over_from" in d and (doc["schema_version"] != "1.4"
+                                             or d["carried_over_from"] == d["inputs_content_sha256"]):
+                raise ValueError(f"{where}: carried_over_from needs schema 1.4 and other inputs than "
+                                 f"inputs_content_sha256")
             if "inputs_content_sha256" not in d and "inputs_sha256" not in d:
                 raise ValueError(f"{where}: ai_proposed without inputs_sha256 or inputs_content_sha256")
             if inputs is None:
@@ -786,6 +916,8 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
                     raise ValueError(f"{where}: made from other grain inputs (inputs_content_sha256 differs)")
             elif d["inputs_sha256"] != inputs["sha256"]:
                 raise ValueError(f"{where}: made from another grain inputs file (inputs_sha256 differs)")
+        elif "carried_over_from" in d:
+            raise ValueError(f"{where}: carried_over_from on a decision that is not ai_proposed")
         if p in out:
             raise ValueError(f"{where}: two decisions")
         if (d["grain"] == "named test") != ("finding_kind" in d):
@@ -832,7 +964,8 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
         out[p] = d
         labels[p]["decision"] = {k: d[k] for k in ("grain", "finding_kind", "kind_candidates", "source",
                                                    "rationale", "basis", "proposed_by", "proposed_at",
-                                                   "prompt_version", "inputs_sha256", "inputs_content_sha256")
+                                                   "prompt_version", "inputs_sha256", "inputs_content_sha256",
+                                                   "carried_over_from")
                                      if k in d}
     return out, hashlib.sha256(raw).hexdigest()
 

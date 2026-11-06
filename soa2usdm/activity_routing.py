@@ -6,8 +6,9 @@ domains and the question that stays open. Every result cites the rule that fired
 where it matched (activity label, parent activity label, SoA annotation) and the
 SDTMIG v3.4 statements it rests on, by Statement_ID and the sha256 of their text.
 
-Rows: grain "named test" rows that are not themselves a parent. Panels (not split)
-and named-test parents are listed as not reached. Trigger sources: the activity
+Rows: grain "named test" rows that are not themselves a parent, and the named-test
+members of panels whose label lists them (below). Panels and named-test parents are
+listed as not reached. Trigger sources: the activity
 label, the parent activity label, and the SoA annotations that reference the row
 or its parent. Only the activity label can route a row on its own.
 
@@ -18,6 +19,15 @@ Status:
                 candidates come from the grain kind
     not routed  no rule fired: candidates from the grain kind through Domain_Coverage
                 (PP left out, per PP-OV and PP-A1)
+
+Panel members (schema 1.3, rules 1.4.0): a panel whose label lists its members (grain rules
+1.2.0, label members) is split. Each member that is a named test gets its own row (member_id,
+panel_name): the member text is its activity label, the panel's parent label and the SoA
+annotations of the panel row or its parent are its other sources, its test identity comes from
+the member's own hits. The panel label only supports: rules that match it are recorded as
+panel_label_support and never route, open or block the test identity. The panel row is listed
+as not reached ("panel, split from label") with its members; a panel without listed members
+stays "panel, not split".
 
 Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
 row's own activity label (from the grain file) are a second source. A strong hit with
@@ -37,7 +47,7 @@ Input: the study's grain file (checked current, activity_grain.load_current_grai
 and its consolidated.json (parents, annotations).
 
 Output: SoA2USDM/routing/<id>_activity_routing.json (schema_name
-soa2usdm-activity-routing, schema_version 1.2). Design: documents/activity-routing.md.
+soa2usdm-activity-routing, schema_version 1.3). Design: documents/activity-routing.md.
 """
 
 import hashlib
@@ -51,9 +61,9 @@ from . import config
 from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_current_grain
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.2"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
-RULES_VERSION = "1.3.0"
+SCHEMA_VERSION = "1.3"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
+RULES_VERSION = "1.4.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -70,6 +80,7 @@ TEST_IDENTITY_FILE = "SDTM_Test_Identity"
 FALLBACK_EXCLUDED = {"PP": ["PP-OV", "PP-A1"]}
 
 NOT_REACHED_PANEL = "panel, not split"
+NOT_REACHED_SPLIT = "panel, split from label"
 NOT_REACHED_PARENT = "named-test row that is a parent"
 
 
@@ -365,6 +376,48 @@ def _route_rules(fired: list, grain_kinds: list, lk: RoutingLookups) -> dict:
             "dropped": dropped, "fallback": None, "question": "; ".join(questions)}
 
 
+def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingLookups) -> list:
+    """Rows for the named-test members of a split panel (schema 1.3). The member text routes on its
+    own; the panel's parent label and the annotations of the panel row or its parent support or open;
+    rules matching the panel label are recorded as panel_label_support only."""
+    x = a["xact_id"]
+    px = unified[x]["parent_xact_id"]
+    if px != a["parent_xact_id"] and not (a["parent_xact_id"] is None and unified[px]["is_section_header"]):
+        raise ValueError(f"{a['protocol_id']} {x}: parent differs between grain ({a['parent_xact_id']}) "
+                         f"and consolidated ({px})")
+    support = [{"rule_id": rule["rule_id"], "phrases": sorted({m["phrase"] for m in matches}),
+                "domains": sorted({d for st in rule["statements"] for d in st["domains"]})}
+               for rule, matches in match_rules([{"where": "panel_label", "xannot_id": None,
+                                                  "text": a["activity_name"]}])]
+    rows = []
+    for m in members:
+        if m["member_grain"] != "named test":
+            continue
+        sources = [{"where": "label", "xannot_id": None, "text": m["text"]}]
+        if px:
+            sources.append({"where": "parent_label", "xannot_id": None, "text": unified[px]["activity_name"]})
+        for an in cons["unified_annotations"]:
+            refs = set(an["referenced_xacts"])
+            if x in refs or (px and px in refs):
+                sources.append({"where": "annotation", "xannot_id": an["xannot_id"], "text": an["annotation_text"]})
+        kinds = ([m["finding_kind"]] if m["finding_kind"] and m["finding_kind"] != "unsure"
+                 else list(m["kind_candidates"]))
+        res = route(match_rules(sources), kinds, lk, test_identity(m))
+        rows.append({
+            "xact_id": x,
+            "member_id": m["member_id"],
+            "activity_name": m["text"],
+            "panel_name": a["activity_name"],
+            "parent_xact_id": px,
+            "parent_name": unified[px]["activity_name"] if px else None,
+            "parent_is_section_header": unified[px]["is_section_header"] if px else None,
+            "grain": {"grain": "named test", "finding_kind": m["finding_kind"],
+                      "kind_candidates": m["kind_candidates"], "source": "panel member"},
+            "panel_label_support": support,
+        } | res)
+    return rows
+
+
 # ---------------------------------------------------------------------------
 # Study
 # ---------------------------------------------------------------------------
@@ -396,7 +449,15 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
     for a in acts:
         x = a["xact_id"]
         if a["grain"] == "panel":
-            not_reached.append({"xact_id": x, "activity_name": a["activity_name"], "reason": NOT_REACHED_PANEL})
+            members = (labels.get(a["phrase"]) or {}).get("members", [])
+            if not any(m.get("member_grain") == "named test" for m in members):
+                not_reached.append({"xact_id": x, "activity_name": a["activity_name"], "reason": NOT_REACHED_PANEL})
+                continue
+            not_reached.append({"xact_id": x, "activity_name": a["activity_name"], "reason": NOT_REACHED_SPLIT,
+                                "members": [{"member_id": m["member_id"], "text": m["text"],
+                                             "member_grain": m["member_grain"], "in_group": m["in_group"]}
+                                            for m in members]})
+            rows += _member_rows(a, members, unified, cons, lk)
             continue
         if a["grain"] != "named test":
             continue
@@ -451,7 +512,8 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
                   | {"routed_by_test_identity": sum(1 for r in rows if r["status"] == "routed"
                                                     and r["route_source"] == "test identity"),
                      "routed_by_weak_test_identity": sum(1 for r in rows if r["status"] == "routed"
-                                                         and r["route_source"] == "test identity, weak hit")},
+                                                         and r["route_source"] == "test identity, weak hit"),
+                     "rows_from_panel_members": sum(1 for r in rows if "member_id" in r)},
         "rows": rows,
         "not_reached": not_reached,
     }

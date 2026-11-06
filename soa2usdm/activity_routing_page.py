@@ -90,6 +90,17 @@ def _basis(r: dict, annotations: dict) -> str:
     return "".join(parts)
 
 
+def _members(x: dict) -> str:
+    """Members of a split panel (1.3): named-test members link to their rows."""
+    if "members" not in x:
+        return ""
+    ms = "; ".join(f'<a href="#{esc(x["xact_id"])}.{esc(m["member_id"])}">{esc(m["member_id"])} {esc(m["text"])}</a>'
+                   if m["member_grain"] == "named test" else
+                   f'{esc(m["member_id"])} {esc(m["text"])} <span class="ns">({esc(m["member_grain"] or "no hit")})</span>'
+                   for m in x["members"])
+    return f'<div class="ctx">{ms}</div>'
+
+
 def render(protocol_id: str, collection: str) -> Path:
     src, out = routing_paths(protocol_id, collection)
     d = json.loads(src.read_text(encoding="utf-8"))
@@ -110,7 +121,9 @@ def render(protocol_id: str, collection: str) -> Path:
     by_weak = c.get("routed_by_weak_test_identity")
     by = ", ".join(t for t in ((f"{by_ti} by test code" if by_ti else ""),
                                (f"{by_weak} by weak test code" if by_weak else "")) if t)
-    summary = (f'<b>{c["rows"]} named tests</b> · '
+    from_members = c.get("rows_from_panel_members")
+    summary = (f'<b>{c["rows"]} named tests</b>' + (f' ({from_members} from panel members)' if from_members else "")
+               + ' · '
                + " · ".join(f'{st} {c[st]}' + (f' ({by})' if st == "routed" and by else "")
                             for st in STATUSES)
                + f' · not reached {c["not_reached"]}')
@@ -122,10 +135,15 @@ def render(protocol_id: str, collection: str) -> Path:
         kind = esc(g["finding_kind"] or "—") + (f' <span class="ns sub">{esc(" · ".join(g["kind_candidates"]))}</span>'
                                                  if g["kind_candidates"] else "")
         parent = (f'<div class="ctx">under {esc(r["parent_name"])}</div>' if r["parent_name"] else "")
+        if "member_id" in r:
+            sup = "; ".join(f'{esc(s["rule_id"])} → {esc("/".join(s["domains"]))}' for s in r["panel_label_support"])
+            parent = (f'<div class="ctx">member of {esc(r["panel_name"])}'
+                      + (f' <span class="ns">(panel label supports {sup})</span>' if sup else "") + '</div>' + parent)
+        rid = r["xact_id"] + (f'.{r["member_id"]}' if "member_id" in r else "")
         q = f'<div class="q">{esc(r["question"])}</div>' if r["question"] else ""
         rows.append(
-            f'<tr id="{esc(r["xact_id"])}" data-s="{esc(r["status"])}">'
-            f'<td class="x">{esc(r["xact_id"])}</td>'
+            f'<tr id="{esc(rid)}" data-s="{esc(r["status"])}">'
+            f'<td class="x">{esc(rid)}</td>'
             f'<td class="act"><a href="{grain_html}#{esc(r["xact_id"])}" title="Show on the grain page">{esc(r["activity_name"])}</a>{parent}</td>'
             f'<td class="k">{kind}</td>'
             f'<td><span class="s s-{esc(r["status"].replace(" ", "-"))}">{esc(r["status"])}</span></td>'
@@ -133,7 +151,7 @@ def render(protocol_id: str, collection: str) -> Path:
             f'<td class="evc">{q}{_basis(r, annotations)}</td></tr>')
 
     nr = "".join(f'<tr><td class="x">{esc(x["xact_id"])}</td><td class="act"><a href="{grain_html}#{esc(x["xact_id"])}">'
-                 f'{esc(x["activity_name"])}</a></td><td>{esc(x["reason"])}</td></tr>' for x in d["not_reached"])
+                 f'{esc(x["activity_name"])}</a></td><td>{esc(x["reason"])}{_members(x)}</td></tr>' for x in d["not_reached"])
     excl = "; ".join(f'{esc(e["domain"])} ({esc(", ".join(e["statement_ids"]))})' for e in d["fallback_excluded"])
     sts = "".join(f'<div class="st" id="st-{esc(sid)}"><b>{esc(sid)}</b> <span class="ns">[{esc(s["domain"])}] '
                   f'{esc(s["source"])} {esc(s["section"])}, p.&nbsp;{esc(s["page"])}</span>'
