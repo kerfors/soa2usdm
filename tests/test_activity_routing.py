@@ -209,6 +209,25 @@ def test_panel_label_only_supports():
     assert [s["rule_id"] for s in r["panel_label_support"]] == ["RT-10"]
 
 
+def test_panel_annotations_only_support():
+    # The footnote on the panel row (NCT03283098 xannot-012, text as extracted) names 'hematology'
+    # (RT-10, LB) and describes the panel: support only, so the member routes by its own test
+    # identity and is not weak (rules 1.5.0)
+    a = {"protocol_id": "NCT03283098", "xact_id": "xact-016", "activity_name": "Hematology, PT, aPTT",
+         "parent_xact_id": None}
+    unified = {"xact-016": {"activity_name": a["activity_name"], "is_section_header": False, "parent_xact_id": None}}
+    cons = {"unified_annotations": [{"xannot_id": "xannot-012", "referenced_xacts": ["xact-016"],
+                                     "annotation_text": "Blood sample for PT and aPTT will be drawn prior to heparin "
+                                                        "administration for dialysis. Day 1 hematology and coagulation "
+                                                        "tests will be performed only if day 1 occurs more than 2 weeks "
+                                                        "after the screening hematology and coagulation tests."}]}
+    rows = ar._member_rows(a, [_member("m03", "aPTT", ("C38462", "APTT", "LB"))], unified, cons, LK)
+    r = rows[0]
+    assert (r["status"], r["domain"], r["route_source"], r["basis"]) == ("routed", "LB", "test identity", [])
+    assert r["panel_annotation_support"] == [{"rule_id": "RT-10", "domains": ["LB"],
+                                              "matched": [{"xannot_id": "xannot-012", "phrase": "hematology"}]}]
+
+
 def test_rules_cite_public_routing_statements_only():
     lk = ar.RoutingLookups()
     for rule in ar.RULES:

@@ -28,6 +28,10 @@ the member's own hits. The panel label only supports: rules that match it are re
 panel_label_support and never route, open or block the test identity. The panel row is listed
 as not reached ("panel, split from label") with its members; a panel without listed members
 stays "panel, not split".
+Rules 1.5.0 (schema 1.4): the SoA annotations of the panel row or its parent describe the panel, not
+the single member. For a member row they only support, as the panel label does: rules that match
+them are recorded as panel_annotation_support and never route, open or block the test identity.
+A member row is therefore never weak.
 
 Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
 row's own activity label (from the grain file) are a second source. A strong hit with
@@ -61,9 +65,9 @@ from . import config
 from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_current_grain
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.3"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
-RULES_VERSION = "1.4.0"
+SCHEMA_VERSION = "1.4"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4")
+RULES_VERSION = "1.5.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -378,8 +382,9 @@ def _route_rules(fired: list, grain_kinds: list, lk: RoutingLookups) -> dict:
 
 def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingLookups) -> list:
     """Rows for the named-test members of a split panel (schema 1.3). The member text routes on its
-    own; the panel's parent label and the annotations of the panel row or its parent support or open;
-    rules matching the panel label are recorded as panel_label_support only."""
+    own; the panel's parent label supports or opens; rules matching the panel label are recorded as
+    panel_label_support only, rules matching the annotations of the panel row or its parent as
+    panel_annotation_support only (schema 1.4)."""
     x = a["xact_id"]
     px = unified[x]["parent_xact_id"]
     if px != a["parent_xact_id"] and not (a["parent_xact_id"] is None and unified[px]["is_section_header"]):
@@ -389,6 +394,13 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
                 "domains": sorted({d for st in rule["statements"] for d in st["domains"]})}
                for rule, matches in match_rules([{"where": "panel_label", "xannot_id": None,
                                                   "text": a["activity_name"]}])]
+    annots = [{"where": "annotation", "xannot_id": an["xannot_id"], "text": an["annotation_text"]}
+              for an in cons["unified_annotations"]
+              if x in set(an["referenced_xacts"]) or (px and px in set(an["referenced_xacts"]))]
+    annotation_support = [{"rule_id": rule["rule_id"],
+                           "matched": [{"xannot_id": m["xannot_id"], "phrase": m["phrase"]} for m in matches],
+                           "domains": sorted({d for st in rule["statements"] for d in st["domains"]})}
+                          for rule, matches in match_rules(annots)]
     rows = []
     for m in members:
         if m["member_grain"] != "named test":
@@ -396,10 +408,6 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
         sources = [{"where": "label", "xannot_id": None, "text": m["text"]}]
         if px:
             sources.append({"where": "parent_label", "xannot_id": None, "text": unified[px]["activity_name"]})
-        for an in cons["unified_annotations"]:
-            refs = set(an["referenced_xacts"])
-            if x in refs or (px and px in refs):
-                sources.append({"where": "annotation", "xannot_id": an["xannot_id"], "text": an["annotation_text"]})
         kinds = ([m["finding_kind"]] if m["finding_kind"] and m["finding_kind"] != "unsure"
                  else list(m["kind_candidates"]))
         res = route(match_rules(sources), kinds, lk, test_identity(m))
@@ -414,6 +422,7 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
             "grain": {"grain": "named test", "finding_kind": m["finding_kind"],
                       "kind_candidates": m["kind_candidates"], "source": "panel member"},
             "panel_label_support": support,
+            "panel_annotation_support": annotation_support,
         } | res)
     return rows
 

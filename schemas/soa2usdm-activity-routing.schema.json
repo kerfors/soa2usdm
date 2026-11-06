@@ -145,6 +145,49 @@
           "type": "string",
           "description": "1.3: on a member row: the panel's activity label."
         },
+        "panel_annotation_support": {
+          "type": "array",
+          "description": "1.4: on a member row: rules that match the SoA annotations of the panel row or its parent. Support only: they never route, open or block the test identity.",
+          "items": {
+            "type": "object",
+            "required": [
+              "rule_id",
+              "matched",
+              "domains"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rule_id": {
+                "type": "string"
+              },
+              "matched": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "xannot_id",
+                    "phrase"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "xannot_id": {
+                      "type": "string"
+                    },
+                    "phrase": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
         "panel_label_support": {
           "type": "array",
           "description": "1.3: on a member row: rules that match the panel label. Support only: they never route, open or block the test identity.",
@@ -422,7 +465,8 @@
         "1.0",
         "1.1",
         "1.2",
-        "1.3"
+        "1.3",
+        "1.4"
       ]
     },
     "collection": {

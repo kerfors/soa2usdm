@@ -124,9 +124,16 @@ rows fall back to the grain kind (status `not routed`).
 
 **Member rows (1.3).** A member row has the panel's `xact_id`, the `member_id` from the grain file, the member text as
 `activity_name` and the panel label as `panel_name`. The member text is its label and routes on its own; the panel's parent
-label and the SoA annotations of the panel row or its parent support or open, as for any row; its test identity is the
-member's own hits. Rules that match the panel label ("Hematology" → RT-10, LB) are recorded as `panel_label_support` and never
-route, open or block the test identity. `counts.rows_from_panel_members` counts the member rows.
+label supports or opens, as for any row; its test identity is the member's own hits. Rules that match the panel label
+("Hematology" → RT-10, LB) are recorded as `panel_label_support` and never route, open or block the test identity.
+`counts.rows_from_panel_members` counts the member rows.
+
+**Panel annotations (1.4, rules 1.5.0).** The SoA annotations of the panel row or its parent describe the panel, not the
+single member. For a member row they only support, as the panel label does: rules that match them are recorded as
+`panel_annotation_support` (rule, annotation and phrase, domains) and never route, open or block the test identity. So a
+member row is never weak. Case: NCT03283098 "Hematology, PT, aPTT", where the footnote's "hematology" (RT-10) made PT and
+aPTT weak; now they route by their own test identity. Annotations that name the member itself are not looked at separately
+yet.
 
 ## Running it
 
@@ -146,13 +153,13 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-06, with cdisc-for-ai `a7d5821` (rules 1.4.0, grain rules 1.2.0; routed by test identity in brackets,
+Status on 2026-11-06, with cdisc-for-ai `a7d5821` (rules 1.5.0, grain rules 1.2.0; routed by test identity in brackets,
 strong and weak; named tests include the panel members):
 
 | Collection | Studies | Named tests (members) | routed | open | weak | not routed | not reached (split) |
 |---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 86 (26) | 37 (9, weak 13) | 11 | 3 | 35 | 58 (11) |
-| usdm_data | 22 | 137 (44) | 105 (48, weak 56) | 20 | 2 | 10 | 83 (27) |
+| cell_gene_therapy | 5 | 86 (26) | 39 (9, weak 15) | 11 | 1 | 35 | 58 (11) |
+| usdm_data | 22 | 137 (44) | 107 (49, weak 57) | 20 | 0 | 10 | 83 (27) |
 | cpmp | 13 | 40 (0) | 36 (20, weak 16) | 4 | 0 | 0 | 52 (0) |
 | misc_studies | 2 | 43 (26) | 36 (18, weak 18) | 4 | 1 | 2 | 14 (6) |
 

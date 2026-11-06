@@ -137,8 +137,13 @@ def render(protocol_id: str, collection: str) -> Path:
         parent = (f'<div class="ctx">under {esc(r["parent_name"])}</div>' if r["parent_name"] else "")
         if "member_id" in r:
             sup = "; ".join(f'{esc(s["rule_id"])} → {esc("/".join(s["domains"]))}' for s in r["panel_label_support"])
+            asup = "; ".join(f'{esc(s["rule_id"])} → {esc("/".join(s["domains"]))} '
+                             f'({esc(", ".join(sorted({m["xannot_id"] for m in s["matched"]})))})'
+                             for s in r.get("panel_annotation_support", []))
             parent = (f'<div class="ctx">member of {esc(r["panel_name"])}'
-                      + (f' <span class="ns">(panel label supports {sup})</span>' if sup else "") + '</div>' + parent)
+                      + (f' <span class="ns">(panel label supports {sup})</span>' if sup else "")
+                      + (f' <span class="ns">(panel annotations support {asup})</span>' if asup else "")
+                      + '</div>' + parent)
         rid = r["xact_id"] + (f'.{r["member_id"]}' if "member_id" in r else "")
         q = f'<div class="q">{esc(r["question"])}</div>' if r["question"] else ""
         rows.append(
