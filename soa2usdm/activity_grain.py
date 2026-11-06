@@ -16,7 +16,10 @@ and, for a named test, the kind of finding:
 
 Rules, each one cited on the row: the rule that fired, the lookup hit (file,
 sheet, field, code) and source = rule. Rule K1 gives the kind of a rule-hit
-named test from the hit's domains through Domain_Coverage. AI proposals and
+named test from the hit's domains through Domain_Coverage. L1p takes a
+parenthesis that is the test's own abbreviation as a confirmation; L1x peels
+specimen, method, lab, condition and activity words off a label no other rule
+resolved and looks up the rest (always weak). AI proposals and
 review decisions come from a hand-kept decisions file (source ai_proposed /
 reviewed). Design and rule table: documents/activity-grain.md.
 
@@ -36,7 +39,7 @@ Input: the study's rows as the activity inventory builds them
 parents (parent_xact_id) and annotation ids.
 
 Output: SoA2USDM/grain/<id>_activity_grain.json (schema_name
-soa2usdm-activity-grain, schema_version 1.2). The inventory is not changed.
+soa2usdm-activity-grain, schema_version 1.4). The inventory is not changed.
 
 Decisions: SoA2USDM/grain/<id>_activity_grain_decisions.json (read only here;
 schema soa2usdm-activity-grain-decisions 1.2), keyed by phrase within the
@@ -58,10 +61,10 @@ from pathlib import Path
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain"
-SCHEMA_VERSION = "1.3"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
-RULES_VERSION = "1.0.0"
-WORD_LISTS_DATE = "2026-11-01"
+SCHEMA_VERSION = "1.4"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4")
+RULES_VERSION = "1.1.0"
+WORD_LISTS_DATE = "2026-11-06"
 
 CDISC_FOR_AI = Path(os.environ.get(
     "SOA2USDM_CDISC_FOR_AI",
@@ -429,6 +432,75 @@ def _drop_short_code_tests(whole: list, flags: list) -> list:
     return out
 
 
+# Dated word lists for L1x (WORD_LISTS_DATE). An activity word inside a test name
+# ('Pregnancy Test', 'Drug Screen', 'Neurological Assessment') is kept.
+PEEL_ACTIVITY_WORDS = {
+    "assay", "test", "testing", "measurement", "measurements", "measure", "level", "levels",
+    "assessment", "analysis", "analyses", "evaluation", "determination", "screen", "screening",
+    "monitoring", "check", "exam", "examination", "review", "record", "result", "results",
+    "titer", "titre", "concentration", "concentrations", "status", "follow up",
+}
+PEEL_LAB_WORDS = {"central", "local", "laboratory", "lab"}
+PEEL_CONDITION_WORDS = {"fasting", "fasted", "predose", "pre dose", "postdose", "post dose", "repeat",
+                        "triplicate"}
+PEEL_CONNECTORS = ("or", "and", "of", "with", "the", "in", "on")
+# A rest that is one of these words is not taken ('Clinical Laboratory Testing' is not
+# CLINRESP): the word names a property or a generic test, not the test of the label.
+PEEL_GENERIC_REST = {"clinical", "diagnosis", "concentration", "severity", "score", "symptom", "fluid",
+                     "quality", "activity", "status", "result", "level", "test", "assessment", "analysis"}
+
+
+def _ngrams(words: list):
+    for n in range(len(words), 0, -1):
+        for i in range(len(words) - n + 1):
+            yield i, n, " ".join(words[i:i + n])
+
+
+def peel_label(text: str, lk: Lookups):
+    """L1x: (rest, peeled parts, test hits) or None. Candidates in order: the text after
+    'for', the text before 'for', the whole text outside brackets."""
+    brackets = [b.strip() for b in re.findall(r"[\(\[]([^()\[\]]*)[\)\]]?", text) if b.strip()]
+    outside = re.sub(r"[\(\[][^()\[\]]*[\)\]]?", " ", text)
+    m = re.match(r"^(.*?)\bfor\b(.*)$", outside, flags=re.I)
+    cands = [("after for", m.group(2)), ("before for", m.group(1))] if m else []
+    cands.append(("whole", outside))
+    method = {p for p, hs in lk.phrase.items() if any(h["codelist"] == "METHOD" for h in hs)}
+    for where, cand in cands:
+        words = normalise(cand).split()
+        protected, kept = set(), []
+        for i, n, g in _ngrams(words):
+            if n >= 2 and g in lk.test and set(words[i:i + n]) & PEEL_ACTIVITY_WORDS:
+                protected |= set(range(i, i + n))
+                kept.append(g)
+        keep = [True] * len(words)
+        parts = {"after_for": [normalise(m.group(2))]} if where == "before for" else {}
+        for cls, vocab in (("specimen", lk.spectype_phrases), ("method", method), ("lab", PEEL_LAB_WORDS),
+                           ("condition", PEEL_CONDITION_WORDS), ("activity", PEEL_ACTIVITY_WORDS)):
+            for i, n, g in _ngrams(words):
+                if g in vocab and all(keep[i:i + n]) and not set(range(i, i + n)) & protected:
+                    for k in range(i, i + n):
+                        keep[k] = False
+                    parts.setdefault(cls, []).append(g)
+        rw = [w for w, k in zip(words, keep) if k]
+        while rw and rw[0] in PEEL_CONNECTORS:
+            rw.pop(0)
+        while rw and rw[-1] in PEEL_CONNECTORS:
+            rw.pop()
+        rest = " ".join(rw)
+        if not parts or not rest or rest in PEEL_GENERIC_REST:
+            continue
+        attempt, hits = lk.test_hit(rest)
+        if not hits or "short code only" in hit_strength(hits)[1]:
+            continue
+        if brackets:
+            parts["bracket"] = brackets
+        if kept:
+            parts["kept_in_test_name"] = kept
+        parts["candidate"] = where
+        return rest, parts, hits
+    return None
+
+
 def label_grain(text: str, lk: Lookups) -> dict:
     """Grain of one distinct label. Rules in order; the first that fires wins."""
     phrase = normalise(text)
@@ -471,6 +543,15 @@ def label_grain(text: str, lk: Lookups) -> dict:
         whole = _drop_short_code_tests(lk.whole(normalise(outer)), rec["flags"])
         if whole:
             rule, grain, hits = whole[0]
+            # L1p: the parenthesis is the test's own abbreviation ('Luteinizing hormone (LH)'):
+            # it hits the same code(s), so it confirms the test and nothing is dropped
+            if rule == "L1":
+                codes = {h["code"] for h in hits}
+                own = [q for q in quals if lk.test.get(normalise(q))
+                       and {h["code"] for h in lk.test[normalise(q)]} <= codes]
+                if own and len(own) == len(quals):
+                    rec["flags"].append("parenthesis is the test's own abbreviation: " + ", ".join(own))
+                    return take("L1p", grain, hits)
             return take(rule + "q", grain, hits, "qualifier dropped")
         # L1a-L2a: one-item parenthesis alone ('PHQ-9'). Test and instrument
         # hits only: a specimen or method in parentheses qualifies the label
@@ -536,6 +617,13 @@ def label_grain(text: str, lk: Lookups) -> dict:
     if members:
         rec.update(grain="panel", rule_id="P2")
         return rec
+    # L1x: peel-off. Brackets, specimen (SPECTYPE), method (METHOD), lab, condition and
+    # activity words are peeled off; the rest is looked up as a test (always weak).
+    peeled = peel_label(text, lk)
+    if peeled:
+        rest, parts, hits = peeled
+        rec["peeled"] = {"rest": rest} | parts
+        return take("L1x", "named test", hits, "peeled")
     rec["rule_id"] = "none"
     return rec
 

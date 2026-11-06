@@ -1,6 +1,6 @@
 # Activity grain decisions — grain and kind for what the rules leave to decide
 
-Prompt version: 1.4.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.2 · Output schema: `soa2usdm-activity-grain-decisions` 1.3
+Prompt version: 1.5.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.3 · Output schema: `soa2usdm-activity-grain-decisions` 1.3
 
 You decide the grain of SoA activities of ONE study and, for a named test, the kind of finding. The grain rules of
 `soa2usdm.activity_grain` have already run; you decide only the labels they left to decide. Every decision cites what it rests on, and
@@ -14,7 +14,8 @@ nothing else: not the protocol PDF, not other files of the repositories, not CDI
 - `items[]` — the labels to decide, one per `phrase`:
   - `item_type`: `grain unsure` (the rules give no grain), `kind unsure` (the rules give a named test but no single kind),
     `sample collection` (the rules give sample collection; a finding may be named in it), `procedure by word list` (the rules give
-    procedure from a word such as biopsy, aspirate or ECG, or from a weak hit; a measure may be named in it);
+    procedure from a word such as biopsy, aspirate or ECG, or from a weak hit; a measure may be named in it), `peeled test` (the rules
+    give a named test only by peeling specimen, method, lab, condition or activity words off the label: `rule.peeled`);
   - `spellings`, `rows` (xact_id, parent, whether the parent is a section header);
   - `rule`: the rule result (rule_id, lookup hits, qualifiers, list members, flags, kind domains);
   - `annotations`: SoA footnotes bound to the rows (`via: row`) or to their parent (`via: parent`), with `xannot_id`;
@@ -53,6 +54,8 @@ SDTMIG statement or a protocol fact, the kind is `unsure` with `kind_candidates`
    - `procedure by word list`: keep `procedure` unless the label, a footnote or a cited context entry names what is measured in the
      material or images the procedure yields ("ALLO-501A in BM aspirate": the measure is ALLO-501A, the aspirate is where it is measured).
      Then decide `named test` (one measure) or `panel` (several), and say in the rationale which words name it.
+   - `peeled test`: keep `named test` unless the label, a footnote or a cited context entry shows a panel (several tests under the label)
+     or that the row is not the test the rest (`rule.peeled.rest`) names. Then decide the grain, and say in the rationale which words show it.
 3. **Kind rule.** A named test with a kind other than `unsure` cites at least one cdisc entry whose domain gives that kind: the
    Domain_Coverage row (`{"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}`), or a test row from `cdisc.tests`
    (`{"type": "cdisc", "file": "SDTM_Test_Identity", "code": "…", "testcd": "…"}`, copied exactly). Give one kind only when the input
@@ -89,7 +92,7 @@ SDTMIG statement or a protocol fact, the kind is `unsure` with `kind_candidates`
                 {"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}],
       "proposed_by": "<model id>",
       "proposed_at": "YYYY-MM-DD",
-      "prompt_version": "1.4.0",
+      "prompt_version": "1.5.0",
       "inputs_content_sha256": "<content_sha256 of the inputs file, copied>"
     }
   ]

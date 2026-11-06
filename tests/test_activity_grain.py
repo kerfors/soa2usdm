@@ -121,6 +121,74 @@ def test_dropped_qualifier_is_a_weak_hit():
     assert [h["submission_value"] for h in rec["hits"]] == ["BILI"]
 
 
+FSH = _test("Follicle Stimulating Hormone", "C74783", "FSH", "LB")
+FSH_CODE = _test("FSH", "C74783", "FSH", "LB", field="TESTCD")
+GLUC = _test("Glucose", "C105585", "GLUC", "LB")
+DRUGSCR = _test("Drug Screen", "C78139", "DRUGSCR", "LB")
+HCG = _test("Pregnancy Test", "C64851", "HCG", "LB", field="NCIt_Synonyms", source="NCIt")
+CLINRESP = _test("Clinical", "C123619", "CLINRESP", "RS", field="NCIt_Synonyms", source="NCIt")
+PYK = _test("PK", "C156470", "PYK", "LB", field="NCIt_Synonyms", source="NCIt")
+
+
+class PeelStub(Stub):
+    """Stub with SPECTYPE phrases for the peel-off cases."""
+
+    def __init__(self):
+        super().__init__(tests=[FSH, FSH_CODE, GLUC, DRUGSCR, HCG, CLINRESP, PYK, BILI])
+        self.spectype_phrases = {"plasma", "serum", "urine"}
+
+
+PK = PeelStub()
+
+
+def test_parenthesis_that_is_the_own_abbreviation_confirms():
+    # 'Follicle-stimulating hormone (FSH)': the parenthesis hits the same code, so nothing is dropped
+    rec = ag.label_grain("Follicle Stimulating Hormone (FSH)", PK)
+    assert rec["rule_id"] == "L1p" and rec["grain"] == "named test"
+    assert "qualifier dropped" not in rec["weak_reasons"]
+    # Control: a real qualifier is still dropped and weak
+    rec = ag.label_grain("Bilirubin (direct)", PK)
+    assert rec["rule_id"] == "L1q" and rec["hit_strength"] == "weak"
+
+
+def test_peel_off_finds_the_test_and_keeps_the_parts():
+    rec = ag.label_grain("Fasting plasma glucose", PK)
+    assert rec["rule_id"] == "L1x" and rec["grain"] == "named test"
+    assert rec["hit_strength"] == "weak" and "peeled" in rec["weak_reasons"]
+    assert rec["peeled"]["rest"] == "glucose"
+    assert rec["peeled"]["specimen"] == ["plasma"] and rec["peeled"]["condition"] == ["fasting"]
+
+
+def test_peel_off_keeps_an_activity_word_inside_a_test_name():
+    # trap 2: 'test' and 'screen' are part of 'Pregnancy Test' and 'Drug Screen'
+    rec = ag.label_grain("Serum pregnancy test", PK)
+    assert rec["rule_id"] == "L1x" and rec["peeled"]["rest"] == "pregnancy test"
+    assert rec["peeled"]["kept_in_test_name"] == ["pregnancy test"]
+    rec = ag.label_grain("Urine drug screen", PK)
+    assert rec["peeled"]["rest"] == "drug screen"
+
+
+def test_peel_off_reads_the_part_before_for():
+    rec = ag.label_grain("Pregnancy test for women of childbearing potential", PK)
+    assert rec["rule_id"] == "L1x" and rec["peeled"]["candidate"] == "before for"
+    assert rec["peeled"]["after_for"] == ["women of childbearing potential"]
+
+
+def test_peel_off_takes_no_generic_rest_and_no_short_code():
+    # trap 1: 'Clinical Laboratory Testing' is not CLINRESP
+    rec = ag.label_grain("Clinical Laboratory Testing", PK)
+    assert rec["rule_id"] == "none" and "peeled" not in rec
+    # 'Serum PK' is not pyruvate kinase
+    rec = ag.label_grain("Serum PK", PK)
+    assert rec["rule_id"] == "none" and "peeled" not in rec
+
+
+def test_peel_off_needs_something_peeled():
+    # Control: a label with nothing to peel and no hit stays unsure
+    rec = ag.label_grain("Glucagon xyz", PK)
+    assert rec["rule_id"] == "none"
+
+
 def test_panel_list_needs_two_member_hits():
     rec = ag.label_grain("Sodium, potassium", LK)
     assert rec["grain"] == "panel" and rec["rule_id"] == "P2"

@@ -46,7 +46,8 @@
       "enum": [
         "1.0",
         "1.1",
-        "1.2"
+        "1.2",
+        "1.3"
       ]
     },
     "collection": {
@@ -124,9 +125,10 @@
               "grain unsure",
               "kind unsure",
               "sample collection",
-              "procedure by word list"
+              "procedure by word list",
+              "peeled test"
             ],
-            "description": "procedure by word list (1.1): the rules gave procedure from a word list (W2) or a weak hit, not from a strong whole-label METHOD phrase (L3)."
+            "description": "procedure by word list (1.1): the rules gave procedure from a word list (W2) or a weak hit, not from a strong whole-label METHOD phrase (L3). peeled test (1.3): the rules gave a named test only by peeling words off the label (L1x)."
           },
           "spellings": {
             "type": "array",

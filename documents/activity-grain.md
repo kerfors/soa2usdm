@@ -51,14 +51,16 @@ fires wins. Every row cites the rule that fired and every lookup hit it used. Ex
 | L4F | sample collection | a SPECTYPE phrase followed by "for" | NCT04323098 "Serum for exploratory biomarkers" |
 | L1q–L4q | as L1–L4, always weak | the same, with trailing parentheses removed | NCT05714345 "Gene expression profile (blood RNA)" |
 | L1a, L2a | named test, instrument | a one-item parenthesis alone; not through a short code only, such as "(CL)" for central laboratory | NCT04677179 "Inflammatory Bowel Disease Questionnaire (IBDQ)" |
+| L1p | named test | as L1q, but the parenthesis is the test's own abbreviation: it hits the same code, so nothing is dropped and the hit is not weak for that | NCT05051579 "Luteinizing hormone (LH)" |
 | W1, W1g | sample collection | sample words in the head of the label (before "for"); "collection" only together with a SPECTYPE phrase | NCT03489291 "Blood & semen sampling" |
 | W2 | procedure | procedure words (biopsy, ECG, MRI …) | NCT03861273 "Electrocardiogram" |
 | W3, W4 | other | administrative and record words (consent, dosing, diary; adverse events, history) | NCT03489291 "Informed consent" |
 | W-conflict | unsure | word lists that give different grains | NCT03402841 "Archival or fresh tumour biopsy sample …" |
 | P1 | panel | panel words (panel, chemistry, serology, markers …) | NCT03489291 "Inflammatory markers IL-1β, IL-2, IL-6, IFNγ, MCP-1" |
 | P2 | panel | a list in the label or in a parenthesis with at least two members that hit a test | NCT03489291 "Vital signs (blood pressure, pulse, body temperature)" |
+| L1x | named test, always weak | peel-off, only where no rule above fired: brackets, specimen (SPECTYPE phrases), method (METHOD phrases), lab, condition and activity words are peeled off, and the rest is looked up as a test (see below) | NCT03548935 "Fasting plasma glucose" → GLUC |
 | none | unsure | no rule fired | |
-| K1 | finding_kind | for L1, L1q, L1a: the hit's `SDTM_Domains` through the table above | "Weight" (CV; VS) → measurement |
+| K1 | finding_kind | for L1, L1q, L1a, L1p, L1x: the hit's `SDTM_Domains` through the table above | "Weight" (CV; VS) → measurement |
 
 K1 gives `unsure`, with a flag naming the domains, when the domains point to more than one kind or to a domain with no Consumer. Examples:
 "Temperature" (BS, DO, VS) and "Neurological assessment" (NV). When the domains give two or more kinds, those kinds are the row's
@@ -68,6 +70,14 @@ K1 gives `unsure`, with a flag naming the domains, when the domains point to mor
 the flag "short code only, not taken: …", and the next rule is tried. Short codes collide with protocol abbreviations: "PK" (pharmacokinetics)
 is the code of pyruvate kinase, and "PGI" (Patient Global Impression) that of pepsinogen I. Once the test hit is set aside, "PGI" resolves as an
 instrument (L2). The cost is true short codes, such as "TSH", "FSH" and "HIV", which stay unsure until a decision resolves them.
+
+**Peel-off (L1x).** Ordinary tests are often named inside activity wording or qualifiers: "Fasting serum insulin", "Ethanol testing",
+"Urine drug screen". L1x tries, in order, the text after "for", the text before "for" (the text after it is then a qualifier, kept as
+`after_for`) and the whole text outside brackets. It peels off SPECTYPE and METHOD phrases and the dated lab, condition and activity word
+lists, and looks up the rest as a test. What it peeled is kept on the label (`peeled`), so a stated specimen, method or lab stays with
+the row. Two guards: an activity word that is part of a test name is kept ("Pregnancy Test", "Drug Screen" and "Neurological Assessment"
+hold "test", "screen" and "assessment"); a rest that is a generic word ("clinical", "concentration", "diagnosis" …, `PEEL_GENERIC_REST`)
+or a hit only through a short code ("Serum PK") is not taken. An L1x hit is always weak ("peeled"): the rest is not the label.
 
 The word lists are dated (`word_lists_date`) and kept small. The step does not tune them further: named tests that are specific to a product
 or an assay are not in CT, and no word list finds them.
@@ -95,10 +105,11 @@ What the rules leave to decide is decided in a file per study, `SoA2USDM/grain/<
 AI proposals are made in three steps per study:
 
 1. **Gather (code).** `python -m soa2usdm.activity_grain_inputs --collection <name> [--protocol <NCTID>]` writes
-   `SoA2USDM/grain/<id>_grain_inputs.json` (schema `soa2usdm-activity-grain-inputs` 1.2) from public files only. Its items are the labels
+   `SoA2USDM/grain/<id>_grain_inputs.json` (schema `soa2usdm-activity-grain-inputs` 1.3) from public files only. Its items are the labels
    whose rule result leaves something to decide and that have a row without a role: **grain unsure** (no grain), **kind unsure** (a named
    test without a single kind from K1), **sample collection** (a finding may be named in it) and **procedure by word list** (procedure from
-   W2 or a weak hit, not from a strong L3 METHOD phrase; a measure may be named in it, as in "ALLO-501A in BM aspirate"). Per item:
+   W2 or a weak hit, not from a strong L3 METHOD phrase; a measure may be named in it, as in "ALLO-501A in BM aspirate") and **peeled
+   test** (1.3: a named test from L1x only; a footnote or the protocol may show a panel or another test). Per item:
    spellings, rows and parents, the rule result, the SoA annotations bound to its rows or their parents, the protocol context
    `lab_and_purpose` entries for the label, and the abbreviations in the label. Per study: the context categories with no link to an SoA row
    (product, immunogenicity, endpoint assays, genetic testing). CDISC: every Domain_Coverage row with the kind it gives, and the test rows
@@ -169,7 +180,7 @@ this repository yet. Panels wait for panel splitting.
 
 ```
 {NCTID}/SoA2USDM/grain/
-├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.3)
+├── {NCTID}_activity_grain.json             # generated (schema soa2usdm-activity-grain 1.4)
 ├── {NCTID}_grain_inputs.json               # gathered for the decisions prompt (where AI proposals are made)
 └── {NCTID}_activity_grain_decisions.json   # from the prompt and reviews, where decisions exist
 ```
@@ -199,13 +210,13 @@ check each grain file against its inputs, and **stop on a stale file** with the 
 
 ## Status
 
-Status on 2026-11-05, with cdisc-for-ai `a7d5821` (SDTM CT 2026-09-25; re-run from `82559eb`, grain results unchanged):
+Status on 2026-11-06, grain rules 1.1.0 (L1p, L1x), with cdisc-for-ai `a7d5821` (SDTM CT 2026-09-25):
 
 | Collection | Studies | Rows with a grain | named test | unsure | Decisions |
 |---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 229 | 60 | 8 | AI proposals (144, prompt 1.2.0, not reviewed; decisions schema 1.3 since 2026-11-04) |
-| usdm_data | 22 | 811 | 70 | 337 | rules only |
-| cpmp | 13 | 303 | 27 | 107 | rules only |
-| misc_studies | 2 | 82 | 16 | 25 | rules only |
+| cell_gene_therapy | 5 | 229 | 61 | 7 | AI proposals (144: 63 prompt 1.2.0, 81 prompt 1.5.0 for NCT04323098 and NCT05714345 since 2026-11-06; not reviewed; decisions schema 1.3 since 2026-11-04) |
+| usdm_data | 22 | 811 | 93 | 314 | rules only |
+| cpmp | 13 | 303 | 40 | 94 | rules only |
+| misc_studies | 2 | 82 | 17 | 24 | rules only |
 
 AI proposals for the rules-only collections wait for their protocol context.

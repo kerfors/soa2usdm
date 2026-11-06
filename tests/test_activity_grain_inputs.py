@@ -32,6 +32,8 @@ SCHEMA = json.loads((Path(__file__).parent.parent / "schemas"
     ({"grain": "procedure", "finding_kind": None, "rule_id": "L3", "hit_strength": "weak"}, "procedure by word list"),
     ({"grain": "procedure", "finding_kind": None, "rule_id": "L3q", "hit_strength": "weak"}, "procedure by word list"),
     ({"grain": "procedure", "finding_kind": None, "rule_id": "L3", "hit_strength": "strong"}, None),
+    ({"grain": "named test", "finding_kind": "specimen", "rule_id": "L1x", "hit_strength": "weak"}, "peeled test"),
+    ({"grain": "named test", "finding_kind": "unsure", "rule_id": "L1x", "hit_strength": "weak"}, "peeled test"),
     ({"grain": "named test", "finding_kind": "specimen"}, None),
     ({"grain": "panel", "finding_kind": None}, None),
     ({"grain": "other", "finding_kind": None}, None),
