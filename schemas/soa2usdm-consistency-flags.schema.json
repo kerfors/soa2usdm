@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kerfors.github.io/soa2usdm/schemas/soa2usdm-consistency-flags.json",
+  "title": "SoA2USDM consistency flags (kept by hand)",
+  "description": "Phrases flagged for the cross-study consistency queue by hand (collections/consistency_flags.json), each with the studies it was raised for. Read by soa2usdm.consistency, which shows every item with the phrase. Decides nothing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "description",
+    "flags"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "soa2usdm-consistency-flags"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "description": {
+      "type": "string"
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "phrase",
+          "studies",
+          "note",
+          "raised_in"
+        ],
+        "properties": {
+          "phrase": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1
+          },
+          "raised_in": {
+            "type": "string",
+            "minLength": 1
+          },
+          "studies": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "collection",
+                "protocol_id"
+              ],
+              "properties": {
+                "collection": {
+                  "type": "string"
+                },
+                "protocol_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
