@@ -36,7 +36,7 @@ CGT_SECTIONS = [
 ]
 GENERAL_SECTIONS = [
     ("panels", "Lab panels", ["panel_name", "analytes", "specimen", "lab"]),
-    ("instruments", "Instruments", ["name", "abbreviation", "version", "type", "respondent_or_rater", "recall_period", "mode",
+    ("instruments", "Instruments", ["name", "kind", "abbreviation", "version", "type", "respondent_or_rater", "recall_period", "mode",
                                     "scoring_or_range", "purpose", "soa_activities"]),
     ("measurements", "Measurements", ["name", "components", "position_or_condition", "method", "units", "soa_activities"]),
     ("lab_and_purpose", "Lab and purpose per SoA activity", ["soa_activity", "lab", "purpose", "specimen", "method"]),

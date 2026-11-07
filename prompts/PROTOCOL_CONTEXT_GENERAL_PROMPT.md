@@ -1,6 +1,6 @@
 # Protocol context extraction — general profile
 
-Prompt version: 1.1.0 · Schema: `soa2usdm-protocol-context-general` 1.0 · Profile: general (trials that are not cell or gene therapy)
+Prompt version: 1.2.0 · Schema: `soa2usdm-protocol-context-general` 1.1 · Profile: general (trials that are not cell or gene therapy)
 
 You extract six kinds of information from ONE clinical trial protocol, beyond its Schedule of Activities (SoA).
 The categories are chosen for trials in general; the cell and gene therapy profile is `prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md`.
@@ -45,18 +45,21 @@ Prepared by `tools/protocol_context_inputs.py` from the protocol PDF and the col
 11. When the PDF holds the protocol together with amendments or several protocol versions, extract from the protocol version the SoA
     comes from (the pages of the SoA notes show which). Record what a later amendment in the PDF changes for an SoA activity or a
     category as an additional entry with its own evidence, and say so in `notes`.
+12. A text layer can be letter-spaced (`a d verse e ve nt`). Write abbreviation terms and definitions as printed on the page, with normal
+    word spacing (`adverse event`); the checker compares abbreviations without whitespace. Evidence quotes stay as in the text layer.
+    A letter-spaced page has a text layer, so rule 8 does not apply to it.
 
 ## Output — one JSON file `SoA2USDM/context/{NCTID}_protocol_context.json`
 
 ```json
 {
   "schema_name": "soa2usdm-protocol-context-general",
-  "schema_version": "1.0",
-  "nct_id": "...",
+  "schema_version": "1.1",
+  "nct_id": "NCT number as printed, or null when the document prints none",
   "document": "protocol identifier and version/amendment as printed on the title page",
   "pages_covered": "first-last",
   "page_numbers": "PDF page numbers of the protocol as posted on ClinicalTrials.gov",
-  "provenance": {"prompt_version": "1.0.0", "model": "", "extracted_at": "", "pdf_sha256": "", "pages_file_sha256": ""},
+  "provenance": {"prompt_version": "1.2.0", "model": "", "extracted_at": "", "pdf_sha256": "", "pages_file_sha256": ""},
   "cross_references": [ {"soa_note": "the SoA note text", "target_as_printed": "", "target_found": true, "target_heading": null,
                          "target_page": 0, "what_it_says": "a short verbatim quote from the target", "evidence": []} ],
   "abbreviations": [ {"term": "", "definition": "", "page": 0, "read_from": "text layer | page image (optional; default text layer)"} ],
@@ -64,7 +67,7 @@ Prepared by `tools/protocol_context_inputs.py` from the protocol PDF and the col
                "lab": null, "evidence": []} ],
   "lab_and_purpose": [ {"soa_activity": "exact name from soa_activities", "lab": "central | local | both | as stated", "purpose": null,
                         "specimen": null, "method": null, "evidence": []} ],
-  "instruments": [ {"name": "as printed", "abbreviation": null, "version": null, "type": null, "respondent_or_rater": null,
+  "instruments": [ {"name": "as printed", "kind": "instrument | criteria", "abbreviation": null, "version": null, "type": null, "respondent_or_rater": null,
                     "recall_period": null, "mode": null, "scoring_or_range": null, "purpose": null,
                     "soa_activities": ["exact names from soa_activities"], "evidence": []} ],
   "measurements": [ {"name": "the measurement group as printed (e.g. Vital signs, Body measurements, 12-lead ECG)",
@@ -91,7 +94,9 @@ Leave `provenance.model` and `provenance.extracted_at` for the caller to stamp i
 - **instruments** — every questionnaire, rating scale, diary, performance status, interview or other instrument the protocol names for an
   SoA activity (e.g. C-SSRS, PGI-C, a numeric rating scale for pain, ECOG performance status): name and abbreviation as printed, version,
   type as stated (questionnaire, scale, diary …), who completes or rates it, recall period, mode (paper, electronic, interview), scoring
-  or range where printed, purpose, and the SoA activities it applies to.
+  or range where printed, purpose, and the SoA activities it applies to. `kind`: `instrument` for these; `criteria` for grading,
+  staging, classification, prognostic or response criteria the investigator applies (e.g. CTCAE, RECIST, Ann Arbor, NYHA) when the
+  protocol names them for an SoA activity.
 - **measurements** — what a measurement or examination group includes, as printed: vital signs, body measurements, ECG, physical
   examination and similar: the components listed (e.g. systolic and diastolic blood pressure, pulse, temperature, height, weight), the
   position or condition (supine, after 5 minutes rest, fasting), method, units, and the SoA activities it applies to. Measurements and

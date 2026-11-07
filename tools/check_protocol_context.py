@@ -5,7 +5,8 @@ soa2usdm-protocol-context-cgt (cell and gene therapy) and soa2usdm-protocol-cont
   1. The file validates against its profile's schema (schemas/<schema_name>.schema.json).
   2. Every evidence quote is found on the page it cites in {NCTID}_pages.txt
      (whitespace collapsed on both sides, soft hyphens and ligatures folded; nothing else).
-  3. Every abbreviation's term and definition are found on its cited page.
+  3. Every abbreviation's term and definition are found on its cited page, compared without whitespace and without
+     private-use characters on both sides (letter-spaced text layers; the term is stored as printed on the page).
   4. Every cross-reference with target_found = true has evidence; every other item has evidence.
   5. provenance.pages_file_sha256 matches the pages file.
 
@@ -44,6 +45,11 @@ def norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 
+def squash(s: str) -> str:
+    """norm() without any whitespace or private-use characters (U+E000-U+F8FF)."""
+    return re.sub(r"[\s\ue000-\uf8ff]", "", norm(s))
+
+
 def read_pages(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
     return {int(m.group(1)): norm(m.group(2))
@@ -74,12 +80,13 @@ def check(ctx_path: Path, pages_path: Path) -> list:
                 q, p = norm(e.get("quote", "")), e.get("page")
                 if not q or p not in P or q not in P[p]:
                     fails.append((cat, i, p, e.get("quote", "")[:120]))
+    S = {p: squash(t) for p, t in P.items()}
     for i, a in enumerate(d.get("abbreviations", [])):
         p = a.get("page")
         if a.get("read_from") == "page image":
             visual.append(("abbreviations", i, p))
             continue
-        if p not in P or norm(a.get("term", "")) not in P[p] or norm(a.get("definition", "")) not in P[p]:
+        if p not in S or squash(a.get("term", "")) not in S[p] or squash(a.get("definition", "")) not in S[p]:
             fails.append(("abbreviations", i, p, f"{a.get('term')} = {a.get('definition')}"[:120]))
     return fails, visual
 

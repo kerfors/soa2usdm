@@ -26,11 +26,15 @@
       "const": "soa2usdm-protocol-context-general"
     },
     "schema_version": {
-      "const": "1.0"
+      "const": "1.1"
     },
     "nct_id": {
-      "type": "string",
-      "pattern": "^NCT[0-9]{8}$"
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^NCT[0-9]{8}$",
+      "description": "null when the document prints no NCT number (1.1)."
     },
     "document": {
       "type": "string"
@@ -330,6 +334,7 @@
         "additionalProperties": false,
         "required": [
           "name",
+          "kind",
           "abbreviation",
           "version",
           "type",
@@ -344,6 +349,13 @@
         "properties": {
           "name": {
             "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "instrument",
+              "criteria"
+            ],
+            "description": "instrument = questionnaire, rating scale, diary, performance status, interview or form completed for a participant; criteria = grading, staging, classification, prognostic or response criteria the investigator applies (e.g. CTCAE, RECIST, Ann Arbor, NYHA). 1.1."
           },
           "abbreviation": {
             "type": [

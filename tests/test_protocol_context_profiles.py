@@ -1,5 +1,5 @@
 """
-Protocol context profiles — the general profile (soa2usdm-protocol-context-general 1.0) beside the cell and
+Protocol context profiles — the general profile (soa2usdm-protocol-context-general 1.1) beside the cell and
 gene therapy profile: its schema, the checker per profile (quotes on the cited page, a wrong quote fails),
 the page sections per profile, and the grain inputs study categories per profile (grain inputs 1.4).
 Runs on a small hand-made file and pages text; no protocol PDF needed.
@@ -26,13 +26,14 @@ PAGES = ("===== PAGE 1 =====\nProtocol ABC-123 Amendment 2\n"
          "The C-SSRS will be completed by the investigator at each visit.\n"
          "Vital signs include systolic and diastolic blood pressure, pulse rate and body temperature, "
          "measured after 5 minutes rest in a seated position.\n"
-         "Hematology: hemoglobin, hematocrit, platelet count\n")
+         "Hematology: hemoglobin, hematocrit, platelet count\n"
+         "===== PAGE 9 =====\nA E a d verse e ve nt\n")
 
 
 def _doc(pages_sha, quote="The C-SSRS will be completed by the investigator at each visit."):
     ev = lambda q: [{"page": 7, "quote": q}]
     return {
-        "schema_name": "soa2usdm-protocol-context-general", "schema_version": "1.0", "nct_id": "NCT00000000",
+        "schema_name": "soa2usdm-protocol-context-general", "schema_version": "1.1", "nct_id": "NCT00000000",
         "document": "Protocol ABC-123 Amendment 2", "pages_covered": "1-7", "page_numbers": "1-7",
         "provenance": {"prompt_version": "1.0.0", "model": "test", "extracted_at": "2026-11-07",
                        "pdf_sha256": "0" * 64, "pages_file_sha256": pages_sha},
@@ -41,7 +42,7 @@ def _doc(pages_sha, quote="The C-SSRS will be completed by the investigator at e
         "panels": [{"panel_name": "Hematology", "analytes": ["hemoglobin", "hematocrit", "platelet count"],
                     "specimen": None, "lab": None, "evidence": ev("Hematology: hemoglobin, hematocrit, platelet count")}],
         "lab_and_purpose": [],
-        "instruments": [{"name": "Columbia Suicide Severity Rating Scale", "abbreviation": "C-SSRS", "version": None,
+        "instruments": [{"name": "Columbia Suicide Severity Rating Scale", "kind": "instrument", "abbreviation": "C-SSRS", "version": None,
                          "type": None, "respondent_or_rater": "investigator", "recall_period": None, "mode": None,
                          "scoring_or_range": None, "purpose": None, "soa_activities": ["C-SSRS"], "evidence": ev(quote)}],
         "measurements": [{"name": "Vital signs", "components": ["systolic and diastolic blood pressure", "pulse rate",
@@ -79,6 +80,31 @@ def test_general_profile_wrong_quote_fails(files):
     tmp_path, pages, sha = files
     fails, _ = cpc.check(_write(tmp_path, _doc(sha, quote="The C-SSRS will be completed by the participant.")), pages)
     assert [(f[0], f[1], f[2]) for f in fails] == [("instruments", 0, 7)]
+
+
+def test_general_profile_null_nct_id_validates(files):
+    tmp_path, pages, sha = files
+    fails, _ = cpc.check(_write(tmp_path, _doc(sha) | {"nct_id": None}), pages)
+    assert fails == []
+
+
+def test_instrument_kind_is_required(files):
+    tmp_path, pages, sha = files
+    doc = _doc(sha)
+    del doc["instruments"][0]["kind"]
+    fails, _ = cpc.check(_write(tmp_path, doc), pages)
+    assert any(f[0] == "schema" for f in fails)
+
+
+def test_letter_spaced_abbreviation_matches_without_whitespace(files):
+    tmp_path, pages, sha = files
+    doc = _doc(sha)
+    doc["abbreviations"].append({"term": "AE", "definition": "adverse event", "page": 9})
+    fails, _ = cpc.check(_write(tmp_path, doc), pages)
+    assert fails == []
+    doc["abbreviations"][-1]["definition"] = "adverse events"
+    fails, _ = cpc.check(_write(tmp_path, doc), pages)
+    assert [(f[0], f[1], f[2]) for f in fails] == [("abbreviations", 1, 9)]
 
 
 def test_general_profile_has_no_cgt_categories(files):
