@@ -408,6 +408,13 @@
     "annotation": {
       "type": "object",
       "description": "A footnote, legend item, or other annotation from the table. Annotations are the table's overflow mechanism - they encode study logic that doesn't fit the 2D grid presentation. Critical for reconstructing actual study logic.",
+      "allOf": [
+        {
+          "if": {"properties": {"annotation_type": {"const": "placeholder"}}, "required": ["annotation_type"]},
+          "then": {"required": ["placeholder_reason"], "properties": {"annotation_text": {"const": ""}}},
+          "else": {"not": {"required": ["placeholder_reason"]}}
+        }
+      ],
       "required": [
         "annotation_marker",
         "annotation_type",
@@ -426,9 +433,19 @@
             "legend",
             "abbreviation",
             "source_note",
-            "continuation_note"
+            "continuation_note",
+            "placeholder"
           ],
-          "description": "Classification of annotation. 'footnote'=explanatory notes; 'legend'=symbol definitions (incl. a symbol printed with a superscript, e.g. 'Xa'); 'abbreviation'=term definitions - not emitted since prompt 3.9.0 (abbreviations are not annotations), kept for older extractions; 'source_note'=data source attribution; 'continuation_note'=table continuation indicators."
+          "description": "Classification of annotation. 'footnote'=explanatory notes; 'legend'=symbol definitions (incl. a symbol printed with a superscript, e.g. 'Xa'); 'abbreviation'=term definitions - not emitted since prompt 3.9.0 (abbreviations are not annotations), kept for older extractions; 'source_note'=data source attribution; 'continuation_note'=table continuation indicators; 'placeholder'=a marker with no protocol text behind it (see placeholder_reason); annotation_text is empty."
+        },
+        "placeholder_reason": {
+          "type": "string",
+          "enum": ["redacted", "not_printed", "reviewer_note"],
+          "description": "Present exactly when annotation_type is 'placeholder': why the marker has no protocol text. 'redacted'=the text is covered by a redaction box; 'not_printed'=the marker is printed but its definition is not printed in the source; 'reviewer_note'=a marker synthesized to carry a reviewer's note (the note is in review_note)."
+        },
+        "review_note": {
+          "type": "string",
+          "description": "Text that is not protocol text: a probable equivalent from another table or protocol, a reviewer's finding. Shown on review pages, never read as SoA content (not in grain inputs). Set through a corrections sidecar."
         },
         "annotation_text": {
           "type": "string",
@@ -609,8 +626,8 @@
     },
     "schema_version": {
       "type": "string",
-      "enum": ["1.0", "1.1"],
-      "description": "Schema version. 1.1 adds property_type 'visit_attribute' and requires table_metadata.table_title; files stamped 1.0 remain valid. Major version changes indicate breaking changes; minor versions are backward compatible."
+      "enum": ["1.0", "1.1", "1.2"],
+      "description": "Schema version. 1.1 adds property_type 'visit_attribute' and requires table_metadata.table_title. 1.2 adds annotation_type 'placeholder' with placeholder_reason, and review_note (set through corrections sidecars; a verified file keeps the raw file's stamp). Files stamped 1.0 or 1.1 remain valid. Major version changes indicate breaking changes; minor versions are backward compatible."
     },
     "extraction_metadata": {
       "$ref": "#/definitions/extraction_metadata",

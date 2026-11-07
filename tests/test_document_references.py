@@ -36,6 +36,12 @@ def test_one_entry_per_numbered_target_as_printed():
     assert find_document_references("See Appendix10.2, Clinical Laboratory Tests, for details.") == _refs(("appendix", "10.2"))   # NCT05324124
 
 
+def test_a_letter_prefixed_table_number():
+    """NCT05259917: 'Patient assessments will be performed as outlined in Table S1.'"""
+    assert find_document_references("Patient assessments will be performed as outlined in Table S1.") == _refs(
+        ("table", "S1"))
+
+
 def test_a_text_without_a_numbered_target_has_none():
     assert find_document_references("See Pharmacokinetics and immunogenicity Flow Chart") == []           # NCT03637764
     assert find_document_references("A cycle is 21 days") == []                                           # NCT03637764
@@ -60,7 +66,7 @@ def test_resolved_fixture_carries_the_references_and_validates():
     for protocol in ("NCT03637764", "NCT04677179"):
         for f in _resolved(protocol):
             table = json.loads(f.read_text())
-            assert table["schema_version"] == "1.2"
+            assert table["schema_version"] == "1.3"
             jsonschema.validate(table, schema)
             for annot in table["annotations"]:
                 assert annot.get("document_references", []) == find_document_references(annot["annotation_text"])
@@ -85,7 +91,7 @@ def test_a_table_reference_to_an_extracted_table_carries_its_number():
     annotation's reference names it. NCT03637764 'Table 12' is a table of the
     protocol body; no extracted table prints that number."""
     out = consolidate_tables("NCT04677179", _published("NCT04677179"))
-    assert out["schema_version"] == "1.6"
+    assert out["schema_version"] == "1.7"
     by_text = {a["annotation_text"]: a for a in out["unified_annotations"]}
     assert by_text["For procedures at an ETV, see ETV in Table 4."]["document_references"] == [
         {"kind": "table", "target": "4", "table_num": 4}]

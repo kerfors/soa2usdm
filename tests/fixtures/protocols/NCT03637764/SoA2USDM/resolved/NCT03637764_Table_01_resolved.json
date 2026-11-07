@@ -1,6 +1,6 @@
 {
   "schema_name": "soa-table-resolved",
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "resolution_metadata": {
     "resolved_at": "2026-10-03T15:50:48.229422+00:00",
     "resolver": "soa2usdm.steps.resolve v1.0",

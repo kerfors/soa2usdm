@@ -156,9 +156,10 @@
         "1.1",
         "1.2",
         "1.3",
-        "1.4"
+        "1.4",
+        "1.5"
       ],
-      "description": "Schema version."
+      "description": "Schema version. 1.5 adds 'released' on a carry-over record."
     },
     "protocol_id": {
       "type": "string",
@@ -242,6 +243,27 @@
                 "rule_result": {
                   "type": "string",
                   "description": "grain/rule_id the rules give the label now."
+                }
+              }
+            }
+          },
+          "released": {
+            "type": "array",
+            "description": "1.5: ai_proposed decisions removed because their item changed (run with --release-changed); the item is to be decided again from the new inputs.",
+            "items": {
+              "type": "object",
+              "required": [
+                "phrase",
+                "grain"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "phrase": {
+                  "type": "string"
+                },
+                "grain": {
+                  "type": "string",
+                  "description": "The grain the released decision gave."
                 }
               }
             }

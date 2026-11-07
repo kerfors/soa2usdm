@@ -395,6 +395,8 @@ def build_annotation_crossrefs(
                                            "extracted_type": extracted_type}}
                if annotation_type != extracted_type else {}),
             "annotation_text": annot["annotation_text"],
+            **({"placeholder_reason": annot["placeholder_reason"]} if "placeholder_reason" in annot else {}),
+            **({"review_note": annot["review_note"]} if "review_note" in annot else {}),
             "annotation_scope": scope,
             "referenced_elements": referenced,
             "marker_locations": annot.get("marker_locations", []),
@@ -866,7 +868,7 @@ def resolve_extraction(extraction: dict, input_filename: str) -> dict:
     
     return {
         "schema_name": "soa-table-resolved",
-        "schema_version": "1.2",
+        "schema_version": "1.3",
         "resolution_metadata": resolution_metadata,
         "extraction_metadata": extraction.get("extraction_metadata", {}),
         "table_metadata": resolved_table_meta,

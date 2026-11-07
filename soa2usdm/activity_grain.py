@@ -758,7 +758,7 @@ def label_grain(text: str, lk: Lookups) -> dict:
 # ---------------------------------------------------------------------------
 DECISIONS_SCHEMA = "soa2usdm-activity-grain-decisions"
 DECISION_SOURCES = ("ai_proposed", "reviewed")
-DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4")
+DECISIONS_SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5")
 # Basis entry type → its keys besides 'type'.
 BASIS_TYPES = {"label": set(), "annotation": {"xannot_id"}, "context": {"pointer"}, "page": {"page"}}
 # cdisc basis (decisions 1.1): file → its keys besides 'type' and 'file'.
@@ -836,7 +836,8 @@ def resolve_pointer(doc, pointer: str):
 
 
 def _load_decisions(protocol_id: str, collection: str, labels: dict, context: dict | None,
-                    annotation_ids: set, lk: Lookups, inputs: dict | None) -> tuple[dict, str | None]:
+                    annotation_ids: set, lk: Lookups, inputs: dict | None,
+                    placeholder_ids: set) -> tuple[dict, str | None]:
     """Read the study's decisions file (never written here), if present.
     Keyed by phrase. Returns (decisions by phrase, sha256 of the file or None).
 
@@ -857,7 +858,7 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
     with fewer than two kinds, or with a kind no cited cdisc entry gives; two
     decisions for one phrase; finding_kind missing on a named
     test or present on another grain; an empty basis or a basis entry of unknown shape; an xannot_id not in the
-    study's consolidated.json; a context pointer that does not resolve; a page
+    study's consolidated.json, or one that is a placeholder (placeholder_ids: no protocol text to cite); a context pointer that does not resolve; a page
     outside the context's pages_covered; a context or page basis without a
     protocol context file; a protocol_context record that differs from the
     current context file (sha256, prompt_version).
@@ -896,12 +897,12 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
                                  f"prompt and need schema 1.1 (prompt_version, inputs_sha256)")
             if "prompt_version" not in d:
                 raise ValueError(f"{where}: ai_proposed without prompt_version")
-            if "inputs_content_sha256" in d and doc["schema_version"] not in ("1.3", "1.4"):
+            if "inputs_content_sha256" in d and doc["schema_version"] not in ("1.3", "1.4", "1.5"):
                 raise ValueError(f"{where}: inputs_content_sha256 needs schema 1.3")
-            if doc["schema_version"] in ("1.3", "1.4") and "inputs_content_sha256" not in d:
+            if doc["schema_version"] in ("1.3", "1.4", "1.5") and "inputs_content_sha256" not in d:
                 raise ValueError(f"{where}: ai_proposed without inputs_content_sha256 in a "
                                  f"{doc['schema_version']} file")
-            if "carried_over_from" in d and (doc["schema_version"] != "1.4"
+            if "carried_over_from" in d and (doc["schema_version"] not in ("1.4", "1.5")
                                              or d["carried_over_from"] == d["inputs_content_sha256"]):
                 raise ValueError(f"{where}: carried_over_from needs schema 1.4 and other inputs than "
                                  f"inputs_content_sha256")
@@ -936,6 +937,8 @@ def _load_decisions(protocol_id: str, collection: str, labels: dict, context: di
                 raise ValueError(f"{where}: basis entry not understood: {b}")
             if t == "annotation" and b["xannot_id"] not in annotation_ids:
                 raise ValueError(f"{where}: {b['xannot_id']!r} is not in the consolidated annotations")
+            if t == "annotation" and b["xannot_id"] in placeholder_ids:
+                raise ValueError(f"{where}: {b['xannot_id']!r} is a placeholder annotation (no protocol text to cite)")
             if t in ("context", "page") and context is None:
                 raise ValueError(f"{where}: {t} basis without a protocol context file to check it against")
             if t == "context":
@@ -983,6 +986,7 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
     cons = json.loads(cons_raw)
     unified = {u["xact_id"]: u for u in cons["unified_activities"]}
     annotation_ids = {a["xannot_id"] for a in cons["unified_annotations"]}
+    placeholder_ids = {a["xannot_id"] for a in cons["unified_annotations"] if a["annotation_type"] == "placeholder"}
     missing = [r["xact_id"] for r in rows_in if r["xact_id"] not in unified]
     if missing:
         raise ValueError(f"{cons_path}: inventory rows not in unified_activities: {missing}")
@@ -1010,7 +1014,7 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
     if use_decisions:
         inputs = _current_inputs(collection, protocol_id, lk, all_rows)
         decisions, decisions_sha = _load_decisions(protocol_id, collection, labels, context, annotation_ids,
-                                                   lk, inputs)
+                                                   lk, inputs, placeholder_ids)
 
     rows = []
     for a in rows_in:

@@ -499,6 +499,13 @@
     "annotation": {
       "type": "object",
       "description": "A resolved annotation with stable ID and explicit element cross-references.",
+      "allOf": [
+        {
+          "if": {"properties": {"annotation_type": {"const": "placeholder"}}, "required": ["annotation_type"]},
+          "then": {"required": ["placeholder_reason"], "properties": {"annotation_text": {"const": ""}}},
+          "else": {"not": {"required": ["placeholder_reason"]}}
+        }
+      ],
       "required": [
         "annotation_id",
         "table_id",
@@ -529,9 +536,10 @@
             "legend",
             "abbreviation",
             "source_note",
-            "continuation_note"
+            "continuation_note",
+            "placeholder"
           ],
-          "description": "Annotation classification. Preserved from extraction unless retyped at resolve (see annotation_type_source)."
+          "description": "Annotation classification. Preserved from extraction unless retyped at resolve (see annotation_type_source). 'placeholder'=a marker with no protocol text behind it (see placeholder_reason); annotation_text is empty."
         },
         "annotation_type_source": {
           "type": "object",
@@ -548,6 +556,15 @@
               "description": "The annotation_type as recorded in the extraction file."
             }
           }
+        },
+        "placeholder_reason": {
+          "type": "string",
+          "enum": ["redacted", "not_printed", "reviewer_note"],
+          "description": "Present exactly when annotation_type is 'placeholder': why the marker has no protocol text. 'redacted'=the text is covered by a redaction box; 'not_printed'=the marker is printed but its definition is not printed in the source; 'reviewer_note'=a marker synthesized to carry a reviewer's note (the note is in review_note)."
+        },
+        "review_note": {
+          "type": "string",
+          "description": "Text that is not protocol text: a probable equivalent from another table or protocol, a reviewer's finding. Shown on review pages, never read as SoA content (not in grain inputs). Set through a corrections sidecar."
         },
         "annotation_text": {
           "type": "string",
@@ -790,8 +807,8 @@
     },
     "schema_version": {
       "type": "string",
-      "enum": ["1.0", "1.1", "1.2"],
-      "description": "Schema version. 1.1 adds property_type 'visit_attribute'. 1.2 adds document_references on an annotation. Files stamped 1.0 or 1.1 remain valid."
+      "enum": ["1.0", "1.1", "1.2", "1.3"],
+      "description": "Schema version. 1.1 adds property_type 'visit_attribute'. 1.2 adds document_references on an annotation. 1.3 adds annotation_type 'placeholder' with placeholder_reason, and review_note, on an annotation. Files stamped 1.0 to 1.2 remain valid."
     },
     "resolution_metadata": {
       "$ref": "#/definitions/resolution_metadata",

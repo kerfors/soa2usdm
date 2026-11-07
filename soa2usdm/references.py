@@ -12,7 +12,7 @@ from typing import List
 
 _NUM = r"\d+(?:\.\d+)*"
 _LETTER_OR_NUM = r"(?:[A-Z]\b|%s)" % _NUM
-_TABLE_NUM = r"\d+(?:[.\-–]\d+)*"
+_TABLE_NUM = r"[A-Z]?\d+(?:[.\-–]\d+)*"
 _MORE = r"(?:\s*(?:,|and|or|&|to|through|-|–)\s*%s)*"
 _PATTERNS = (
     ("section", re.compile(r"\bSections?\s+(%s%s)" % (_NUM, _MORE % _NUM), re.I), re.compile(_NUM)),

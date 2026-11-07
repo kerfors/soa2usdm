@@ -88,6 +88,18 @@ def test_unchanged_content_needs_no_carry_over(tmp_path, monkeypatch):
     assert dpath.read_text() == text and written == []
 
 
+def test_release_changed_removes_a_changed_items_decision_and_records_it(tmp_path, monkeypatch):
+    new = _new(items=[ITEM_A | {"rule": {"grain": "procedure"}}])
+    dpath, before, old_sha, written = _setup(tmp_path, monkeypatch, new)
+    tool.carry_over("c", "NCT0", None, [], release_changed=True)
+    after = json.loads(dpath.read_text())
+    jsonschema.validate(after, SCHEMA)
+    assert after["schema_version"] == "1.5" and written == ["NCT0"]
+    assert after["decisions"] == [before["decisions"][2]]
+    assert after["carry_overs"][0]["carried"] == 0
+    assert after["carry_overs"][0]["released"] == [{"phrase": ITEM_A["phrase"], "grain": "panel"}]
+
+
 @pytest.mark.parametrize("new, made_from, message", [
     (_new(), "f" * 64, "not made from the current"),
     (_new(items=[ITEM_A | {"rule": {"grain": "procedure"}}]), None, "item\\(s\\) changed"),

@@ -358,8 +358,8 @@ def _decision(**kw):
     return {k: v for k, v in d.items() if v is not None}
 
 
-def _load(labels=None, context=CONTEXT, inputs=INPUTS):
-    return ag._load_decisions("NCT0", "c", labels or _labels(), context, ANNOTATIONS, LK, inputs)
+def _load(labels=None, context=CONTEXT, inputs=INPUTS, placeholders=frozenset()):
+    return ag._load_decisions("NCT0", "c", labels or _labels(), context, ANNOTATIONS, LK, inputs, placeholders)
 
 
 def _write(tmp_path, monkeypatch, decisions, context=CONTEXT, version="1.2"):
@@ -461,6 +461,12 @@ def test_faulty_decision_stops(tmp_path, monkeypatch, decisions, message):
         _load()
 
 
+def test_a_basis_citing_a_placeholder_annotation_stops(tmp_path, monkeypatch):
+    _write(tmp_path, monkeypatch, [_decision()])
+    with pytest.raises(ValueError, match="'xannot-001' is a placeholder annotation"):
+        _load(placeholders={"xannot-001"})
+
+
 def test_content_fingerprint_in_a_1_3_file_passes(tmp_path, monkeypatch):
     doc = _write(tmp_path, monkeypatch, [_decision(inputs_content_sha256=INPUTS["content_sha256"])], version="1.3")
     jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
@@ -491,6 +497,16 @@ def test_faulty_content_fingerprint_stops(tmp_path, monkeypatch, decisions, vers
 def test_carried_decision_in_a_1_4_file_passes(tmp_path, monkeypatch):
     doc = _write(tmp_path, monkeypatch, [_decision(inputs_content_sha256=INPUTS["content_sha256"],
                                                    carried_over_from="a" * 64)], version="1.4")
+    jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
+    labels = _labels()
+    _load(labels)
+    assert labels["anti aav5 antibodies"]["decision"]["carried_over_from"] == "a" * 64
+
+
+def test_carried_decision_in_a_1_5_file_passes(tmp_path, monkeypatch):
+    """1.5 (a carry-over that released changed items) reads like 1.4."""
+    doc = _write(tmp_path, monkeypatch, [_decision(inputs_content_sha256=INPUTS["content_sha256"],
+                                                   carried_over_from="a" * 64)], version="1.5")
     jsonschema.validate(doc, _schema("soa2usdm-activity-grain-decisions.schema.json"))
     labels = _labels()
     _load(labels)

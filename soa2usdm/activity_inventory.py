@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 from .base import PipelineStepBase
 from . import config
 from .index_generator import load_study_metadata, esc, TABLE_TYPE_SHORT
+from .placeholders import display_text
 
 
 def _first_token(value: str) -> str:
@@ -135,12 +136,12 @@ def _collect(collection: str):
                                     if "document_references" in ann_by_id[aid] else {})
                 row_anns = [{"marker": ann_by_id[aid]["annotation_marker"],
                              "table_number": tm.get("table_number"),
-                             "text": ann_by_id[aid]["annotation_text"], **refs(aid)}
+                             "text": display_text(ann_by_id[aid]), **refs(aid)}
                             for aid in row_ids
                             if ann_by_id[aid]["annotation_type"] != "legend"]
                 row_anns += [{"marker": ann_by_id[aid]["annotation_marker"],
                               "table_number": tm.get("table_number"),
-                              "text": ann_by_id[aid]["annotation_text"],
+                              "text": display_text(ann_by_id[aid]),
                               "columns": cols, **refs(aid)}
                              for aid, cols in cell_anns.get(a["activity_id"], {}).items()
                              if aid not in row_ids and ann_by_id[aid]["annotation_type"] != "legend"]

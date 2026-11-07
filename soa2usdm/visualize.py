@@ -20,6 +20,7 @@ from .base import PipelineStepBase
 from . import config
 from .consolidation_corrections import corrections_path
 from .nav import NAV_CSS, nav_block, page_title
+from .placeholders import display_text
 
 
 # =============================================================================
@@ -846,7 +847,7 @@ def gen_annotations_component(data: dict) -> str:
             xannot_id = ua.get('xannot_id', '')
             display_markers = ua.get('display_markers', '')
             occ_count = ua.get('occurrence_count', 1)
-            text = ua.get('annotation_text', '')
+            text = display_text(ua)
             
             # Full text: the grid's note markers link here, so this is where a note is read
             text_display = text
@@ -901,7 +902,7 @@ def gen_annotations_component(data: dict) -> str:
                 <td class="id">{xannot_id} <span class="mk">{note_label(xannot_id)}</span>{back_link}</td>
                 <td class="trace">{esc(display_markers)}</td>
                 <td class="trace">{occ_count}</td>
-                <td class="text-full" title="{esc(text)}">{esc(text_display)}</td>
+                <td class="text-full" title="{esc(text)}">{esc(text_display)}{f'<br><span class="trace">Review note: {esc(ua["review_note"])}</span>' if 'review_note' in ua else ''}</td>
                 <td class="trace">{refs_display}</td>
                 <td class="type">{format_document_references(ua.get('document_references', []))}</td>
             </tr>''')
@@ -960,7 +961,7 @@ def build_note_index(data: dict) -> dict:
            'props': defaultdict(list), 'text': {}}
     for ua in data.get('unified_annotations', []):
         xid = ua['xannot_id']
-        idx['text'][xid] = ua.get('annotation_text', '')
+        idx['text'][xid] = display_text(ua)
         cell_acts = set()
         for cr in ua.get('cell_references', []):
             idx['cells'][(cr['xact_id'], cr['xcol_id'])].append(xid)

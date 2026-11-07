@@ -817,6 +817,8 @@ class UnifiedAnnotation:
     cell_references: list = field(default_factory=list)
     table_scope: bool = False
     document_references: list = field(default_factory=list)
+    placeholder_reason: Optional[str] = None
+    review_note: Optional[str] = None
 
     def add_occurrence(self, table_num: int, marker: str, annot_id: str):
         """Add a source occurrence."""
@@ -865,7 +867,9 @@ class UnifiedAnnotation:
             # Exception-based: present only for a table-wide note (item 25l).
             **({'annotation_scope': 'table'} if self.table_scope else {}),
             # Present only when the text names a numbered target (item 3).
-            **({'document_references': self.document_references} if self.document_references else {})
+            **({'document_references': self.document_references} if self.document_references else {}),
+            **({'placeholder_reason': self.placeholder_reason} if self.placeholder_reason else {}),
+            **({'review_note': self.review_note} if self.review_note is not None else {})
         }
 
 
@@ -995,8 +999,9 @@ class AnnotationConsolidator:
             if xact and xcol:
                 cell_refs.append({'xact_id': xact, 'xcol_id': xcol})
         
-        # Check for existing annotation with same normalized text
-        if normalized in self.text_to_unified:
+        # Check for existing annotation with same normalized text. A placeholder
+        # has no text, so it is never merged with another annotation.
+        if annot_type != 'placeholder' and normalized in self.text_to_unified:
             # Deduplicate: add occurrence to existing
             ua = self.text_to_unified[normalized]
             ua.add_occurrence(table_num, marker, annot_id)
@@ -1028,11 +1033,14 @@ class AnnotationConsolidator:
                 referenced_props=xprops,
                 cell_references=cell_refs,
                 table_scope=table_scope,
-                document_references=[dict(r) for r in annot.get('document_references', [])]
+                document_references=[dict(r) for r in annot.get('document_references', [])],
+                placeholder_reason=annot.get('placeholder_reason'),
+                review_note=annot.get('review_note')
             )
             ua.add_occurrence(table_num, marker, annot_id)
             self.unified_annotations.append(ua)
-            self.text_to_unified[normalized] = ua
+            if annot_type != 'placeholder':
+                self.text_to_unified[normalized] = ua
 
     def get_stats(self) -> dict:
         """Get consolidation statistics."""
@@ -1687,7 +1695,7 @@ def consolidate_tables(protocol_id: str, resolved_files: List[Path],
     # Build output
     return {
         "schema_name": "soa-tables-consolidated",
-        "schema_version": "1.6",
+        "schema_version": "1.7",
         "protocol_id": protocol_id,
         "consolidation_metadata": {
             "consolidated_at": datetime.now(timezone.utc).isoformat(),

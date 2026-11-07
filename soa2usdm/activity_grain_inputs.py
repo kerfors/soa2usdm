@@ -142,7 +142,7 @@ def build_grain_inputs(collection: str, protocol_id: str, lk: ag.Lookups | None 
         for a in cons["unified_annotations"]:
             refs = set(a["referenced_xacts"])
             via = "row" if refs & set(xacts) else ("parent" if refs & parents else None)
-            if via:
+            if via and a["annotation_type"] != "placeholder":
                 annotations.append({"xannot_id": a["xannot_id"], "annotation_type": a["annotation_type"],
                                     "via": via, "text": a["annotation_text"]})
         spellings = set(lab["spellings"])

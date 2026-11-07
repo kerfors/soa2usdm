@@ -36,6 +36,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import config
+from .placeholders import display_text
 from .base import PipelineStepBase
 from .corrections import raw_to_corrections_path, review_status
 from .nav import nav_block
@@ -167,7 +168,8 @@ def _table_model(extraction: dict, sidecar: Path | None, audit_table: dict, pdf:
             else:
                 other.append(entry)
         annotations.append({"marker": an["annotation_marker"], "type": an["annotation_type"],
-                            "text": an["annotation_text"], "rows": rows, "prop_rows": prop_rows,
+                            "text": display_text(an), "review_note": an.get("review_note"),
+                            "rows": rows, "prop_rows": prop_rows,
                             "other": other})
 
     offset = audit_table.get("doc_page_offset")
@@ -806,7 +808,7 @@ function buildNotes(){
    }
    return `${esc(r.type)}${r.row?' row '+r.row:''}${r.col?' col '+r.col:''}`;
   });
-  h+=`<div class="notecard" data-m="${esc(a.marker)}"><span class="m">${esc(a.marker)}</span> <span class="small">${esc(a.type)}</span> <span class="rows">→ ${[...rows,...props,...other].join('; ')||'no row'}</span><div>${esc(a.text)}</div></div>`;
+  h+=`<div class="notecard" data-m="${esc(a.marker)}"><span class="m">${esc(a.marker)}</span> <span class="small">${esc(a.type)}</span> <span class="rows">→ ${[...rows,...props,...other].join('; ')||'no row'}</span><div>${esc(a.text)}</div>${a.review_note?`<div class="small">Review note: ${esc(a.review_note)}</div>`:''}</div>`;
  });
  el.innerHTML=h;
  el.querySelectorAll('.notecard').forEach(c=>c.onclick=()=>showNote(c.dataset.m));

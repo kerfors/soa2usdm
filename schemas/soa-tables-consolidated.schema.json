@@ -23,8 +23,8 @@
     },
     "schema_version": {
       "type": "string",
-      "enum": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"],
-      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. 1.4 adds what the consolidation corrections sidecar (soa-consolidation-corrections) leaves in the output: 'decision' on a source reference or a near match, match_status 'decision', 'refines' / 'refined_by' on a unified activity, 'refines' on a source table, and review_stats / corrections_applied in consolidation_metadata. 1.5 adds document_references on a unified annotation. 1.6: a continuation or domain table's columns join the main columns they repeat (one unified column, several source_columns); the segment 'domain' is no longer produced. Files stamped 1.1 to 1.5 remain valid."
+      "enum": ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"],
+      "description": "Schema version. 1.2 adds property_type 'visit_attribute'. 1.3 adds near_matches on a unified activity and match_status / match_confidence on each source reference; from 1.3 a fuzzy match below the auto threshold is not merged, so review_queue is empty. 1.4 adds what the consolidation corrections sidecar (soa-consolidation-corrections) leaves in the output: 'decision' on a source reference or a near match, match_status 'decision', 'refines' / 'refined_by' on a unified activity, 'refines' on a source table, and review_stats / corrections_applied in consolidation_metadata. 1.5 adds document_references on a unified annotation. 1.6: a continuation or domain table's columns join the main columns they repeat (one unified column, several source_columns); the segment 'domain' is no longer produced. 1.7 adds annotation_type 'placeholder' with placeholder_reason, and review_note, on a unified annotation. Files stamped 1.1 to 1.6 remain valid."
     },
     "protocol_id": {
       "type": "string",
@@ -753,7 +753,14 @@
     },
     "unified_annotation": {
       "type": "object",
-      "description": "An annotation consolidated across tables. Identical text is deduplicated with all source occurrences tracked.",
+      "description": "An annotation consolidated across tables. Identical text is deduplicated with all source occurrences tracked; a placeholder is never deduplicated (it has no text).",
+      "allOf": [
+        {
+          "if": {"properties": {"annotation_type": {"const": "placeholder"}}, "required": ["annotation_type"]},
+          "then": {"required": ["placeholder_reason"], "properties": {"annotation_text": {"const": ""}}},
+          "else": {"not": {"required": ["placeholder_reason"]}}
+        }
+      ],
       "required": [
         "xannot_id",
         "annotation_type",
@@ -768,8 +775,17 @@
         },
         "annotation_type": {
           "type": "string",
-          "enum": ["footnote", "legend", "abbreviation", "source_note", "continuation_note"],
-          "description": "Annotation type classification"
+          "enum": ["footnote", "legend", "abbreviation", "source_note", "continuation_note", "placeholder"],
+          "description": "Annotation type classification. 'placeholder'=a marker with no protocol text behind it (see placeholder_reason); annotation_text is empty."
+        },
+        "placeholder_reason": {
+          "type": "string",
+          "enum": ["redacted", "not_printed", "reviewer_note"],
+          "description": "Present exactly when annotation_type is 'placeholder': why the marker has no protocol text. 'redacted'=the text is covered by a redaction box; 'not_printed'=the marker is printed but its definition is not printed in the source; 'reviewer_note'=a marker synthesized to carry a reviewer's note (the note is in review_note)."
+        },
+        "review_note": {
+          "type": "string",
+          "description": "Text that is not protocol text: a probable equivalent from another table or protocol, a reviewer's finding. Shown on review pages, never read as SoA content (not in grain inputs). Set through a corrections sidecar."
         },
         "annotation_text": {
           "type": "string",
