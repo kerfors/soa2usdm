@@ -47,7 +47,8 @@
         "1.0",
         "1.1",
         "1.2",
-        "1.3"
+        "1.3",
+        "1.4"
       ]
     },
     "collection": {
@@ -237,41 +238,69 @@
       }
     },
     "study": {
-      "type": "object",
-      "required": [
-        "product",
-        "immunogenicity",
-        "endpoint_assays",
-        "genetic_testing"
-      ],
-      "additionalProperties": false,
-      "description": "Protocol context categories with no link to an SoA row, whole.",
-      "properties": {
-        "product": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/context_entry"
-          }
+      "description": "Protocol context categories with no link to an SoA row, whole; which categories depends on the protocol context profile (1.4: general profile added).",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "product",
+            "immunogenicity",
+            "endpoint_assays",
+            "genetic_testing"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "product": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/context_entry"
+              }
+            },
+            "immunogenicity": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/context_entry"
+              }
+            },
+            "endpoint_assays": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/context_entry"
+              }
+            },
+            "genetic_testing": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/context_entry"
+              }
+            }
+          },
+          "title": "cell and gene therapy profile"
         },
-        "immunogenicity": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/context_entry"
-          }
-        },
-        "endpoint_assays": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/context_entry"
-          }
-        },
-        "genetic_testing": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/context_entry"
+        {
+          "title": "general profile (1.4)",
+          "type": "object",
+          "required": [
+            "instruments",
+            "measurements"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "instruments": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/context_entry"
+              }
+            },
+            "measurements": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/context_entry"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "cdisc": {
       "type": "object",

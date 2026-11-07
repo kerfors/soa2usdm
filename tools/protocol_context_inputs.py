@@ -1,5 +1,6 @@
 """
-Prepare the inputs for protocol context extraction (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md).
+Prepare the inputs for protocol context extraction (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md or
+prompts/PROTOCOL_CONTEXT_GENERAL_PROMPT.md; the inputs are the same for both profiles).
 
 For one protocol of a collection, writes:
   {protocol folder}/{NCTID}_pages.txt

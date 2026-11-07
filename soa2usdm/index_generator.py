@@ -815,7 +815,7 @@ def generate_index_html(collection: str) -> str:
     id_cols = 6
     ctx_grp_th = ('<th class="grp" title="Read from the full protocol, beyond the SoA tables">Beyond the SoA</th>'
                   if has_context else '')
-    ctx_th = ('<th class="grp-start" title="Protocol context per study (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md): page and JSON">Protocol context</th>'
+    ctx_th = ('<th class="grp-start" title="Protocol context per study (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md or PROTOCOL_CONTEXT_GENERAL_PROMPT.md): page and JSON">Protocol context</th>'
               if has_context else '')
     grain_grp_th = (f'<th class="grp" colspan="{1 + has_routing}" title="Early work towards CDISC: which rows are findings, of which kind, and in which SDTMIG v3.4 domain">Towards CDISC</th>'
                     if has_grain else '')

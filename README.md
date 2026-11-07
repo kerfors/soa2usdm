@@ -60,6 +60,7 @@ soa2usdm/
 │   ├── usdm-manifest.schema.json            # USDM Instantiation manifest
 │   ├── soa2usdm-activity-inventory.schema.json  # Activity inventory (activities.json)
 │   ├── soa2usdm-protocol-context-cgt.schema.json  # Protocol context beyond the SoA (CGT profile)
+│   ├── soa2usdm-protocol-context-general.schema.json  # Protocol context beyond the SoA (general profile)
 │   ├── soa2usdm-activity-grain.schema.json  # Activity grain per study
 │   ├── soa2usdm-activity-grain-inputs.schema.json  # Inputs of the grain decisions prompt, per study
 │   ├── soa2usdm-activity-grain-decisions.schema.json  # Activity grain decisions sidecar
@@ -70,6 +71,7 @@ soa2usdm/
 │   ├── EXTRACTION_WORKFLOW_GUIDE.md          # How to run extraction and the pipeline
 │   ├── PDF_TO_JSON_PROMPT.md                 # Layer 1 extraction, single pass
 │   ├── PROTOCOL_CONTEXT_CGT_PROMPT.md        # Protocol context beyond the SoA (cell and gene therapy)
+│   ├── PROTOCOL_CONTEXT_GENERAL_PROMPT.md    # Protocol context beyond the SoA (general profile)
 │   └── ACTIVITY_GRAIN_DECISIONS_PROMPT.md    # Grain and kind for what the grain rules leave to decide
 │
 ├── documents/
@@ -140,6 +142,7 @@ soa2usdm/
 │   ├── test_activity_grain_inputs.py  # Grain inputs: items, stable rebuild, pointers, stale inputs stop the generator
 │   ├── test_activity_routing.py     # Routing rules and status, public-only guard, published routing files
 │   ├── test_panel_context_members.py  # Name rule, members from protocol context, published panel files
+│   ├── test_protocol_context_profiles.py  # Protocol context profiles: general schema, checker, page, grain inputs
 │   └── fixtures/                    # Golden protocols (JSON only), negative controls, pages — tests run standalone
 │
 └── pyproject.toml
@@ -154,7 +157,7 @@ Attach the prompt file + your data to a new Claude conversation. See [`prompts/E
 The `soa2usdm/` package implements all processing steps. Use `01_batch.ipynb` to run across a protocol collection — set `COLLECTION` in the config cell and execute.
 
 **Protocol context (Claude, then Python):**
-Per protocol, beyond the SoA tables: `tools/protocol_context_inputs.py` prepares the inputs, a Claude session runs [`prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md`](prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md) (cell and gene therapy profile: product, immunogenicity, panels, assays, abbreviations and more, each value with its page and quote), and `tools/check_protocol_context.py` checks the result. Output: `SoA2USDM/context/{NCTID}_protocol_context.json`, shown on the collection index (column "Protocol context"). See [`tools/README.md`](tools/README.md).
+Per protocol, beyond the SoA tables: `tools/protocol_context_inputs.py` prepares the inputs, a Claude session runs [`prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md`](prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md) (cell and gene therapy profile: product, immunogenicity, panels, assays, abbreviations and more, each value with its page and quote) or [`prompts/PROTOCOL_CONTEXT_GENERAL_PROMPT.md`](prompts/PROTOCOL_CONTEXT_GENERAL_PROMPT.md) (general profile: panels, instruments, measurement composition, lab and purpose, cross-references, abbreviations; the shared categories have the same shapes), and `tools/check_protocol_context.py` checks the result. Output: `SoA2USDM/context/{NCTID}_protocol_context.json`, shown on the collection index (column "Protocol context"). See [`tools/README.md`](tools/README.md).
 
 **Activity grain (Python):**
 `python -m soa2usdm.activity_grain --collection <name> [--protocol <NCTID>]` tags every activity of a study with its grain (named test, panel, procedure, instrument, sample collection, other, unsure) and, for a named test, the kind of finding. Each tag cites its rule and its public cdisc-for-ai lookup hits. A decisions file per study holds AI proposals and reviews for what the rules leave open; the AI proposals come from [`prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md`](prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md), run on inputs gathered by code (`python -m soa2usdm.activity_grain_inputs`). Output: `SoA2USDM/grain/`, with a page per study (shared navigation, linked from the collection index and the Activities page). Needs the `grain` extra and a cdisc-for-ai checkout next to this repo. See [`documents/activity-grain.md`](documents/activity-grain.md).

@@ -1,6 +1,6 @@
 # Activity grain decisions — grain and kind for what the rules leave to decide
 
-Prompt version: 1.5.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.3 · Output schema: `soa2usdm-activity-grain-decisions` 1.3
+Prompt version: 1.6.0 · Input schema: `soa2usdm-activity-grain-inputs` 1.4 · Output schema: `soa2usdm-activity-grain-decisions` 1.3
 
 You decide the grain of SoA activities of ONE study and, for a named test, the kind of finding. The grain rules of
 `soa2usdm.activity_grain` have already run; you decide only the labels they left to decide. Every decision cites what it rests on, and
@@ -20,8 +20,8 @@ nothing else: not the protocol PDF, not other files of the repositories, not CDI
   - `rule`: the rule result (rule_id, lookup hits, qualifiers, list members, flags, kind domains);
   - `annotations`: SoA footnotes bound to the rows (`via: row`) or to their parent (`via: parent`), with `xannot_id`;
   - `lab_and_purpose`, `abbreviations`: protocol context entries for this label, each with its `pointer`.
-- `study`: protocol context entries with no link to an SoA row (product, immunogenicity, endpoint_assays, genetic_testing), each with its
-  `pointer`. An entry applies to an item only when its own wording matches the item (same analyte, assay, target or specimen); say which
+- `study`: protocol context entries with no link to an SoA row, each with its `pointer`: product, immunogenicity, endpoint_assays,
+  genetic_testing (cell and gene therapy profile) or instruments, measurements (general profile). An entry applies to an item only when its own wording matches the item (same analyte, assay, target or specimen); say which
   words match in the rationale.
 - `cdisc.domains[]`: every Domain_Coverage row with the `kind` it gives (`null` = no kind). `cdisc.tests[]`: test rows the rules hit.
 
@@ -92,7 +92,7 @@ SDTMIG statement or a protocol fact, the kind is `unsure` with `kind_candidates`
                 {"type": "cdisc", "file": "Domain_Coverage", "domain": "IS"}],
       "proposed_by": "<model id>",
       "proposed_at": "YYYY-MM-DD",
-      "prompt_version": "1.5.0",
+      "prompt_version": "1.6.0",
       "inputs_content_sha256": "<content_sha256 of the inputs file, copied>"
     }
   ]

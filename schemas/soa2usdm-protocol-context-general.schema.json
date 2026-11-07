@@ -1,0 +1,521 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/kerstinforsberg/soa2usdm/schemas/soa2usdm-protocol-context-general.schema.json",
+  "title": "soa2usdm protocol context — general profile",
+  "description": "Output of prompts/PROTOCOL_CONTEXT_GENERAL_PROMPT.md. Values are protocol wording; null = not stated. No CDISC classification. cross_references, abbreviations, panels and lab_and_purpose have the shapes of the cell and gene therapy profile (soa2usdm-protocol-context-cgt); instruments and measurements are this profile's own.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_name",
+    "schema_version",
+    "nct_id",
+    "document",
+    "pages_covered",
+    "page_numbers",
+    "provenance",
+    "cross_references",
+    "abbreviations",
+    "panels",
+    "lab_and_purpose",
+    "instruments",
+    "measurements",
+    "notes"
+  ],
+  "properties": {
+    "schema_name": {
+      "const": "soa2usdm-protocol-context-general"
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "nct_id": {
+      "type": "string",
+      "pattern": "^NCT[0-9]{8}$"
+    },
+    "document": {
+      "type": "string"
+    },
+    "pages_covered": {
+      "type": "string",
+      "pattern": "^[0-9]+-[0-9]+$"
+    },
+    "page_numbers": {
+      "type": "string"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt_version",
+        "model",
+        "extracted_at",
+        "pdf_sha256",
+        "pages_file_sha256"
+      ],
+      "properties": {
+        "prompt_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "model": {
+          "type": "string"
+        },
+        "extracted_at": {
+          "type": "string"
+        },
+        "pdf_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "pages_file_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "cross_references": {
+      "type": "array",
+      "description": "One entry per soa_cross_references input item.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "soa_note",
+          "target_as_printed",
+          "target_found",
+          "target_heading",
+          "target_page",
+          "what_it_says",
+          "evidence"
+        ],
+        "properties": {
+          "soa_note": {
+            "type": "string"
+          },
+          "target_as_printed": {
+            "type": "string"
+          },
+          "target_found": {
+            "type": "boolean"
+          },
+          "target_heading": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "what_it_says": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "abbreviations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "term",
+          "definition",
+          "page"
+        ],
+        "properties": {
+          "term": {
+            "type": "string"
+          },
+          "definition": {
+            "type": "string"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "read_from": {
+            "type": "string",
+            "enum": [
+              "text layer",
+              "page image"
+            ],
+            "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+          }
+        }
+      }
+    },
+    "panels": {
+      "type": "array",
+      "description": "Lab panel composition.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "panel_name",
+          "analytes",
+          "specimen",
+          "lab",
+          "evidence"
+        ],
+        "properties": {
+          "panel_name": {
+            "type": "string"
+          },
+          "analytes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "specimen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lab": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lab_and_purpose": {
+      "type": "array",
+      "description": "SoA activities the text speaks to.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "soa_activity",
+          "lab",
+          "purpose",
+          "specimen",
+          "method",
+          "evidence"
+        ],
+        "properties": {
+          "soa_activity": {
+            "type": "string"
+          },
+          "lab": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "specimen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "instruments": {
+      "type": "array",
+      "description": "Questionnaires, rating scales, diaries, performance status and other instruments named for SoA activities.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "abbreviation",
+          "version",
+          "type",
+          "respondent_or_rater",
+          "recall_period",
+          "mode",
+          "scoring_or_range",
+          "purpose",
+          "soa_activities",
+          "evidence"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "abbreviation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "respondent_or_rater": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recall_period": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scoring_or_range": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "purpose": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "soa_activities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Exact names from soa_activities."
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "measurements": {
+      "type": "array",
+      "description": "What a measurement or examination group includes (vital signs, body measurements, ECG, physical examination).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "components",
+          "position_or_condition",
+          "method",
+          "units",
+          "soa_activities",
+          "evidence"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "position_or_condition": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "units": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "soa_activities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Exact names from soa_activities."
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "page",
+                "quote"
+              ],
+              "properties": {
+                "page": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "read_from": {
+                  "type": "string",
+                  "enum": [
+                    "text layer",
+                    "page image"
+                  ],
+                  "description": "Default text layer. 'page image' = page has no text layer; read visually; not checked by the quote checker."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

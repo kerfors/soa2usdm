@@ -1,5 +1,6 @@
 """
-Per-protocol page for the protocol context (soa2usdm-protocol-context-cgt).
+Per-protocol page for the protocol context, either profile: soa2usdm-protocol-context-cgt (cell and
+gene therapy) or soa2usdm-protocol-context-general (schema_name tells which).
 
 Renders SoA2USDM/context/{pid}_protocol_context.json as
 SoA2USDM/context/{pid}_protocol_context.html, with the shared navigation block (soa2usdm.nav).
@@ -21,11 +22,10 @@ from pathlib import Path
 from . import config
 from .nav import NAV_CSS, nav_block, page_title
 
-SCHEMA_NAME = "soa2usdm-protocol-context-cgt"
 PAGE_LABEL = "protocol context"
 
 # (key, heading, fields shown as columns — in schema order, evidence last)
-SECTIONS = [
+CGT_SECTIONS = [
     ("product", "Product", ["name", "other_names", "type", "vector_or_capsid", "transgene", "manufacturing_or_source"]),
     ("immunogenicity", "Immunogenicity", ["measure", "target", "specimen", "method", "units", "purpose", "timing", "lab"]),
     ("panels", "Lab panels", ["panel_name", "analytes", "specimen", "lab"]),
@@ -34,6 +34,16 @@ SECTIONS = [
     ("lab_and_purpose", "Lab and purpose per SoA activity", ["soa_activity", "lab", "purpose", "specimen", "method"]),
     ("cross_references", "SoA cross-references", ["soa_note", "target_as_printed", "target_found", "target_heading", "target_page", "what_it_says"]),
 ]
+GENERAL_SECTIONS = [
+    ("panels", "Lab panels", ["panel_name", "analytes", "specimen", "lab"]),
+    ("instruments", "Instruments", ["name", "abbreviation", "version", "type", "respondent_or_rater", "recall_period", "mode",
+                                    "scoring_or_range", "purpose", "soa_activities"]),
+    ("measurements", "Measurements", ["name", "components", "position_or_condition", "method", "units", "soa_activities"]),
+    ("lab_and_purpose", "Lab and purpose per SoA activity", ["soa_activity", "lab", "purpose", "specimen", "method"]),
+    ("cross_references", "SoA cross-references", ["soa_note", "target_as_printed", "target_found", "target_heading", "target_page", "what_it_says"]),
+]
+# Profile (schema_name) -> its sections
+PROFILES = {"soa2usdm-protocol-context-cgt": CGT_SECTIONS, "soa2usdm-protocol-context-general": GENERAL_SECTIONS}
 
 
 def esc(v) -> str:
@@ -94,8 +104,9 @@ def _abbreviations(items: list) -> str:
 def render(protocol_id: str, collection: str) -> Path:
     src, out = context_paths(protocol_id, collection)
     d = json.loads(src.read_text(encoding="utf-8"))
-    if d.get("schema_name") != SCHEMA_NAME:
-        raise ValueError(f"{src}: schema_name {d.get('schema_name')!r}, expected {SCHEMA_NAME!r}")
+    if d.get("schema_name") not in PROFILES:
+        raise ValueError(f"{src}: schema_name {d.get('schema_name')!r}, expected one of {sorted(PROFILES)}")
+    SECTIONS = PROFILES[d["schema_name"]]
     depth = len(out.relative_to(config.get_collection_path(collection)).parts) - 1
     nav = nav_block(collection, protocol_id, PAGE_LABEL, depth=depth, current=("context", None))
     p = d["provenance"]

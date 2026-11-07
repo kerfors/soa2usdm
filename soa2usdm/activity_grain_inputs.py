@@ -5,7 +5,7 @@ Gathers, by code, everything the activity grain decisions prompt
 (prompts/ACTIVITY_GRAIN_DECISIONS_PROMPT.md) may use for one study, into one
 self-contained file:
 
-    SoA2USDM/grain/<id>_grain_inputs.json   (schema soa2usdm-activity-grain-inputs 1.3)
+    SoA2USDM/grain/<id>_grain_inputs.json   (schema soa2usdm-activity-grain-inputs 1.4)
 
 The prompt reads this file and nothing else. The generator
 (soa2usdm.activity_grain) accepts an ai_proposed decision only for a phrase
@@ -29,8 +29,9 @@ Per item: the label's spellings and rows (xact_id, parent), the rule result,
 the SoA annotations bound to its rows or to their parents, the protocol context
 entries of category lab_and_purpose whose soa_activity is one of its
 spellings, and the abbreviations whose term occurs in the label. Per study:
-the protocol context categories that have no link to an SoA row (product,
-immunogenicity, endpoint_assays, genetic_testing), whole. CDISC: every
+the protocol context categories that have no link to an SoA row, whole: for the
+cell and gene therapy profile product, immunogenicity, endpoint_assays,
+genetic_testing; for the general profile (1.4) instruments, measurements. CDISC: every
 Domain_Coverage row with the kind it gives, and the test / instrument rows the
 rules hit for the items. Every context entry carries its JSON Pointer, so a
 decision can cite it.
@@ -54,11 +55,13 @@ from . import activity_grain as ag
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain-inputs"
-SCHEMA_VERSION = "1.3"
+SCHEMA_VERSION = "1.4"
 # What the prompt decides from; content_sha256 covers these keys only (not sources).
 CONTENT_KEYS = ("collection", "protocol_id", "items", "study", "cdisc")
 ITEM_TYPES = ("grain unsure", "kind unsure", "sample collection", "procedure by word list", "peeled test")
-STUDY_CATEGORIES = ("product", "immunogenicity", "endpoint_assays", "genetic_testing")
+# Protocol context profile (schema_name) -> its categories with no link to an SoA row (1.4: per profile)
+STUDY_CATEGORIES = {"soa2usdm-protocol-context-cgt": ("product", "immunogenicity", "endpoint_assays", "genetic_testing"),
+                    "soa2usdm-protocol-context-general": ("instruments", "measurements")}
 RULE_KEYS_LEFT_OUT = ("phrase", "spellings", "decision")
 
 
@@ -166,7 +169,7 @@ def build_grain_inputs(collection: str, protocol_id: str, lk: ag.Lookups | None 
             "rules_version": g["rules_version"], "word_lists_date": g["word_lists_date"],
         },
         "items": items,
-        "study": {c: _entries(ctx, c) for c in STUDY_CATEGORIES},
+        "study": {c: _entries(ctx, c) for c in STUDY_CATEGORIES[ctx["schema_name"]]},
         "cdisc": {"domains": domains, "tests": [test_rows[k] for k in sorted(test_rows)]},
     }
     doc["content_sha256"] = content_sha256(doc)

@@ -1,7 +1,8 @@
 """
-Check a protocol context file (soa2usdm-protocol-context-cgt) against its sources.
+Check a protocol context file against its sources. Two profiles, told apart by schema_name:
+soa2usdm-protocol-context-cgt (cell and gene therapy) and soa2usdm-protocol-context-general.
 
-  1. The file validates against schemas/soa2usdm-protocol-context-cgt.schema.json.
+  1. The file validates against its profile's schema (schemas/<schema_name>.schema.json).
   2. Every evidence quote is found on the page it cites in {NCTID}_pages.txt
      (whitespace collapsed on both sides, soft hyphens and ligatures folded; nothing else).
   3. Every abbreviation's term and definition are found on its cited page.
@@ -29,9 +30,13 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from soa2usdm import config  # noqa: E402
 
-SCHEMA = ROOT / "schemas" / "soa2usdm-protocol-context-cgt.schema.json"
-EVIDENCE_CATS = ["product", "immunogenicity", "cross_references", "panels",
-                 "endpoint_assays", "genetic_testing", "lab_and_purpose"]
+# Profile (schema_name) -> the categories whose items carry evidence (abbreviations are checked apart).
+EVIDENCE_CATS = {
+    "soa2usdm-protocol-context-cgt": ["product", "immunogenicity", "cross_references", "panels",
+                                      "endpoint_assays", "genetic_testing", "lab_and_purpose"],
+    "soa2usdm-protocol-context-general": ["cross_references", "panels", "lab_and_purpose",
+                                          "instruments", "measurements"],
+}
 
 
 def norm(s: str) -> str:
@@ -47,14 +52,17 @@ def read_pages(path: Path) -> dict:
 
 def check(ctx_path: Path, pages_path: Path) -> list:
     d = json.loads(ctx_path.read_text(encoding="utf-8"))
-    fails = [("schema", None, None, e.message[:160])
-             for e in jsonschema.Draft7Validator(json.loads(SCHEMA.read_text(encoding="utf-8"))).iter_errors(d)]
+    profile = d.get("schema_name")
+    if profile not in EVIDENCE_CATS:
+        raise ValueError(f"{ctx_path}: schema_name {profile!r}, expected one of {sorted(EVIDENCE_CATS)}")
+    schema = json.loads((ROOT / "schemas" / f"{profile}.schema.json").read_text(encoding="utf-8"))
+    fails = [("schema", None, None, e.message[:160]) for e in jsonschema.Draft7Validator(schema).iter_errors(d)]
     sha = hashlib.sha256(pages_path.read_bytes()).hexdigest()
     if d.get("provenance", {}).get("pages_file_sha256") != sha:
         fails.append(("provenance", None, None, "pages_file_sha256 does not match the pages file"))
     P = read_pages(pages_path)
     visual = []
-    for cat in EVIDENCE_CATS:
+    for cat in EVIDENCE_CATS[profile]:
         for i, it in enumerate(d.get(cat, [])):
             ev = it.get("evidence", [])
             if not ev and (cat != "cross_references" or it.get("target_found")):
@@ -89,7 +97,7 @@ def main():
             raise FileNotFoundError(f)
     fails, visual = check(ctx, pages)
     d = json.loads(ctx.read_text(encoding="utf-8"))
-    counts = {c: len(d.get(c, [])) for c in EVIDENCE_CATS + ["abbreviations"]}
+    counts = {c: len(d.get(c, [])) for c in EVIDENCE_CATS[d["schema_name"]] + ["abbreviations"]}
     print(f"{a.protocol}: {len(fails)} failing; {len(visual)} read from page images (not checked); counts {counts}")
     for f in fails:
         print("  FAIL", f)
