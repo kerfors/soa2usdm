@@ -295,6 +295,18 @@ def test_routing_file_validates(path):
 
 
 @pytest.mark.parametrize("path", ROUTING_FILES, ids=lambda p: p.name)
+def test_routing_file_counts_by_unit(path):
+    """1.7: the standalone and member counts add up to the status counts and match the rows."""
+    d = json.loads(path.read_text())
+    bu = d["counts"]["by_unit"]
+    for st in ar.STATUSES:
+        assert bu["standalone"][st] + bu["member"][st] == d["counts"][st]
+    assert bu == {"standalone": ar.unit_counts([r for r in d["rows"] if "member_id" not in r]),
+                  "member": ar.unit_counts([r for r in d["rows"] if "member_id" in r])}
+    assert sum(bu["member"][st] for st in ar.STATUSES) == d["counts"]["rows_from_panel_members"]
+
+
+@pytest.mark.parametrize("path", ROUTING_FILES, ids=lambda p: p.name)
 def test_routing_file_consistent(path):
     """Statement texts match their sha256; every cited statement is quoted; a matched phrase occurs in its
     source; an annotation match points to a footnote referencing the row or its parent."""

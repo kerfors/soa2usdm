@@ -116,7 +116,7 @@ rows fall back to the grain kind (status `not routed`).
 
 ```
 {NCTID}/SoA2USDM/routing/
-├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.6; earlier files stay valid)
+├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.7; earlier files stay valid)
 └── {NCTID}_activity_routing.html   # page, rendered with the collection index
 {NCTID}/SoA2USDM/panels/
 └── {NCTID}_panel_context_members.json   # only where protocol context exists (schema soa2usdm-panel-context-members 1.0)
@@ -128,6 +128,7 @@ rows fall back to the grain kind (status `not routed`).
 - `fallback_excluded`: PP, with PP-OV and PP-A1;
 - `statements`: each cited statement once, verbatim, with source, section, page and text sha256;
 - `counts`: rows, not reached, one count per status, and the routed rows routed by test identity (strong, and 1.2 weak);
+  `counts.by_unit` (1.7) gives the same status counts for standalone rows and for panel member rows apart;
 - `rows[]`: one per routed named test, with the grain kind, status, domain or candidates, hints, the basis (rule, statements,
   matched phrases with where they matched), the rules set aside, the fallback, the question, `route_source` (rule, test
   identity, or test identity, weak hit) and `test_identity` (the label's SDTM_Test_Identity hits: strength, domains, codes);

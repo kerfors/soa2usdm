@@ -63,7 +63,7 @@ Input: the study's grain file (checked current, activity_grain.load_current_grai
 and its consolidated.json (parents, annotations).
 
 Output: SoA2USDM/routing/<id>_activity_routing.json (schema_name
-soa2usdm-activity-routing, schema_version 1.6). Design: documents/activity-routing.md.
+soa2usdm-activity-routing, schema_version 1.7). Design: documents/activity-routing.md.
 """
 
 import hashlib
@@ -78,8 +78,8 @@ from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_curre
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.6"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6")
+SCHEMA_VERSION = "1.7"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7")
 RULES_VERSION = "1.7.0"
 
 LOOKUP_FILES = {
@@ -623,7 +623,9 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
                                                          and r["route_source"] == "test identity, weak hit"),
                      "rows_from_panel_members": sum(1 for r in rows if "member_id" in r),
                      "rows_from_context_members": sum(1 for r in rows
-                                                      if r.get("members_from") == "protocol context")},
+                                                      if r.get("members_from") == "protocol context"),
+                     "by_unit": {"standalone": unit_counts([r for r in rows if "member_id" not in r]),
+                                 "member": unit_counts([r for r in rows if "member_id" in r])}},
         "rows": rows,
         "not_reached": not_reached,
     }
@@ -652,6 +654,15 @@ def load_current_routing(collection: str, protocol_id: str) -> dict | None:
         raise RuntimeError(f"{path}: stale ({', '.join(changed)} changed since it was generated); rerun: "
                            f"python -m soa2usdm.activity_routing --collection {collection} --protocol {protocol_id}")
     return d
+
+
+def unit_counts(rows: list) -> dict:
+    """1.7: one count per status and the routed rows by test identity, for one unit (standalone or member rows)."""
+    return ({st: sum(1 for r in rows if r["status"] == st) for st in STATUSES}
+            | {"routed_by_test_identity": sum(1 for r in rows if r["status"] == "routed"
+                                              and r["route_source"] == "test identity"),
+               "routed_by_weak_test_identity": sum(1 for r in rows if r["status"] == "routed"
+                                                   and r["route_source"] == "test identity, weak hit")})
 
 
 def write_study_routing(collection: str, protocol_id: str, lk: RoutingLookups | None = None,

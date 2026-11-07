@@ -20,6 +20,44 @@
   ],
   "additionalProperties": false,
   "definitions": {
+    "unit_counts": {
+      "type": "object",
+      "required": [
+        "routed",
+        "open",
+        "weak",
+        "not routed",
+        "routed_by_test_identity",
+        "routed_by_weak_test_identity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "routed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "open": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "weak": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not routed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "routed_by_test_identity": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "routed_by_weak_test_identity": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
     "statement_ref": {
       "type": "object",
       "required": [
@@ -571,7 +609,8 @@
         "1.3",
         "1.4",
         "1.5",
-        "1.6"
+        "1.6",
+        "1.7"
       ]
     },
     "collection": {
@@ -832,6 +871,23 @@
           "type": "integer",
           "minimum": 0,
           "description": "1.5: member rows whose members come from protocol context (included in rows_from_panel_members)."
+        },
+        "by_unit": {
+          "type": "object",
+          "description": "1.7: the status counts split into standalone rows and panel member rows (published figures are always split).",
+          "required": [
+            "standalone",
+            "member"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "standalone": {
+              "$ref": "#/definitions/unit_counts"
+            },
+            "member": {
+              "$ref": "#/definitions/unit_counts"
+            }
+          }
         }
       }
     },

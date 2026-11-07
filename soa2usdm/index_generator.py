@@ -760,14 +760,19 @@ def generate_index_html(collection: str) -> str:
                           f'<br><span class="grain-n">{bg["named test"]} named test{"" if bg["named test"] == 1 else "s"} · {bg["unsure"]} unsure</span>')
         grain_td = f'\n            <td class="viz grp-start">{grain_html}</td>' if has_grain else ''
 
-        # Activity routing column: the page and JSON, with the count per status.
+        # Activity routing column: the page and JSON, with the count per status, split into standalone
+        # rows (S) and panel member rows (M) (routing 1.7, counts.by_unit); statuses with no rows left out.
         routing_html = ''
         r = routing.get(nct)
         if r:
-            rc = r['counts']
+            bu = r['counts']['by_unit']
+            unit_txt = {u: ' · '.join(f'{bu[u][st]} {st}' for st in ('routed', 'open', 'weak', 'not routed')
+                                      if bu[u][st]) or 'none'
+                        for u in ('standalone', 'member')}
             routing_html = (f'<a href="{p["activity_routing"]}" class="link-table" title="Activity routing per named test: SDTMIG v3.4 domain, or candidates with the question that stays open (public SDTMIG v3.4 statements and SDTM test codes only)">routing</a>'
                             f' <a href="{p["activity_routing_json"]}" class="link-json" title="Activity routing JSON">json</a>'
-                            f'<br><span class="grain-n">{rc["routed"]} routed · {rc["open"]} open<br>{rc["weak"]} weak · {rc["not routed"]} not routed</span>')
+                            f'<br><span class="grain-n"><abbr title="standalone named-test rows">S</abbr>: {unit_txt["standalone"]}'
+                            f'<br><abbr title="panel member rows">M</abbr>: {unit_txt["member"]}</span>')
         routing_td = f'\n            <td class="viz">{routing_html}</td>' if has_routing else ''
 
         # USDM readiness column
@@ -821,7 +826,7 @@ def generate_index_html(collection: str) -> str:
                     if has_grain else '')
     grain_th = ('<th class="grp-start" title="Activity grain per study (documents/activity-grain.md): JSON, and named tests / unsure on the Activities page">Activity grain</th>'
                 if has_grain else '')
-    routing_th = ('<th title="Activity routing per study (documents/activity-routing.md): page and JSON, named tests by status (routed, open, weak, not routed)">Activity routing</th>'
+    routing_th = ('<th title="Activity routing per study (documents/activity-routing.md): page and JSON, named tests by status (routed, open, weak, not routed), standalone rows (S) and panel member rows (M) apart">Activity routing</th>'
                   if has_routing else '')
     
     css = """

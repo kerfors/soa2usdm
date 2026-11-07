@@ -127,19 +127,23 @@ def render(protocol_id: str, collection: str) -> Path:
                 if d["inputs"].get("panel_context_members") else "")
     c = d["counts"]
     cdisc = d["inputs"]["cdisc_for_ai"]
-    by_ti = c.get("routed_by_test_identity")
-    by_weak = c.get("routed_by_weak_test_identity")
-    by = ", ".join(t for t in ((f"{by_ti} by test code" if by_ti else ""),
-                               (f"{by_weak} by weak test code" if by_weak else "")) if t)
-    from_members = c.get("rows_from_panel_members")
-    from_context = c.get("rows_from_context_members")
-    summary = (f'<b>{c["rows"]} named tests</b>'
-               + (f' ({from_members} from panel members' + (f', {from_context} of them from protocol context'
-                                                            if from_context else "") + ')' if from_members else "")
-               + ' · '
-               + " · ".join(f'{st} {c[st]}' + (f' ({by})' if st == "routed" and by else "")
-                            for st in STATUSES)
-               + f' · not reached {c["not_reached"]}')
+    from_members = c["rows_from_panel_members"]
+    from_context = c["rows_from_context_members"]
+
+    def unit_line(label: str, n: int, u: dict, note: str = "") -> str:
+        by = ", ".join(t for t in ((f'{u["routed_by_test_identity"]} by test code'
+                                    if u["routed_by_test_identity"] else ""),
+                                   (f'{u["routed_by_weak_test_identity"]} by weak test code'
+                                    if u["routed_by_weak_test_identity"] else "")) if t)
+        return (f'<div><b>{label} {n}</b>{note}: '
+                + " · ".join(f'{st} {u[st]}' + (f' ({by})' if st == "routed" and by else "") for st in STATUSES)
+                + '</div>')
+
+    # 1.7: published figures are always split into standalone rows and panel member rows.
+    summary = (unit_line("standalone named tests", c["rows"] - from_members, c["by_unit"]["standalone"])
+               + unit_line("panel members", from_members, c["by_unit"]["member"],
+                           f' ({from_context} from protocol context)' if from_context else "")
+               + f'<div class="ns">not reached {c["not_reached"]}</div>')
 
     order = {st: i for i, st in enumerate(("open", "weak", "routed", "not routed"))}
     rows = []
@@ -169,7 +173,7 @@ def render(protocol_id: str, collection: str) -> Path:
         rid = r["xact_id"] + (f'.{r["member_id"]}' if "member_id" in r else "")
         q = f'<div class="q">{esc(r["question"])}</div>' if r["question"] else ""
         rows.append(
-            f'<tr id="{esc(rid)}" data-s="{esc(r["status"])}">'
+            f'<tr id="{esc(rid)}" data-s="{esc(r["status"])}" data-u="{"member" if "member_id" in r else "standalone"}">'
             f'<td class="x">{esc(rid)}</td>'
             f'<td class="act"><a href="{grain_html}#{esc(r["xact_id"])}" title="Show on the grain page">{esc(r["activity_name"])}</a>{parent}</td>'
             f'<td class="k">{kind}</td>'
@@ -247,7 +251,8 @@ replication-competent vectors). It is not used here; <a href="{MEMBERS_URL}">wha
 </header>
 <section>
 <div class="ctl"><input id="q" type="search" placeholder="Search activity, rule, statement, phrase…" aria-label="Search">
-<select id="sf" aria-label="Status"><option value="">all statuses</option>{options}</select><span id="n"></span></div>
+<select id="sf" aria-label="Status"><option value="">all statuses</option>{options}</select>
+<select id="uf" aria-label="Standalone or panel member"><option value="">standalone and members</option><option value="standalone">standalone</option><option value="member">panel members</option></select><span id="n"></span></div>
 <div class="tw"><table><thead><tr><th>row</th><th>activity</th><th>grain kind</th><th>status</th><th>domain</th><th>question · basis</th></tr></thead>
 <tbody id="tb">{"".join(rows)}</tbody></table></div>
 </section>
@@ -261,15 +266,17 @@ replication-competent vectors). It is not used here; <a href="{MEMBERS_URL}">wha
 {sts}
 </section>
 <script>
-  const q = document.getElementById('q'), sf = document.getElementById('sf'), n = document.getElementById('n');
+  const q = document.getElementById('q'), sf = document.getElementById('sf'), uf = document.getElementById('uf'),
+        n = document.getElementById('n');
   const rows = [...document.querySelectorAll('#tb tr')];
   function apply() {{
-    const s = q.value.trim().toLowerCase(), f = sf.value; let k = 0;
-    rows.forEach(r => {{ const on = (!f || r.dataset.s === f) && (!s || r.textContent.toLowerCase().includes(s));
+    const s = q.value.trim().toLowerCase(), f = sf.value, u = uf.value; let k = 0;
+    rows.forEach(r => {{ const on = (!f || r.dataset.s === f) && (!u || r.dataset.u === u)
+                                   && (!s || r.textContent.toLowerCase().includes(s));
                         r.style.display = on ? '' : 'none'; k += on; }});
     n.textContent = k + ' of ' + rows.length + ' named tests';
   }}
-  q.addEventListener('input', apply); sf.addEventListener('change', apply); apply();
+  q.addEventListener('input', apply); sf.addEventListener('change', apply); uf.addEventListener('change', apply); apply();
 </script>
 </body>
 </html>
