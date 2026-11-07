@@ -22,14 +22,15 @@ import json
 from pathlib import Path
 
 from . import config
-from .activity_routing import RULES, SCHEMA_NAME, STATUSES, sha256_text
+from .activity_routing import PANEL_RULES, RULES, SCHEMA_NAME, STATUSES, sha256_text
 from .nav import NAV_CSS, nav_block, page_title
 
 PAGE_LABEL = "activity routing"
 DOC_URL = "https://github.com/kerfors/soa2usdm/blob/main/documents/activity-routing.md"
 MEMBERS_URL = DOC_URL + "#members-only-material"
-WHERE_LABEL = {"label": "activity label", "parent_label": "parent label", "annotation": "footnote"}
-RULE_BY_ID = {r["rule_id"]: r for r in RULES}
+WHERE_LABEL = {"label": "activity label", "parent_label": "parent label", "annotation": "footnote",
+               "panel_label": "panel label"}
+RULE_BY_ID = {r["rule_id"]: r for r in RULES + PANEL_RULES}
 
 
 def esc(v) -> str:

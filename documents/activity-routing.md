@@ -76,6 +76,7 @@ sha256 of their text. The routing file quotes each cited statement once, so the 
 | RT-8 | microbial Ag/Ab combination | Ag/Ab | IS-A5 → MB (sets RT-1 aside, as IS-A5 states the exception) | — |
 | RT-9 | therapeutic drug level | pharmacokinetics, PK, drug level | PC-OV → PC | — |
 | RT-10 | routine laboratory test | hematology, clinical chemistry, urinalysis | LB-OV → LB | — |
+| RT-11 | vital-sign measurement in a vital-signs panel (panel rule) | member: blood pressure, BP, SBP, DBP, systolic, diastolic, temperature, temp, respiration, respiratory rate, RR, body surface area, BSA, body mass index, BMI, height, weight; panel label: vital sign(s) | VS-OV → VS | — |
 
 Notes on the rules:
 - RT-1 routes to IS without a condition. Each kind of induced antibody falls under one of the cited assumptions: induced by
@@ -90,6 +91,13 @@ Notes on the rules:
   non-flow techniques in IS (for example IFN-gamma ELISpot). Which one applies is a protocol question.
 - "Inhibitor" only as factor IX / VIII inhibitor: SoA footnotes name other inhibitors (concomitant medication).
 - ELISpot is not a trigger word, and "phenotype" alone does not fire RT-7 (RNA expression associated with a phenotype).
+- RT-11 is a panel rule (rules 1.7.0): it fires on a member row only, when the member text names a measurement VS-OV
+  names and the panel label names vital signs; its basis records both matches (`label`, `panel_label`). It is the one place
+  where the panel label takes part in routing (decision B); every other rule matching a panel label only supports. Outside
+  a vital-signs panel, weight and temperature keep their test identity (WEIGHT: CV and VS; TEMP: VS, and BS and DO), so a
+  standalone "Weight" stays open. Pulse and heart rate are not named in VS-OV (cdisc-for-ai `bd7e5fd`, VS-OV p358) and stay
+  open (CV or VS) also in a vital-signs panel; CV-OV and CV-A1 are in SDTMIG_Statements but not cited by a rule. A member
+  listed beside "vital signs" in the same label ("Vital signs and weight") counts as in the panel.
 - Precedence only where the cited statement itself states the exception (RT-8 over RT-1, IS-A5).
 - Rule IDs keep the numbering of the wider rule set; see below.
 
@@ -108,7 +116,7 @@ rows fall back to the grain kind (status `not routed`).
 
 ```
 {NCTID}/SoA2USDM/routing/
-├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.5; earlier files stay valid)
+├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.6; earlier files stay valid)
 └── {NCTID}_activity_routing.html   # page, rendered with the collection index
 {NCTID}/SoA2USDM/panels/
 └── {NCTID}_panel_context_members.json   # only where protocol context exists (schema soa2usdm-panel-context-members 1.0)
@@ -198,22 +206,22 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-07, with cdisc-for-ai `a7d5821` (rules 1.6.0 for cell_gene_therapy, 1.5.0 for the others, which have no
-protocol context; grain rules 1.2.0; routed by test identity in brackets, strong and weak; named tests include the panel
-members, for cell_gene_therapy 158 of them from protocol context; not reached in brackets: split from label, members from
-protocol context):
+Status on 2026-11-07, with cdisc-for-ai `bd7e5fd` (rules 1.7.0, grain rules 1.2.0; routed by test identity in brackets,
+strong and weak; named tests include the panel members, for cell_gene_therapy 158 of them from protocol context; not
+reached in brackets: split from label, members from protocol context):
 
 | Collection | Studies | Named tests (members) | routed | open | weak | not routed | not reached (split) |
 |---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 244 (184) | 179 (90, weak 74) | 22 | 1 | 42 | 58 (11, 18) |
-| usdm_data | 22 | 137 (44) | 107 (49, weak 57) | 20 | 0 | 10 | 83 (27) |
+| cell_gene_therapy | 5 | 244 (184) | 180 (89, weak 74) | 22 | 1 | 41 | 58 (11, 18) |
+| usdm_data | 22 | 137 (44) | 113 (47, weak 57) | 18 | 0 | 6 | 83 (27) |
 | cpmp | 13 | 40 (0) | 36 (20, weak 16) | 4 | 0 | 0 | 52 (0) |
-| misc_studies | 2 | 43 (26) | 36 (18, weak 18) | 4 | 1 | 2 | 14 (6) |
+| misc_studies | 2 | 43 (26) | 38 (18, weak 18) | 3 | 1 | 1 | 14 (6) |
 
 Outside cell_gene_therapy the named tests are mostly routine laboratory tests and vital signs (HbA1c, height, weight, blood
 pressure, pregnancy test, drug screen). No rule names them; the test identity routes almost all of them, a weak hit with
-one code in one domain included. Weight and pulse stay open (CV or VS); not routed are the rows whose weak hit has several
-codes or domains (temperature, PaO2/FiO2, eGFR). In cell_gene_therapy the antibody tests route to IS (RT-1); what stays open
+one code in one domain included. In a vital-signs panel, weight and temperature route to VS by RT-11 (VS-OV); standalone
+weight and pulse or heart rate stay open (CV or VS); not routed are the rows whose weak hit has several codes or domains
+(PaO2/FiO2, eGFR). In cell_gene_therapy the antibody tests route to IS (RT-1); what stays open
 is IFN-gamma ELISpot (RT-3, IS or LB), weight (CV or VS) and the ALLO-501A / ALLO-647 rows (CP or PC, or matched only in the
 parent label or a footnote).
 

@@ -33,7 +33,7 @@ class Stub(ar.RoutingLookups):
     """RoutingLookups without files: cited statements by ID, kind -> domains as Domain_Coverage gives them."""
 
     def __init__(self):
-        self.cited = {sid: {"text_sha256": "0" * 64} for r in ar.RULES for s in r["statements"]
+        self.cited = {sid: {"text_sha256": "0" * 64} for r in ar.RULES + ar.PANEL_RULES for s in r["statements"]
                       for sid in [s["statement_id"]]}
         self.kind_domains = {"specimen": ["BS", "CP", "LB", "MB", "MI", "MS"], "immunogenicity": ["IS"],
                              "measurement": ["CV", "EG", "MK", "RE", "VS"], "pc": ["PC"], "genomics": ["GF"]}
@@ -249,9 +249,32 @@ def test_context_members_marked_and_context_panel_only_supports():
     assert "members_from" not in _split("PT, aPTT", [_member("m02", "aPTT", ("C38462", "APTT", "LB"))])[0]
 
 
+def test_vital_signs_panel_settles_vs_for_vs_ov_measurements_only():
+    # Decision B: 'TEMP' (two codes: VS, BS/DO) and 'Weight' (CV; VS) in a vital-signs panel route VS by RT-11;
+    # 'HR' (CV; VS, not named in VS-OV) keeps its test identity and stays open
+    rows = _split("Vital Signs (BP, HR, RR, TEMP) and Weight", [
+        _member("m01", "TEMP", ("C174446", "TEMP", "VS"), ("C25206", "TEMP", "BS; DO"), strength="weak",
+                reasons=("several codes",)),
+        _member("m02", "HR", ("C49677", "HR", "CV; VS"), kind="measurement"),
+        _member("m03", "Weight", ("C25208", "WEIGHT", "CV; VS"), kind="measurement")])
+    got = {r["activity_name"]: (r["status"], r["domain"], r["route_source"], [b["rule_id"] for b in r["basis"]])
+           for r in rows}
+    assert got == {"TEMP": ("routed", "VS", "rule", ["RT-11"]), "HR": ("open", None, "test identity", []),
+                   "Weight": ("routed", "VS", "rule", ["RT-11"])}
+    b = [r for r in rows if r["activity_name"] == "TEMP"][0]["basis"][0]
+    assert {(m["where"], m["phrase"]) for m in b["matched"]} == {("label", "TEMP"), ("panel_label", "Vital Signs")}
+
+
+def test_vs_measurement_outside_a_vital_signs_panel_not_settled():
+    rows = _split("Weight, Height", [_member("m01", "Weight", ("C25208", "WEIGHT", "CV; VS"), kind="measurement")])
+    assert (rows[0]["status"], rows[0]["basis"]) == ("open", [])
+    assert ar.match_panel_rules("Weight", "Body measurements") == []
+    assert ar.match_panel_rules("Pulse", "Vital signs") == []
+
+
 def test_rules_cite_public_routing_statements_only():
     lk = ar.RoutingLookups()
-    for rule in ar.RULES:
+    for rule in ar.RULES + ar.PANEL_RULES:
         for s in rule["statements"]:
             row = lk.statements[s["statement_id"]]
             assert row["Selected_As"] == "routing"
@@ -287,6 +310,9 @@ def test_routing_file_consistent(path):
             for m in b["matched"]:
                 if m["where"] == "label":
                     text = r["activity_name"]
+                elif m["where"] == "panel_label":  # 1.6: only in a panel rule's basis
+                    assert b["rule_id"] in {pr["rule_id"] for pr in ar.PANEL_RULES}, (r["xact_id"], b["rule_id"])
+                    text = r["panel_name"]
                 elif m["where"] == "parent_label":
                     text = r["parent_name"]
                 else:

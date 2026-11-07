@@ -38,6 +38,12 @@ where the study has protocol context. They are routed as label members; the row 
 members_from "protocol context", the context panel names only support (context_panel_support), and
 the context panel's specimen and lab are carried as stated facets, not used for routing. The panel
 row is listed as not reached ("panel, members from protocol context") with its members.
+Panel rules (schema 1.6, rules 1.7.0): a panel rule fires on a member row only, when the member text
+matches its patterns and the panel label matches its panel_patterns. RT-11 (decision B): a member of a
+panel whose label names vital signs, and which names a measurement VS-OV names (blood pressure,
+temperature, respiration, body surface area, body mass index, height, weight), routes to VS. Its basis
+records both matches (where "label" and "panel_label"). Pulse and heart rate are not named in VS-OV
+and keep their test identity (CV or VS: open).
 
 Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
 row's own activity label (from the grain file) are a second source. A strong hit with
@@ -57,7 +63,7 @@ Input: the study's grain file (checked current, activity_grain.load_current_grai
 and its consolidated.json (parents, annotations).
 
 Output: SoA2USDM/routing/<id>_activity_routing.json (schema_name
-soa2usdm-activity-routing, schema_version 1.5). Design: documents/activity-routing.md.
+soa2usdm-activity-routing, schema_version 1.6). Design: documents/activity-routing.md.
 """
 
 import hashlib
@@ -72,9 +78,9 @@ from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_curre
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.5"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5")
-RULES_VERSION = "1.6.0"
+SCHEMA_VERSION = "1.6"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6")
+RULES_VERSION = "1.7.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -167,6 +173,28 @@ RULES = [
     },
 ]
 
+# Panel rules (rules 1.7.0): fire on a member row only, when the member text matches patterns and the
+# panel label matches panel_patterns (match_panel_rules). Decision B (Kerstin, 2026-11-06 / 11-07).
+PANEL_RULES = [
+    {
+        "rule_id": "RT-11",
+        "name": "vital-sign measurement in a vital-signs panel",
+        "panel_patterns": [r"\bvital signs?\b"],
+        "patterns": [r"\bblood pressure\b", r"\b[sd]?bp\b", r"\bsystolic\b", r"\bdiastolic\b",
+                     r"\btemp(?:erature)?\b", r"\brespirat(?:ion|ory rate)\b", r"\brr\b",
+                     r"\bbody surface area\b", r"\bbsa\b", r"\bbody mass index\b", r"\bbmi\b",
+                     r"\bheight\b", r"\bweight\b"],
+        "statements": [S("VS-OV", ["VS"])],
+        "exception_over": [],
+        "our_reading": "VS-OV names blood pressure, temperature, respiration, body surface area, body mass index, "
+                       "height and weight as measurements of the VS domain. A member of a panel whose label names "
+                       "vital signs, and which names one of them (BP, SBP, DBP, temp, RR, BSA and BMI read as the "
+                       "same), is a vital-signs measurement. Only within such a panel: outside it, weight and "
+                       "temperature keep their test identity. Pulse and heart rate are not named in VS-OV and stay "
+                       "with their test identity (CV or VS).",
+    },
+]
+
 
 def _sha256_bytes(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
@@ -230,7 +258,7 @@ class RoutingLookups:
         """Statement_ID -> the statement as cited, for every statement a rule cites. Each must be
         a routing statement of SDTMIG_Statements."""
         out = {}
-        for rule in RULES:
+        for rule in RULES + PANEL_RULES:
             for s in rule["statements"]:
                 sid = s["statement_id"]
                 if sid not in self.statements:
@@ -290,6 +318,24 @@ def match_rules(sources: list) -> list:
                         seen.add(key)
                         matches.append({"where": src["where"], "xannot_id": src["xannot_id"], "phrase": m.group(0)})
         if matches:
+            fired.append((rule, matches))
+    return fired
+
+
+def match_panel_rules(member_text: str, panel_label: str) -> list:
+    """[(rule, matches)] for the panel rules that fire on a member: its text matches the rule's patterns
+    and the panel label its panel_patterns. Matches: where "label" (member text) and "panel_label"."""
+    fired = []
+    for rule in PANEL_RULES:
+        matches, seen = [], set()
+        for where, text, pats in (("label", member_text, rule["patterns"]),
+                                  ("panel_label", panel_label, rule["panel_patterns"])):
+            for p in pats:
+                for m in re.finditer(p, text, flags=re.IGNORECASE):
+                    if (where, m.group(0).lower()) not in seen:
+                        seen.add((where, m.group(0).lower()))
+                        matches.append({"where": where, "xannot_id": None, "phrase": m.group(0)})
+        if {m["where"] for m in matches} == {"label", "panel_label"}:
             fired.append((rule, matches))
     return fired
 
@@ -422,7 +468,8 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
             sources.append({"where": "parent_label", "xannot_id": None, "text": unified[px]["activity_name"]})
         kinds = ([m["finding_kind"]] if m["finding_kind"] and m["finding_kind"] != "unsure"
                  else list(m["kind_candidates"]))
-        res = route(match_rules(sources), kinds, lk, test_identity(m))
+        res = route(match_rules(sources) + match_panel_rules(m["text"], a["activity_name"]), kinds, lk,
+                    test_identity(m))
         context = {}
         if context_panels is not None:
             ptrs = list(dict.fromkeys(s["context_panel"] for s in m["sources"]))
