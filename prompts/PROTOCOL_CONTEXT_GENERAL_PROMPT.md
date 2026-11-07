@@ -1,6 +1,6 @@
 # Protocol context extraction — general profile
 
-Prompt version: 1.0.0 · Schema: `soa2usdm-protocol-context-general` 1.0 · Profile: general (trials that are not cell or gene therapy)
+Prompt version: 1.1.0 · Schema: `soa2usdm-protocol-context-general` 1.0 · Profile: general (trials that are not cell or gene therapy)
 
 You extract six kinds of information from ONE clinical trial protocol, beyond its Schedule of Activities (SoA).
 The categories are chosen for trials in general; the cell and gene therapy profile is `prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md`.
@@ -18,7 +18,7 @@ Prepared by `tools/protocol_context_inputs.py` from the protocol PDF and the col
   - `soa_activities` — the SoA row names (section headers excluded);
   - `soa_cross_references` — SoA notes that point to a section, appendix, table or figure, with the target as printed;
   - `soa_notes` — every SoA note (footnote) with the activities it is bound to.
-- The protocol PDF, for checking a page visually when the text layer is unclear.
+- The protocol PDF, for checking a page visually when the text layer is unclear (rules 8 and 10).
 
 ## Hard rules
 
@@ -39,6 +39,12 @@ Prepared by `tools/protocol_context_inputs.py` from the protocol PDF and the col
    from it with `"read_from": "page image"`; these are the only entries the quote checker cannot verify.
 9. `soa_activities` values in `instruments`, `measurements` and `lab_and_purpose` are exact names from `soa_activities`. Name only the
    SoA activities the text links the item to (by name, by an SoA note bound to the activity, or by a section the SoA note points to).
+10. A table whose text layer runs its columns together (typically the lab-tests table, with one column per panel) is read from the PDF
+    page image before analytes are assigned to panels. Quotes still come from the text layer. Say in `notes` which pages were checked
+    this way; if the image cannot be read, say which assignments rest on the text layer alone.
+11. When the PDF holds the protocol together with amendments or several protocol versions, extract from the protocol version the SoA
+    comes from (the pages of the SoA notes show which). Record what a later amendment in the PDF changes for an SoA activity or a
+    category as an additional entry with its own evidence, and say so in `notes`.
 
 ## Output — one JSON file `SoA2USDM/context/{NCTID}_protocol_context.json`
 
@@ -88,7 +94,8 @@ Leave `provenance.model` and `provenance.extracted_at` for the caller to stamp i
   or range where printed, purpose, and the SoA activities it applies to.
 - **measurements** — what a measurement or examination group includes, as printed: vital signs, body measurements, ECG, physical
   examination and similar: the components listed (e.g. systolic and diastolic blood pressure, pulse, temperature, height, weight), the
-  position or condition (supine, after 5 minutes rest, fasting), method, units, and the SoA activities it applies to.
+  position or condition (supine, after 5 minutes rest, fasting), method, units, and the SoA activities it applies to. Measurements and
+  examinations only: not demographics, medical or family history, or other collected data.
 
 ## Finish
 
