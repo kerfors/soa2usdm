@@ -156,6 +156,72 @@ def test_flag_for_missing_study_or_unnormalised_phrase_stops():
 
 
 # ---------------------------------------------------------------------------
+# Reviews (1.1)
+# ---------------------------------------------------------------------------
+def _two_weights():
+    a = study("S1", [act("x1", "Weight", "named test")], [row("x1", "Weight", "open", candidates=["CV", "VS"])])
+    b = study("S2", [act("x1", "Vital signs (weight)", "panel")],
+              [row("x1", "weight", "routed", "VS", member="m01", panel="Vital signs (weight)")],
+              [{"xact_id": "x1", "reason": "panel, split from label"}])
+    return a + b
+
+
+def _review(*entries):
+    return {"schema_name": cc.REVIEW_SCHEMA_NAME, "reviews": list(entries)}
+
+
+def _entry(phrase, seen, result="accept", goes_to=None, kind="queue"):
+    return {"subject": {"kind": kind, "phrase": phrase}, "outcomes_seen": seen, "result": result,
+            "note": "n", "goes_to": goes_to, "reviewed_on": "2026-11-07"}
+
+
+def test_review_attached_and_counted():
+    q = cc.build_queue(_two_weights(), NO_FLAGS, _review(_entry("weight", ["open CV|VS", "routed VS"])))
+    assert q["queue"][0]["review"]["result"] == "accept"
+    assert q["queue"][0]["review"]["changed_since_review"] is False
+    assert (q["counts"]["reviewed"], q["counts"]["not_reviewed"], q["counts"]["changed_since_review"]) == (1, 0, 0)
+
+
+def test_review_marks_changed_outcomes():
+    q = cc.build_queue(_two_weights(), NO_FLAGS, _review(_entry("weight", ["open CV|VS", "routed CV"])))
+    assert q["queue"][0]["review"]["changed_since_review"] is True
+    assert q["counts"]["changed_since_review"] == 1
+
+
+def test_reviewed_subject_that_left_the_queue_is_listed():
+    q = cc.build_queue(_two_weights(), NO_FLAGS,
+                       _review(_entry("hiv", ["not routed", "routed MB"], "matching fix", "step 4")))
+    assert [x["subject"]["phrase"] for x in q["left_queue_since_review"]] == ["hiv"]
+    assert q["counts"]["not_reviewed"] == 1 and q["counts"]["left_queue_since_review"] == 1
+
+
+def test_review_goes_to_must_match_result():
+    with pytest.raises(ValueError, match="goes to"):
+        cc.build_queue(_two_weights(), NO_FLAGS, _review(_entry("weight", ["open CV|VS", "routed VS"],
+                                                                "matching fix", None)))
+
+
+def test_review_subject_twice_or_unsorted_outcomes_stops():
+    e = _entry("weight", ["open CV|VS", "routed VS"])
+    with pytest.raises(ValueError, match="twice"):
+        cc.build_queue(_two_weights(), NO_FLAGS, _review(e, e))
+    with pytest.raises(ValueError, match="sorted"):
+        cc.build_queue(_two_weights(), NO_FLAGS, _review(_entry("weight", ["routed VS", "open CV|VS"])))
+
+
+def test_review_within_study_subject_keyed_by_study():
+    items = study("S1", [act("x1", "HBV DNA", "named test"), act("x2", "Hepatitis (HBV DNA)", "panel")],
+                  [row("x1", "HBV DNA", "weak", candidates=["LB", "MB"]),
+                   row("x2", "HBV DNA", "routed", "MB", member="m01", panel="Hepatitis (HBV DNA)")],
+                  [{"xact_id": "x2", "reason": "panel, split from label"}])
+    e = {"subject": {"kind": "within_study", "phrase": "hbv dna", "collection": "c1", "protocol_id": "S1"},
+         "outcomes_seen": ["routed MB", "weak LB|MB"], "result": "routing mechanism", "note": "n",
+         "goes_to": "step 5", "reviewed_on": "2026-11-07"}
+    q = cc.build_queue(items, NO_FLAGS, _review(e))
+    assert q["within_study"][0]["review"]["result"] == "routing mechanism"
+
+
+# ---------------------------------------------------------------------------
 # Published files
 # ---------------------------------------------------------------------------
 QUEUE_JSON, QUEUE_HTML = cc.queue_paths()
@@ -166,6 +232,13 @@ needs_queue = pytest.mark.skipif(not QUEUE_JSON.exists(), reason="needs the coll
 def test_flags_file_validates():
     schema = json.loads((SCHEMAS / "soa2usdm-consistency-flags.schema.json").read_text())
     jsonschema.validate(json.loads(cc.flags_path().read_text()), schema)
+
+
+@needs_queue
+def test_review_file_validates():
+    schema = json.loads((SCHEMAS / "soa2usdm-consistency-review.schema.json").read_text())
+    jsonschema.Draft7Validator.check_schema(schema)
+    jsonschema.validate(json.loads(cc.review_path().read_text()), schema)
 
 
 @needs_queue

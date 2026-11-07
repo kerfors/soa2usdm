@@ -23,6 +23,12 @@ Also listed: phrases with different outcomes inside one study, and the flags kep
 collections/consistency_flags.json (each flag names a phrase and the studies it was raised for;
 every item with that phrase is shown).
 
+Review results (1.1) are kept by hand in collections/consistency_review.json: one entry per reviewed
+queue phrase, within-study entry or flag, with the outcomes seen at review time, the result, a note
+and where the work goes. Each result is shown with its entry; an entry whose outcomes changed since
+the review is marked, and reviewed subjects no longer in the queue are listed apart. The review file
+is a record of a reader's judgement; the check still decides nothing.
+
 Reads the published grain, grain decisions and routing files; a routing file not made from the
 grain file now on disk stops the run. Writes collections/consistency_queue.json and .html. Run after
 activity_routing, before the collections index:
@@ -42,9 +48,13 @@ from .activity_grain import normalise
 from .nav import NAV_CSS
 
 SCHEMA_NAME = "soa2usdm-consistency-queue"
-SCHEMA_VERSION = "1.0"
-CHECK_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1"
+CHECK_VERSION = "1.1.0"
 FLAGS_SCHEMA_NAME = "soa2usdm-consistency-flags"
+REVIEW_SCHEMA_NAME = "soa2usdm-consistency-review"
+# Review result -> where the work goes (step numbers of claude/reflection-2026-11-07.md §4).
+RESULT_GOES_TO = {"accept": None, "knowledge": None, "AI decision to redo": None,
+                  "matching fix": "step 4", "routing mechanism": "step 5", "context member list": "4d"}
 DOC_URL = "https://github.com/kerfors/soa2usdm/blob/main/soa2usdm/consistency.py"
 
 NO_OWN_ROW = "no own row"
@@ -58,6 +68,10 @@ def queue_paths() -> tuple:
 
 def flags_path() -> Path:
     return config.COLLECTIONS_ROOT / "consistency_flags.json"
+
+
+def review_path() -> Path:
+    return config.COLLECTIONS_ROOT / "consistency_review.json"
 
 
 def _sha256(path: Path) -> str:
@@ -214,8 +228,46 @@ def check_flags(flags: dict, items: list) -> list:
     return out
 
 
-def build_queue(items: list, flags: dict) -> dict:
-    """Cross-study queue, within-study differences, flags and counts — no inputs, no timestamp."""
+def _subject_key(sub: dict) -> tuple:
+    if sub["kind"] == "within_study":
+        return ("within_study", sub["phrase"], sub["collection"], sub["protocol_id"])
+    if sub["kind"] in ("queue", "flag"):
+        return (sub["kind"], sub["phrase"])
+    raise ValueError(f"unknown review subject kind {sub['kind']!r}")
+
+
+def apply_reviews(review: dict, queue: list, within: list, flagged: list) -> list:
+    """Attach each review to its entry ('review'); return the reviewed subjects no longer present."""
+    if review["schema_name"] != REVIEW_SCHEMA_NAME:
+        raise ValueError(f"review file schema_name {review['schema_name']!r}, expected {REVIEW_SCHEMA_NAME!r}")
+    entries = {("queue", g["phrase"]): g for g in queue}
+    entries |= {("within_study", w["phrase"], w["collection"], w["protocol_id"]): w for w in within}
+    entries |= {("flag", f["phrase"]): f["group"] for f in flagged}
+    seen, left = set(), []
+    for r in review["reviews"]:
+        key = _subject_key(r["subject"])
+        if key in seen:
+            raise ValueError(f"review subject {key} listed twice")
+        seen.add(key)
+        if r["result"] not in RESULT_GOES_TO:
+            raise ValueError(f"review {key}: unknown result {r['result']!r}")
+        if r["goes_to"] != RESULT_GOES_TO[r["result"]]:
+            raise ValueError(f"review {key}: result {r['result']!r} goes to {RESULT_GOES_TO[r['result']]!r}, "
+                             f"not {r['goes_to']!r}")
+        if r["outcomes_seen"] != sorted(set(r["outcomes_seen"])):
+            raise ValueError(f"review {key}: outcomes_seen must be sorted and without repeats")
+        rec = {k: r[k] for k in ("result", "note", "goes_to", "reviewed_on", "outcomes_seen")}
+        g = entries.get(key)
+        if g is None:
+            left.append({"subject": r["subject"]} | rec)
+            continue
+        now = sorted(outcome_label(o["outcome"]) for o in g["outcomes"])
+        g["review"] = rec | {"changed_since_review": now != r["outcomes_seen"]}
+    return left
+
+
+def build_queue(items: list, flags: dict, review: dict | None = None) -> dict:
+    """Cross-study queue, within-study differences, flags, reviews and counts — no inputs, no timestamp."""
     by_phrase = defaultdict(list)
     for i in items:
         by_phrase[i["phrase"]].append(i)
@@ -230,6 +282,9 @@ def build_queue(items: list, flags: dict) -> dict:
     for w in within:
         del w["studies"]
     flagged = check_flags(flags, items)
+    left = apply_reviews(review, queue, within, flagged) if review is not None else []
+    reviewed = [g["review"] for g in queue + within if "review" in g] + \
+               [f["group"]["review"] for f in flagged if "review" in f["group"]]
     return {
         "counts": {
             "studies": len({(i["collection"], i["protocol_id"]) for i in items}),
@@ -240,10 +295,15 @@ def build_queue(items: list, flags: dict) -> dict:
             "queue_items": _split([i for g in queue for i in g["items"]]),
             "within_study": len(within),
             "flags": len(flagged),
+            "reviewed": len(reviewed),
+            "changed_since_review": sum(1 for r in reviewed if r["changed_since_review"]),
+            "not_reviewed": len(queue) + len(within) + len(flagged) - len(reviewed),
+            "left_queue_since_review": len(left),
         },
         "queue": queue,
         "within_study": within,
         "flags": flagged,
+        "left_queue_since_review": left,
     }
 
 
@@ -253,11 +313,13 @@ def generate() -> dict:
         its, entry = load_study(coll, pid)
         items += its
         inputs.append(entry)
-    fp = flags_path()
+    fp, rp = flags_path(), review_path()
     flags = json.loads(fp.read_text())
+    review = json.loads(rp.read_text())
     return {"schema_name": SCHEMA_NAME, "schema_version": SCHEMA_VERSION, "check_version": CHECK_VERSION,
             "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-            "inputs": {"studies": inputs, "flags_sha256": _sha256(fp)}} | build_queue(items, flags)
+            "inputs": {"studies": inputs, "flags_sha256": _sha256(fp), "review_sha256": _sha256(rp)}} \
+        | build_queue(items, flags, review)
 
 
 # ---------------------------------------------------------------------------
@@ -298,9 +360,20 @@ def _split_txt(s: dict) -> str:
     return f'{s["standalone"]} standalone · {s["member"]} members'
 
 
+def _review_html(r: dict | None) -> str:
+    if r is None:
+        return '<p class="rv rv-none">not reviewed</p>'
+    goes = f' → {esc(r["goes_to"])}' if r["goes_to"] else ""
+    changed = (f' <span class="chg">outcomes changed since review (seen: {esc("; ".join(r["outcomes_seen"]))})</span>'
+               if r.get("changed_since_review") else "")
+    return (f'<p class="rv"><span class="res">{esc(r["result"])}{goes}</span>{changed} {esc(r["note"])} '
+            f'<span class="ns">(reviewed {esc(r["reviewed_on"])})</span></p>')
+
+
 def _group_block(g: dict, title: str, extra: str = "") -> str:
     outs = "; ".join(f'{esc(outcome_label(o["outcome"]))} ({_split_txt(o["items"])})' for o in g["outcomes"])
     return (f'<section class="grp" id="{esc(title)}"><h3>{esc(g["phrase"])}{extra}</h3>'
+            f'{_review_html(g.get("review"))}'
             f'<p class="ns">{outs}</p>{_TABLE_HEAD}{_item_rows(g["items"])}</tbody></table></section>')
 
 
@@ -321,6 +394,11 @@ def render(q: dict) -> str:
                      f'{esc(", ".join(s["protocol_id"] for s in f["studies"]))}</span>')
         .replace("</h3>", f'</h3><p class="note">{esc(f["note"])} <span class="ns">({esc(f["raised_in"])})</span></p>', 1)
         for f in q["flags"]) or '<p class="ns">None.</p>'
+    left = "".join(
+        f'<section class="grp"><h3>{esc(x["subject"]["phrase"])} <span class="ns">· {esc(x["subject"]["kind"])}'
+        + (f' · {esc(x["subject"]["protocol_id"])}' if x["subject"]["kind"] == "within_study" else "")
+        + f'</span></h3>{_review_html(x)}<p class="ns">outcomes seen: {esc("; ".join(x["outcomes_seen"]))}</p></section>'
+        for x in q["left_queue_since_review"]) or '<p class="ns">None.</p>'
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -345,6 +423,10 @@ def render(q: dict) -> str:
   td.oc {{ font-weight:600; white-space:nowrap; }}
   .counts td {{ border:0; padding:1px 10px 1px 0; }}
   .wrap {{ overflow-x:auto; }}
+  .rv {{ margin:2px 0 4px; }}
+  .rv .res {{ font-weight:600; background:#e8eef7; color:#1F4788; border-radius:9px; padding:1px 8px; margin-right:4px; }}
+  .rv-none {{ color:#8a5a00; }}
+  .chg {{ background:#fff3d6; color:#8a5a00; border-radius:9px; padding:1px 8px; margin-right:4px; }}
 </style>
 </head>
 <body>
@@ -362,7 +444,10 @@ normalisation; standalone activities and panel members of one phrase are compare
 <tr><td>phrases in ≥2 studies</td><td><b>{c["phrases_in_two_or_more_studies"]}</b></td><td>their items</td><td>{_split_txt(c["items_in_those_phrases"])}</td></tr>
 <tr><td>queue phrases</td><td><b>{c["queue_phrases"]}</b></td><td>their items</td><td>{_split_txt(c["queue_items"])}</td></tr>
 <tr><td>within one study</td><td><b>{c["within_study"]}</b></td><td>flags</td><td><b>{c["flags"]}</b></td></tr>
+<tr><td>reviewed</td><td><b>{c["reviewed"]}</b></td><td>not reviewed</td><td><b>{c["not_reviewed"]}</b></td></tr>
+<tr><td>changed since review</td><td><b>{c["changed_since_review"]}</b></td><td>left the queue since review</td><td><b>{c["left_queue_since_review"]}</b></td></tr>
 </table>
+<p class="ns">Review results from <code>collections/consistency_review.json</code>, kept by hand.</p>
 </div>
 <h2>Same phrase, different outcome across studies</h2>
 <div class="wrap">{queue}</div>
@@ -371,8 +456,10 @@ normalisation; standalone activities and panel members of one phrase are compare
 <h2>Flags kept by hand</h2>
 <p class="ns">From <code>collections/consistency_flags.json</code>: every item with the flagged phrase.</p>
 <div class="wrap">{flags}</div>
+<h2>Reviewed, no longer in the queue</h2>
+<div class="wrap">{left}</div>
 <p class="ns">Generated {esc(q["generated_at"])} by <code>soa2usdm.consistency</code> {esc(q["check_version"])}
-from {len(q["inputs"]["studies"])} studies' grain, grain decisions and routing files.</p>
+from {len(q["inputs"]["studies"])} studies' grain, grain decisions and routing files, the flags and the review file.</p>
 </body>
 </html>
 '''
