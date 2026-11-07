@@ -228,6 +228,27 @@ def test_panel_annotations_only_support():
                                               "matched": [{"xannot_id": "xannot-012", "phrase": "hematology"}]}]
 
 
+def test_context_members_marked_and_context_panel_only_supports():
+    # NCT05714345 'CBC w/differential' style: members from a context panel named 'Hematology' (RT-10, LB):
+    # the name supports only; the member routes by its own test identity, marked, with the stated facets
+    m = _member("c01", "aPTT", ("C38462", "APTT", "LB")) | {
+        "sources": [{"context_panel": "/panels/0", "analyte": "aPTT"}],
+        "stated_facets": [{"facet": "lab", "value": "Local Laboratory", "context_panel": "/panels/0", "pages": [125]}]}
+    cps = {"/panels/0": {"pointer": "/panels/0", "panel_name": "Hematology (SoA note)", "specimen": None,
+                         "lab": "Local Laboratory", "evidence": [{"page": 125, "quote": "q"}, {"page": 121, "quote": "q"}]}}
+    a = {"protocol_id": "NCT0", "xact_id": "xact-002", "activity_name": "Blood tests", "parent_xact_id": None}
+    unified = {"xact-002": {"activity_name": "Blood tests", "is_section_header": False, "parent_xact_id": None}}
+    r = ar._member_rows(a, [m], unified, {"unified_annotations": []}, LK, cps)[0]
+    assert (r["status"], r["domain"], r["route_source"], r["basis"]) == ("routed", "LB", "test identity", [])
+    assert r["members_from"] == "protocol context" and r["grain"]["source"] == "panel member, protocol context"
+    assert r["context_sources"] == [{"context_panel": "/panels/0", "panel_name": "Hematology (SoA note)",
+                                     "pages": [121, 125]}]
+    assert [s["rule_id"] for s in r["context_panel_support"]] == ["RT-10"]
+    assert r["stated_facets"] == m["stated_facets"]
+    # label members carry no marker
+    assert "members_from" not in _split("PT, aPTT", [_member("m02", "aPTT", ("C38462", "APTT", "LB"))])[0]
+
+
 def test_rules_cite_public_routing_statements_only():
     lk = ar.RoutingLookups()
     for rule in ar.RULES:
@@ -288,9 +309,14 @@ def test_routing_file_test_identity(path):
     grain = json.loads((path.parent.parent / "grain" / f"{d['protocol_id']}_activity_grain.json").read_text())
     labels = {lb["phrase"]: lb for lb in grain["labels"]}
     phrase = {a["xact_id"]: a["phrase"] for a in grain["activities"]}
+    pcm_file = path.parent.parent / "panels" / f"{d['protocol_id']}_panel_context_members.json"
+    context = ({(r["xact_id"], m["member_id"]): m for r in json.loads(pcm_file.read_text())["rows"] for m in r["members"]}
+               if pcm_file.exists() else {})
     for r in d["rows"]:
         ti = r["test_identity"]
-        if "member_id" in r:  # 1.3: a member row's test identity is the member's own
+        if r.get("members_from") == "protocol context":  # 1.5: the member from the panel context members file
+            assert ti == ar.test_identity(context[(r["xact_id"], r["member_id"])]), (r["xact_id"], r["member_id"])
+        elif "member_id" in r:  # 1.3: a member row's test identity is the member's own
             member = {m["member_id"]: m for m in labels[phrase[r["xact_id"]]]["members"]}[r["member_id"]]
             assert ti == ar.test_identity(member), (r["xact_id"], r["member_id"])
         else:

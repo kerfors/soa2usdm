@@ -32,6 +32,12 @@ Rules 1.5.0 (schema 1.4): the SoA annotations of the panel row or its parent des
 the single member. For a member row they only support, as the panel label does: rules that match
 them are recorded as panel_annotation_support and never route, open or block the test identity.
 A member row is therefore never weak.
+Panel members from protocol context (schema 1.5, rules 1.6.0): a panel whose label lists no members
+takes its members from the study's panel context members file (soa2usdm.panel_context_members),
+where the study has protocol context. They are routed as label members; the row is marked
+members_from "protocol context", the context panel names only support (context_panel_support), and
+the context panel's specimen and lab are carried as stated facets, not used for routing. The panel
+row is listed as not reached ("panel, members from protocol context") with its members.
 
 Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
 row's own activity label (from the grain file) are a second source. A strong hit with
@@ -51,7 +57,7 @@ Input: the study's grain file (checked current, activity_grain.load_current_grai
 and its consolidated.json (parents, annotations).
 
 Output: SoA2USDM/routing/<id>_activity_routing.json (schema_name
-soa2usdm-activity-routing, schema_version 1.3). Design: documents/activity-routing.md.
+soa2usdm-activity-routing, schema_version 1.5). Design: documents/activity-routing.md.
 """
 
 import hashlib
@@ -63,11 +69,12 @@ from pathlib import Path
 
 from . import config
 from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_current_grain
+from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.4"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4")
-RULES_VERSION = "1.5.0"
+SCHEMA_VERSION = "1.5"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5")
+RULES_VERSION = "1.6.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -85,6 +92,7 @@ FALLBACK_EXCLUDED = {"PP": ["PP-OV", "PP-A1"]}
 
 NOT_REACHED_PANEL = "panel, not split"
 NOT_REACHED_SPLIT = "panel, split from label"
+NOT_REACHED_CONTEXT = "panel, members from protocol context"
 NOT_REACHED_PARENT = "named-test row that is a parent"
 
 
@@ -380,11 +388,15 @@ def _route_rules(fired: list, grain_kinds: list, lk: RoutingLookups) -> dict:
             "dropped": dropped, "fallback": None, "question": "; ".join(questions)}
 
 
-def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingLookups) -> list:
+def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingLookups,
+                 context_panels: dict | None = None) -> list:
     """Rows for the named-test members of a split panel (schema 1.3). The member text routes on its
     own; the panel's parent label supports or opens; rules matching the panel label are recorded as
     panel_label_support only, rules matching the annotations of the panel row or its parent as
-    panel_annotation_support only (schema 1.4)."""
+    panel_annotation_support only (schema 1.4). Members from protocol context (schema 1.5):
+    context_panels (pointer -> context panel of the panel context members file) is given; the rows
+    are marked members_from "protocol context", rules matching the names of the member's context
+    panels are recorded as context_panel_support only, and the stated facets are carried."""
     x = a["xact_id"]
     px = unified[x]["parent_xact_id"]
     if px != a["parent_xact_id"] and not (a["parent_xact_id"] is None and unified[px]["is_section_header"]):
@@ -411,6 +423,21 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
         kinds = ([m["finding_kind"]] if m["finding_kind"] and m["finding_kind"] != "unsure"
                  else list(m["kind_candidates"]))
         res = route(match_rules(sources), kinds, lk, test_identity(m))
+        context = {}
+        if context_panels is not None:
+            ptrs = list(dict.fromkeys(s["context_panel"] for s in m["sources"]))
+            context = {
+                "members_from": "protocol context",
+                "context_sources": [{"context_panel": ptr, "panel_name": context_panels[ptr]["panel_name"],
+                                     "pages": sorted({e["page"] for e in context_panels[ptr]["evidence"]})}
+                                    for ptr in ptrs],
+                "context_panel_support": [
+                    {"rule_id": rule["rule_id"], "phrases": sorted({x["phrase"] for x in matches}),
+                     "domains": sorted({d for st in rule["statements"] for d in st["domains"]})}
+                    for rule, matches in match_rules([{"where": "context_panel", "xannot_id": None,
+                                                       "text": context_panels[ptr]["panel_name"]} for ptr in ptrs])],
+                "stated_facets": m["stated_facets"],
+            }
         rows.append({
             "xact_id": x,
             "member_id": m["member_id"],
@@ -420,10 +447,11 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
             "parent_name": unified[px]["activity_name"] if px else None,
             "parent_is_section_header": unified[px]["is_section_header"] if px else None,
             "grain": {"grain": "named test", "finding_kind": m["finding_kind"],
-                      "kind_candidates": m["kind_candidates"], "source": "panel member"},
+                      "kind_candidates": m["kind_candidates"],
+                      "source": "panel member, protocol context" if context else "panel member"},
             "panel_label_support": support,
             "panel_annotation_support": annotation_support,
-        } | res)
+        } | context | res)
     return rows
 
 
@@ -449,6 +477,15 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
     unified = {u["xact_id"]: u for u in cons["unified_activities"]}
     acts = g["activities"]
     labels = {lb["phrase"]: lb for lb in g["labels"]}
+    # Panel members from protocol context (schema 1.5): only where the study has protocol context
+    pcm = load_current_panel_members(collection, protocol_id)
+    if pcm is not None and pcm["inputs"]["cdisc_for_ai"]["commit"] != lk.provenance["commit"]:
+        raise RuntimeError(f"{collection}/{protocol_id}: panel context members made at cdisc-for-ai "
+                           f"{pcm['inputs']['cdisc_for_ai']['commit'][:7]}, lookups at {lk.provenance['commit'][:7]}; "
+                           f"rerun python -m soa2usdm.panel_context_members --collection {collection} "
+                           f"--protocol {protocol_id}")
+    pcm_rows = {r["xact_id"]: r for r in (pcm["rows"] if pcm else [])}
+    pcm_panels = {cp["pointer"]: cp for cp in (pcm["context_panels"] if pcm else [])}
     children = {}
     for a in acts:
         if a["parent_xact_id"]:
@@ -460,7 +497,19 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
         if a["grain"] == "panel":
             members = (labels.get(a["phrase"]) or {}).get("members", [])
             if not any(m.get("member_grain") == "named test" for m in members):
-                not_reached.append({"xact_id": x, "activity_name": a["activity_name"], "reason": NOT_REACHED_PANEL})
+                cm = (pcm_rows.get(x) or {}).get("members", [])
+                if not any(m["member_grain"] == "named test" for m in cm):
+                    not_reached.append({"xact_id": x, "activity_name": a["activity_name"], "reason": NOT_REACHED_PANEL})
+                    continue
+                not_reached.append({"xact_id": x, "activity_name": a["activity_name"], "reason": NOT_REACHED_CONTEXT,
+                                    "members": [{"member_id": m["member_id"], "text": m["text"],
+                                                 "member_grain": m["member_grain"], "in_group": m["in_group"]}
+                                                for m in cm],
+                                    "context_panels": [pcm_panels[p]["panel_name"] for n in pcm_rows[x]["names"]
+                                                       for p in n["context_panels"]],
+                                    "names_not_linked": [n["name"] for n in pcm_rows[x]["names"]
+                                                         if not n["context_panels"]]})
+                rows += _member_rows(a, cm, unified, cons, lk, pcm_panels)
                 continue
             not_reached.append({"xact_id": x, "activity_name": a["activity_name"], "reason": NOT_REACHED_SPLIT,
                                 "members": [{"member_id": m["member_id"], "text": m["text"],
@@ -512,6 +561,9 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
             "activity_grain": {"schema_version": g["schema_version"],
                                "sha256": _sha256_bytes(grain_file.read_bytes())},
             "consolidated": {"sha256": _sha256_bytes(cons_raw)},
+            "panel_context_members": ({"schema_version": pcm["schema_version"],
+                                       "sha256": _sha256_bytes(panels_path(protocol_id, collection).read_bytes())}
+                                      if pcm else None),
             "cdisc_for_ai": lk.provenance,
         },
         "fallback_excluded": lk.fallback_excluded,
@@ -522,7 +574,9 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
                                                     and r["route_source"] == "test identity"),
                      "routed_by_weak_test_identity": sum(1 for r in rows if r["status"] == "routed"
                                                          and r["route_source"] == "test identity, weak hit"),
-                     "rows_from_panel_members": sum(1 for r in rows if "member_id" in r)},
+                     "rows_from_panel_members": sum(1 for r in rows if "member_id" in r),
+                     "rows_from_context_members": sum(1 for r in rows
+                                                      if r.get("members_from") == "protocol context")},
         "rows": rows,
         "not_reached": not_reached,
     }
@@ -530,7 +584,8 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
 
 def load_current_routing(collection: str, protocol_id: str) -> dict | None:
     """The study's routing file, checked against its inputs as they are now; None when the
-    study has none. Fails when the grain file or consolidated.json changed since."""
+    study has none. Fails when the grain file, consolidated.json or the panel context members
+    file (1.5; earlier files: none) changed since."""
     path = routing_path(protocol_id, collection)
     if not path.exists():
         return None
@@ -540,9 +595,11 @@ def load_current_routing(collection: str, protocol_id: str) -> dict | None:
     grain_file = config.get_soa2usdm_folder(protocol_id, collection) / "grain" / f"{protocol_id}_activity_grain.json"
     sha = lambda f: _sha256_bytes(f.read_bytes()) if f and f.exists() else None
     now = {"activity grain": sha(grain_file),
-           "consolidated.json": sha(config.find_consolidated_file(protocol_id, collection))}
+           "consolidated.json": sha(config.find_consolidated_file(protocol_id, collection)),
+           "panel context members": sha(panels_path(protocol_id, collection))}
     was = {"activity grain": d["inputs"]["activity_grain"]["sha256"],
-           "consolidated.json": d["inputs"]["consolidated"]["sha256"]}
+           "consolidated.json": d["inputs"]["consolidated"]["sha256"],
+           "panel context members": (d["inputs"].get("panel_context_members") or {}).get("sha256")}
     changed = [k for k in now if now[k] != was[k]]
     if changed:
         raise RuntimeError(f"{path}: stale ({', '.join(changed)} changed since it was generated); rerun: "

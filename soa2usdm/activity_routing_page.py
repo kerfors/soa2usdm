@@ -6,7 +6,8 @@ with the shared navigation block (soa2usdm.nav). Counts per status; then one row
 named test: status, domain or candidates, the question that stays open, each fired rule with
 our reading, and each matched phrase in its source (label, parent label, footnote text from
 consolidated.json), and the test codes of the label (SDTM_Test_Identity) where the file has them;
-then the rows not reached, and the cited SDTMIG v3.4 statements verbatim.
+then the rows not reached, and the cited SDTMIG v3.4 statements verbatim. Member rows from protocol
+context (1.5) show their context panels with pages and the stated specimen and lab.
 Each statement text is checked against its text_sha256 before it is shown. Nothing is decided
 here: the page shows what the JSON holds.
 
@@ -91,14 +92,20 @@ def _basis(r: dict, annotations: dict) -> str:
 
 
 def _members(x: dict) -> str:
-    """Members of a split panel (1.3): named-test members link to their rows."""
+    """Members of a split panel (1.3): named-test members link to their rows. Members from protocol
+    context (1.5): the linked context panels and the panel names no context panel has come first."""
     if "members" not in x:
         return ""
+    head = ""
+    if "context_panels" in x:
+        head = (f'<div class="ctx">from protocol context: {esc("; ".join(x["context_panels"]))}'
+                + (f' <span class="ns">(no context panel: {esc("; ".join(x["names_not_linked"]))})</span>'
+                   if x["names_not_linked"] else "") + '</div>')
     ms = "; ".join(f'<a href="#{esc(x["xact_id"])}.{esc(m["member_id"])}">{esc(m["member_id"])} {esc(m["text"])}</a>'
                    if m["member_grain"] == "named test" else
                    f'{esc(m["member_id"])} {esc(m["text"])} <span class="ns">({esc(m["member_grain"] or "no hit")})</span>'
                    for m in x["members"])
-    return f'<div class="ctx">{ms}</div>'
+    return f'{head}<div class="ctx">{ms}</div>'
 
 
 def render(protocol_id: str, collection: str) -> Path:
@@ -115,6 +122,8 @@ def render(protocol_id: str, collection: str) -> Path:
     depth = len(out.relative_to(config.get_collection_path(collection)).parts) - 1
     nav = nav_block(collection, protocol_id, PAGE_LABEL, depth=depth, current=("routing", None))
     grain_html = f"../grain/{protocol_id}_activity_grain.html"
+    pcm_link = (f' · <a href="../panels/{protocol_id}_panel_context_members.json">panel members from protocol context</a>'
+                if d["inputs"].get("panel_context_members") else "")
     c = d["counts"]
     cdisc = d["inputs"]["cdisc_for_ai"]
     by_ti = c.get("routed_by_test_identity")
@@ -122,7 +131,10 @@ def render(protocol_id: str, collection: str) -> Path:
     by = ", ".join(t for t in ((f"{by_ti} by test code" if by_ti else ""),
                                (f"{by_weak} by weak test code" if by_weak else "")) if t)
     from_members = c.get("rows_from_panel_members")
-    summary = (f'<b>{c["rows"]} named tests</b>' + (f' ({from_members} from panel members)' if from_members else "")
+    from_context = c.get("rows_from_context_members")
+    summary = (f'<b>{c["rows"]} named tests</b>'
+               + (f' ({from_members} from panel members' + (f', {from_context} of them from protocol context'
+                                                            if from_context else "") + ')' if from_members else "")
                + ' · '
                + " · ".join(f'{st} {c[st]}' + (f' ({by})' if st == "routed" and by else "")
                             for st in STATUSES)
@@ -144,6 +156,15 @@ def render(protocol_id: str, collection: str) -> Path:
                       + (f' <span class="ns">(panel label supports {sup})</span>' if sup else "")
                       + (f' <span class="ns">(panel annotations support {asup})</span>' if asup else "")
                       + '</div>' + parent)
+            if r.get("members_from") == "protocol context":
+                srcs = "; ".join(f'{esc(cs["panel_name"])} p.&nbsp;{esc(", ".join(str(pg) for pg in cs["pages"]))}'
+                                 for cs in r["context_sources"])
+                csup = "; ".join(f'{esc(s["rule_id"])} → {esc("/".join(s["domains"]))}' for s in r["context_panel_support"])
+                facets = "; ".join(f'{esc(f["facet"])} {esc(f["value"])}' for f in r["stated_facets"])
+                parent = (f'<div class="ctx">from protocol context: {srcs}'
+                          + (f' <span class="ns">(context panel supports {csup})</span>' if csup else "")
+                          + (f'<span class="ns sub">as stated: {facets}</span>' if facets else "")
+                          + '</div>' + parent)
         rid = r["xact_id"] + (f'.{r["member_id"]}' if "member_id" in r else "")
         q = f'<div class="q">{esc(r["question"])}</div>' if r["question"] else ""
         rows.append(
@@ -219,7 +240,7 @@ def render(protocol_id: str, collection: str) -> Path:
 <h1>{esc(protocol_id)} — activity routing</h1>
 <div class="sum">{summary}</div>
 <div class="meta">Rules {esc(d["rules_version"])} · public SDTMIG v3.4 statements and SDTM test codes only · cdisc-for-ai <code>{esc(cdisc["commit"][:7])}</code> ·
-<a href="{esc(src.name)}">JSON</a> · <a href="{grain_html}">activity grain</a> · <a href="{DOC_URL}">how routing is done</a></div>
+<a href="{esc(src.name)}">JSON</a> · <a href="{grain_html}">activity grain</a>{pcm_link} · <a href="{DOC_URL}">how routing is done</a></div>
 <div class="note">CDISC members-only material also bears on routing (for example on vector shedding and
 replication-competent vectors). It is not used here; <a href="{MEMBERS_URL}">what it is</a>.</div>
 </header>

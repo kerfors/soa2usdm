@@ -13,7 +13,8 @@ The step is a per-study sidecar. It does not change the grain file, the activity
 |---|---|
 | grain `named test`, not a parent | routed (one result per row) |
 | grain `panel` whose label lists members (grain rules 1.2.0) | one row per named-test member (schema 1.3); the panel row is not reached, "panel, split from label", with its members |
-| grain `panel` named only | not reached, "panel, not split": the members need the protocol's lab appendix |
+| grain `panel` named only, linked to the study's protocol context (1.5) | one row per named-test member from the linked context panels; the panel row is not reached, "panel, members from protocol context", with its members |
+| grain `panel` named only, otherwise | not reached, "panel, not split": the members need the protocol's lab appendix |
 | grain `named test` that is a parent | not reached: the children carry the tests |
 | every other grain, and rows with a role | not part of the step |
 
@@ -107,8 +108,10 @@ rows fall back to the grain kind (status `not routed`).
 
 ```
 {NCTID}/SoA2USDM/routing/
-├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.3; earlier files stay valid)
+├── {NCTID}_activity_routing.json   # generated (schema soa2usdm-activity-routing 1.5; earlier files stay valid)
 └── {NCTID}_activity_routing.html   # page, rendered with the collection index
+{NCTID}/SoA2USDM/panels/
+└── {NCTID}_panel_context_members.json   # only where protocol context exists (schema soa2usdm-panel-context-members 1.0)
 ```
 
 `<id>_activity_routing.json` holds:
@@ -135,6 +138,47 @@ member row is never weak. Case: NCT03283098 "Hematology, PT, aPTT", where the fo
 aPTT weak; now they route by their own test identity. Annotations that name the member itself are not looked at separately
 yet.
 
+## Panel members from protocol context
+
+A grain `panel` row whose label lists no members ("Hematology", "Urinalysis", "Laboratory Safety Panels (Hematology and
+Clinical Chemistry) (CL)") has its members only in the protocol: the lab appendix, a safety laboratory table, an SoA note.
+Where a study has protocol context (`context/<id>_protocol_context.json`, `panels[]`: panel name, analytes, specimen, lab,
+evidence), `soa2usdm.panel_context_members` takes the members from there, into a per-study sidecar of its own,
+`panels/<id>_panel_context_members.json`. The grain file stays label-only; a collection that gets protocol context later
+only gets these sidecars. Only cell_gene_therapy has protocol context so far; the other collections get nothing (no generic
+panel list).
+
+**Link by name (name rule 1.0.0, no AI).** Parentheses that hold only lab codes, "(CL)", "(LL)", are dropped. The whole
+label, without its trailing parentheses, is tried first; when no context panel has that name, the label is split into panel
+names at ",", "and", "&" outside parentheses (not at "/": "CBC w/differential"), and a trailing parenthesis that is not a
+qualifier gives names too ("Laboratory Safety Panels (Lipid Panel)"). A context panel name loses its trailing parentheses
+(source notes such as "(SoA note)", "(Table 2. Safety Laboratory Tests)"). Both sides are normalised as in the grain,
+"haematology" is read as "hematology", trailing generic words are dropped (parameters, tests, test, assessments,
+assessment), and spaces are ignored in the comparison ("auto-antibodies" = "autoantibodies"). A name links every context
+panel with the same key. There is no containment, no plural and no stemming, so near misses stay unlinked ("CBC
+w/differential" and "CBC Hematology", "serum immunoglobulins" and "Serum Immunoglobulin", "Coagulation" and "Coagulation
+Screen"). A row is `linked`, `linked partly` (some of its names have no context panel) or `not linked`.
+
+**Members.** The analytes of the linked context panels are split and looked up with the rules of the label members (grain
+rules 1.2.0): a list analyte gives its members ("Serum electrolytes (sodium, potassium)"), any other analyte one member.
+Where several context panels share one name (NCT05714345 "Coagulation (Table 2…)" and "Coagulation (SoA note)"), the members
+are the union by phrase, each with every context panel and analyte it comes from; the phrases found in only one of them are
+listed as `differences`, not resolved. Most such differences are spellings of the same test ("PTT" and "partial
+thromboplastin time (PTT)"), and both stay as members. Member ids are c01, c02 … per SoA row. The specimen and lab of each
+source context panel are recorded on the member as stated facets, with the context panel and its evidence pages; they are
+not used for routing.
+
+**Routing (1.5, rules 1.6.0).** The named-test members are routed as label members: the member text routes on its own; the
+SoA panel label, the context panel names and the annotations of the panel row or its parent only support
+(`panel_label_support`, `context_panel_support`, `panel_annotation_support`). The row is marked
+`members_from: "protocol context"` and carries `context_sources` (context panel, pages) and `stated_facets`. No new rule, no
+weaker status. `counts.rows_from_context_members` counts these rows; `inputs.panel_context_members` records the sidecar's
+sha256, and routing stops when the sidecar is missing or stale where the study has protocol context.
+
+Grain `panel` rows that are not lab panels (sample collections such as "Lymphoma tissue collection", "BM aspirate";
+specimen-and-assay rows such as "TBNK (blood)", "Anti-ALLO-501A ADA") have no context panel and stay not reached; the
+sidecar lists them as `not linked`, for a later grain pass.
+
 ## Running it
 
 ```
@@ -143,7 +187,8 @@ python -m soa2usdm.activity_routing --collection cell_gene_therapy              
 python -m soa2usdm.activity_routing --collection cell_gene_therapy --protocol NCT03489291
 ```
 
-The step reads the grain file through `activity_grain.load_current_grain`, so it stops on a stale grain file. It stops as well
+Where a study has protocol context, run `python -m soa2usdm.panel_context_members --collection <name>` after the grain and
+before routing. The step reads the grain file through `activity_grain.load_current_grain`, so it stops on a stale grain file. It stops as well
 when the grain was made at another cdisc-for-ai commit than the one checked out. Run it after the grain, before the
 collection pages are built. The collection index renders a page per study, `SoA2USDM/routing/<id>_activity_routing.html`
 (`soa2usdm.activity_routing_page`), and the shared navigation adds "activity routing" to the strip of every protocol page.
@@ -153,12 +198,14 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-06, with cdisc-for-ai `a7d5821` (rules 1.5.0, grain rules 1.2.0; routed by test identity in brackets,
-strong and weak; named tests include the panel members):
+Status on 2026-11-07, with cdisc-for-ai `a7d5821` (rules 1.6.0 for cell_gene_therapy, 1.5.0 for the others, which have no
+protocol context; grain rules 1.2.0; routed by test identity in brackets, strong and weak; named tests include the panel
+members, for cell_gene_therapy 158 of them from protocol context; not reached in brackets: split from label, members from
+protocol context):
 
 | Collection | Studies | Named tests (members) | routed | open | weak | not routed | not reached (split) |
 |---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 86 (26) | 39 (9, weak 15) | 11 | 1 | 35 | 58 (11) |
+| cell_gene_therapy | 5 | 244 (184) | 179 (90, weak 74) | 22 | 1 | 42 | 58 (11, 18) |
 | usdm_data | 22 | 137 (44) | 107 (49, weak 57) | 20 | 0 | 10 | 83 (27) |
 | cpmp | 13 | 40 (0) | 36 (20, weak 16) | 4 | 0 | 0 | 52 (0) |
 | misc_studies | 2 | 43 (26) | 36 (18, weak 18) | 4 | 1 | 2 | 14 (6) |
