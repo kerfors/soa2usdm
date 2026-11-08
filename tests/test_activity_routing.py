@@ -33,7 +33,8 @@ class Stub(ar.RoutingLookups):
     """RoutingLookups without files: cited statements by ID, kind -> domains as Domain_Coverage gives them."""
 
     def __init__(self):
-        self.cited = {sid: {"text_sha256": "0" * 64} for r in ar.RULES + ar.PANEL_RULES for s in r["statements"]
+        self.cited = {sid: {"text_sha256": "0" * 64} for r in ar.RULES + ar.PANEL_RULES + ar.RESOLUTION_RULES
+                      for s in r["statements"]
                       for sid in [s["statement_id"]]}
         self.kind_domains = {"specimen": ["BS", "CP", "LB", "MB", "MI", "MS"], "immunogenicity": ["IS"],
                              "measurement": ["CV", "EG", "MK", "RE", "VS"], "pc": ["PC"], "genomics": ["GF"]}
@@ -272,9 +273,82 @@ def test_vs_measurement_outside_a_vital_signs_panel_not_settled():
     assert ar.match_panel_rules("Pulse", "Vital signs") == []
 
 
+# ---------------------------------------------------------------------------
+# Rules 1.8.0 (step 5, 2026-11-08)
+# ---------------------------------------------------------------------------
+LYM = ("C51949", "LYM", "CP; LB; MI")
+
+
+def test_haematology_panel_resolves_cp_lb_to_lb():
+    # RT-12: a strong CP/LB(/MI) test code in a panel whose label names haematology routes LB (LB-OV, CP-OV)
+    rows = _split("Haematology", [_member("m01", "Lymphocytes", LYM),
+                                  _member("m02", "Platelets", ("C51951", "PLAT", "CP; LB"))])
+    got = [(r["status"], r["domain"], r["route_source"], [b["rule_id"] for b in r["basis"]]) for r in rows]
+    assert got == [("routed", "LB", "rule", ["RT-12"])] * 2
+    b = rows[0]["basis"][0]
+    assert b["matched"] == [{"where": "panel_label", "xannot_id": None, "phrase": "Haematology"}]
+    assert [s["statement_id"] for s in b["statements"]] == ["LB-OV", "CP-OV"] and b["label_match"] is False
+    assert rows[0]["test_identity"]["domains"] == ["CP", "LB", "MI"]
+    # 'differentials' (CP-OV's word) names it too
+    assert _split("CBC with differentials, Platelets", [_member("m01", "Lymphocytes", LYM)])[0]["domain"] == "LB"
+
+
+def test_haematology_resolution_not_outside_its_conditions():
+    # urinalysis panel; weak hit; a test code not in both CP and LB; flow cytometry named in the panel label
+    assert _split("Urinalysis", [_member("m01", "Leukocytes", ("C51948", "WBC", "BS; CP; LB; MI"))])[0]["status"] == "open"
+    r = _split("Hematology", [_member("m01", "T cells", ("C1", "TLYCE", "CP; LB"), strength="weak",
+                                      reasons=("NCIt synonym only",))])[0]
+    assert (r["status"], r["basis"]) == ("not routed", [])
+    r = _split("Hematology", [_member("m01", "MCH", ("C1", "MCH", "LB; MB"))])[0]
+    assert (r["status"], r["candidates"]) == ("open", ["LB", "MB"])
+    r = _split("Hematology and flow cytometry", [_member("m01", "Lymphocytes", LYM)])[0]
+    assert (r["status"], r["basis"]) == ("open", [])
+
+
+def test_haematology_resolution_needs_the_context_panel_name_too():
+    m = _member("c01", "Leukocytes", ("C51948", "WBC", "BS; CP; LB; MI")) | {
+        "sources": [{"context_panel": "/panels/1", "analyte": "Leukocytes"}], "stated_facets": []}
+    a = {"protocol_id": "NCT0", "xact_id": "xact-002", "activity_name": "Clinical Lab Tests (Hematology, Urinalysis)",
+         "parent_xact_id": None}
+    unified = {"xact-002": {"activity_name": a["activity_name"], "is_section_header": False, "parent_xact_id": None}}
+    for name, status in (("Urinalysis", "open"), ("Hematology", "routed")):
+        cps = {"/panels/1": {"pointer": "/panels/1", "panel_name": name, "evidence": [{"page": 9, "quote": "q"}]}}
+        r = ar._member_rows(a, [m], unified, {"unified_annotations": []}, LK, cps)[0]
+        assert r["status"] == status, name
+    assert {(x["where"], x["phrase"]) for x in r["basis"][0]["matched"]} == \
+        {("panel_label", "Hematology"), ("context_panel", "Hematology")}
+
+
+def test_annotation_only_rule_gives_way_to_label_test_identity():
+    # NCT01797120 'HBV DNA': the footnote's 'antibodies' (RT-1) made it weak; the label's HBDNA (MB) routes
+    note = ("Patients on antiviral prophylaxis treatment or positive HBV antibodies should be tested for HBV-DNA "
+            "≤ 7 days prior to the start of C1D1")
+    ti = ar.test_identity(_label("hbv dna", "weak", ("C103404", "HBDNA", "MB"), reasons=["NCIt synonym only"]))
+    r = _route("HBV DNA", annotations=[note], ti=ti)
+    assert (r["status"], r["domain"], r["route_source"], r["basis"]) == ("routed", "MB", "test identity, weak hit", [])
+    assert r["annotation_hints"] == [{"rule_id": "RT-1", "domains": ["IS"],
+                                      "matched": [{"xannot_id": "xannot-000", "phrase": "antibodies"}]}]
+    # no label test identity: still weak (Factor IX Recovery)
+    r = _route("Factor IX Recovery", annotations=["Test for factor IX inhibitor if recovery is low."])
+    assert r["status"] == "weak" and "annotation_hints" not in r
+
+
+def test_weak_hit_does_not_route_when_grain_kind_unsure():
+    # NCT05714345 'MRD assessment': MRDRESP (RS) through a supplied word; the AI left the kind unsure
+    ti = ar.test_identity(_label("mrd assessment", "weak", ("C124433", "MRDRESP", "RS"),
+                                 reasons=["NCIt synonym only", "peeled", "activity word supplied: result"]))
+    r = ar.route([], [], LK, ti, kind_unsure=True)
+    assert (r["status"], r["domain"], r["hints"], r["route_source"]) == ("not routed", None, ["RS"], None)
+    assert r["question"].startswith("weak test code hit MRDRESP -> RS")
+    # kind unsure but its candidates cover the domain, or a definite kind: routes as before
+    assert ar.route([], ["specimen", "pc"], LK, ar.test_identity(_label("x", "weak", ("C1", "X", "LB"))),
+                    kind_unsure=True)["status"] == "routed"
+    assert ar.route([], [], LK, ti)["status"] == "routed"
+
+
 def test_rules_cite_public_routing_statements_only():
     lk = ar.RoutingLookups()
-    for rule in ar.RULES + ar.PANEL_RULES:
+    for rule in ar.RULES + ar.PANEL_RULES + ar.RESOLUTION_RULES:
         for s in rule["statements"]:
             row = lk.statements[s["statement_id"]]
             assert row["Selected_As"] == "routing"
@@ -322,9 +396,13 @@ def test_routing_file_consistent(path):
             for m in b["matched"]:
                 if m["where"] == "label":
                     text = r["activity_name"]
-                elif m["where"] == "panel_label":  # 1.6: only in a panel rule's basis
-                    assert b["rule_id"] in {pr["rule_id"] for pr in ar.PANEL_RULES}, (r["xact_id"], b["rule_id"])
+                elif m["where"] == "panel_label":  # 1.6: only in a panel rule's basis; 1.8: or a resolution rule's
+                    assert b["rule_id"] in {pr["rule_id"] for pr in ar.PANEL_RULES + ar.RESOLUTION_RULES}, \
+                        (r["xact_id"], b["rule_id"])
                     text = r["panel_name"]
+                elif m["where"] == "context_panel":  # 1.8: only in a resolution rule's basis
+                    assert b["rule_id"] in {pr["rule_id"] for pr in ar.RESOLUTION_RULES}, (r["xact_id"], b["rule_id"])
+                    text = " | ".join(cs["panel_name"] for cs in r["context_sources"])
                 elif m["where"] == "parent_label":
                     text = r["parent_name"]
                 else:
@@ -372,6 +450,12 @@ def test_routing_file_test_identity(path):
             assert r["route_source"] == "rule" and r["basis"]
         if not r["basis"] and ti and ti["hit_strength"] == "weak" and r["route_source"] is None:
             assert r["status"] == "not routed" and r["hints"] == ti["domains"]
-            assert len(ti["codes"]) > 1 or len(ti["domains"]) > 1
+            # 1.8.0: one code in one domain gives a hint only where the grain kind is unsure and does not cover it
+            assert len(ti["codes"]) > 1 or len(ti["domains"]) > 1 or (
+                r["grain"]["finding_kind"] == "unsure" and ti["domains"][0] not in r["candidates"]
+                and r["question"].startswith("weak test code hit")), r["xact_id"]
+        if r.get("annotation_hints"):  # 1.8.0: annotation rules gave way to the label's test identity
+            assert not r["basis"] and r["route_source"] in ("test identity", "test identity, weak hit")
+            assert "member_id" not in r
     assert d["counts"]["routed_by_test_identity"] == sum(
         1 for r in d["rows"] if r["status"] == "routed" and r["route_source"] == "test identity")

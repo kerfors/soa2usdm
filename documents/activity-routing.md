@@ -29,7 +29,7 @@ tests than the row's own, so it never decides alone.
 |---|---|
 | routed | one domain; matched in the activity label; no condition; no question |
 | open | candidate domains, and the question the protocol (or CDISC) must settle |
-| weak | matched only in SoA annotations: the rule domains are kept as hints; the candidates come from the grain kind |
+| weak | matched only in SoA annotations: the rule domains are kept as hints; the candidates come from the grain kind. Rules 1.8.0: where the label's test identity routes or opens the row, it takes over and the annotation rules are kept as `annotation_hints` |
 | not routed | no rule fired: the candidates come from the grain kind through `Domain_Coverage` |
 
 A condition on a statement is our reading of what the protocol must settle before the statement applies. Code never decides
@@ -45,7 +45,7 @@ Only the row's own label is used, as for the rules.
 |---|---|
 | strong, one domain | routed, `route_source` "test identity" (e.g. "HbA1c" → HBA1C → LB) |
 | strong, several domains | open: those domains are the candidates; the question names the test code (e.g. "Weight" → WEIGHT → CV, VS) |
-| weak, one code in one domain (NCIt synonym only, qualifier dropped, peeled …) | routed, `route_source` "test identity, weak hit" (rules 1.3.0; e.g. "Pregnancy test" → HCG → LB) |
+| weak, one code in one domain (NCIt synonym only, qualifier dropped, peeled …) | routed, `route_source` "test identity, weak hit" (rules 1.3.0; e.g. "Pregnancy test" → HCG → LB); not routed, the domain as a hint, where the grain kind is unsure and its kind candidates do not cover the domain (rules 1.8.0) |
 | weak, several codes or several domains | not routed: the domains are hints; the candidates come from the grain kind |
 
 A rule always ranks above the test identity. Where a rule fired, the hits are recorded and change nothing: "PK (Glucagon)"
@@ -55,6 +55,18 @@ domain is then not in doubt, even where the test is ("Pregnancy test" reaches HC
 visible. "eGFR (CKD-EPI)" hits GFRE and EGFR (LB, MI) and is not routed. A strong hit routes also to a domain the
 grain kind has no fallback for (RP "Childbearing potential", SS "Survival Status"): the domain is where the test code is
 published.
+
+Rules 1.8.0 (step 5, 2026-11-08), three changes in how the sources rank; none adds a domain claim of our own:
+- A strong hit with several domains can be settled by a resolution rule (RT-12, below). It is the only rule that reads the
+  test identity.
+- A weak hit does not route where the AI grain decision left the kind unsure and its kind candidates do not cover the
+  domain: two of our sources disagree, so the domain stays a hint and the question names the conflict. Cases: NCT05714345
+  "MRD assessment" (MRDRESP, RS, through the NCIt synonym "MRD_RESULT" and a supplied word, while the agent reads an assay
+  on plasma), NCT05020015 "Survival follow-up" (SURVSTAT, SS), "Neurological assessment" (NV) in NCT05620563, NCT05620576,
+  NCT05630196.
+- Rules matched only in SoA annotations (weak) give way to the label's test identity where it routes or opens the row; they
+  are kept as `annotation_hints`. Case: NCT01797120 "HBV DNA" (HBDNA, MB), whose footnote names "positive HBV antibodies"
+  (RT-1, IS). Without a label test identity the row stays weak (Factor IX Recovery).
 
 The hits come from the grain file, which is an input of the routing file (sha256) and is made at the same cdisc-for-ai
 commit, so no other lookup is read.
@@ -77,6 +89,7 @@ sha256 of their text. The routing file quotes each cited statement once, so the 
 | RT-9 | therapeutic drug level | pharmacokinetics, PK, drug level | PC-OV → PC | — |
 | RT-10 | routine laboratory test | hematology, clinical chemistry, urinalysis | LB-OV → LB | — |
 | RT-11 | vital-sign measurement in a vital-signs panel (panel rule) | member: blood pressure, BP, SBP, DBP, systolic, diastolic, temperature, temp, respiration, respiratory rate, RR, body surface area, BSA, body mass index, BMI, height, weight; panel label: vital sign(s) | VS-OV → VS | — |
+| RT-12 | routine haematology test in a haematology panel (resolution rule) | member: a strong test code in both CP and LB; panel label (and every context panel name): hematology, haematology, differential(s); not with RT-7 | LB-OV, CP-OV → LB | — |
 
 Notes on the rules:
 - RT-1 routes to IS without a condition. Each kind of induced antibody falls under one of the cited assumptions: induced by
@@ -98,7 +111,18 @@ Notes on the rules:
   standalone "Weight" stays open. Pulse and heart rate are not named in VS-OV (cdisc-for-ai `bd7e5fd`, VS-OV p358) and stay
   open (CV or VS) also in a vital-signs panel; CV-OV and CV-A1 are in SDTMIG_Statements but not cited by a rule. A member
   listed beside "vital signs" in the same label ("Vital signs and weight") counts as in the panel.
-- Precedence only where the cited statement itself states the exception (RT-8 over RT-1, IS-A5).
+- RT-12 is a resolution rule (rules 1.8.0): it fires on a member row only, where no other rule fired and the member's
+  strong test code is published for both CP and LB (LYM, MONO, EOS, BASO, NEUT, PLAT, RBC, WBC). The panel label must name
+  haematology, or differentials (CP-OV's own word); where the member comes from protocol context, every context panel name
+  must name it too, so a WBC from a "Urinalysis" context panel under a mixed label is not settled. It does not fire where
+  RT-7 (flow cytometry, phenotyping) matches the member, the panel label, the panel annotations or a context panel name.
+  CP-OV states the exception itself: CP is for marker-based cell phenotyping and "is not intended to supplant use of the LB
+  domain for routine lab hematology (e.g., blood cell differentials)". The test code's other domains (MI for LYM and WBC)
+  are set aside too: CP-OV points to MI for microscopic assessment of cells, LB-OV names hematology. Its basis records the
+  panel label and context panel matches (`panel_label`, `context_panel`; `label_match` false). Left open: weak hits (T cells,
+  B cells and the "Erythrocyte count (RBC)" style labels: whether a count is marker-based is not stated), and urine cells in
+  urinalysis panels (CP-OV speaks of hematology only).
+- Precedence only where the cited statement itself states the exception (RT-8 over RT-1, IS-A5; RT-12, CP-OV).
 - Rule IDs keep the numbering of the wider rule set; see below.
 
 ## Members-only material
@@ -220,16 +244,22 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-07, with cdisc-for-ai `bd7e5fd` (rules 1.7.0, grain rules 1.2.0; routed by test identity in brackets,
-strong and weak; named tests include the panel members, for cell_gene_therapy 158 of them from protocol context; not
-reached in brackets: split from label, members from protocol context):
+Status on 2026-11-08, with cdisc-for-ai `bd7e5fd` (rules 1.8.0, grain rules 1.3.0), standalone rows and panel member
+rows apart (routed by test identity in brackets: strong, weak):
 
-| Collection | Studies | Named tests (members) | routed | open | weak | not routed | not reached (split) |
-|---|---|---|---|---|---|---|---|
-| cell_gene_therapy | 5 | 244 (184) | 180 (89, weak 74) | 22 | 1 | 41 | 58 (11, 18) |
-| usdm_data | 22 | 137 (44) | 113 (47, weak 57) | 18 | 0 | 6 | 83 (27) |
-| cpmp | 13 | 40 (0) | 36 (20, weak 16) | 4 | 0 | 0 | 52 (0) |
-| misc_studies | 2 | 43 (26) | 38 (18, weak 18) | 3 | 1 | 1 | 14 (6) |
+| Collection | Studies | Unit | routed | open | weak | not routed |
+|---|---|---|---|---|---|---|
+| cell_gene_therapy | 5 | standalone | 21 (2, 4) | 7 | 1 | 32 |
+| | | members | 169 (87, 69) | 5 | 0 | 8 |
+| usdm_data | 22 | standalone | 101 (36, 47) | 13 | 2 | 33 |
+| | | members | 282 (150, 60) | 22 | 0 | 25 |
+| cpmp | 13 | standalone | 67 (20, 32) | 4 | 3 | 4 |
+| | | members | 46 (37, 9) | 1 | 0 | 0 |
+| misc_studies | 2 | standalone | 16 (13, 3) | 3 | 0 | 5 |
+| | | members | 64 (28, 28) | 3 | 0 | 2 |
+
+Rules 1.8.0 changed 87 rows against 1.7.0: 81 members open CP|LB → LB by RT-12, 5 standalone weak-hit routes → not
+routed (grain kind unsure), 1 standalone weak → MB (HBV DNA).
 
 Outside cell_gene_therapy the named tests are mostly routine laboratory tests and vital signs (HbA1c, height, weight, blood
 pressure, pregnancy test, drug screen). No rule names them; the test identity routes almost all of them, a weak hit with

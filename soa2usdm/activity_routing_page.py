@@ -22,15 +22,16 @@ import json
 from pathlib import Path
 
 from . import config
-from .activity_routing import PANEL_RULES, RULES, SCHEMA_NAME, STATUSES, sha256_text
+from .activity_routing import PANEL_RULES, RESOLUTION_RULES, RULES, SCHEMA_NAME, STATUSES, sha256_text
 from .nav import NAV_CSS, nav_block, page_title
 
 PAGE_LABEL = "activity routing"
 DOC_URL = "https://github.com/kerfors/soa2usdm/blob/main/documents/activity-routing.md"
 MEMBERS_URL = DOC_URL + "#members-only-material"
 WHERE_LABEL = {"label": "activity label", "parent_label": "parent label", "annotation": "footnote",
-               "panel_label": "panel label"}
-RULE_BY_ID = {r["rule_id"]: r for r in RULES + PANEL_RULES}
+               "panel_label": "panel label", "context_panel": "context panel name"}
+RULE_BY_ID = {r["rule_id"]: r for r in RULES + PANEL_RULES + RESOLUTION_RULES}
+RESOLUTION_IDS = {r["rule_id"] for r in RESOLUTION_RULES}
 
 
 def esc(v) -> str:
@@ -71,13 +72,20 @@ def _basis(r: dict, annotations: dict) -> str:
                      f'<div class="why">{esc(rule["our_reading"])}</div><ul class="m">{"".join(hits)}</ul></div>')
     for rid, d in r["dropped"].items():
         parts.append(f'<div class="ns">{esc(rid)} set aside by {esc(d["by_rule"])} ({esc(d["statement_id"])})</div>')
+    for h in r.get("annotation_hints", []):
+        parts.append(f'<div class="ns">{esc(h["rule_id"])} → {esc("/".join(h["domains"]))} matched only in footnote '
+                     f'{esc(", ".join(sorted({m["xannot_id"] for m in h["matched"]})))} '
+                     f'({esc(", ".join(sorted({m["phrase"] for m in h["matched"]})))}): hint only, the test code of '
+                     f'the label routes</div>')
     if not parts:
         parts.append('<span class="ns">no rule fired</span>')
     ti = r.get("test_identity")
     if ti:
         codes = " · ".join(f'{esc(c["testcd"])} <span class="ns">{esc(c["code"])}</span> → {esc("/".join(c["domains"]))}'
                            for c in ti["codes"])
-        if r["basis"]:
+        if r["basis"] and {b["rule_id"] for b in r["basis"]} <= RESOLUTION_IDS:
+            use = "open over " + "/".join(ti["domains"]) + "; the resolution rule settles it"
+        elif r["basis"]:
             use = "recorded; the rule ranks above it"
         elif r.get("route_source") == "test identity, weak hit":
             use = "routes the row: one code in one domain, the hit itself is weak"

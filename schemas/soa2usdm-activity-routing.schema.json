@@ -105,9 +105,10 @@
             "label",
             "parent_label",
             "annotation",
-            "panel_label"
+            "panel_label",
+            "context_panel"
           ],
-          "description": "1.6: panel_label only in the basis of a panel rule (RT-11), beside a label match of the member."
+          "description": "1.6: panel_label only in the basis of a panel rule (RT-11), beside a label match of the member. 1.8: panel_label and context_panel (a context panel name of the member) in the basis of a resolution rule (RT-12)."
         },
         "xannot_id": {
           "type": [
@@ -184,6 +185,49 @@
         "panel_name": {
           "type": "string",
           "description": "1.3: on a member row: the panel's activity label."
+        },
+        "annotation_hints": {
+          "type": "array",
+          "description": "1.8: on a standalone row whose rules matched only in SoA annotations, where the label's test identity routes or opens the row instead: those rules, kept as hints. They do not route, open or block.",
+          "items": {
+            "type": "object",
+            "required": [
+              "rule_id",
+              "matched",
+              "domains"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rule_id": {
+                "type": "string"
+              },
+              "matched": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "xannot_id",
+                    "phrase"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "xannot_id": {
+                      "type": "string"
+                    },
+                    "phrase": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         },
         "panel_annotation_support": {
           "type": "array",
@@ -514,7 +558,7 @@
             "test identity, weak hit",
             null
           ],
-          "description": "1.1: what routed the row; null unless status is routed, or open on a strong multi-domain test identity. 1.2: 'test identity, weak hit' for a weak hit with one code and one domain."
+          "description": "1.1: what routed the row; null unless status is routed, or open on a strong multi-domain test identity. 1.2: 'test identity, weak hit' for a weak hit with one code and one domain. 1.8: 'rule' also where a resolution rule (RT-12) settles a strong multi-domain test identity."
         },
         "test_identity": {
           "type": [
@@ -610,7 +654,8 @@
         "1.4",
         "1.5",
         "1.6",
-        "1.7"
+        "1.7",
+        "1.8"
       ]
     },
     "collection": {

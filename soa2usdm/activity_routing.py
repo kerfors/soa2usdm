@@ -44,6 +44,17 @@ panel whose label names vital signs, and which names a measurement VS-OV names (
 temperature, respiration, body surface area, body mass index, height, weight), routes to VS. Its basis
 records both matches (where "label" and "panel_label"). Pulse and heart rate are not named in VS-OV
 and keep their test identity (CV or VS: open).
+Rules 1.8.0 (schema 1.8, step 5 of the 2026-11-07 order):
+- Resolution rule RT-12 (RESOLUTION_RULES): a member row whose strong test identity is open over CP and
+  LB, in a panel whose label names haematology or differentials, routes to LB (LB-OV; CP-OV: CP does not
+  supplant LB for routine lab hematology, e.g. blood cell differentials). Where the member comes from
+  protocol context, every context panel name must name it too. Not when RT-7 (flow cytometry) matches
+  the member, the panel label, the panel annotations or a context panel name. Its basis records the
+  panel label and context panel matches (where "panel_label", "context_panel"; label_match false).
+- A weak result (rules matched only in SoA annotations) gives way to the label's test identity where
+  that routes or opens the row; the annotation rules are kept as annotation_hints (HBV DNA, NCT01797120).
+- A weak hit with one code and one domain does not route when the grain kind is unsure and its kind
+  candidates do not cover the domain: not routed, the domain as a hint, with the question.
 
 Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
 row's own activity label (from the grain file) are a second source. A strong hit with
@@ -78,9 +89,9 @@ from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_curre
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.7"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7")
-RULES_VERSION = "1.7.0"
+SCHEMA_VERSION = "1.8"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8")
+RULES_VERSION = "1.8.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -195,6 +206,33 @@ PANEL_RULES = [
     },
 ]
 
+# Resolution rules (rules 1.8.0): fire on a member row only, where no rule fired and the member's strong
+# test identity is open over test_domains; the panel label must match panel_patterns, and so must every
+# context panel name of the member (members from protocol context). Not where a rule in not_with matches
+# the member, the panel label, the panel annotations or a context panel name (match_resolution_rules).
+# Step 5 (Kerstin, 2026-11-08).
+RESOLUTION_RULES = [
+    {
+        "rule_id": "RT-12",
+        "name": "routine haematology test in a haematology panel (resolution rule)",
+        "panel_patterns": [r"\bh(?:a)?ematology\b", r"\bdifferentials?\b"],
+        "test_domains": ["CP", "LB"],
+        "not_with": ["RT-7"],
+        "domain": "LB",
+        "statements": [S("LB-OV", ["LB"]), S("CP-OV", ["LB"])],
+        "exception_over": [],
+        "our_reading": "LB-OV names hematology as LB data. CP-OV says CP is for marker-based cell phenotyping and "
+                       "is not intended to supplant the LB domain for routine lab hematology (e.g., blood cell "
+                       "differentials). A member of a panel whose label names haematology, or differentials "
+                       "(CP-OV's word), and whose strong test code is in both CP and LB, is routine hematology: LB. "
+                       "Where the member comes from protocol context, the context panel names must name it too. Not "
+                       "where flow cytometry or phenotyping (RT-7) is named. Other domains of the test code (MI for "
+                       "LYM and WBC) are set aside too: CP-OV points to MI for microscopic assessment of cells, "
+                       "LB-OV names hematology. Weak hits are left: whether T cells or B cells are counted by "
+                       "marker-based phenotyping is not stated.",
+    },
+]
+
 
 def _sha256_bytes(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
@@ -258,7 +296,7 @@ class RoutingLookups:
         """Statement_ID -> the statement as cited, for every statement a rule cites. Each must be
         a routing statement of SDTMIG_Statements."""
         out = {}
-        for rule in RULES + PANEL_RULES:
+        for rule in RULES + PANEL_RULES + RESOLUTION_RULES:
             for s in rule["statements"]:
                 sid = s["statement_id"]
                 if sid not in self.statements:
@@ -340,6 +378,30 @@ def match_panel_rules(member_text: str, panel_label: str) -> list:
     return fired
 
 
+def match_resolution_rules(ti: dict | None, panel: dict | None) -> list:
+    """[(rule, matches)] for the resolution rules (1.8.0) that fire on a member row with a strong test
+    identity. panel: {"label": panel label, "context_names": context panel names (may be empty),
+    "rule_ids": rule IDs matching the member, the panel label, the panel annotations or a context panel name}.
+    Matches: where "panel_label" and "context_panel"."""
+    if ti is None or ti["hit_strength"] != "strong" or panel is None:
+        return []
+    fired = []
+    for rule in RESOLUTION_RULES:
+        if not set(rule["test_domains"]) <= set(ti["domains"]) or set(rule["not_with"]) & set(panel["rule_ids"]):
+            continue
+        found = lambda text: list(dict.fromkeys(m.group(0) for p in rule["panel_patterns"]
+                                                for m in re.finditer(p, text, flags=re.IGNORECASE)))
+        on_label = found(panel["label"])
+        on_context = [found(t) for t in panel["context_names"]]
+        if not on_label or not all(on_context):
+            continue
+        matches = [{"where": "panel_label", "xannot_id": None, "phrase": ph} for ph in on_label]
+        matches += [{"where": "context_panel", "xannot_id": None, "phrase": ph}
+                    for ph in dict.fromkeys(ph for phs in on_context for ph in phs)]
+        fired.append((rule, matches))
+    return fired
+
+
 def test_identity(label: dict | None) -> dict | None:
     """The SDTM_Test_Identity hits of the row's activity label, as the grain file cites them;
     None when there are none. Domains as the hits give them (a hit's domains are '; '-separated)."""
@@ -358,23 +420,54 @@ def test_identity(label: dict | None) -> dict | None:
     }
 
 
-def route(fired: list, grain_kinds: list, lk: RoutingLookups, ti: dict | None = None) -> dict:
-    """The routing result of one row from the rules that fired, then (only where no rule fired)
-    from the test identity of the activity label."""
+def route(fired: list, grain_kinds: list, lk: RoutingLookups, ti: dict | None = None,
+          kind_unsure: bool = False, panel: dict | None = None) -> dict:
+    """The routing result of one row from the rules that fired, then (only where no rule fired, or
+    1.8.0 where the rules matched only in SoA annotations) from the test identity of the activity label.
+    kind_unsure (1.8.0): the grain kind is unsure. panel (1.8.0, member rows): see match_resolution_rules."""
     res = _route_rules(fired, grain_kinds, lk)
     res["route_source"] = "rule" if res["status"] == "routed" else None
     res["test_identity"] = ti
-    if ti is None or res["basis"]:
+    if ti is None or (res["basis"] and res["status"] != "weak"):
         return res
+    if res["basis"]:
+        # 1.8.0: rules matched only in SoA annotations give way to the label's test identity where it
+        # routes or opens the row; they are kept as annotation hints
+        by_ti = route([], grain_kinds, lk, ti, kind_unsure, panel)
+        if by_ti["route_source"] is None:
+            return res
+        hints = [{"rule_id": b["rule_id"],
+                  "matched": [{"xannot_id": m["xannot_id"], "phrase": m["phrase"]} for m in b["matched"]],
+                  "domains": sorted({d for s in b["statements"] for d in s["domains"]})} for b in res["basis"]]
+        return by_ti | {"dropped": res["dropped"], "annotation_hints": hints}
     if ti["hit_strength"] == "strong" and len(ti["domains"]) == 1:
         return res | {"status": "routed", "domain": ti["domains"][0], "candidates": None,
                       "fallback": None, "route_source": "test identity"}
     if len(ti["codes"]) == 1 and len(ti["domains"]) == 1:
+        if kind_unsure and ti["domains"][0] not in res["candidates"]:
+            # 1.8.0: the grain kind is unsure and does not cover the domain: the weak hit gives a hint only
+            c = ti["codes"][0]
+            return res | {"hints": ti["domains"],
+                          "question": f"weak test code hit {c['testcd']} -> {ti['domains'][0]} ("
+                                      + ", ".join(ti["weak_reasons"]) + "); the grain kind is unsure and does not "
+                                      f"cover {ti['domains'][0]}: hint only, the protocol must say"}
         # Weak (NCIt synonym only, qualifier dropped, peeled ...) but one code in one domain:
         # the domain is not in doubt, the test may be; marked so the weakness stays visible
         return res | {"status": "routed", "domain": ti["domains"][0], "candidates": None,
                       "fallback": None, "route_source": "test identity, weak hit"}
     if ti["hit_strength"] == "strong":
+        resolved = match_resolution_rules(ti, panel)
+        if resolved:
+            # 1.8.0: a resolution rule settles the open test identity (RT-12: CP/LB -> LB)
+            rule, matches = resolved[0]
+            basis = [{"rule_id": rule["rule_id"],
+                      "statements": [{"statement_id": s["statement_id"], "domains": s["domains"],
+                                      "condition": s["condition"],
+                                      "text_sha256": lk.cited[s["statement_id"]]["text_sha256"]}
+                                     for s in rule["statements"]],
+                      "matched": matches, "label_match": False}]
+            return res | {"status": "routed", "domain": rule["domain"], "candidates": None, "fallback": None,
+                          "route_source": "rule", "basis": basis}
         return res | {"status": "open", "candidates": ti["domains"], "fallback": None,
                       "route_source": "test identity",
                       "question": "test code " + "/".join(sorted({c["testcd"] for c in ti["codes"]}))
@@ -468,8 +561,6 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
             sources.append({"where": "parent_label", "xannot_id": None, "text": unified[px]["activity_name"]})
         kinds = ([m["finding_kind"]] if m["finding_kind"] and m["finding_kind"] != "unsure"
                  else list(m["kind_candidates"]))
-        res = route(match_rules(sources) + match_panel_rules(m["text"], a["activity_name"]), kinds, lk,
-                    test_identity(m))
         context = {}
         if context_panels is not None:
             ptrs = list(dict.fromkeys(s["context_panel"] for s in m["sources"]))
@@ -485,6 +576,13 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
                                                        "text": context_panels[ptr]["panel_name"]} for ptr in ptrs])],
                 "stated_facets": m["stated_facets"],
             }
+        fired = match_rules(sources) + match_panel_rules(m["text"], a["activity_name"])
+        panel = {"label": a["activity_name"],
+                 "context_names": [s["panel_name"] for s in context.get("context_sources", [])],
+                 "rule_ids": sorted({rule["rule_id"] for rule, _ in fired}
+                                    | {s["rule_id"] for s in support + annotation_support
+                                       + context.get("context_panel_support", [])})}
+        res = route(fired, kinds, lk, test_identity(m), m["finding_kind"] == "unsure", panel)
         rows.append({
             "xact_id": x,
             "member_id": m["member_id"],
@@ -586,7 +684,8 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
                 sources.append({"where": "annotation", "xannot_id": an["xannot_id"], "text": an["annotation_text"]})
         grain_kinds = ([a["finding_kind"]] if a["finding_kind"] and a["finding_kind"] != "unsure"
                        else list(a["kind_candidates"]))
-        res = route(match_rules(sources), grain_kinds, lk, test_identity(labels.get(a["phrase"])))
+        res = route(match_rules(sources), grain_kinds, lk, test_identity(labels.get(a["phrase"])),
+                    a["finding_kind"] == "unsure")
         rows.append({
             "xact_id": x,
             "activity_name": a["activity_name"],
