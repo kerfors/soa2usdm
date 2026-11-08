@@ -140,3 +140,27 @@ def test_panel_file_only_where_protocol_context(study):
     pid, c = study
     has = pcm.panels_path(pid, c).exists()
     assert has == (context_path(pid, c).exists() and grain_path(pid, c).exists())
+
+
+# ---------------------------------------------------------------------------
+# Reading review of the members (step 3 4d), kept by hand
+# ---------------------------------------------------------------------------
+REVIEW_JSON = config.COLLECTIONS_ROOT / "panel_member_review.json"
+
+
+@pytest.mark.skipif(not REVIEW_JSON.exists(), reason="collections/panel_member_review.json not present")
+def test_review_file_validates_and_subjects_resolve():
+    schema = json.loads((SCHEMAS / "soa2usdm-panel-member-review.schema.json").read_text())
+    jsonschema.Draft7Validator.check_schema(schema)
+    review = json.loads(REVIEW_JSON.read_text())
+    jsonschema.validate(review, schema)
+    keys = [json.dumps(e["subject"], sort_keys=True) for e in review["reviews"]]
+    assert len(keys) == len(set(keys)), "a subject is reviewed twice"
+    for e in review["reviews"]:
+        s = e["subject"]
+        ctx = json.loads(context_path(s["protocol_id"], s["collection"]).read_text())
+        cp = ctx["panels"][int(s["context_panel"].rsplit("/", 1)[1])]
+        if s["kind"] == "analyte":
+            assert s["analyte"] in cp["analytes"], s
+            d = json.loads(pcm.panels_path(s["protocol_id"], s["collection"]).read_text())
+            assert s["xact_id"] in {r["xact_id"] for r in d["rows"]}, s
