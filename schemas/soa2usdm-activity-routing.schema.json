@@ -186,6 +186,53 @@
           "type": "string",
           "description": "1.3: on a member row: the panel's activity label."
         },
+        "activity_level": {
+          "const": true,
+          "description": "1.9: the row is routed at activity level by an activity rule (RT-13, ECG): its grain is a panel with no named-test members or a procedure, and the test stays open."
+        },
+        "annotation_support": {
+          "type": "array",
+          "description": "1.9: on an activity-level row: rules other than the activity rule that match the SoA annotations of the row or its parent. Support only: they never route, open or block.",
+          "items": {
+            "type": "object",
+            "required": [
+              "rule_id",
+              "matched",
+              "domains"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "rule_id": {
+                "type": "string"
+              },
+              "matched": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "xannot_id",
+                    "phrase"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "xannot_id": {
+                      "type": "string"
+                    },
+                    "phrase": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
         "annotation_hints": {
           "type": "array",
           "description": "1.8: on a standalone row whose rules matched only in SoA annotations, where the label's test identity routes or opens the row instead: those rules, kept as hints. They do not route, open or block.",
@@ -438,8 +485,11 @@
             "grain": {
               "type": "string",
               "enum": [
-                "named test"
-              ]
+                "named test",
+                "panel",
+                "procedure"
+              ],
+              "description": "1.9: panel or procedure only on an activity-level row (activity_level true)."
             },
             "finding_kind": {
               "type": [
@@ -655,7 +705,8 @@
         "1.5",
         "1.6",
         "1.7",
-        "1.8"
+        "1.8",
+        "1.9"
       ]
     },
     "collection": {
@@ -919,7 +970,7 @@
         },
         "by_unit": {
           "type": "object",
-          "description": "1.7: the status counts split into standalone rows and panel member rows (published figures are always split).",
+          "description": "1.7: the status counts split into standalone rows and panel member rows (published figures are always split). 1.9: activity, the rows routed at activity level.",
           "required": [
             "standalone",
             "member"
@@ -930,6 +981,9 @@
               "$ref": "#/definitions/unit_counts"
             },
             "member": {
+              "$ref": "#/definitions/unit_counts"
+            },
+            "activity": {
               "$ref": "#/definitions/unit_counts"
             }
           }
@@ -965,7 +1019,8 @@
               "panel, not split",
               "panel, split from label",
               "named-test row that is a parent",
-              "panel, members from protocol context"
+              "panel, members from protocol context",
+              "device handling, not a measurement"
             ]
           },
           "members": {

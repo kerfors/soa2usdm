@@ -117,7 +117,8 @@ def study_items(collection: str, grain: dict, routing: dict, decisions: dict | N
             members.append(r)
             continue
         a = acts[r["xact_id"]]
-        if a["grain"] != "named test" or r["xact_id"] in own:
+        # routing 1.9: an activity-level row (ECG) is the own row of a grain panel or procedure
+        if (a["grain"] != "named test" and not r.get("activity_level")) or r["xact_id"] in own:
             raise ValueError(f"{collection}/{pid} {r['xact_id']}: own routing row for grain {a['grain']!r}")
         own[r["xact_id"]] = r
     not_reached = {n["xact_id"]: n["reason"] for n in routing["not_reached"]}

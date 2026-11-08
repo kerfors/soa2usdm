@@ -772,7 +772,14 @@ def generate_index_html(collection: str) -> str:
             routing_html = (f'<a href="{p["activity_routing"]}" class="link-table" title="Activity routing per named test: SDTMIG v3.4 domain, or candidates with the question that stays open (public SDTMIG v3.4 statements and SDTM test codes only)">routing</a>'
                             f' <a href="{p["activity_routing_json"]}" class="link-json" title="Activity routing JSON">json</a>'
                             f'<br><span class="grain-n"><abbr title="standalone named-test rows">S</abbr>: {unit_txt["standalone"]}'
-                            f'<br><abbr title="panel member rows">M</abbr>: {unit_txt["member"]}</span>')
+                            f'<br><abbr title="panel member rows">M</abbr>: {unit_txt["member"]}'
+                            # 1.9: rows routed at activity level (ECG), shown where there are any
+                            + (f'<br><abbr title="rows routed at activity level (grain panel or procedure)">A</abbr>: '
+                               + ' · '.join(f'{bu["activity"][st]} {st}' for st in ('routed', 'open', 'weak', 'not routed')
+                                            if bu["activity"][st])
+                               if any(bu.get("activity", {}).get(st) for st in ('routed', 'open', 'weak', 'not routed'))
+                               else '')
+                            + '</span>')
         routing_td = f'\n            <td class="viz">{routing_html}</td>' if has_routing else ''
 
         # USDM readiness column

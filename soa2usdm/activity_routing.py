@@ -55,6 +55,13 @@ Rules 1.8.0 (schema 1.8, step 5 of the 2026-11-07 order):
   that routes or opens the row; the annotation rules are kept as annotation_hints (HBV DNA, NCT01797120).
 - A weak hit with one code and one domain does not route when the grain kind is unsure and its kind
   candidates do not cover the domain: not routed, the domain as a hint, with the question.
+Activity-level rows (schema 1.9, rules 1.9.0; ECG, step 5): an activity rule (ACTIVITY_RULES) fires on the
+activity label of a row whose grain is not a named test. RT-13 (EG-OV): a grain panel with no named-test
+members, or a grain procedure, whose label names an ECG gets one row at activity level (activity_level true):
+routed EG, the test stays open; the grain stays recorded as it is. The parent label supports or opens, as for
+a standalone row; the SoA annotations only support: other rules matching them are recorded as
+annotation_support and never open the row (they schedule the activity, e.g. ECG before PK sampling). A label that also names device handling (placed, removed) gets no row: not
+reached, "device handling, not a measurement". counts.by_unit gains "activity".
 
 Test identity (schema 1.1): where no rule fires, the SDTM_Test_Identity hits of the
 row's own activity label (from the grain file) are a second source. A strong hit with
@@ -89,9 +96,9 @@ from .activity_grain import CDISC_FOR_AI, CONSUMER_KIND, DOMAIN_KIND, load_curre
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-activity-routing"
-SCHEMA_VERSION = "1.8"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8")
-RULES_VERSION = "1.8.0"
+SCHEMA_VERSION = "1.9"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9")
+RULES_VERSION = "1.9.0"
 
 LOOKUP_FILES = {
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements"),
@@ -111,6 +118,7 @@ NOT_REACHED_PANEL = "panel, not split"
 NOT_REACHED_SPLIT = "panel, split from label"
 NOT_REACHED_CONTEXT = "panel, members from protocol context"
 NOT_REACHED_PARENT = "named-test row that is a parent"
+NOT_REACHED_HANDLING = "device handling, not a measurement"
 
 
 def S(statement_id: str, domains: list, condition: str | None = None) -> dict:
@@ -206,6 +214,26 @@ PANEL_RULES = [
     },
 ]
 
+# Activity rules (rules 1.9.0): fire on the activity label of a row whose grain is in grains (not a named
+# test); the row is routed at activity level and its test stays open. A label that also matches not_patterns
+# gets no row (NOT_REACHED_HANDLING). Step 5, ECG (Kerstin, 2026-11-08), after EG-OV in cdisc-for-ai 48eccfd.
+ACTIVITY_RULES = [
+    {
+        "rule_id": "RT-13",
+        "name": "ECG (activity-level rule)",
+        "grains": ["panel", "procedure"],
+        "patterns": [r"\becgs?\b", r"\bekgs?\b", r"\belectrocardiogra(?:m|ms|phy)\b"],
+        "not_patterns": [r"\bplaced\b", r"\bremoved\b"],
+        "statements": [S("EG-OV", ["EG"])],
+        "exception_over": [],
+        "our_reading": "EG-OV: the EG domain contains ECG data, all cycle measurements and all findings from the ECG, "
+                       "including an overall interpretation. EKG and electrocardiogram name the same. An SoA row that "
+                       "names an ECG is routed to EG at activity level, whether the grain is a panel (the protocol "
+                       "names the measurements) or a procedure; which ECG tests are collected stays open. Rows that "
+                       "name placing or removing the device record its handling, not an ECG result.",
+    },
+]
+
 # Resolution rules (rules 1.8.0): fire on a member row only, where no rule fired and the member's strong
 # test identity is open over test_domains; the panel label must match panel_patterns, and so must every
 # context panel name of the member (members from protocol context). Not where a rule in not_with matches
@@ -296,7 +324,7 @@ class RoutingLookups:
         """Statement_ID -> the statement as cited, for every statement a rule cites. Each must be
         a routing statement of SDTMIG_Statements."""
         out = {}
-        for rule in RULES + PANEL_RULES + RESOLUTION_RULES:
+        for rule in RULES + PANEL_RULES + RESOLUTION_RULES + ACTIVITY_RULES:
             for s in rule["statements"]:
                 sid = s["statement_id"]
                 if sid not in self.statements:
@@ -343,10 +371,20 @@ class RoutingLookups:
 # ---------------------------------------------------------------------------
 # Rules
 # ---------------------------------------------------------------------------
-def match_rules(sources: list) -> list:
-    """sources: [{where, xannot_id, text}]. Returns [(rule, matches)] for the rules that fire."""
+def match_activity_rules(label: str, grain: str) -> tuple:
+    """(fired, set_aside) for the activity rules (1.9.0) on a row of this grain: the rules whose patterns match
+    the activity label and whose not_patterns do not, and those whose not_patterns match it too (no row)."""
+    hit = [r for r in ACTIVITY_RULES if grain in r["grains"]
+           and any(re.search(p, label, flags=re.IGNORECASE) for p in r["patterns"])]
+    aside = [r for r in hit if any(re.search(p, label, flags=re.IGNORECASE) for p in r["not_patterns"])]
+    return [r for r in hit if r not in aside], aside
+
+
+def match_rules(sources: list, rules: list | None = None) -> list:
+    """sources: [{where, xannot_id, text}]. Returns [(rule, matches)] for the rules that fire
+    (default RULES; 1.9.0: the activity rules of an activity-level row)."""
     fired = []
-    for rule in RULES:
+    for rule in RULES if rules is None else rules:
         matches, seen = [], set()
         for src in sources:
             for p in rule["patterns"]:
@@ -600,6 +638,51 @@ def _member_rows(a: dict, members: list, unified: dict, cons: dict, lk: RoutingL
     return rows
 
 
+def _own_row(a: dict, unified: dict, cons: dict, labels: dict, lk: RoutingLookups,
+             activity: list | None = None) -> dict:
+    """The row of a standalone named test, or (1.9.0, activity given) of a row routed at activity level:
+    the activity rules are matched on the same sources, before the other rules, and the row is marked. On an
+    activity-level row the other rules matching SoA annotations only support (annotation_support)."""
+    x = a["xact_id"]
+    protocol_id = a["protocol_id"]
+    # Parent from consolidated. The grain sets parent_xact_id only when the parent is not a
+    # section header; any other difference stops the run.
+    px = unified[x]["parent_xact_id"]
+    if px != a["parent_xact_id"] and not (a["parent_xact_id"] is None and unified[px]["is_section_header"]):
+        raise ValueError(f"{protocol_id} {x}: parent differs between grain ({a['parent_xact_id']}) "
+                         f"and consolidated ({px})")
+    sources = [{"where": "label", "xannot_id": None, "text": a["activity_name"]}]
+    if px:
+        sources.append({"where": "parent_label", "xannot_id": None, "text": unified[px]["activity_name"]})
+    for an in cons["unified_annotations"]:
+        refs = set(an["referenced_xacts"])
+        if x in refs or (px and px in refs):
+            sources.append({"where": "annotation", "xannot_id": an["xannot_id"], "text": an["annotation_text"]})
+    grain_kinds = ([a["finding_kind"]] if a["finding_kind"] and a["finding_kind"] != "unsure"
+                   else list(a["kind_candidates"]))
+    support = None
+    if activity:
+        notes = [s for s in sources if s["where"] == "annotation"]
+        support = [{"rule_id": rule["rule_id"],
+                    "matched": [{"xannot_id": m["xannot_id"], "phrase": m["phrase"]} for m in matches],
+                    "domains": sorted({d for st in rule["statements"] for d in st["domains"]})}
+                   for rule, matches in match_rules(notes)]
+        fired = match_rules(sources, activity) + match_rules([s for s in sources if s["where"] != "annotation"])
+    else:
+        fired = match_rules(sources)
+    res = route(fired, grain_kinds, lk, test_identity(labels.get(a["phrase"])),
+                a["finding_kind"] == "unsure")
+    return {
+        "xact_id": x,
+        "activity_name": a["activity_name"],
+        "parent_xact_id": px,
+        "parent_name": unified[px]["activity_name"] if px else None,
+        "parent_is_section_header": unified[px]["is_section_header"] if px else None,
+        "grain": {"grain": a["grain"], "finding_kind": a["finding_kind"],
+                  "kind_candidates": a["kind_candidates"], "source": a["source"]},
+    } | ({"activity_level": True, "annotation_support": support} if activity else {}) | res
+
+
 # ---------------------------------------------------------------------------
 # Study
 # ---------------------------------------------------------------------------
@@ -639,6 +722,18 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
     rows, not_reached = [], []
     for a in acts:
         x = a["xact_id"]
+        # 1.9.0: activity rules (ECG) on a grain panel without named-test members, or a grain procedure
+        activity, aside = match_activity_rules(a["activity_name"], a["grain"])
+        if activity or aside:
+            listed = ((labels.get(a["phrase"]) or {}).get("members", [])
+                      + (pcm_rows.get(x) or {}).get("members", [])) if a["grain"] == "panel" else []
+            if not any(m.get("member_grain") == "named test" for m in listed):
+                if activity:
+                    rows.append(_own_row(a, unified, cons, labels, lk, activity))
+                else:
+                    not_reached.append({"xact_id": x, "activity_name": a["activity_name"],
+                                        "reason": NOT_REACHED_HANDLING})
+                continue
         if a["grain"] == "panel":
             members = (labels.get(a["phrase"]) or {}).get("members", [])
             if not any(m.get("member_grain") == "named test" for m in members):
@@ -669,32 +764,7 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
                                 "children": [{"xact_id": c["xact_id"], "activity_name": c["activity_name"],
                                               "grain": c["grain"], "role": c["role"]} for c in children[x]]})
             continue
-        # Parent from consolidated. The grain sets parent_xact_id only when the parent is not a
-        # section header; any other difference stops the run.
-        px = unified[x]["parent_xact_id"]
-        if px != a["parent_xact_id"] and not (a["parent_xact_id"] is None and unified[px]["is_section_header"]):
-            raise ValueError(f"{protocol_id} {x}: parent differs between grain ({a['parent_xact_id']}) "
-                             f"and consolidated ({px})")
-        sources = [{"where": "label", "xannot_id": None, "text": a["activity_name"]}]
-        if px:
-            sources.append({"where": "parent_label", "xannot_id": None, "text": unified[px]["activity_name"]})
-        for an in cons["unified_annotations"]:
-            refs = set(an["referenced_xacts"])
-            if x in refs or (px and px in refs):
-                sources.append({"where": "annotation", "xannot_id": an["xannot_id"], "text": an["annotation_text"]})
-        grain_kinds = ([a["finding_kind"]] if a["finding_kind"] and a["finding_kind"] != "unsure"
-                       else list(a["kind_candidates"]))
-        res = route(match_rules(sources), grain_kinds, lk, test_identity(labels.get(a["phrase"])),
-                    a["finding_kind"] == "unsure")
-        rows.append({
-            "xact_id": x,
-            "activity_name": a["activity_name"],
-            "parent_xact_id": px,
-            "parent_name": unified[px]["activity_name"] if px else None,
-            "parent_is_section_header": unified[px]["is_section_header"] if px else None,
-            "grain": {"grain": a["grain"], "finding_kind": a["finding_kind"],
-                      "kind_candidates": a["kind_candidates"], "source": a["source"]},
-        } | res)
+        rows.append(_own_row(a, unified, cons, labels, lk))
 
     cited = sorted({s["statement_id"] for r in rows for b in r["basis"] for s in b["statements"]}
                    | {s for e in lk.fallback_excluded for s in e["statement_ids"]})
@@ -723,8 +793,10 @@ def generate_study_routing(collection: str, protocol_id: str, lk: RoutingLookups
                      "rows_from_panel_members": sum(1 for r in rows if "member_id" in r),
                      "rows_from_context_members": sum(1 for r in rows
                                                       if r.get("members_from") == "protocol context"),
-                     "by_unit": {"standalone": unit_counts([r for r in rows if "member_id" not in r]),
-                                 "member": unit_counts([r for r in rows if "member_id" in r])}},
+                     "by_unit": {"standalone": unit_counts([r for r in rows if "member_id" not in r
+                                                            and not r.get("activity_level")]),
+                                 "member": unit_counts([r for r in rows if "member_id" in r]),
+                                 "activity": unit_counts([r for r in rows if r.get("activity_level")])}},
         "rows": rows,
         "not_reached": not_reached,
     }

@@ -33,7 +33,8 @@ class Stub(ar.RoutingLookups):
     """RoutingLookups without files: cited statements by ID, kind -> domains as Domain_Coverage gives them."""
 
     def __init__(self):
-        self.cited = {sid: {"text_sha256": "0" * 64} for r in ar.RULES + ar.PANEL_RULES + ar.RESOLUTION_RULES
+        self.cited = {sid: {"text_sha256": "0" * 64}
+                      for r in ar.RULES + ar.PANEL_RULES + ar.RESOLUTION_RULES + ar.ACTIVITY_RULES
                       for s in r["statements"]
                       for sid in [s["statement_id"]]}
         self.kind_domains = {"specimen": ["BS", "CP", "LB", "MB", "MI", "MS"], "immunogenicity": ["IS"],
@@ -346,9 +347,38 @@ def test_weak_hit_does_not_route_when_grain_kind_unsure():
     assert ar.route([], [], LK, ti)["status"] == "routed"
 
 
+def test_ecg_activity_rule_matches_label_and_sets_device_handling_aside():
+    # RT-13: ECG / EKG / electrocardiogram on a grain panel or procedure; placed / removed set aside
+    for label in ("12-lead ECG", "Triplicate ECGs (selected sites only)", "Electrocardiogram", "EKG"):
+        fired, aside = ar.match_activity_rules(label, "procedure")
+        assert [r["rule_id"] for r in fired] == ["RT-13"] and aside == [], label
+    fired, aside = ar.match_activity_rules("Ambulatory ECG placed", "panel")
+    assert fired == [] and [r["rule_id"] for r in aside] == ["RT-13"]
+    assert ar.match_activity_rules("12-lead ECG", "named test") == ([], [])
+    assert ar.match_activity_rules("Echocardiogram", "procedure") == ([], [])
+
+
+def test_ecg_activity_row_routed_eg():
+    a = {"protocol_id": "NCT0", "xact_id": "xact-003", "activity_name": "12-lead ECG", "phrase": "12 lead ecg",
+         "parent_xact_id": None, "grain": "procedure", "finding_kind": None, "kind_candidates": [], "source": "ai_proposed"}
+    unified = {"xact-003": {"activity_name": "12-lead ECG", "is_section_header": False, "parent_xact_id": None}}
+    fired, _ = ar.match_activity_rules(a["activity_name"], a["grain"])
+    r = ar._own_row(a, unified, {"unified_annotations": []}, {}, LK, fired)
+    assert (r["status"], r["domain"], r["route_source"], r["activity_level"]) == ("routed", "EG", "rule", True)
+    assert r["basis"][0]["rule_id"] == "RT-13" and r["basis"][0]["matched"][0]["phrase"] == "ECG"
+    assert r["grain"]["grain"] == "procedure" and r["test_identity"] is None and r["annotation_support"] == []
+    # a footnote naming PK (RT-9) only supports: the row stays routed EG (NCT05051579 xannot-004 style)
+    cons = {"unified_annotations": [{"xannot_id": "xannot-004", "referenced_xacts": ["xact-003"],
+                                     "annotation_text": "ECGs should be done before PK sampling."}]}
+    r = ar._own_row(a, unified, cons, {}, LK, fired)
+    assert (r["status"], r["domain"]) == ("routed", "EG")
+    assert r["annotation_support"] == [{"rule_id": "RT-9", "domains": ["PC"],
+                                        "matched": [{"xannot_id": "xannot-004", "phrase": "PK"}]}]
+
+
 def test_rules_cite_public_routing_statements_only():
     lk = ar.RoutingLookups()
-    for rule in ar.RULES + ar.PANEL_RULES + ar.RESOLUTION_RULES:
+    for rule in ar.RULES + ar.PANEL_RULES + ar.RESOLUTION_RULES + ar.ACTIVITY_RULES:
         for s in rule["statements"]:
             row = lk.statements[s["statement_id"]]
             assert row["Selected_As"] == "routing"
@@ -370,13 +400,21 @@ def test_routing_file_validates(path):
 
 @pytest.mark.parametrize("path", ROUTING_FILES, ids=lambda p: p.name)
 def test_routing_file_counts_by_unit(path):
-    """1.7: the standalone and member counts add up to the status counts and match the rows."""
+    """1.7: the standalone and member counts add up to the status counts and match the rows.
+    1.9: with the activity-level rows as a third unit."""
     d = json.loads(path.read_text())
     bu = d["counts"]["by_unit"]
     for st in ar.STATUSES:
-        assert bu["standalone"][st] + bu["member"][st] == d["counts"][st]
-    assert bu == {"standalone": ar.unit_counts([r for r in d["rows"] if "member_id" not in r]),
-                  "member": ar.unit_counts([r for r in d["rows"] if "member_id" in r])}
+        assert bu["standalone"][st] + bu["member"][st] + bu.get("activity", {}).get(st, 0) == d["counts"][st]
+    assert bu == {"standalone": ar.unit_counts([r for r in d["rows"] if "member_id" not in r
+                                                and not r.get("activity_level")]),
+                  "member": ar.unit_counts([r for r in d["rows"] if "member_id" in r])} | (
+        {"activity": ar.unit_counts([r for r in d["rows"] if r.get("activity_level")])} if "activity" in bu else {})
+    for r in d["rows"]:  # 1.9: only an activity-level row has another grain than named test
+        assert (r["grain"]["grain"] != "named test") == bool(r.get("activity_level")), r["xact_id"]
+        if r.get("activity_level"):
+            assert "member_id" not in r and r["grain"]["grain"] in ("panel", "procedure")
+            assert {b["rule_id"] for b in r["basis"]} & {ru["rule_id"] for ru in ar.ACTIVITY_RULES}
     assert sum(bu["member"][st] for st in ar.STATUSES) == d["counts"]["rows_from_panel_members"]
 
 

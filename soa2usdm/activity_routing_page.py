@@ -22,7 +22,7 @@ import json
 from pathlib import Path
 
 from . import config
-from .activity_routing import PANEL_RULES, RESOLUTION_RULES, RULES, SCHEMA_NAME, STATUSES, sha256_text
+from .activity_routing import ACTIVITY_RULES, PANEL_RULES, RESOLUTION_RULES, RULES, SCHEMA_NAME, STATUSES, sha256_text
 from .nav import NAV_CSS, nav_block, page_title
 
 PAGE_LABEL = "activity routing"
@@ -30,7 +30,7 @@ DOC_URL = "https://github.com/kerfors/soa2usdm/blob/main/documents/activity-rout
 MEMBERS_URL = DOC_URL + "#members-only-material"
 WHERE_LABEL = {"label": "activity label", "parent_label": "parent label", "annotation": "footnote",
                "panel_label": "panel label", "context_panel": "context panel name"}
-RULE_BY_ID = {r["rule_id"]: r for r in RULES + PANEL_RULES + RESOLUTION_RULES}
+RULE_BY_ID = {r["rule_id"]: r for r in RULES + PANEL_RULES + RESOLUTION_RULES + ACTIVITY_RULES}
 RESOLUTION_IDS = {r["rule_id"] for r in RESOLUTION_RULES}
 
 
@@ -148,9 +148,14 @@ def render(protocol_id: str, collection: str) -> Path:
                 + '</div>')
 
     # 1.7: published figures are always split into standalone rows and panel member rows.
-    summary = (unit_line("standalone named tests", c["rows"] - from_members, c["by_unit"]["standalone"])
+    # 1.9: rows routed at activity level (ECG) are a third unit
+    act_u = c["by_unit"].get("activity")
+    n_act = sum(act_u[st] for st in STATUSES) if act_u else 0
+    summary = (unit_line("standalone named tests", c["rows"] - from_members - n_act, c["by_unit"]["standalone"])
                + unit_line("panel members", from_members, c["by_unit"]["member"],
                            f' ({from_context} from protocol context)' if from_context else "")
+               + (unit_line("at activity level", n_act, act_u, " (grain panel or procedure; the test stays open)")
+                  if n_act else "")
                + f'<div class="ns">not reached {c["not_reached"]}</div>')
 
     order = {st: i for i, st in enumerate(("open", "weak", "routed", "not routed"))}
@@ -160,6 +165,13 @@ def render(protocol_id: str, collection: str) -> Path:
         kind = esc(g["finding_kind"] or "—") + (f' <span class="ns sub">{esc(" · ".join(g["kind_candidates"]))}</span>'
                                                  if g["kind_candidates"] else "")
         parent = (f'<div class="ctx">under {esc(r["parent_name"])}</div>' if r["parent_name"] else "")
+        if r.get("activity_level"):
+            asup = "; ".join(f'{esc(s["rule_id"])} → {esc("/".join(s["domains"]))} '
+                             f'({esc(", ".join(sorted({m["xannot_id"] for m in s["matched"]})))})'
+                             for s in r.get("annotation_support") or [])
+            parent = (f'<div class="ctx">at activity level: grain {esc(g["grain"])}; the test stays open'
+                      + (f' <span class="ns">(footnotes support {asup})</span>' if asup else "") + '</div>'
+                      + parent)
         if "member_id" in r:
             sup = "; ".join(f'{esc(s["rule_id"])} → {esc("/".join(s["domains"]))}' for s in r["panel_label_support"])
             asup = "; ".join(f'{esc(s["rule_id"])} → {esc("/".join(s["domains"]))} '
@@ -181,7 +193,7 @@ def render(protocol_id: str, collection: str) -> Path:
         rid = r["xact_id"] + (f'.{r["member_id"]}' if "member_id" in r else "")
         q = f'<div class="q">{esc(r["question"])}</div>' if r["question"] else ""
         rows.append(
-            f'<tr id="{esc(rid)}" data-s="{esc(r["status"])}" data-u="{"member" if "member_id" in r else "standalone"}">'
+            f'<tr id="{esc(rid)}" data-s="{esc(r["status"])}" data-u="{"member" if "member_id" in r else "activity" if r.get("activity_level") else "standalone"}">'
             f'<td class="x">{esc(rid)}</td>'
             f'<td class="act"><a href="{grain_html}#{esc(r["xact_id"])}" title="Show on the grain page">{esc(r["activity_name"])}</a>{parent}</td>'
             f'<td class="k">{kind}</td>'
@@ -260,7 +272,7 @@ replication-competent vectors). It is not used here; <a href="{MEMBERS_URL}">wha
 <section>
 <div class="ctl"><input id="q" type="search" placeholder="Search activity, rule, statement, phrase…" aria-label="Search">
 <select id="sf" aria-label="Status"><option value="">all statuses</option>{options}</select>
-<select id="uf" aria-label="Standalone or panel member"><option value="">standalone and members</option><option value="standalone">standalone</option><option value="member">panel members</option></select><span id="n"></span></div>
+<select id="uf" aria-label="Standalone or panel member"><option value="">standalone and members</option><option value="standalone">standalone</option><option value="member">panel members</option><option value="activity">at activity level</option></select><span id="n"></span></div>
 <div class="tw"><table><thead><tr><th>row</th><th>activity</th><th>grain kind</th><th>status</th><th>domain</th><th>question · basis</th></tr></thead>
 <tbody id="tb">{"".join(rows)}</tbody></table></div>
 </section>

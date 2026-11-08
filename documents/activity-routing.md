@@ -16,6 +16,7 @@ The step is a per-study sidecar. It does not change the grain file, the activity
 | grain `panel` named only, linked to the study's protocol context (1.5) | one row per named-test member from the linked context panels; the panel row is not reached, "panel, members from protocol context", with its members |
 | grain `panel` named only, otherwise | not reached, "panel, not split": the members need the protocol's lab appendix |
 | grain `named test` that is a parent | not reached: the children carry the tests |
+| grain `panel` with no named-test members, or grain `procedure`, whose label names an ECG (rules 1.9.0) | one row at activity level (`activity_level`): routed EG by RT-13, the test stays open; a label that also names placing or removing the device is not reached, "device handling, not a measurement" |
 | every other grain, and rows with a role | not part of the step |
 
 ## Sources and status
@@ -90,6 +91,7 @@ sha256 of their text. The routing file quotes each cited statement once, so the 
 | RT-10 | routine laboratory test | hematology, clinical chemistry, urinalysis | LB-OV → LB | — |
 | RT-11 | vital-sign measurement in a vital-signs panel (panel rule) | member: blood pressure, BP, SBP, DBP, systolic, diastolic, temperature, temp, respiration, respiratory rate, RR, body surface area, BSA, body mass index, BMI, height, weight; panel label: vital sign(s) | VS-OV → VS | — |
 | RT-12 | routine haematology test in a haematology panel (resolution rule) | member: a strong test code in both CP and LB; panel label (and every context panel name): hematology, haematology, differential(s); not with RT-7 | LB-OV, CP-OV → LB | — |
+| RT-13 | ECG (activity-level rule) | activity label of a grain panel (no named-test members) or procedure: ECG(s), EKG(s), electrocardiogram, electrocardiography; set aside with placed, removed | EG-OV → EG | — |
 
 Notes on the rules:
 - RT-1 routes to IS without a condition. Each kind of induced antibody falls under one of the cited assumptions: induced by
@@ -122,6 +124,15 @@ Notes on the rules:
   panel label and context panel matches (`panel_label`, `context_panel`; `label_match` false). Left open: weak hits (T cells,
   B cells and the "Erythrocyte count (RBC)" style labels: whether a count is marker-based is not stated), and urine cells in
   urinalysis panels (CP-OV speaks of hematology only).
+- RT-13 is an activity-level rule (rules 1.9.0, schema 1.9; EG-OV added to cdisc-for-ai in `48eccfd`). Whether an ECG row
+  is a panel (the protocol names the measurements) or a procedure stays recorded in the grain, but no longer decides
+  whether the row is routed (decision 2026-11-07): the row is routed to EG at activity level, and which ECG tests are
+  collected (intervals, interpretation …) stays open for the test-identity step. A panel whose members are listed keeps
+  its member rows and gets no activity row. The parent label supports or opens as for a standalone row; the SoA
+  annotations only support: other rules matching them are recorded as `annotation_support` and never open the row.
+  Footnotes on ECG rows schedule the activity ("ECGs should be done before PK sampling"); without this, RT-9 (PK) opened
+  five ECG rows EG|PC. "Ambulatory ECG placed" / "removed" (CDISC_Pilot) record the device handling, not an ECG result,
+  and get no row. Holter and telemetry are not patterns: they do not occur in the collections.
 - Precedence only where the cited statement itself states the exception (RT-8 over RT-1, IS-A5; RT-12, CP-OV).
 - Rule IDs keep the numbering of the wider rule set; see below.
 
@@ -244,22 +255,27 @@ Before any page is rendered, the index checks each routing file against the grai
 
 ## Status
 
-Status on 2026-11-08, with cdisc-for-ai `bd7e5fd` (rules 1.8.0, grain rules 1.3.0), standalone rows and panel member
-rows apart (routed by test identity in brackets: strong, weak):
+Status on 2026-11-08, with cdisc-for-ai `48eccfd` (rules 1.9.0, grain rules 1.3.0), standalone rows, panel member rows
+and activity-level rows apart (routed by test identity in brackets: strong, weak):
 
 | Collection | Studies | Unit | routed | open | weak | not routed |
 |---|---|---|---|---|---|---|
 | cell_gene_therapy | 5 | standalone | 21 (2, 4) | 7 | 1 | 32 |
 | | | members | 169 (87, 69) | 5 | 0 | 8 |
+| | | activity level | 4 | 0 | 0 | 0 |
 | usdm_data | 22 | standalone | 101 (36, 47) | 13 | 2 | 33 |
 | | | members | 282 (150, 60) | 22 | 0 | 25 |
+| | | activity level | 25 | 0 | 0 | 0 |
 | cpmp | 13 | standalone | 67 (20, 32) | 4 | 3 | 4 |
 | | | members | 46 (37, 9) | 1 | 0 | 0 |
+| | | activity level | 13 | 0 | 0 | 0 |
 | misc_studies | 2 | standalone | 16 (13, 3) | 3 | 0 | 5 |
 | | | members | 64 (28, 28) | 3 | 0 | 2 |
+| | | activity level | 1 | 0 | 0 | 0 |
 
 Rules 1.8.0 changed 87 rows against 1.7.0: 81 members open CP|LB → LB by RT-12, 5 standalone weak-hit routes → not
-routed (grain kind unsure), 1 standalone weak → MB (HBV DNA).
+routed (grain kind unsure), 1 standalone weak → MB (HBV DNA). Rules 1.9.0 added 43 activity-level ECG rows (all routed
+EG; 23 were "panel, not split", 20 procedures outside the step) and set 2 aside as device handling.
 
 Outside cell_gene_therapy the named tests are mostly routine laboratory tests and vital signs (HbA1c, height, weight, blood
 pressure, pregnancy test, drug screen). No rule names them; the test identity routes almost all of them, a weak hit with
