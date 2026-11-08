@@ -19,7 +19,11 @@ sheet, field, code) and source = rule. Rule K1 gives the kind of a rule-hit
 named test from the hit's domains through Domain_Coverage. L1p takes a
 parenthesis that is the test's own abbreviation as a confirmation; L1x peels
 specimen, method, lab, condition and activity words off a label no other rule
-resolved and looks up the rest (always weak). AI proposals and
+resolved and looks up the rest (always weak). Rules 1.4.0 (step 6b, 2026-11-08), list
+members only: a parenthesis whose every piece is a test string of the same code(s) is the
+component restated ('Erythrocytes (RBC)'), as L1p on labels; a member with no test hit is
+looked up again with one of the study's own protocol-context abbreviations expanded
+(always weak, 'abbreviation expanded (study)'). AI proposals and
 review decisions come from a hand-kept decisions file (source ai_proposed /
 reviewed). Design and rule table: documents/activity-grain.md.
 
@@ -40,7 +44,7 @@ parents (parent_xact_id) and annotation ids.
 
 Output: SoA2USDM/grain/<id>_activity_grain.json (schema_name
 soa2usdm-activity-grain, schema_version 1.5: list members with ids, groups,
-qualifiers and kind, rules 1.2.0). The inventory is not changed.
+qualifiers and kind; 1.6: member restated / abbreviation, rules 1.4.0). The inventory is not changed.
 
 Decisions: SoA2USDM/grain/<id>_activity_grain_decisions.json (read only here;
 schema soa2usdm-activity-grain-decisions 1.2), keyed by phrase within the
@@ -50,6 +54,7 @@ study's grain inputs file (soa2usdm.activity_grain_inputs), and only for the
 phrases that file lists; the generator checks that the inputs file is current.
 """
 
+import copy
 import hashlib
 import json
 import os
@@ -62,9 +67,9 @@ from pathlib import Path
 from . import config
 
 SCHEMA_NAME = "soa2usdm-activity-grain"
-SCHEMA_VERSION = "1.5"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5")
-RULES_VERSION = "1.3.0"
+SCHEMA_VERSION = "1.6"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6")
+RULES_VERSION = "1.4.0"
 WORD_LISTS_DATE = "2026-11-06"
 
 CDISC_FOR_AI = Path(os.environ.get(
@@ -155,6 +160,9 @@ def _sha256(path: Path) -> str:
 # ---------------------------------------------------------------------------
 class Lookups:
     """Phrase indexes over the public cdisc-for-ai files."""
+
+    # Rules 1.4.0: the study's own abbreviations, set only on a for_study() copy; never mutated.
+    abbreviations = {}
 
     def __init__(self, root: Path = CDISC_FOR_AI):
         if not root.is_dir():
@@ -261,6 +269,17 @@ class Lookups:
                                              "observation_class": r["Observation_Class"],
                                              "consumer": r["Consumer"]}
 
+    def for_study(self, context_doc: dict | None):
+        """Rules 1.4.0: a copy of the lookups carrying the study's own protocol-context abbreviations
+        (normalised term -> entries), read by list members only. The CDISC indexes are shared."""
+        out = copy.copy(self)
+        out.abbreviations = defaultdict(list)
+        for i, e in enumerate((context_doc or {}).get("abbreviations", [])):
+            t = normalise(e["term"])
+            if t.strip():
+                out.abbreviations[t].append(e | {"pointer": f"/abbreviations/{i}"})
+        return out
+
     def whole(self, phrase: str):
         """All whole-phrase hits, keyed by the grain they give, in rule order."""
         out = []
@@ -288,8 +307,34 @@ class Lookups:
         if len(quals) == 1 and normalise(quals[0] + " " + outer) in self.test:
             return "qualifier before head", self.test[normalise(quals[0] + " " + outer)]
         if quals and normalise(outer) in self.test:
-            return "qualifier dropped", self.test[normalise(outer)]
+            hits = self.test[normalise(outer)]
+            if restated_quals(quals, hits, self):
+                # rules 1.4.0: every piece of the parenthesis is a test string of the same code(s)
+                return "restated", hits
+            return "qualifier dropped", hits
         return None, []
+
+    def expand_abbreviation(self, text: str):
+        """Rules 1.4.0: (entry, expanded text, attempt, hits) for the first study abbreviation (longest
+        token run first) whose one definition, put in place, gives a test hit; (None, flags) otherwise.
+        A term with several distinct definitions is not expanded (flag)."""
+        flags = []
+        if not self.abbreviations:
+            return None, flags
+        words = normalise(split_trailing_parens(text)[0]).split()
+        for i, n, g in _ngrams(words):
+            entries = self.abbreviations.get(g)
+            if not entries:
+                continue
+            defs = {normalise(e["definition"]) for e in entries}
+            if len(defs) > 1:
+                flags.append(f"abbreviation with several definitions, not expanded: {g}")
+                continue
+            expanded = " ".join(words[:i] + [defs.pop()] + words[i + n:])
+            attempt, hits = self.test_hit(expanded)
+            if hits:
+                return (entries[0], expanded, attempt, hits), flags
+        return None, flags
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +349,7 @@ def hit_strength(hits: list, attempt: str = "whole") -> tuple[str, list]:
         reasons.append("several codes")
     if not any(h["source"] == "CT" for h in hits):
         reasons.append("NCIt synonym only")
-    if attempt != "whole":
+    if attempt not in ("whole", "restated"):
         reasons.append(attempt)
     if all(len(h["as_published"]) <= 3 for h in hits):
         reasons.append("short code only")
@@ -396,6 +441,16 @@ def split_trailing_parens(text: str) -> tuple[str, list]:
             return s, quals
         quals.insert(0, m.group(1).strip())
         s = s[:m.start()].strip()
+
+
+def restated_quals(quals: list, hits: list, lk) -> bool:
+    """Rules 1.4.0: every piece of every parenthesis (split at square brackets and ' - ') is a test
+    string of a subset of the hit's codes: 'Erythrocytes (RBC)', 'Leukocytes (white blood cells [WBC])'.
+    No plural rule ('RBCs' is no restatement)."""
+    codes = {h["code"] for h in hits}
+    pieces = [p for q in quals for p in re.split(r"\s*[\[\]]\s*|\s+-\s+", q) if p.strip()]
+    return bool(pieces) and all(lk.test.get(normalise(p)) and {h["code"] for h in lk.test[normalise(p)]} <= codes
+                                for p in pieces)
 
 
 def _is_member_list(content: str) -> bool:
@@ -586,8 +641,13 @@ def _member_lookup(text: str, lk: Lookups) -> dict:
     attempt, hits = lk.test_hit(text)
     if hits:
         strength, reasons = hit_strength(hits, attempt)
-        return {"member_grain": "named test", "hits": _cite(hits), "hit_strength": strength,
-                "weak_reasons": reasons} | finding_kind(hits, lk)
+        rec = {"member_grain": "named test", "hits": _cite(hits), "hit_strength": strength,
+               "weak_reasons": reasons} | finding_kind(hits, lk)
+        if attempt == "restated":
+            quals = split_trailing_parens(text)[1]
+            rec["restated"] = quals
+            rec["flags"].append("parenthesis is the test's own abbreviation: " + ", ".join(quals))
+        return rec
     outer = normalise(split_trailing_parens(text)[0])
     for rule, grain, hh in lk.whole(outer):
         if rule == "L2":
@@ -601,9 +661,19 @@ def _member_lookup(text: str, lk: Lookups) -> dict:
         reasons += [f"activity word supplied: {w}" for w in parts.pop("supplied", [])]
         return {"member_grain": "named test", "hits": _cite(hh), "hit_strength": strength,
                 "weak_reasons": reasons, "peeled": {"rest": rest} | parts} | finding_kind(hh, lk)
+    expanded, ab_flags = lk.expand_abbreviation(text)
+    if expanded:
+        e, exp_text, attempt, hh = expanded
+        reasons = hit_strength(hh, attempt)[1]
+        rec = {"member_grain": "named test", "hits": _cite(hh), "hit_strength": "weak",
+               "weak_reasons": reasons + ["abbreviation expanded (study)"],
+               "abbreviation": {"term": e["term"], "definition": e["definition"], "page": e.get("page"),
+                                "pointer": e["pointer"], "expanded": exp_text}} | finding_kind(hh, lk)
+        rec["flags"] += ab_flags
+        return rec
     if outer in MEMBER_PANEL_PHRASES or set(outer.split()) & PANEL_WORDS:
-        return {"member_grain": "panel", "flags": []}
-    return {"member_grain": None, "flags": []}
+        return {"member_grain": "panel", "flags": ab_flags}
+    return {"member_grain": None, "flags": ab_flags}
 
 
 def label_members(text: str, lk: Lookups) -> tuple[list, list, bool]:
@@ -1023,7 +1093,7 @@ def generate_study_grain(collection: str, protocol_id: str, lk: Lookups | None =
         ctx_doc = json.loads(ctx_raw)
         context = {"sha256": hashlib.sha256(ctx_raw).hexdigest(),
                    "prompt_version": ctx_doc["provenance"]["prompt_version"], "doc": ctx_doc}
-    lk = lk or Lookups()
+    lk = (lk or Lookups()).for_study(context["doc"] if context else None)
 
     # Text rules once per distinct phrase of the study (first spelling met is the one evaluated)
     labels = {}

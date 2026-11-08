@@ -24,7 +24,8 @@
   "schema_version": {
    "enum": [
     "1.0",
-    "1.1"
+    "1.1",
+    "1.2"
    ]
   },
   "collection": {
@@ -343,15 +344,21 @@
           "member qualifier",
           "context panel",
           "lab_and_purpose",
-          "measurements"
+          "measurements",
+          "group head"
          ]
         },
         "via": {
          "enum": [
           "codelist phrase",
           "context field",
-          "word list"
+          "word list",
+          "codelist phrase, whole head"
          ]
+        },
+        "group_head": {
+         "type": "string",
+         "description": "1.2: member_id of the group head the facet was read from"
         },
         "pointer": {
          "type": "string"
@@ -408,6 +415,28 @@
       "items": {
        "type": "string"
       }
+     },
+     "group_head": {
+      "type": "object",
+      "required": [
+       "member_id",
+       "text",
+       "read"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "member_id": {
+        "type": "string"
+       },
+       "text": {
+        "type": "string"
+       },
+       "read": {
+        "type": "boolean",
+        "description": "true: the whole head is a --METHOD / --SPEC codelist phrase and gave facets (where 'group head'); false: kept as text, not a CDISC term"
+       }
+      },
+      "description": "1.2: the head of the member's group (in_group), label or context members"
      },
      "specialization": {
       "type": "object",

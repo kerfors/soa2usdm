@@ -34,6 +34,11 @@ facets          values beyond the test code, of every kind, read from: the label
                 "fasting" / "non-fasting" (our word list, FASTING_WORDS). Each facet carries the variable, Kind
                 and Position from Variable_Meaning, or Kind "not set" where the domain has no row
                 (Domain_Variables only).
+group_head      rules 1.2.0 (step 6b, 2026-11-08): a member of a group (in_group, label or context members) gets
+                its group head. A head that is, as a whole, a phrase of the --METHOD or --SPEC codelist of the
+                row's domain (Codelist_Phrases: submission value, preferred term, CDISC or NCIt synonym) is a
+                facet of the member (where "group head"). Any other head ('dipstick', 'microscopic examination')
+                is recorded as text, not read: it is not a CDISC term.
 practice_text   EG, VS, CV: a --FAST or --SPEC value that the domain's statement lists among the qualifiers
                 that would not generally be used (EG-A11 and VS-A4: both; CV-A2: --FAST only, read from the
                 statement text) is kept as text with the statement, not as a facet.
@@ -65,14 +70,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import config
-from .activity_grain import CDISC_FOR_AI, Lookups, context_path, normalise, peel_label, split_trailing_parens
+from .activity_grain import (CDISC_FOR_AI, Lookups, context_path, grain_path, normalise, peel_label,
+                             split_trailing_parens)
 from .activity_routing import load_current_routing, routing_path
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-test-identity"
-SCHEMA_VERSION = "1.1"
-SCHEMA_VERSIONS = ("1.0", "1.1")
-RULES_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
+RULES_VERSION = "1.2.0"
 WORD_LISTS_DATE = "2026-11-08"
 
 FG = "sdtm-findings-graph/machine_actionable/"
@@ -99,6 +105,8 @@ NOT_GENERALLY_USED_GENERICS = ("--FAST", "--SPEC")
 # Activity-level context fields and the facet generics read from them.
 MEASUREMENT_FIELDS = {"position_or_condition": ("--POS",), "method": ("--METHOD", "--LEAD", "--EVAL")}
 LAB_AND_PURPOSE_FIELDS = {"specimen": "--SPEC", "method": "--METHOD"}
+# Rules 1.2.0: a group head is read as a facet only as a whole phrase of these generics' codelists.
+GROUP_HEAD_GENERICS = ("--METHOD", "--SPEC")
 MIN_PHRASE_CHARS = 3
 
 # ---------------------------------------------------------------------------
@@ -421,6 +429,23 @@ def read_field(value: str, gen: str, where: str, domain: str | None, lk: TestIde
     return f
 
 
+def read_group_head(head: dict, domain: str | None, lk: TestIdentityLookups) -> tuple[dict, list]:
+    """Rules 1.2.0: (group_head record, facets). A facet per --METHOD / --SPEC variable whose codelist has
+    the whole head text as a phrase; otherwise the head is kept as text, read False."""
+    variables = lk.variables_for(domain, GROUP_HEAD_GENERICS) or lk.variables_for(None, GROUP_HEAD_GENERICS)
+    tokens = normalise(head["text"]).split()
+    whole = [h for h in scan_phrases(tokens, variables, lk.phrases) if h[0] == 0 and h[1] == len(tokens)]
+    facets = []
+    for i, j, v, g, terms, others in whole:
+        f = _facet(v, head["text"], terms, "group head", "codelist phrase, whole head",
+                   group_head=head["member_id"])
+        f["term"] = _term_codelist(v, terms, lk.phrases)
+        if others:
+            f["ambiguous_with"] = others
+        facets.append(f)
+    return {"member_id": head["member_id"], "text": head["text"], "read": bool(facets)}, facets
+
+
 # ---------------------------------------------------------------------------
 # Component, collisions, specialization
 # ---------------------------------------------------------------------------
@@ -520,6 +545,9 @@ def hit_part(text: str, ti: dict, lk: TestIdentityLookups) -> str | None:
         return peeled[0] if peeled else ti.get("phrase")
     if "qualifier dropped" in reasons:
         return normalise(split_trailing_parens(text)[0])
+    if lk.grain.test_hit(text)[0] == "restated":
+        # grain rules 1.4.0: the parenthesis restates the component; the head hit the test
+        return normalise(split_trailing_parens(text)[0])
     return ti.get("phrase")
 
 
@@ -540,7 +568,8 @@ def _dedupe(facets: list) -> list:
     return out
 
 
-def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLookups) -> dict:
+def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLookups,
+                 group_members: dict | None = None) -> dict:
     unit = "activity" if row.get("activity_level") else "member" if "member_id" in row else "standalone"
     domain = _domain(row)
     variables = lk.text_variables(domain)
@@ -563,6 +592,11 @@ def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLoo
             if sf["facet"] == "specimen":
                 facets.append(read_field(sf["value"], "--SPEC", "context panel", domain, lk,
                                          pointer=sf["context_panel"], pages=sf["pages"]))
+        gm = (group_members or {}).get((row["xact_id"], row["member_id"])) or {}
+        head = (group_members or {}).get((row["xact_id"], gm.get("in_group"))) if gm.get("in_group") else None
+        if head:
+            group_head, hf = read_group_head(head, domain, lk)
+            facets += hf
     lap = {e["soa_activity"]: (i, e) for i, e in enumerate((ctx or {}).get("lab_and_purpose", []))}
     hit = lap.get(row["activity_name"]) or (lap.get(row.get("panel_name")) if unit == "member" else None)
     if hit:
@@ -600,6 +634,8 @@ def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLoo
     rec = {"xact_id": row["xact_id"]}
     if unit == "member":
         rec |= {"member_id": row["member_id"], "panel_name": row["panel_name"]}
+        if head:
+            rec["group_head"] = group_head
     rec |= {"activity_name": row["activity_name"], "unit": unit, "routing_status": row["status"],
             "domain": domain,
             "component": ({"phrase": phrase, "hit_part": part, "hit_strength": ti.get("hit_strength"),
@@ -626,7 +662,15 @@ def generate_study_test_identity(collection: str, protocol_id: str, lk: TestIden
     ctx = json.loads(cpath.read_text(encoding="utf-8")) if cpath.exists() else None
     pcm = load_current_panel_members(collection, protocol_id)
     members = {(pr["xact_id"], m["member_id"]): m for pr in (pcm["rows"] if pcm else []) for m in pr["members"]}
-    rows = [study_record(row, ctx, members, lk) for row in r["rows"]]
+    # rules 1.2.0: label members (grain) and context members, for the group head of a member
+    gpath = grain_path(protocol_id, collection)
+    g = json.loads(gpath.read_text(encoding="utf-8"))
+    labels = {lb["phrase"]: lb for lb in g["labels"]}
+    group_members = dict(members)
+    for a in g["activities"]:
+        for m in (labels.get(a["phrase"]) or {}).get("members", []):
+            group_members[(a["xact_id"], m["member_id"])] = m
+    rows = [study_record(row, ctx, members, lk, group_members) for row in r["rows"]]
     by_unit = defaultdict(Counter)
     for x in rows:
         if x["unit"] == "activity":
@@ -642,6 +686,7 @@ def generate_study_test_identity(collection: str, protocol_id: str, lk: TestIden
         "rules_version": RULES_VERSION, "word_lists_date": WORD_LISTS_DATE,
         "inputs": {"activity_routing": {"schema_version": r["schema_version"],
                                         "sha256": sha(routing_path(protocol_id, collection))},
+                   "activity_grain": {"schema_version": g["schema_version"], "sha256": sha(gpath)},
                    "panel_context_members": {"sha256": sha(panels_path(protocol_id, collection))} if pcm else None,
                    "protocol_context": {"sha256": sha(cpath)} if ctx else None,
                    "cdisc_for_ai": lk.provenance},
@@ -653,7 +698,9 @@ def generate_study_test_identity(collection: str, protocol_id: str, lk: TestIden
                    "practice_text": sum(len(x["practice_text"]) for x in rows),
                    "rows_with_conditions": sum(1 for x in rows if x["conditions"]),
                    "rows_with_unread": sum(1 for x in rows if x["unread"]),
-                   "rows_with_collisions": sum(1 for x in rows if (x["component"] or {}).get("collisions"))},
+                   "rows_with_collisions": sum(1 for x in rows if (x["component"] or {}).get("collisions")),
+                   "group_heads": dict(sorted(Counter("read" if x["group_head"]["read"] else "not read"
+                                                      for x in rows if x.get("group_head")).items()))},
         "rows": rows,
     }
 

@@ -669,3 +669,67 @@ def test_peeled_rest_completed_by_an_activity_word():
 def test_and_or_is_one_separator():
     assert ag.split_top("24 hr and/or microscopic cell count") == ["24 hr", "microscopic cell count"]
     assert ag.split_top("Sodium and potassium") == ["Sodium", "potassium"]
+
+
+# ---------------------------------------------------------------------------
+# Rules 1.4.0 (step 6b, 2026-11-08): member restatement, study abbreviations
+# ---------------------------------------------------------------------------
+RBC_TEST = _test("Erythrocytes", "C51946", "RBC", "CP; LB")
+RBC_CODE = _test("RBC", "C51946", "RBC", "CP; LB", field="TESTCD")
+RBC_SYN = _test("Red Blood Cells", "C51946", "RBC", "CP; LB", field="NCIt_Synonyms", source="NCIt")
+RBC_COUNT = _test("Red Blood Cell Count", "C51946", "RBC", "CP; LB", field="NCIt_Synonyms", source="NCIt")
+LK6 = Stub(tests=[RBC_TEST, RBC_CODE, RBC_SYN, RBC_COUNT, SODIUM, BILI],
+           consumer={"LB": "Specimen_Findings", "CP": "Specimen_Findings"})
+
+
+def test_member_parenthesis_restating_the_component_is_strong():
+    rec = ag._member_lookup("Erythrocytes (RBC)", LK6)
+    assert rec["hit_strength"] == "strong" and rec["weak_reasons"] == []
+    assert rec["restated"] == ["RBC"]
+    assert "parenthesis is the test's own abbreviation: RBC" in rec["flags"]
+    # every piece, split at square brackets and ' - ', restates the same code
+    rec = ag._member_lookup("Erythrocytes (red blood cells [RBC])", LK6)
+    assert rec["hit_strength"] == "strong" and rec["restated"] == ["red blood cells [RBC]"]
+
+
+def test_member_parenthesis_not_restating_stays_weak():
+    # no plural rule: 'RBCs' is no test string, so the parenthesis is a dropped qualifier
+    rec = ag._member_lookup("Erythrocytes (RBCs - red blood cells)", LK6)
+    assert rec["hit_strength"] == "weak" and "qualifier dropped" in rec["weak_reasons"]
+    assert "restated" not in rec
+    # a piece naming another code is no restatement
+    rec = ag._member_lookup("Erythrocytes (bilirubin)", LK6)
+    assert "qualifier dropped" in rec["weak_reasons"] and "restated" not in rec
+    assert ag.hit_strength([RBC_TEST], "restated") == ("strong", [])
+
+
+def test_study_abbreviation_expanded_for_a_member_without_hit():
+    assert ag._member_lookup("Na", LK6)["member_grain"] is None
+    lk = LK6.for_study({"abbreviations": [{"term": "Na", "definition": "Sodium", "page": 95}]})
+    rec = ag._member_lookup("Na", lk)
+    assert rec["member_grain"] == "named test" and rec["hit_strength"] == "weak"
+    assert rec["weak_reasons"] == ["abbreviation expanded (study)"]
+    assert rec["abbreviation"] == {"term": "Na", "definition": "Sodium", "page": 95,
+                                   "pointer": "/abbreviations/0", "expanded": "sodium"}
+    assert [h["submission_value"] for h in rec["hits"]] == ["SODIUM"]
+    # one token of the member put in place; the hit keeps its own weakness (NCIt synonym only)
+    lk = LK6.for_study({"abbreviations": [{"term": "RBC", "definition": "red blood cell", "page": 1}]})
+    rec = ag._member_lookup("RBC count", lk)
+    assert rec["abbreviation"]["expanded"] == "red blood cell count"
+    assert rec["weak_reasons"] == ["NCIt synonym only", "abbreviation expanded (study)"]
+    # the copy does not change the shared lookups
+    assert LK6.abbreviations == {}
+
+
+def test_study_abbreviation_with_two_definitions_is_not_expanded():
+    lk = LK6.for_study({"abbreviations": [{"term": "Na", "definition": "Sodium", "page": 1},
+                                          {"term": "NA", "definition": "not applicable", "page": 2}]})
+    rec = ag._member_lookup("Na", lk)
+    assert rec["member_grain"] is None
+    assert rec["flags"] == ["abbreviation with several definitions, not expanded: na"]
+
+
+def test_study_abbreviation_not_used_where_a_test_hit():
+    lk = LK6.for_study({"abbreviations": [{"term": "Bilirubin", "definition": "Sodium", "page": 1}]})
+    rec = ag._member_lookup("Bilirubin", lk)
+    assert [h["submission_value"] for h in rec["hits"]] == ["BILI"] and "abbreviation" not in rec

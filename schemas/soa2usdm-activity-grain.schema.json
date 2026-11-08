@@ -139,6 +139,47 @@
         "peeled": {
           "$ref": "#/properties/labels/items/properties/peeled"
         },
+        "restated": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "1.6: the member's parentheses, each piece a test string of the same code(s): the component restated ('Erythrocytes (RBC)'), not a qualifier; the hit is judged as a whole-phrase hit (grain rules 1.4.0)."
+        },
+        "abbreviation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "term",
+            "definition",
+            "page",
+            "pointer",
+            "expanded"
+          ],
+          "properties": {
+            "term": {
+              "type": "string"
+            },
+            "definition": {
+              "type": "string"
+            },
+            "page": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "pointer": {
+              "type": "string",
+              "description": "JSON pointer into the study's protocol context (/abbreviations/i)."
+            },
+            "expanded": {
+              "type": "string",
+              "description": "The normalised member text with the definition in place, as looked up."
+            }
+          },
+          "description": "1.6: the study's own protocol-context abbreviation that gave the test hit of a member with no other hit; always weak, reason 'abbreviation expanded (study)' (grain rules 1.4.0)."
+        },
         "finding_kind": {
           "$ref": "#/definitions/finding_kind"
         },
@@ -357,7 +398,8 @@
         "1.2",
         "1.3",
         "1.4",
-        "1.5"
+        "1.5",
+        "1.6"
       ],
       "description": "Schema version."
     },

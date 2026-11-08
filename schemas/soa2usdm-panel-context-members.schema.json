@@ -245,6 +245,47 @@
         "peeled": {
           "$ref": "#/definitions/peeled"
         },
+        "restated": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "1.2: the member's parentheses, each piece a test string of the same code(s): the component restated ('Erythrocytes (RBC)'), not a qualifier; the hit is judged as a whole-phrase hit (grain rules 1.4.0)."
+        },
+        "abbreviation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "term",
+            "definition",
+            "page",
+            "pointer",
+            "expanded"
+          ],
+          "properties": {
+            "term": {
+              "type": "string"
+            },
+            "definition": {
+              "type": "string"
+            },
+            "page": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "pointer": {
+              "type": "string",
+              "description": "JSON pointer into the study's protocol context (/abbreviations/i)."
+            },
+            "expanded": {
+              "type": "string",
+              "description": "The normalised member text with the definition in place, as looked up."
+            }
+          },
+          "description": "1.2: the study's own protocol-context abbreviation that gave the test hit of a member with no other hit; always weak, reason 'abbreviation expanded (study)' (grain rules 1.4.0)."
+        },
         "finding_kind": {
           "$ref": "#/definitions/finding_kind"
         },
@@ -376,9 +417,10 @@
       "type": "string",
       "enum": [
         "1.0",
-        "1.1"
+        "1.1",
+        "1.2"
       ],
-      "description": "1.1 (2026-11-08): analyte_rule_version; 'from' analyte heading and analyte parenthesis distributed."
+      "description": "1.1 (2026-11-08): analyte_rule_version; 'from' analyte heading and analyte parenthesis distributed. 1.2 (2026-11-08): member restated / abbreviation (grain rules 1.4.0)."
     },
     "collection": {
       "type": "string"
@@ -781,7 +823,10 @@
       "if": {
         "properties": {
           "schema_version": {
-            "const": "1.1"
+            "enum": [
+              "1.1",
+              "1.2"
+            ]
           }
         }
       },

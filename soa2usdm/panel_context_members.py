@@ -51,7 +51,8 @@ panel pointer and its evidence pages. Not used for routing.
 
 The file exists only where protocol context exists (D4, D8); the grain file stays label-only.
 Input: the study's grain file (checked current) and protocol context.
-Output: SoA2USDM/panels/<id>_panel_context_members.json (schema soa2usdm-panel-context-members 1.0).
+Output: SoA2USDM/panels/<id>_panel_context_members.json (schema soa2usdm-panel-context-members 1.0; 1.2: member
+restated / abbreviation, grain rules 1.4.0 — members are read with the study's own abbreviations).
 """
 
 import hashlib
@@ -67,8 +68,8 @@ from .activity_grain import (LIST_INTRO, QUALIFIER_CUES, Lookups, _is_list, _mem
                              split_trailing_parens)
 
 SCHEMA_NAME = "soa2usdm-panel-context-members"
-SCHEMA_VERSION = "1.1"
-SCHEMA_VERSIONS = ("1.0", "1.1")
+SCHEMA_VERSION = "1.2"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
 NAME_RULE_VERSION = "1.0.0"
 ANALYTE_RULE_VERSION = "1.0.0"
 SPELLINGS = {"haematology": "hematology"}
@@ -324,6 +325,7 @@ def generate_study_panel_members(collection: str, protocol_id: str, lk: Lookups 
                            f"rerun python -m soa2usdm.activity_grain --collection {collection} --protocol {protocol_id}")
     ctx_raw = ctx_file.read_bytes()
     ctx = json.loads(ctx_raw)
+    lk = lk.for_study(ctx)
     cps = ctx["panels"]
     labels = {lb["phrase"]: lb for lb in g["labels"]}
     rows = [panel_row(a, cps, lk) for a in g["activities"] if name_only_panel(a, labels)]

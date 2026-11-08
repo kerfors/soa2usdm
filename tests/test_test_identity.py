@@ -258,3 +258,27 @@ def _published():
 def test_published_files_validate(path):
     schema = json.loads((SCHEMAS / "soa2usdm-test-identity.schema.json").read_text(encoding="utf-8"))
     jsonschema.validate(json.loads(path.read_text(encoding="utf-8")), schema)
+
+
+# ---------------------------------------------------------------------------
+# Rules 1.2.0 (step 6b, 2026-11-08): group heads
+# ---------------------------------------------------------------------------
+def test_group_head_read_only_as_a_whole_codelist_phrase():
+    gh, facets = ti.read_group_head({"member_id": "c01", "text": "Urine"}, "LB", LK)
+    assert gh == {"member_id": "c01", "text": "Urine", "read": True}
+    assert [(f["variable"], f["where"], f["via"], f["group_head"], f["term"]["submission_value"])
+            for f in facets] == [("LBSPEC", "group head", "codelist phrase, whole head", "c01", "URINE")]
+    # a head that only contains a term is not read ('dipstick', 'microscopic examination' are no CDISC term)
+    gh, facets = ti.read_group_head({"member_id": "c02", "text": "Urine dipstick"}, "LB", LK)
+    assert gh["read"] is False and facets == []
+
+
+class RestatedGrain(Grain):
+    def test_hit(self, text):
+        return ("restated", self.test["rbc"]) if text == "Erythrocytes (RBC)" else super().test_hit(text)
+
+
+def test_hit_part_of_a_restated_member_is_the_head():
+    lk = Stub()
+    lk.grain = RestatedGrain(LK.grain.test)
+    assert ti.hit_part("Erythrocytes (RBC)", {"phrase": "erythrocytes rbc", "weak_reasons": []}, lk) == "erythrocytes"

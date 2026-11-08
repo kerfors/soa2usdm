@@ -3,8 +3,8 @@
 `python -m soa2usdm.test_identity --collection <name> [--protocol <NCTID>]` writes
 `SoA2USDM/test_identity/<id>_test_identity.json` per study, one record per row of the study's routing file.
 It runs after the routing and records only: nothing here routes, opens or changes a routing row. Rules
-1.1.0, schema 1.1, word lists 2026-11-08. A review page follows in 6a-2; matching fixes that move the
-routing (a restated component counting as corroboration, peeling, abbreviation expansion) follow in 6b.
+1.2.0, schema 1.2, word lists 2026-11-08. A review page follows in 6a-2. The matching fixes of 6b (a restated component as
+corroboration, study abbreviations) are grain rules 1.4.0 (documents/activity-grain.md).
 
 ## The frame
 
@@ -66,6 +66,13 @@ SDTM_Test_Identity string of the component's own code is the component restated,
 Fasting is read from the words "fasting", "non-fasting" and "fasting not required" (our word list); the
 reading is Y, N or none.
 
+Group heads (rules 1.2.0, step 6b). A member of a group (`in_group`, label or context members) records its head
+(`group_head`: member id, text, read). A head that is, as a whole, a phrase of the --METHOD or --SPEC codelist of
+the row's domain gives a facet of the member (where "group head", via "codelist phrase, whole head"); any other
+head is kept as text, not read. On the four collections no head is read (88 members, 21 heads): "dipstick" and
+"microscopic examination" are no CDISC METHOD term (CT has DIPSTICK MEASUREMENT METHOD and MICROSCOPY); "Fasting
+serum Lipid Profile" is no single term. The grain file is read for the label members (input `activity_grain`).
+
 ### Specialization level
 
 | Level | Meaning |
@@ -97,21 +104,22 @@ published Provenance (`sheet_hash_computed_here` false): Folded_Facets moved to 
 cdisc-for-ai d688fd6 (until then `domain-behaviour/interim`), and `SDTM_Domain_Metadata.xlsx` has a Provenance
 sheet since 3cec261.
 
-## Figures (all four collections, cdisc-for-ai a02ebe5, rules 1.1.0)
+## Figures (all four collections, cdisc-for-ai a02ebe5, rules 1.2.0, grain rules 1.4.0)
 
-982 rows (312 standalone, 627 panel members, 43 ECG activity rows with 124 components); 628 facets, 477
+998 rows (312 standalone, 643 panel members, 43 ECG activity rows with 124 components); 636 facets, 485
 with a CDISC term, 16 flagged ambiguous; conditions on 4 rows; collisions cited on 14 rows (all `equal`).
-Levels unchanged from rules 1.0.0 on cdisc-for-ai 844384b.
+Against rules 1.1.0 / grain 1.3.0: 16 new member rows (study abbreviations, two labels now lists); 8 RBC /
+WBC members routed by RT-12, level domain open → facet not stated; no facet changed.
 
 | Level | Standalone | Members |
 |---|---|---|
 | no component | 130 | 1 |
 | component open | 2 | 8 |
-| domain open | 23 | 57 |
+| domain open | 23 | 60 |
 | no specialization | 54 | 75 |
-| one specialization | 41 | 261 |
+| one specialization | 41 | 264 |
 | selected by stated facets | 19 | 15 |
-| facet not stated | 23 | 193 |
+| facet not stated | 23 | 203 |
 | stated facet matches no specialization | 14 | 17 |
 | stated facets conflict | 6 | 0 |
 

@@ -111,6 +111,30 @@ string of three characters or fewer. Otherwise it is *weak*, and `weak_reasons` 
 qualifier gives a weak hit. Rules 1.3.0: before dropping one qualifier, it is read before the head ("Bilirubin (direct)" → "Direct
 Bilirubin", BILDIR, weak "qualifier before head"); in the test lookup of members and in L1q alike.
 
+**Members: restated component and study abbreviations (rules 1.4.0, step 6b, 2026-11-08; schema 1.6).** Both apply to list
+members only (label members and protocol-context members); label rules are unchanged.
+- *Restated component.* L1p for members: when every piece of a member's parenthesis (split at square brackets and " - ") is a
+  test string of the same code(s) as the head, the parenthesis restates the component: the hit is judged as a whole-phrase hit,
+  `restated` keeps the parentheses, a flag says so. "Erythrocytes (RBC)", "Leukocytes (white blood cells [WBC])" are strong; so
+  routing rule RT-12 can settle them. No plural rule: "Erythrocyte count (RBCs - red blood cells)" stays "qualifier dropped". The
+  head's own weakness stays: "AST (SGOT)" short code only, "Thyroid stimulating hormone (TSH)" NCIt synonym only.
+- *Study abbreviations.* A member with no test hit (whole, compact, qualifier, instrument or peel-off) is looked up again with one of
+  the study's own protocol-context abbreviations put in place (normalised term, longest token run first; "IL-2" → interleukin-2,
+  "RBC count" → red blood cell count). The hit is always weak, reason "abbreviation expanded (study)": the expansion is protocol
+  text, not CDISC; `abbreviation` keeps the term, definition, page, context pointer and the expanded text. A term with two
+  distinct definitions in the study is not expanded (flag). A member's new hit can make its label a list by P2 ("Vital signs and
+  SpO2", "Serum PD (CRP, IL-6, sIL-6R)": panel by rule, where an AI decision said panel before).
+
+**Peeling and group heads (step 6b).** Specimen and method are peeled only on whole Codelist_Phrases phrases (submission value,
+preferred term, CDISC or NCIt synonym), as before; a prefix such as "U-" is not read. A group head is read for its members in
+test identity (rules 1.2.0), not here.
+
+**Open, not coded (2026-11-08).** These stay visible on the rows and are not settled by a rule, because no CDISC source settles them:
+British spellings; urinalysis "Blood" (OCCBLD or not is knowledge); "Mean cell volume" (CDISC names the erythrocyte); T cells / B
+cells (CP or LB: the CP-A2 question); bare ECG forms (QT, QRS, RR, QTcF); SERUM or PLASMA against SERUM OR PLASMA; group heads that
+are not a CDISC METHOD term ("dipstick", "microscopic examination"); a group head routed as a test ("microscopic examination" → MI
+MIEXAM).
+
 **Normalisation** is the Codelist_Phrases rule: lower case, split on anything that is not a letter or a digit, parts joined by one space. No
 plural forms or stemming.
 
