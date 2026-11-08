@@ -23,6 +23,10 @@ Per study, with the grain inputs file on disk still the one the decisions were m
      changed item cites it (step 4, 2026-11-08);
   5. the decisions file becomes schema 1.4 (1.5 once a decision was released) with a
      carry_overs record, then the new grain inputs file is written.
+An item whose only change is its xact ids (xact_id, parent_xact_id: a counter in processing
+order, renumbered when a consolidation merge or split changes the rows before it) is unchanged
+for 4.: no decision cites an xact id. Its decision is carried and its phrase is recorded under
+`renumbered` in the carry_overs record (2026-11-08, NCT04730349 ECG merge).
 reviewed decisions are not touched. A study whose inputs content is unchanged needs no
 carry-over (rerun soa2usdm.activity_grain_inputs); the tool says so and writes nothing.
 
@@ -41,6 +45,17 @@ from soa2usdm import activity_grain as ag  # noqa: E402
 from soa2usdm import config  # noqa: E402
 from soa2usdm.activity_grain_inputs import build_grain_inputs, content_sha256, write_grain_inputs  # noqa: E402
 from soa2usdm.activity_inventory import collect_rows  # noqa: E402
+
+XACT_KEYS = ("xact_id", "parent_xact_id")
+
+
+def without_xact_ids(value):
+    """The item with its xact id keys left out, at any depth (the counters a merge renumbers)."""
+    if isinstance(value, dict):
+        return {k: without_xact_ids(v) for k, v in value.items() if k not in XACT_KEYS}
+    if isinstance(value, list):
+        return [without_xact_ids(v) for v in value]
+    return value
 
 
 def carry_over(collection: str, protocol_id: str, lk: ag.Lookups, all_rows: list,
@@ -72,12 +87,13 @@ def carry_over(collection: str, protocol_id: str, lk: ag.Lookups, all_rows: list
     if added:
         # a new test row is allowed only when the rule result of a changed item cites it, and that
         # item is released (decided again); otherwise a carried decision would miss a row to decide from
-        changed_codes = {h["code"] for p, i in new_items.items() if p in old_items and i != old_items[p]
+        changed_codes = {h["code"] for p, i in new_items.items()
+                         if p in old_items and without_xact_ids(i) != without_xact_ids(old_items[p])
                          for h in i["rule"]["hits"]}
         if not release_changed or any(t["code"] not in changed_codes for t in added):
             raise ValueError(f"{protocol_id}: {len(added)} new cdisc test row(s) in the grain inputs; "
                              f"rerun the decisions prompt (or --release-changed, when only changed items cite them)")
-    changed, dropped, released, kept = [], [], [], []
+    changed, dropped, released, kept, renumbered = [], [], [], [], []
     for d in doc["decisions"]:
         if d["source"] != "ai_proposed":
             kept.append(d)
@@ -87,10 +103,12 @@ def carry_over(collection: str, protocol_id: str, lk: ag.Lookups, all_rows: list
             lab = ag.label_grain(old_items[p]["spellings"][0], lk)  # the rules read the first spelling
             dropped.append({"phrase": p, "grain": d["grain"], "rule_result": f"{lab['grain']}/{lab['rule_id']}"})
             continue
-        if new_items[p] != old_items[p]:
+        if without_xact_ids(new_items[p]) != without_xact_ids(old_items[p]):
             changed.append(p)
             released.append({"phrase": p, "grain": d["grain"]})
             continue
+        if new_items[p] != old_items[p]:
+            renumbered.append(p)
         kept.append(d | {"inputs_content_sha256": new_sha, "carried_over_from": old_sha})
     if changed and not release_changed:
         raise ValueError(f"{protocol_id}: {len(changed)} item(s) changed, their decisions cannot be carried; "
@@ -101,10 +119,11 @@ def carry_over(collection: str, protocol_id: str, lk: ag.Lookups, all_rows: list
         "from_inputs_content_sha256": old_sha, "to_inputs_content_sha256": new_sha,
         "grain_rules_version": ag.RULES_VERSION, "carried_on": date.today().isoformat(),
         "carried": sum(1 for d in kept if d.get("carried_over_from") == old_sha), "dropped": dropped,
-        **({"released": released} if released else {})})
+        **({"released": released} if released else {}), **({"renumbered": renumbered} if renumbered else {})})
     dpath.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     write_grain_inputs(collection, protocol_id, lk, all_rows)
-    return (f"{dpath}: carried {doc['carry_overs'][-1]['carried']}, dropped {len(dropped)} "
+    return (f"{dpath}: carried {doc['carry_overs'][-1]['carried']} ({len(renumbered)} renumbered only), "
+            f"dropped {len(dropped)} "
             f"({', '.join(x['phrase'] for x in dropped) or '-'}), released {len(released)} "
             f"({', '.join(x['phrase'] for x in released) or '-'}), inputs {old_sha[:12]}… -> {new_sha[:12]}…")
 

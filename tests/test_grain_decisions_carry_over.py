@@ -100,6 +100,26 @@ def test_release_changed_removes_a_changed_items_decision_and_records_it(tmp_pat
     assert after["carry_overs"][0]["released"] == [{"phrase": ITEM_A["phrase"], "grain": "panel"}]
 
 
+def test_an_item_changed_only_in_its_xact_ids_is_carried(tmp_path, monkeypatch):
+    old_a = ITEM_A | {"rows": [{"xact_id": "xact-044", "activity_name": "x", "parent_xact_id": "xact-005"}]}
+    monkeypatch.setitem(OLD, "items", [old_a, ITEM_B])
+    renum = ITEM_A | {"rows": [{"xact_id": "xact-043", "activity_name": "x", "parent_xact_id": "xact-004"}]}
+    new = _new(items=[renum])
+    dpath, before, old_sha, written = _setup(tmp_path, monkeypatch, new)
+    tool.carry_over("c", "NCT0", None, [])
+    after = json.loads(dpath.read_text())
+    jsonschema.validate(after, SCHEMA)
+    assert after["schema_version"] == "1.4" and written == ["NCT0"]
+    assert after["decisions"][0]["carried_over_from"] == old_sha
+    assert after["carry_overs"][0]["carried"] == 1 and after["carry_overs"][0]["renumbered"] == [ITEM_A["phrase"]]
+    # a change beside the xact ids is still a change
+    monkeypatch.setitem(OLD, "items", [old_a, ITEM_B])
+    changed = _new(items=[renum | {"rows": [{"xact_id": "xact-043", "activity_name": "y", "parent_xact_id": "xact-004"}]}])
+    _setup(tmp_path, monkeypatch, changed)
+    with pytest.raises(ValueError, match="item\\(s\\) changed"):
+        tool.carry_over("c", "NCT0", None, [])
+
+
 @pytest.mark.parametrize("new, made_from, message", [
     (_new(), "f" * 64, "not made from the current"),
     (_new(items=[ITEM_A | {"rule": {"grain": "procedure"}}]), None, "item\\(s\\) changed"),

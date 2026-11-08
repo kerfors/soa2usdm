@@ -267,6 +267,13 @@
                 }
               }
             }
+          },
+          "renumbered": {
+            "type": "array",
+            "description": "Carried decisions whose item changed only in its xact ids (a counter renumbered by a consolidation merge or split); no decision cites an xact id (2026-11-08).",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
