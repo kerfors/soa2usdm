@@ -12,12 +12,15 @@ Per study, with the grain inputs file on disk still the one the decisions were m
      of that file;
   2. the inputs are gathered again with the current rules (not yet written);
   3. collection, protocol_id, study and cdisc domains must be unchanged, and every cdisc
-     test row of the new inputs must be in the old ones (nothing new to decide from);
+     test row of the new inputs must be in the old ones (nothing new to decide from), except
+     rows cited only by changed items under --release-changed (see 4);
   4. per ai_proposed decision: item unchanged -> carried (inputs_content_sha256 set to the
      new content_sha256, carried_over_from = the old one); phrase no longer an item ->
      dropped and recorded (the rules now give the label a grain with nothing to decide);
      item changed -> the run stops, nothing is written for the study; with --release-changed
      the decision is removed instead and recorded as released (the item is decided again);
+     a new cdisc test row stops the run unless --release-changed is given and the rule result of a
+     changed item cites it (step 4, 2026-11-08);
   5. the decisions file becomes schema 1.4 (1.5 once a decision was released) with a
      carry_overs record, then the new grain inputs file is written.
 reviewed decisions are not touched. A study whose inputs content is unchanged needs no
@@ -64,11 +67,16 @@ def carry_over(collection: str, protocol_id: str, lk: ag.Lookups, all_rows: list
     if old["cdisc"]["domains"] != new["cdisc"]["domains"]:
         raise ValueError(f"{protocol_id}: cdisc domains of the grain inputs changed; rerun the decisions prompt")
     added = [t for t in new["cdisc"]["tests"] if t not in old["cdisc"]["tests"]]
-    if added:
-        raise ValueError(f"{protocol_id}: {len(added)} new cdisc test row(s) in the grain inputs; "
-                         f"rerun the decisions prompt")
     old_items = {i["phrase"]: i for i in old["items"]}
     new_items = {i["phrase"]: i for i in new["items"]}
+    if added:
+        # a new test row is allowed only when the rule result of a changed item cites it, and that
+        # item is released (decided again); otherwise a carried decision would miss a row to decide from
+        changed_codes = {h["code"] for p, i in new_items.items() if p in old_items and i != old_items[p]
+                         for h in i["rule"]["hits"]}
+        if not release_changed or any(t["code"] not in changed_codes for t in added):
+            raise ValueError(f"{protocol_id}: {len(added)} new cdisc test row(s) in the grain inputs; "
+                             f"rerun the decisions prompt (or --release-changed, when only changed items cite them)")
     changed, dropped, released, kept = [], [], [], []
     for d in doc["decisions"]:
         if d["source"] != "ai_proposed":

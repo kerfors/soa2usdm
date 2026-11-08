@@ -204,9 +204,11 @@
           "enum": [
             "analyte",
             "analyte list",
-            "analyte parenthesis"
+            "analyte parenthesis",
+            "analyte heading",
+            "analyte parenthesis distributed"
           ],
-          "description": "analyte: the whole analyte text is the member; analyte list: a top-level member of an analyte that is a list; analyte parenthesis: a member of a group (in_group)."
+          "description": "analyte: the whole analyte text is the member; analyte list: a top-level member of an analyte that is a list; analyte parenthesis: a member of a group (in_group). 1.1: analyte heading: the text before a colon (A3), its members are in its group; analyte parenthesis distributed: an item of a trailing list parenthesis read with the head's last word ('RBC morphology'), in the head's group (A4)."
         },
         "member_id": {
           "type": "string",
@@ -373,8 +375,10 @@
     "schema_version": {
       "type": "string",
       "enum": [
-        "1.0"
-      ]
+        "1.0",
+        "1.1"
+      ],
+      "description": "1.1 (2026-11-08): analyte_rule_version; 'from' analyte heading and analyte parenthesis distributed."
     },
     "collection": {
       "type": "string"
@@ -387,6 +391,10 @@
     },
     "name_rule_version": {
       "type": "string"
+    },
+    "analyte_rule_version": {
+      "type": "string",
+      "description": "1.1: version of the analyte rules (A1-A7, soa2usdm.panel_context_members) that read each analyte of a context list."
     },
     "name_rule": {
       "type": "object",
@@ -767,5 +775,28 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": "1.1"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "analyte_rule_version"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "analyte_rule_version"
+          ]
+        }
+      }
+    }
+  ]
 }

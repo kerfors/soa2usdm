@@ -20,11 +20,32 @@ Name rule 1.0.0 (D1, no AI):
     ('auto-antibodies' = 'autoantibodies'). A name links every context panel with the same key.
     No containment, no plural, no stemming.
 
-Members (D2, D3): the analytes of all context panels linked to one SoA panel name, each split and
-looked up with the label-member rules (activity_grain.label_members, _member_lookup); the union by
-phrase, member ids c01, c02 ... per SoA row. Each member keeps its sources (context panel, analyte).
-Where several context panels are linked to one name, the phrases found in only one of them are
-listed as differences, not resolved.
+Members (D2, D3): the analytes of all context panels linked to one SoA panel name, each read with the
+analyte rules below and looked up with the label-member rules (activity_grain.label_members,
+_member_lookup); the union by phrase, member ids c01, c02 ... per SoA row. Each member keeps its sources
+(context panel, analyte). Where several context panels are linked to one name, the phrases found in only
+one of them are listed as differences, not resolved.
+
+Analyte rules 1.0.0 (step 4, 2026-11-08). An analyte is one entry of a context list, already split from
+the lab table by the protocol context, so a comma inside it is mostly a qualifier, not a separator:
+  A3  text before a colon is a group heading ('Absolute count of: Lymphocytes'): the heading is a
+      member of its own ('from' analyte heading), the text after the colon is read with these rules,
+      in the heading's group.
+  A4  a trailing list parenthesis whose every item, read with the head's last word, is a CDISC test
+      ('Cell morphology (RBC and WBC)' -> 'RBC morphology', 'WBC morphology', NCIt synonyms of
+      RBCMORPH / WBCMORPH) gives those tests ('from' analyte parenthesis distributed), in the head's group.
+  A1  an analyte whose whole text is a test (whole or compact, activity_grain Lookups.test_hit) is one
+      member ('Neutrophils, segmented' = NEUTSG).
+  A2  'X, Y' with one comma and one word after it that is not a test itself ('Bilirubin, direct'): Y is
+      a qualifier. The inverted
+      'Y X' is looked up first ('Direct Bilirubin', BILDIR); otherwise X is the member with Y (and any
+      parenthesis after it) as its qualifiers ('Creatinine, enzymatic').
+  A5  in a member of a list, text after ';' that starts with a qualifier cue is the member's qualifier
+      ('NK cells; if the test is available at the site').
+  A6  'and/or' is one separator (activity_grain.LIST_SEPARATORS, grain rules 1.3.0).
+  A7  under one SoA panel name linked to several context panels, a named-test member whose hits give one
+      code is merged with the member of another of those context panels that gives the same code
+      ('AST (SGOT)' / 'AST'); its sources are joined.
 Stated facets (D5): the specimen and lab of each source context panel, as stated, with the context
 panel pointer and its evidence pages. Not used for routing.
 
@@ -41,13 +62,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import config
-from .activity_grain import (LIST_INTRO, QUALIFIER_CUES, Lookups, _member_lookup, context_path, grain_path,
-                             label_members, load_current_grain, normalise, split_trailing_parens)
+from .activity_grain import (LIST_INTRO, QUALIFIER_CUES, Lookups, _is_list, _member_lookup, context_path,
+                             grain_path, label_members, load_current_grain, normalise, split_top,
+                             split_trailing_parens)
 
 SCHEMA_NAME = "soa2usdm-panel-context-members"
-SCHEMA_VERSION = "1.0"
-SCHEMA_VERSIONS = ("1.0",)
+SCHEMA_VERSION = "1.1"
+SCHEMA_VERSIONS = ("1.0", "1.1")
 NAME_RULE_VERSION = "1.0.0"
+ANALYTE_RULE_VERSION = "1.0.0"
 SPELLINGS = {"haematology": "hematology"}
 GENERIC_WORDS = ("parameters", "tests", "test", "assessments", "assessment")
 LAB_CODES = {"cl", "ll"}
@@ -136,14 +159,77 @@ def link_names(label: str, context_panels: list) -> list:
 # ---------------------------------------------------------------------------
 # Members (D2, D3, D5)
 # ---------------------------------------------------------------------------
-def analyte_members(text: str, lk: Lookups) -> list:
-    """Members of one analyte with the label-member rules: a list analyte gives its members ('from'
-    analyte list / analyte parenthesis), any other analyte one member ('from' analyte)."""
+def _member(text: str, frm: str, lk: Lookups, qualifiers: list | None = None, in_group: str | None = None,
+            lookup_text: str | None = None) -> dict:
+    return {"member_id": "m01", "text": text, "phrase": normalise(text), "from": frm, "in_group": in_group,
+            "qualifiers": split_trailing_parens(text)[1] if qualifiers is None else qualifiers} \
+        | _member_lookup(lookup_text or text, lk)
+
+
+def _renumber(ms: list) -> list:
+    """Member ids m01, m02 ... in order, in_group following."""
+    ids = {id(m): f"m{i + 1:02d}" for i, m in enumerate(ms)}
+    old = {m["member_id"]: ids[id(m)] for m in ms}
+    return [m | {"member_id": ids[id(m)], "in_group": old.get(m["in_group"], m["in_group"])} for m in ms]
+
+
+def _condition_cut(m: dict, lk: Lookups) -> dict:
+    """A5: text after ';' that starts with a qualifier cue is the member's qualifier."""
+    head, sep, tail = m["text"].partition(";")
+    if not sep or not tail.strip().lower().startswith(QUALIFIER_CUES) or not head.strip():
+        return m
+    head = head.strip()
+    base = {k: m[k] for k in ("member_id", "from", "in_group")}
+    return base | {"text": head, "phrase": normalise(head), "qualifiers": m["qualifiers"] + [tail.strip()]} \
+        | _member_lookup(head, lk)
+
+
+def _analyte_members(text: str, lk: Lookups) -> list:
+    """Analyte rules A3, A4, A1, A2, then the label-member rules (with A5)."""
+    # A3: text before a colon is a group heading
+    head, sep, rest = text.partition(":")
+    if sep and re.search(r"[A-Za-z]", head) and rest.strip():
+        h = _member(head.strip(), "analyte heading", lk, qualifiers=[])
+        h["member_id"] = "h"
+        subs = _analyte_members(rest.strip(), lk)
+        return [h] + [m | {"in_group": m["in_group"] or "h"} for m in subs]
+    # A4: a trailing list parenthesis distributed over the head's last word
+    outer, quals = split_trailing_parens(text)
+    lists = [q for q in quals if _is_list(q)]
+    if len(lists) == 1 and normalise(outer):
+        noun = normalise(outer).split()[-1]
+        items = split_top(LIST_INTRO.sub("", lists[0]))
+        combos = [f"{it} {noun}" for it in items]
+        if len(items) >= 2 and all(lk.test_hit(c)[0] in ("whole", "compact") for c in combos):
+            g = _member(outer, "analyte", lk, qualifiers=[q for q in quals if q not in lists])
+            g["member_id"] = "g"
+            return [g] + [_member(c, "analyte parenthesis distributed", lk, qualifiers=[], in_group="g")
+                          for c in combos]
+    # A1: the whole analyte is a test
+    if lk.test_hit(text)[0] in ("whole", "compact"):
+        return [_member(text, "analyte", lk)]
+    # A2: 'X, Y' with one word after the only comma: Y qualifies X
+    if split_top(text) != [text] and text.count(",") == 1:
+        x, y = (p.strip() for p in text.split(","))
+        y_head, y_quals = split_trailing_parens(y)
+        if (x and len(y_head.split()) == 1 and not re.search(r"\band\b|&|/", x, re.I)
+                and not lk.test_hit(y_head)[1]):
+            inv = f"{y_head} {x}"
+            if lk.test_hit(inv)[0] in ("whole", "compact"):
+                return [_member(text, "analyte", lk, qualifiers=[], lookup_text=inv)]
+            return [_member(x, "analyte", lk, qualifiers=[y_head] + y_quals)]
     ms, _, _ = label_members(text, lk)
     if ms:
-        return [m | {"from": "analyte list" if m["from"] == "label" else "analyte parenthesis"} for m in ms]
-    return [{"member_id": "m01", "text": text, "phrase": normalise(text), "from": "analyte", "in_group": None,
-             "qualifiers": split_trailing_parens(text)[1]} | _member_lookup(text, lk)]
+        return [_condition_cut(m, lk) | {"from": "analyte list" if m["from"] == "label" else "analyte parenthesis"}
+                for m in ms]
+    return [_member(text, "analyte", lk)]
+
+
+def analyte_members(text: str, lk: Lookups) -> list:
+    """Members of one analyte (analyte rules 1.0.0, then the label-member rules): a list analyte gives its
+    members ('from' analyte list / analyte parenthesis), any other analyte one member ('from' analyte);
+    A3 adds a heading member, A4 distributed members."""
+    return _renumber(_analyte_members(text, lk))
 
 
 def _stated_facets(sources: list, context_panels: list) -> list:
@@ -166,6 +252,7 @@ def panel_row(a: dict, context_panels: list, lk: Lookups) -> dict:
     union, differences = {}, []
     for name, idx in names:
         per = {}
+        by_code = {}
         for i in idx:
             ptr = f"/panels/{i}"
             per[ptr] = set()
@@ -174,6 +261,16 @@ def panel_row(a: dict, context_panels: list, lk: Lookups) -> dict:
                 for m in analyte_members(analyte, lk):
                     per[ptr].add(m["phrase"])
                     src = {"context_panel": ptr, "analyte": analyte}
+                    codes = {h["code"] for h in m.get("hits", [])}
+                    if len(idx) > 1 and m["member_grain"] == "named test" and len(codes) == 1:
+                        (code,) = codes
+                        other = by_code.get(code)
+                        if other and other[0] != ptr and m["phrase"] not in union:
+                            u = union[other[1]]   # A7: same single code from another context panel of this name
+                            u["sources"].append(src)
+                            ids[m["member_id"]] = u["member_id"]
+                            continue
+                        by_code.setdefault(code, (ptr, m["phrase"]))
                     if m["phrase"] in union:
                         u = union[m["phrase"]]
                         if src not in u["sources"]:
@@ -237,6 +334,7 @@ def generate_study_panel_members(collection: str, protocol_id: str, lk: Lookups 
         "collection": collection, "protocol_id": protocol_id,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         "name_rule_version": NAME_RULE_VERSION,
+        "analyte_rule_version": ANALYTE_RULE_VERSION,
         "name_rule": {"spellings": SPELLINGS, "generic_words": list(GENERIC_WORDS), "lab_codes": sorted(LAB_CODES)},
         "inputs": {
             "activity_grain": {"schema_version": g["schema_version"], "rules_version": g["rules_version"],

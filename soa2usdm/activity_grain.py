@@ -64,7 +64,7 @@ from . import config
 SCHEMA_NAME = "soa2usdm-activity-grain"
 SCHEMA_VERSION = "1.5"
 SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4", "1.5")
-RULES_VERSION = "1.2.0"
+RULES_VERSION = "1.3.0"
 WORD_LISTS_DATE = "2026-11-06"
 
 CDISC_FOR_AI = Path(os.environ.get(
@@ -129,7 +129,7 @@ WORD_CLASSES = (
 # population, arm, lab site), never a member list.
 QUALIFIER_CUES = ("if ", "for ", "at ", "only", "cohort", "part ", "parts ", "arm",
                   "central", "local", "include", "in ", "as ", "when ", "per ")
-LIST_SEPARATORS = r",|\band\b|&|/"
+LIST_SEPARATORS = r"\band/or\b|,|\band\b|&|/"
 
 TEST_FIELDS = (("TESTCD", "TESTCD", "CT"), ("TEST", "TEST", "CT"),
                ("NCIt_Preferred_Term", "NCIt_Preferred_Term", "CT"),
@@ -164,6 +164,7 @@ class Lookups:
         self.provenance = self._provenance()
         self.test = defaultdict(list)
         self.test_compact = defaultdict(list)
+        self.test_completion = defaultdict(set)
         self.instrument = defaultdict(list)
         self.phrase = defaultdict(list)
         self.spectype_phrases = set()
@@ -220,6 +221,9 @@ class Lookups:
                     phrase = normalise(v)
                     self.test[phrase].append(hit)
                     self.test_compact[phrase.replace(" ", "")].append(hit)
+                    words = phrase.split()
+                    if len(words) >= 2 and words[-1] in PEEL_ACTIVITY_WORDS:
+                        self.test_completion[" ".join(words[:-1])].add(phrase)
 
     def _load_instruments(self):
         for r in self._read("SDTM_Instrument_Identity").to_dict("records"):
@@ -281,6 +285,8 @@ class Lookups:
         if phrase.replace(" ", "") in self.test_compact:
             return "compact", self.test_compact[phrase.replace(" ", "")]
         outer, quals = split_trailing_parens(text)
+        if len(quals) == 1 and normalise(quals[0] + " " + outer) in self.test:
+            return "qualifier before head", self.test[normalise(quals[0] + " " + outer)]
         if quals and normalise(outer) in self.test:
             return "qualifier dropped", self.test[normalise(outer)]
         return None, []
@@ -422,10 +428,16 @@ def _contains_spectype(phrase: str, spectype: set) -> list:
 
 def _drop_short_code_tests(whole: list, flags: list) -> list:
     """A test hit only through a string of three characters or fewer is no hit
-    ('PK' is pyruvate kinase, 'PGI' pepsinogen I); it is kept as a flag."""
+    ('PK' is pyruvate kinase, 'PGI' pepsinogen I); it is kept as a flag. Rules 1.3.0: a short
+    string that is the CT TESTCD itself ('TSH', 'FSH', 'HIV') is taken (weak, short code only)."""
     out = []
     for rule, grain, hits in whole:
         if rule == "L1" and "short code only" in hit_strength(hits)[1]:
+            if any(h["field"] == "TESTCD" and h["source"] == "CT" for h in hits):
+                flags.append("short code is the TESTCD, taken: " + ", ".join(sorted(
+                    {f"{h['submission_value']} ({h['domains']})" for h in hits})))
+                out.append((rule, grain, hits))
+                continue
             flags.append("short code only, not taken: " + ", ".join(sorted(
                 {f"{h['submission_value']} ({h['domains']})" for h in hits})))
             continue
@@ -491,6 +503,12 @@ def peel_label(text: str, lk: Lookups):
         if not parts or not rest or rest in PEEL_GENERIC_REST:
             continue
         attempt, hits = lk.test_hit(rest)
+        if not hits and len(lk.test_completion.get(rest, ())) == 1:
+            # rules 1.3.0: the rest completed by an activity word gives exactly one CDISC test
+            # phrase ('pregnancy' -> 'Pregnancy Test', NCIt synonym of HCG)
+            (full,) = lk.test_completion[rest]
+            hits = lk.test[full]
+            parts["supplied"] = [full.split()[-1]]
         if not hits or "short code only" in hit_strength(hits)[1]:
             continue
         if brackets:
@@ -580,6 +598,7 @@ def _member_lookup(text: str, lk: Lookups) -> dict:
     if peeled:
         rest, parts, hh = peeled
         strength, reasons = hit_strength(hh, "peeled")
+        reasons += [f"activity word supplied: {w}" for w in parts.pop("supplied", [])]
         return {"member_grain": "named test", "hits": _cite(hh), "hit_strength": strength,
                 "weak_reasons": reasons, "peeled": {"rest": rest} | parts} | finding_kind(hh, lk)
     if outer in MEMBER_PANEL_PHRASES or set(outer.split()) & PANEL_WORDS:
@@ -660,6 +679,10 @@ def label_grain(text: str, lk: Lookups) -> dict:
         rec["specimen_qualifier_hits"] = _cite(spec_q)
     # L1q-L4q: lookups with the trailing parentheses removed (always weak)
     if quals:
+        # rules 1.3.0: one qualifier read before the head names a test of its own
+        # ('Bilirubin (direct)' -> 'Direct Bilirubin', BILDIR)
+        if len(quals) == 1 and normalise(quals[0] + " " + outer) in lk.test:
+            return take("L1q", "named test", lk.test[normalise(quals[0] + " " + outer)], "qualifier before head")
         whole = _drop_short_code_tests(lk.whole(normalise(outer)), rec["flags"])
         if whole:
             rule, grain, hits = whole[0]
@@ -747,8 +770,11 @@ def label_grain(text: str, lk: Lookups) -> dict:
     peeled = peel_label(text, lk)
     if peeled:
         rest, parts, hits = peeled
+        supplied = parts.pop("supplied", [])
         rec["peeled"] = {"rest": rest} | parts
-        return take("L1x", "named test", hits, "peeled")
+        take("L1x", "named test", hits, "peeled")
+        rec["weak_reasons"] += [f"activity word supplied: {w}" for w in supplied]
+        return rec
     rec["rule_id"] = "none"
     return rec
 

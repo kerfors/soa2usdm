@@ -70,7 +70,9 @@ K1 gives `unsure`, with a flag naming the domains, when the domains point to mor
 **Short codes.** A test hit made only through a string of three characters or fewer is not taken (L1, L1q, L1a). It stays on the label as
 the flag "short code only, not taken: …", and the next rule is tried. Short codes collide with protocol abbreviations: "PK" (pharmacokinetics)
 is the code of pyruvate kinase, and "PGI" (Patient Global Impression) that of pepsinogen I. Once the test hit is set aside, "PGI" resolves as an
-instrument (L2). The cost is true short codes, such as "TSH", "FSH" and "HIV", which stay unsure until a decision resolves them.
+instrument (L2). Rules 1.3.0 (2026-11-08): a short string that is the CT TESTCD itself ("TSH", "FSH", "HIV") is taken, weak ("short
+code only"), with the flag "short code is the TESTCD, taken: …"; a short string that is only an NCIt synonym ("PK" of PYK, "PGI" of
+PEPSNGI) is still not taken. Members keep their short-code hits as before.
 
 **Peel-off (L1x).** Ordinary tests are often named inside activity wording or qualifiers: "Fasting serum insulin", "Ethanol testing",
 "Urine drug screen". L1x tries, in order, the text after "for", the text before "for" (the text after it is then a qualifier, kept as
@@ -79,8 +81,12 @@ lists, and looks up the rest as a test. What it peeled is kept on the label (`pe
 the row. Two guards: an activity word that is part of a test name is kept ("Pregnancy Test", "Drug Screen" and "Neurological Assessment"
 hold "test", "screen" and "assessment"); a rest that is a generic word ("clinical", "concentration", "diagnosis" …, `PEEL_GENERIC_REST`)
 or a hit only through a short code ("Serum PK") is not taken. An L1x hit is always weak ("peeled"): the rest is not the label.
+Rules 1.3.0: a rest with no hit is completed by an activity word when that gives exactly one CDISC test phrase ("urine pregnancy" →
+"pregnancy" + "test" = "Pregnancy Test", NCIt synonym of HCG); the weak reason "activity word supplied: test" records it. Such a label
+stays an AI item (peeled test). The rule also reaches "survival assessment" → SURVSTAT ("Survival Status") and "mrd assessment" →
+MRDRESP (NCIt synonym "MRD_RESULT"), which the decisions then confirm or override.
 
-**Lists (rules 1.2.0).** A label that lists several tests is split into members, recorded on the label (`members`, schema 1.5).
+**Lists (rules 1.2.0; "and/or" one separator since 1.3.0).** A label that lists several tests is split into members, recorded on the label (`members`, schema 1.5).
 The split is made at commas, "and", "&" and "/" outside parentheses only. A trailing parenthesis that is not a list qualifies the whole
 label ("INR, aPTT (select patients)"); a list in a member's parenthesis is a group under that member ("Electrolytes (K, Na, Cl, CO2)": K,
 Na, Cl and CO2 have `in_group` the id of "Electrolytes"), also after "includes"; other parentheses of a member are its `qualifiers` ("AFP
@@ -101,8 +107,9 @@ or an assay are not in CT, and no word list finds them.
 
 **Hit strength.** A hit is *strong* when all of these hold: one code; matched on a CT-published field; on the whole phrase; not only through a
 string of three characters or fewer. Otherwise it is *weak*, and `weak_reasons` says why ("qualifier dropped", "NCIt synonym only",
-"several codes", "short code only", "phrase names several terms in codelist"). Dropping a qualifier can change the test: "Bilirubin (direct)"
-reaches BILI only by dropping "direct", so the hit is weak.
+"several codes", "short code only", "phrase names several terms in codelist"). Dropping a qualifier can change the test, so a dropped
+qualifier gives a weak hit. Rules 1.3.0: before dropping one qualifier, it is read before the head ("Bilirubin (direct)" → "Direct
+Bilirubin", BILDIR, weak "qualifier before head"); in the test lookup of members and in L1q alike.
 
 **Normalisation** is the Codelist_Phrases rule: lower case, split on anything that is not a letter or a digit, parts joined by one space. No
 plural forms or stemming.

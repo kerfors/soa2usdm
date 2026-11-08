@@ -15,7 +15,7 @@ import pytest
 from soa2usdm import config
 from soa2usdm import panel_context_members as pcm
 from soa2usdm.activity_grain import context_path, grain_path
-from test_activity_grain import LK
+from test_activity_grain import LK, Stub
 
 SCHEMAS = Path(__file__).parent.parent / "schemas"
 
@@ -91,6 +91,81 @@ def test_members_union_by_phrase_with_sources_differences_and_facets():
         {"facet": "lab", "value": "Local Laboratory", "context_panel": "/panels/1", "pages": [8, 9]}]
 
 
+# ---------------------------------------------------------------------------
+# Analyte rules 1.0.0 (step 4, 2026-11-08)
+# ---------------------------------------------------------------------------
+def _t(value, code, testcd, field="TEST"):
+    return {"file": "SDTM_Test_Identity", "sheet": "Test Codes", "field": field, "source": "CT",
+            "as_published": value, "code": code, "submission_value": testcd, "domains": "LB"}
+
+
+ALK = Stub(tests=[_t("Neutrophils", "C63321", "NEUT"), _t("Neutrophils, Segmented", "C81997", "NEUTSG"),
+                  _t("Bilirubin", "C38037", "BILI"), _t("Total Bilirubin", "C38037", "BILI"),
+                  _t("Direct Bilirubin", "C64481", "BILDIR"), _t("Creatinine", "C64547", "CREAT"),
+                  _t("Lymphocytes", "C51949", "LYM"), _t("Cell Morphology", "C184342", "CEMORPH"),
+                  _t("RBC Morphology", "C92296", "RBCMORPH"), _t("WBC Morphology", "C92297", "WBCMORPH"),
+                  _t("AST", "C64467", "AST", field="TESTCD"), _t("Glucose", "C105585", "GLUC")])
+
+
+def _ms(analyte):
+    return [(m["text"], m["from"], m["in_group"], m["qualifiers"],
+             sorted({h["submission_value"] for h in m.get("hits", [])})) for m in pcm.analyte_members(analyte, ALK)]
+
+
+def test_analyte_whole_text_first_and_comma_qualifier():
+    # A1: the whole analyte is a CT TEST
+    assert _ms("Neutrophils, segmented") == [("Neutrophils, segmented", "analyte", None, [], ["NEUTSG"])]
+    # A2: one word after the only comma qualifies; the inverted order is looked up first
+    assert _ms("Bilirubin, direct") == [("Bilirubin, direct", "analyte", None, [], ["BILDIR"])]
+    assert _ms("Bilirubin, total") == [("Bilirubin, total", "analyte", None, [], ["BILI"])]
+    assert _ms("Creatinine, enzymatic") == [("Creatinine", "analyte", None, ["enzymatic"], ["CREAT"])]
+    # control: a comma list is still split
+    assert [m[0] for m in _ms("Neutrophils, Lymphocytes, Creatinine")] == ["Neutrophils", "Lymphocytes", "Creatinine"]
+
+
+def test_analyte_heading_before_colon():
+    # A3: the heading is a member of its own, the items are in its group
+    assert _ms("Absolute count of: Lymphocytes") == [("Absolute count of", "analyte heading", None, [], []),
+                                                     ("Lymphocytes", "analyte", "m01", [], ["LYM"])]
+    assert _ms("WBC with Differential: Neutrophils, Lymphocytes") == [
+        ("WBC with Differential", "analyte heading", None, [], []),
+        ("Neutrophils", "analyte list", "m01", [], ["NEUT"]), ("Lymphocytes", "analyte list", "m01", [], ["LYM"])]
+
+
+def test_analyte_parenthesis_distributed_only_when_every_item_is_a_test():
+    # A4: 'RBC morphology', 'WBC morphology' (NCIt synonyms of RBCMORPH / WBCMORPH)
+    assert _ms("Cell morphology (RBC and WBC)") == [
+        ("Cell morphology", "analyte", None, [], ["CEMORPH"]),
+        ("RBC morphology", "analyte parenthesis distributed", "m01", [], ["RBCMORPH"]),
+        ("WBC morphology", "analyte parenthesis distributed", "m01", [], ["WBCMORPH"])]
+    # control: not every item gives a test, the list stays as it is
+    assert [m[1] for m in _ms("Cell morphology (RBCs and WBCs)")] == ["analyte list", "analyte parenthesis",
+                                                                       "analyte parenthesis"]
+
+
+def test_condition_after_semicolon_is_a_qualifier():
+    # A5
+    ms = _ms("lymphocyte subsets (Neutrophils, Lymphocytes; if the test is available at the site)")
+    assert ms[-1] == ("Lymphocytes", "analyte parenthesis", "m01", ["if the test is available at the site"], ["LYM"])
+
+
+def test_union_merges_the_same_single_code_under_one_name():
+    # A7: 'AST (SGOT)' and 'AST' from two context panels of one name are one member
+    cps = [{"panel_name": "Liver Tests (Table 9)", "analytes": ["AST (SGOT)"], "specimen": None, "lab": None,
+            "evidence": [{"page": 1, "quote": "q"}]},
+           {"panel_name": "Liver Tests (synopsis)", "analytes": ["AST"], "specimen": None, "lab": None,
+            "evidence": [{"page": 2, "quote": "q"}]}]
+    r = pcm.panel_row({"xact_id": "x", "activity_name": "Liver Tests"}, cps, ALK)
+    assert [(m["text"], [s["analyte"] for s in m["sources"]]) for m in r["members"]] == [("AST (SGOT)", ["AST (SGOT)", "AST"])]
+    # control: two names (two different panels) are not merged by code
+    cps = [{"panel_name": "Chemistry", "analytes": ["Glucose"], "specimen": None, "lab": None,
+            "evidence": [{"page": 1, "quote": "q"}]},
+           {"panel_name": "Urinalysis", "analytes": ["Glucose (dipstick)"], "specimen": None, "lab": None,
+            "evidence": [{"page": 2, "quote": "q"}]}]
+    r = pcm.panel_row({"xact_id": "x", "activity_name": "Chemistry and Urinalysis"}, cps, ALK)
+    assert [m["text"] for m in r["members"]] == ["Glucose", "Glucose (dipstick)"]
+
+
 def test_not_linked_and_linked_partly():
     assert pcm.panel_row({"xact_id": "x", "activity_name": "Vital Signs"}, CPS, LK)["link"] == "not linked"
     r = pcm.panel_row({"xact_id": "x", "activity_name": "Chemistry, Urinalysis"}, CPS, LK)
@@ -130,7 +205,9 @@ def test_panel_file_consistent(path):
         assert {p for n in r["names"] for p in n["context_panels"]} <= ptrs
         for m in r["members"]:
             assert {s["context_panel"] for s in m["sources"]} <= ptrs
-            assert any(m["text"] in s["analyte"] for s in m["sources"]), (r["xact_id"], m["member_id"])
+            assert any(m["text"] in s["analyte"] or (m["from"] == "analyte parenthesis distributed"
+                                                     and all(w in s["analyte"] for w in m["text"].split()))
+                       for s in m["sources"]), (r["xact_id"], m["member_id"])
     assert d["counts"]["members"] == sum(len(r["members"]) for r in d["rows"])
     assert d["counts"]["panel_rows"] == len(d["rows"]) == sum(d["counts"]["by_link"].values())
 

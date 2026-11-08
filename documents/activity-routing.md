@@ -168,12 +168,25 @@ panel with the same key. There is no containment, no plural and no stemming, so 
 w/differential" and "CBC Hematology", "serum immunoglobulins" and "Serum Immunoglobulin", "Coagulation" and "Coagulation
 Screen"). A row is `linked`, `linked partly` (some of its names have no context panel) or `not linked`.
 
-**Members.** The analytes of the linked context panels are split and looked up with the rules of the label members (grain
-rules 1.2.0): a list analyte gives its members ("Serum electrolytes (sodium, potassium)"), any other analyte one member.
+**Members.** The analytes of the linked context panels are read with the analyte rules (1.0.0, sidecar schema 1.1, step 4
+of 2026-11-08) and looked up with the rules of the label members (grain rules 1.3.0): a list analyte gives its members
+("Serum electrolytes (sodium, potassium)"), any other analyte one member. An analyte is one entry of a context list, already
+split from the lab table, so a comma inside it is mostly a qualifier:
+- A3: text before a colon is a group heading ("Absolute count of: Lymphocytes"), a member of its own (`from` analyte heading);
+  the text after the colon is read in its group.
+- A4: a trailing list parenthesis whose every item, read with the head's last word, is a CDISC test gives those tests
+  ("Cell morphology (RBC and WBC)" → RBC morphology, WBC morphology; `from` analyte parenthesis distributed).
+- A1: an analyte whose whole text is a test is one member ("Neutrophils, segmented" = NEUTSG).
+- A2: "X, Y" with one comma and one word after it that is not a test: Y qualifies X; the inverted "Y X" is looked up first
+  ("Bilirubin, direct" → BILDIR), otherwise X with Y as qualifier ("Creatinine, enzymatic").
+- A5: in a list member, text after ";" that starts with a qualifier cue is the member's qualifier.
+- A6: "and/or" is one separator.
+- A7: under one SoA name linked to several context panels, a named-test member whose hits give one code is merged with the
+  member of another of those context panels that gives the same code ("AST (SGOT)" and "AST").
 Where several context panels share one name (NCT05714345 "Coagulation (Table 2…)" and "Coagulation (SoA note)"), the members
-are the union by phrase, each with every context panel and analyte it comes from; the phrases found in only one of them are
-listed as `differences`, not resolved. Most such differences are spellings of the same test ("PTT" and "partial
-thromboplastin time (PTT)"), and both stay as members. Member ids are c01, c02 … per SoA row. The specimen and lab of each
+are the union by phrase (and, A7, by single code), each with every context panel and analyte it comes from; the phrases found
+in only one of them are listed as `differences`, not resolved. Member ids are c01, c02 … per SoA row. The defects these rules
+remove were found in the reading review of the member lists (collections/panel_member_review.json, 4d). The specimen and lab of each
 source context panel are recorded on the member as stated facets, with the context panel and its evidence pages; they are
 not used for routing.
 

@@ -41,13 +41,15 @@ class Stub(ag.Lookups):
     """Lookups with hand-made indexes; the methods are the real ones."""
 
     def __init__(self, tests=(), instruments=(), consumer=None, phrase_codes=()):
-        self.test, self.test_compact = {}, {}
+        self.test, self.test_compact, self.test_completion = {}, {}, {}
         self.instrument, self.phrase, self.spectype_phrases = {}, {}, set()
         self.test_by_code, self.instrument_by_code = {}, {}
         for h in tests:
             p = ag.normalise(h["as_published"])
             self.test.setdefault(p, []).append(h)
             self.test_compact.setdefault(p.replace(" ", ""), []).append(h)
+            if len(p.split()) >= 2 and p.split()[-1] in ag.PEEL_ACTIVITY_WORDS:
+                self.test_completion.setdefault(" ".join(p.split()[:-1]), set()).add(p)
             self.test_by_code[h["code"]] = {"testcd": h["submission_value"], "test": h["as_published"],
                                             "domains": h["domains"]}
         for h in instruments:
@@ -308,9 +310,19 @@ def test_real_lookups():
     lk = ag.Lookups()
     rec = ag.label_grain("Hemoglobin A1c", lk)
     assert (rec["grain"], rec["rule_id"], rec["finding_kind"]) == ("named test", "L1", "specimen")
-    # TSH reaches its test only through the 3-character code: no hit, kept as a flag
+    # TSH reaches its test only through the 3-character code, which is the CT TESTCD itself:
+    # taken (rules 1.3.0), weak, with a flag
     rec = ag.label_grain("TSH", lk)
-    assert rec["grain"] == "unsure" and "short code only, not taken: TSH (LB)" in rec["flags"]
+    assert (rec["grain"], rec["rule_id"], rec["hit_strength"]) == ("named test", "L1", "weak")
+    assert "short code is the TESTCD, taken: TSH (LB)" in rec["flags"]
+    # PK hits pyruvate kinase only through an NCIt synonym: still no hit
+    rec = ag.label_grain("PK", lk)
+    assert rec["grain"] == "unsure" and "short code only, not taken: PYK (LB)" in rec["flags"]
+    # 'Neutrophils, Segmented' is a CT TEST; 'Direct Bilirubin' a TEST read with the qualifier first
+    assert {h["submission_value"] for h in lk.test_hit("Neutrophils, segmented")[1]} == {"NEUTSG"}
+    assert lk.test_hit("Bilirubin (direct)")[0] == "qualifier before head"
+    rec = ag.label_grain("Urine pregnancy", lk)
+    assert (rec["rule_id"], [h["submission_value"] for h in rec["hits"]]) == ("L1x", ["HCG"])
 
 
 # ---------------------------------------------------------------------------
@@ -614,3 +626,46 @@ def test_grain_file_validates(path):
 @pytest.mark.parametrize("path", DECISION_FILES, ids=lambda p: p.name)
 def test_decisions_file_validates(path):
     jsonschema.validate(json.loads(path.read_text()), _schema("soa2usdm-activity-grain-decisions.schema.json"))
+
+
+# ---------------------------------------------------------------------------
+# Rules 1.3.0 (step 4, 2026-11-08): matching fixes under the guard
+# ---------------------------------------------------------------------------
+TSH_CODE = _test("TSH", "C64813", "TSH", "LB", field="TESTCD")
+BILDIR = _test("Direct Bilirubin", "C64481", "BILDIR", "LB")
+
+
+def test_short_code_that_is_the_testcd_is_taken():
+    lk = Stub(tests=[TSH_CODE, PYK])
+    rec = ag.label_grain("TSH", lk)
+    assert (rec["grain"], rec["rule_id"], rec["hit_strength"]) == ("named test", "L1", "weak")
+    assert rec["flags"] == ["short code is the TESTCD, taken: TSH (LB)"]
+    # control: a short string that is only an NCIt synonym ('PK' of pyruvate kinase) stays no hit
+    rec = ag.label_grain("PK", lk)
+    assert rec["grain"] == "unsure" and rec["flags"] == ["short code only, not taken: PYK (LB)"]
+
+
+def test_qualifier_before_head_names_its_own_test():
+    lk = Stub(tests=[BILI, BILDIR])
+    rec = ag.label_grain("Bilirubin (direct)", lk)
+    assert (rec["rule_id"], [h["submission_value"] for h in rec["hits"]]) == ("L1q", ["BILDIR"])
+    assert rec["hit_strength"] == "weak" and "qualifier before head" in rec["weak_reasons"]
+    assert lk.test_hit("Bilirubin (direct)")[0] == "qualifier before head"
+    # control: a qualifier that does not name a test with the head is dropped as before
+    assert lk.test_hit("Bilirubin (fasting)")[0] == "qualifier dropped"
+
+
+def test_peeled_rest_completed_by_an_activity_word():
+    # 'Urine pregnancy': peeled rest 'pregnancy' + 'test' = 'Pregnancy Test' (NCIt synonym of HCG)
+    rec = ag.label_grain("Urine pregnancy", PeelStub())
+    assert (rec["grain"], rec["rule_id"], [h["submission_value"] for h in rec["hits"]]) == ("named test", "L1x", ["HCG"])
+    assert rec["weak_reasons"][-1] == "activity word supplied: test" and "supplied" not in rec["peeled"]
+    # control: two completions ('Drug Screen', 'Drug Test') give no hit
+    lk = PeelStub()
+    lk.test_completion["drug"] = {"drug screen", "drug test"}
+    assert ag.label_grain("Urine drug", lk)["grain"] != "named test"
+
+
+def test_and_or_is_one_separator():
+    assert ag.split_top("24 hr and/or microscopic cell count") == ["24 hr", "microscopic cell count"]
+    assert ag.split_top("Sodium and potassium") == ["Sodium", "potassium"]
