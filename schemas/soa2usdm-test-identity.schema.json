@@ -1,0 +1,429 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/kerfors/soa2usdm/schemas/soa2usdm-test-identity.schema.json",
+ "title": "SoA2USDM test identity (per study)",
+ "description": "Test code + facets + specialization level per routing row (soa2usdm.test_identity, step 6a). Records only; nothing routes.",
+ "type": "object",
+ "required": [
+  "schema_name",
+  "schema_version",
+  "collection",
+  "protocol_id",
+  "generated_at",
+  "rules_version",
+  "word_lists_date",
+  "inputs",
+  "not_generally_used",
+  "counts",
+  "rows"
+ ],
+ "properties": {
+  "schema_name": {
+   "const": "soa2usdm-test-identity"
+  },
+  "schema_version": {
+   "enum": [
+    "1.0"
+   ]
+  },
+  "collection": {
+   "type": "string"
+  },
+  "protocol_id": {
+   "type": "string"
+  },
+  "generated_at": {
+   "type": "string"
+  },
+  "rules_version": {
+   "type": "string"
+  },
+  "word_lists_date": {
+   "type": "string"
+  },
+  "inputs": {
+   "type": "object",
+   "required": [
+    "activity_routing",
+    "panel_context_members",
+    "protocol_context",
+    "cdisc_for_ai"
+   ],
+   "properties": {
+    "cdisc_for_ai": {
+     "type": "object",
+     "required": [
+      "commit",
+      "files"
+     ],
+     "properties": {
+      "files": {
+       "type": "array",
+       "items": {
+        "type": "object",
+        "required": [
+         "file",
+         "path",
+         "sheet",
+         "file_sha256",
+         "sheet_content_sha256",
+         "generated",
+         "sheet_hash_computed_here"
+        ]
+       }
+      }
+     }
+    }
+   }
+  },
+  "not_generally_used": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "object",
+    "required": [
+     "statement_id",
+     "generics",
+     "text_sha256"
+    ]
+   }
+  },
+  "counts": {
+   "type": "object",
+   "required": [
+    "rows",
+    "levels",
+    "facets",
+    "facets_with_term",
+    "practice_text",
+    "rows_with_conditions",
+    "rows_with_unread",
+    "rows_with_collisions"
+   ]
+  },
+  "rows": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "xact_id",
+     "activity_name",
+     "unit",
+     "routing_status",
+     "domain",
+     "component",
+     "facets",
+     "practice_text",
+     "conditions",
+     "unread",
+     "specialization"
+    ],
+    "properties": {
+     "unit": {
+      "enum": [
+       "standalone",
+       "member",
+       "activity"
+      ]
+     },
+     "routing_status": {
+      "enum": [
+       "routed",
+       "open",
+       "weak",
+       "not routed"
+      ]
+     },
+     "domain": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "component": {
+      "type": [
+       "object",
+       "null"
+      ],
+      "required": [
+       "phrase",
+       "hit_part",
+       "hit_strength",
+       "weak_reasons",
+       "codes",
+       "restated",
+       "collisions"
+      ],
+      "properties": {
+       "codes": {
+        "type": "array",
+        "items": {
+         "type": "object",
+         "required": [
+          "code",
+          "testcd",
+          "domains"
+         ]
+        }
+       },
+       "restated": {
+        "type": "array",
+        "items": {
+         "type": "string"
+        }
+       },
+       "collisions": {
+        "type": [
+         "object",
+         "null"
+        ],
+        "required": [
+         "string",
+         "concepts",
+         "ours",
+         "relation",
+         "rows"
+        ],
+        "properties": {
+         "relation": {
+          "enum": [
+           "equal",
+           "ours fewer",
+           "ours more",
+           "different"
+          ]
+         }
+        }
+       }
+      }
+     },
+     "components": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "required": [
+        "text",
+        "pointer",
+        "attempt",
+        "via",
+        "codes",
+        "outside_eg",
+        "family",
+        "level"
+       ],
+       "properties": {
+        "level": {
+         "enum": [
+          "no component",
+          "test code",
+          "component open",
+          "test family, beat not stated"
+         ]
+        },
+        "via": {
+         "enum": [
+          "SDTM_Test_Identity",
+          "Folded_Facets head",
+          null
+         ]
+        },
+        "codes": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "required": [
+           "code",
+           "testcd",
+           "domains"
+          ]
+         }
+        },
+        "family": {
+         "type": [
+          "object",
+          "null"
+         ],
+         "required": [
+          "head",
+          "testcds",
+          "tails",
+          "evidence"
+         ]
+        }
+       }
+      }
+     },
+     "facets": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "required": [
+        "variable",
+        "generic",
+        "kind",
+        "position",
+        "meaning_status",
+        "value",
+        "term",
+        "terms",
+        "where",
+        "via"
+       ],
+       "properties": {
+        "variable": {
+         "type": "string"
+        },
+        "generic": {
+         "type": "string",
+         "pattern": "^--[A-Z]+$"
+        },
+        "kind": {
+         "type": [
+          "string",
+          "null"
+         ]
+        },
+        "position": {
+         "type": [
+          "string",
+          "null"
+         ]
+        },
+        "meaning_status": {
+         "type": [
+          "string",
+          "null"
+         ]
+        },
+        "value": {
+         "type": "string"
+        },
+        "term": {
+         "type": [
+          "object",
+          "null"
+         ],
+         "required": [
+          "codelist",
+          "submission_value",
+          "concept_id"
+         ],
+         "properties": {
+          "codelist": {
+           "type": "string"
+          },
+          "submission_value": {
+           "type": "string"
+          },
+          "concept_id": {
+           "type": "string"
+          }
+         }
+        },
+        "terms": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "required": [
+           "submission_value",
+           "concept_id"
+          ]
+         }
+        },
+        "reading": {
+         "enum": [
+          "Y",
+          "N",
+          null
+         ]
+        },
+        "where": {
+         "enum": [
+          "label",
+          "member qualifier",
+          "context panel",
+          "lab_and_purpose",
+          "measurements"
+         ]
+        },
+        "via": {
+         "enum": [
+          "codelist phrase",
+          "context field",
+          "word list"
+         ]
+        },
+        "pointer": {
+         "type": "string"
+        },
+        "pages": {
+         "type": "array"
+        }
+       }
+      }
+     },
+     "practice_text": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "required": [
+        "variable",
+        "value",
+        "where",
+        "statement_id"
+       ]
+      }
+     },
+     "conditions": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "required": [
+        "class",
+        "phrase",
+        "where"
+       ],
+       "properties": {
+        "class": {
+         "enum": [
+          "reflex",
+          "site",
+          "population",
+          "visit"
+         ]
+        }
+       }
+      }
+     },
+     "unread": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "specialization": {
+      "type": "object",
+      "required": [
+       "level"
+      ],
+      "properties": {
+       "level": {
+        "enum": [
+         "no component",
+         "component open",
+         "domain open",
+         "no specialization",
+         "one specialization",
+         "selected by stated facets",
+         "facet not stated",
+         "stated facet matches no specialization",
+         "stated facets conflict",
+         "per component"
+        ]
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

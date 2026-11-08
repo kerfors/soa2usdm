@@ -31,6 +31,7 @@ soa2usdm-activities = "soa2usdm.activity_inventory:main"
 soa2usdm-grain = "soa2usdm.activity_grain:main"
 soa2usdm-routing = "soa2usdm.activity_routing:main"
 soa2usdm-panel-members = "soa2usdm.panel_context_members:main"
+soa2usdm-test-identity = "soa2usdm.test_identity:main"
 soa2usdm-row-audit = "soa2usdm.row_audit:main"
 soa2usdm-review-page = "soa2usdm.review_page:main"
 
