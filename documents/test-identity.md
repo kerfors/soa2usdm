@@ -3,8 +3,19 @@
 `python -m soa2usdm.test_identity --collection <name> [--protocol <NCTID>]` writes
 `SoA2USDM/test_identity/<id>_test_identity.json` per study, one record per row of the study's routing file.
 It runs after the routing and records only: nothing here routes, opens or changes a routing row. Rules
-1.2.0, schema 1.2, word lists 2026-11-08. A review page follows in 6a-2. The matching fixes of 6b (a restated component as
-corroboration, study abbreviations) are grain rules 1.4.0 (documents/activity-grain.md).
+1.2.0, schema 1.2, word lists 2026-11-08. The matching fixes of 6b (a restated component as corroboration, study
+abbreviations) are grain rules 1.4.0 (documents/activity-grain.md).
+
+**Review page (6a-2).** `SoA2USDM/test_identity/<id>_test_identity.html` per study (soa2usdm.test_identity_page),
+shared navigation, linked from the collection index (column "Test identity": settled of all rows for standalone S
+and members M, settled = one specialization or selected by stated facets; ECG components with an EG test). It shows
+what the JSON holds and decides nothing: a summary of the levels (standalone, members, ECG components; every level
+listed), the facet figures, then standalone rows, panel members grouped under their panel row (group heads once
+per group), and ECG activity rows with their components. Per row: routing status and domain (linked to the routing
+row), component, facets (value as printed, CDISC term, Kind · Position as our position or "Kind not set", source with
+pointer and pages, ambiguous), specialization level with the COSMoS specializations, conditions, unread words,
+practice text. The open-not-coded list of activity-grain.md is shown at the top; rows with a stated SERUM or PLASMA
+that no COSMoS specialization takes are badged. The page is built only from a file current against the routing.
 
 ## The frame
 

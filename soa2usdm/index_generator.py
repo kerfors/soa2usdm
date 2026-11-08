@@ -23,6 +23,7 @@ from .nav import NAV_CSS, nav_block, page_title
 from . import protocol_context_page
 from . import activity_grain_page
 from . import activity_routing_page
+from . import test_identity_page
 
 
 # Short labels for table_type on the collection index.
@@ -294,6 +295,15 @@ def discover_protocol_outputs(protocol_id: str, collection: str) -> dict:
         result['activity_routing'] = str(activity_routing_page.render(protocol_id, collection)
                                          .relative_to(collection_path))
         result['activity_routing_json'] = str(routing_json.relative_to(collection_path))
+
+    # Test identity page (soa2usdm.test_identity_page, step 6a-2), rendered here like the routing page
+    # (the page checks the file current against the routing file).
+    ti_json = soa_folder / "test_identity" / f"{protocol_id}_test_identity.json"
+    if ti_json.exists():
+        result['test_identity'] = str(test_identity_page.render(protocol_id, collection)
+                                      .relative_to(collection_path))
+        result['test_identity_json'] = str(ti_json.relative_to(collection_path))
+        result['test_identity_counts'] = test_identity_page.index_counts(json.loads(ti_json.read_text(encoding='utf-8')))
 
     # USDM readiness/evaluation markdown
     # Search protocol root, SoA2USDM folder, and consolidated/ subfolder.
@@ -657,6 +667,7 @@ def generate_index_html(collection: str) -> str:
 
     has_grain = bool(grain)
     has_routing = bool(routing)
+    has_ti = any(p.get('test_identity') for p in protocols)
 
     def protocol_row(p: dict) -> str:
         nct = p['nct_id']
@@ -782,6 +793,20 @@ def generate_index_html(collection: str) -> str:
                             + '</span>')
         routing_td = f'\n            <td class="viz">{routing_html}</td>' if has_routing else ''
 
+        # Test identity column (step 6a-2): page and JSON; settled rows (one specialization, or selected by
+        # stated facets) of all, for standalone rows (S) and panel members (M); ECG components with a component.
+        ti_html = ''
+        if p.get('test_identity'):
+            tc = p['test_identity_counts']
+            ti_html = (f'<a href="{p["test_identity"]}" class="link-table" title="Test identity per row: test code, facets with their source and Kind, specialization level">test identity</a>'
+                       f' <a href="{p["test_identity_json"]}" class="link-json" title="Test identity JSON">json</a>'
+                       f'<br><span class="grain-n"><abbr title="standalone rows: settled (one specialization or selected by stated facets) of all">S</abbr>: {tc["standalone"][0]}/{tc["standalone"][1]}'
+                       f'<br><abbr title="panel member rows: settled of all">M</abbr>: {tc["member"][0]}/{tc["member"][1]}'
+                       + (f'<br><abbr title="ECG components with an EG test code or family, of all">ECG</abbr>: {tc["ecg"][0]}/{tc["ecg"][1]}'
+                          if tc["ecg"][1] else '')
+                       + '</span>')
+        ti_td = f'\n            <td class="viz">{ti_html}</td>' if has_ti else ''
+
         # USDM readiness column
         usdm_html = ''
         if p.get('usdm_evaluation'):
@@ -809,7 +834,7 @@ def generate_index_html(collection: str) -> str:
             <td class="viz">{review_html}</td>
             <td class="viz">{report_html}</td>
             <td class="viz grp-start">{cons_html}</td>
-            <td class="stats">{red_html}</td>{ctx_td}{grain_td}{routing_td}
+            <td class="stats">{red_html}</td>{ctx_td}{grain_td}{routing_td}{ti_td}
         </tr>'''
     
     def excluded_row(e: dict) -> str:
@@ -818,7 +843,7 @@ def generate_index_html(collection: str) -> str:
             <td class="nct">{esc(e['nct_id'])}</td><td class="sponsor">{esc(e['sponsor'])}</td>
             <td class="study-code">{esc(e['study_code'])}</td>
             <td class="acronym">{esc(e['study_acronym'])}</td>
-            <td class="excluded-reason" colspan="{8 + has_context + has_grain + has_routing}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
+            <td class="excluded-reason" colspan="{8 + has_context + has_grain + has_routing + has_ti}">Not extractable &mdash; {esc(e['excluded_reason'])}</td>
         </tr>'''
 
     ready_rows = ''.join(protocol_row(p) for p in ready)
@@ -829,12 +854,14 @@ def generate_index_html(collection: str) -> str:
                   if has_context else '')
     ctx_th = ('<th class="grp-start" title="Protocol context per study (prompts/PROTOCOL_CONTEXT_CGT_PROMPT.md or PROTOCOL_CONTEXT_GENERAL_PROMPT.md): page and JSON">Protocol context</th>'
               if has_context else '')
-    grain_grp_th = (f'<th class="grp" colspan="{1 + has_routing}" title="Early work towards CDISC: which rows are findings, of which kind, and in which SDTMIG v3.4 domain">Towards CDISC</th>'
+    grain_grp_th = (f'<th class="grp" colspan="{1 + has_routing + has_ti}" title="Early work towards CDISC: which rows are findings, of which kind, and in which SDTMIG v3.4 domain">Towards CDISC</th>'
                     if has_grain else '')
     grain_th = ('<th class="grp-start" title="Activity grain per study (documents/activity-grain.md): JSON, and named tests / unsure on the Activities page">Activity grain</th>'
                 if has_grain else '')
     routing_th = ('<th title="Activity routing per study (documents/activity-routing.md): page and JSON, named tests by status (routed, open, weak, not routed), standalone rows (S) and panel member rows (M) apart">Activity routing</th>'
                   if has_routing else '')
+    ti_th = ('<th title="Test identity per study (documents/test-identity.md): page and JSON; settled of all rows (one specialization, or selected by stated facets), standalone (S) and members (M) apart; ECG components with an EG test">Test identity</th>'
+             if has_ti else '')
     
     css = """
         :root { --blue:#1F4788; --blue2:#2E75B6; --ink:#1f2933; --muted:#5f6b7a; --line:#d9dee5;
@@ -930,7 +957,7 @@ def generate_index_html(collection: str) -> str:
             <thead><tr class="groups">
                 <th colspan="{id_cols}"></th><th class="grp" colspan="4" title="Layers 1 and 2 work table by table; the review checks each table against its source pages">Per table, against the source pages</th><th class="grp" colspan="2" title="Layer 3 unifies the tables of a protocol; its matches are reviewed in the consolidated view">Per protocol, across tables</th>{ctx_grp_th}{grain_grp_th}
             </tr><tr>
-                <th>NCT ID</th><th>Sponsor</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}{grain_th}{routing_th}
+                <th>NCT ID</th><th>Sponsor</th><th>Study Code</th><th>Acronym</th><th>SoA pp</th><th>Source</th><th class="grp-start" title="Layer 1 — extraction JSON per table (viewer), with its table type">1. Extraction (JSON)</th><th title="Layer 2 — resolved JSON per table (viewer): IDs, hierarchy, relationships; table type after corrections">2. Resolution (JSON)</th><th title="Review the extraction against its source pages and take the open decisions">Extraction review</th><th title="The extractor's own account of the run (uncertainty report)">Log</th><th class="grp-start" title="Layer 3 — protocol-level unified SoA (HTML + JSON), and the review of its matches across tables">3. Consolidation (view + review, JSON)</th><th title="Unified activity rows whose name is redacted in the public protocol (CCI) — of total unified activities">Redacted</th>{ctx_th}{grain_th}{routing_th}{ti_th}
             </tr></thead>
             <tbody>
                 {ready_rows}

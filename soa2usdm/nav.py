@@ -103,6 +103,9 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
     # Activity routing page (soa2usdm.activity_routing_page): linked when its JSON exists, rendered
     # from it in the same index batch.
     routing = soa / "routing" / f"{protocol_id}_activity_routing.json"
+    # Test identity page (soa2usdm.test_identity_page): linked when its JSON exists, rendered from it in
+    # the same index batch (step 6a-2).
+    test_identity = soa / "test_identity" / f"{protocol_id}_test_identity.json"
     # Every uncertainty report of the protocol, its own first: a study can carry more than one
     # (NCT03637764 since item 19: '<pid>_flowcharts_uncertainty_report'). Item 20b.
     logs = []
@@ -121,6 +124,7 @@ def discover_siblings(protocol_id: str, collection: str) -> dict:
         "context": f"SoA2USDM/context/{context.stem}.html" if context.exists() else None,
         "grain": f"SoA2USDM/grain/{grain.stem}.html" if grain.exists() else None,
         "routing": f"SoA2USDM/routing/{routing.stem}.html" if routing.exists() else None,
+        "test_identity": f"SoA2USDM/test_identity/{test_identity.stem}.html" if test_identity.exists() else None,
         "logs": logs,
     }
 
@@ -130,7 +134,7 @@ def nav_block(collection: str, protocol_id: str, page_label: str, depth: int,
     """Breadcrumb + sibling strip for a per-protocol page.
 
     current = (kind, table_num): kind in {'extraction', 'resolved',
-    'consolidated', 'review', 'log', 'context', 'grain', 'routing'} marks that strip entry as the current
+    'consolidated', 'review', 'log', 'context', 'grain', 'routing', 'test_identity'} marks that strip entry as the current
     page (rendered unlinked); table_num applies to the per-table kinds.
     """
     coll_index = "../" * depth + "index.html"
@@ -175,6 +179,8 @@ def nav_block(collection: str, protocol_id: str, page_label: str, depth: int,
         groups.append(link(sib["grain"], "activity grain", kind == "grain"))
     if sib["routing"]:
         groups.append(link(sib["routing"], "activity routing", kind == "routing"))
+    if sib["test_identity"]:
+        groups.append(link(sib["test_identity"], "test identity", kind == "test_identity"))
 
     strip = f'<div class="pnav-sib">{f" {dot} ".join(groups)}</div>' if groups else ""
     return (f'<nav class="pnav" aria-label="Breadcrumb">'
