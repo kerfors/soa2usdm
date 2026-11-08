@@ -25,7 +25,12 @@ facets          values beyond the test code, of every kind, read from: the label
                 the activity (for a member, of its panel), and for activity-level rows the measurements entry
                 (position_or_condition: --POS; method: --METHOD, --LEAD, --EVAL). A value is matched to a
                 CDISC term only through a Codelist_Phrases phrase of the variable's IG codelist, longest match
-                first, never overlapping; otherwise it is kept as printed. Fasting is read from the words
+                first, never overlapping; otherwise it is kept as printed. Rules 1.1.0 (decisions 2026-11-08):
+                free text (label, member qualifiers) is read only for variables whose Kind is set and not open
+                (where the domain is not settled: the generic's Kind in some domain); typed context fields are
+                read for their own variable whatever its Kind. A phrase that matches the codelists of several
+                variables gives one facet per variable, each with ambiguous_with the others; none is chosen and
+                none narrows the specialization. Fasting is read from the words
                 "fasting" / "non-fasting" (our word list, FASTING_WORDS). Each facet carries the variable, Kind
                 and Position from Variable_Meaning, or Kind "not set" where the domain has no row
                 (Domain_Variables only).
@@ -45,8 +50,9 @@ one specialization; selected by stated facets; facet not stated; stated facet ma
 stated facets conflict (two sources state different terms for one identity position: neither narrows);
 and for ECG components: test code, test family (beat not stated), no component.
 
-Folded_Facets is read from domain-behaviour/interim/Domain_Behaviour.xlsx, which has no Provenance sheet
-(decision 2026-11-08); its sheet hash and that of Variable_Meaning (hand-kept file) are computed here.
+Folded_Facets is read from Codelist_Phrases.xlsx (cdisc-for-ai d688fd6; until then domain-behaviour/interim) and
+Variable_Meaning from SDTM_Domain_Metadata.xlsx, both with their published Provenance (3cec261). A lookup file without
+a Provenance sheet would have its sheet hash computed here (sheet_hash_computed_here); none has today.
 """
 from __future__ import annotations
 
@@ -64,20 +70,20 @@ from .activity_routing import load_current_routing, routing_path
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-test-identity"
-SCHEMA_VERSION = "1.0"
-SCHEMA_VERSIONS = ("1.0",)
-RULES_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1"
+SCHEMA_VERSIONS = ("1.0", "1.1")
+RULES_VERSION = "1.1.0"
 WORD_LISTS_DATE = "2026-11-08"
 
 FG = "sdtm-findings-graph/machine_actionable/"
 FINDINGS_FILES = ("Specimen_Findings", "Measurement_Findings", "Immunogenicity_Findings")
 # key -> (path, sheet, has a Provenance sheet with <sheet>.Content_SHA256)
 LOOKUP_FILES = {
-    "Variable_Meaning": ("sdtm-domain-reference/machine_actionable/SDTM_Domain_Metadata.xlsx", "Variable_Meaning", False),
+    "Variable_Meaning": ("sdtm-domain-reference/machine_actionable/SDTM_Domain_Metadata.xlsx", "Variable_Meaning", True),
     "SDTMIG_Statements": ("sdtm-domain-reference/machine_actionable/SDTMIG_Statements.xlsx", "Statements", True),
     "Codelist_Phrases": (FG + "Codelist_Phrases.xlsx", "Phrases", True),
     "Test_String_Collisions": (FG + "Codelist_Phrases.xlsx", "Test_String_Collisions", True),
-    "Folded_Facets": ("domain-behaviour/interim/Domain_Behaviour.xlsx", "Folded_Facets", False),
+    "Folded_Facets": (FG + "Codelist_Phrases.xlsx", "Folded_Facets", True),
 }
 for _f in FINDINGS_FILES:
     for _s in ("Domain_Variables", "Codelists", "Measurement_Specs"):
@@ -191,6 +197,7 @@ class TestIdentityLookups:
         self.facet_generics = sorted(generics)
         self.facet_variables = defaultdict(list)
         self.codelist_by_generic = defaultdict(set)
+        self.generic_kinds = defaultdict(set)
         seen = set()
         for f in FINDINGS_FILES:
             cl = {r["codelist_concept_id"]: r["codelist_submission_value"]
@@ -208,6 +215,7 @@ class TestIdentityLookups:
                          "codelists": sorted(cl.get(c, c) for c in codes)}
                 self.facet_variables[dom].append(entry)
                 self.codelist_by_generic[entry["generic"]].update(entry["codelists"])
+                self.generic_kinds[entry["generic"]].add(entry["kind"])
 
     def _load_phrases(self):
         """codelist -> phrase -> [(submission_value, concept_id)]"""
@@ -263,13 +271,21 @@ class TestIdentityLookups:
                     "codelists": sorted(self.codelist_by_generic[g])} for g in self.facet_generics]
         return [v for v in out if generics is None or v["generic"] in generics]
 
+    def text_variables(self, domain: str | None) -> list:
+        """Facet variables read from free text (rules 1.1.0): Kind set and not open; where the domain is not
+        settled, generics with such a Kind in some domain."""
+        if domain:
+            return [v for v in self.variables_for(domain) if v["kind"] not in (None, "open")]
+        return [v for v in self.variables_for(None) if self.generic_kinds[v["generic"]] - {None, "open"}]
+
 
 # ---------------------------------------------------------------------------
 # Reading text
 # ---------------------------------------------------------------------------
 def scan_phrases(tokens: list, variables: list, phrases) -> list:
-    """Longest-first, non-overlapping matches of codelist phrases in a token list. Returns
-    [(start, end, variable_entry, phrase, terms)]."""
+    """Longest-first, non-overlapping matches of codelist phrases in a token list. A phrase that matches
+    the codelists of several variables gives one entry per variable. Returns
+    [(start, end, variable_entry, phrase, terms, other_variables)]."""
     taken, out = set(), []
     for n in range(min(8, len(tokens)), 0, -1):
         for i in range(len(tokens) - n + 1):
@@ -279,14 +295,18 @@ def scan_phrases(tokens: list, variables: list, phrases) -> list:
             g = " ".join(tokens[i:i + n])
             if len(g) < MIN_PHRASE_CHARS:
                 continue
+            matched = []
             for v in variables:
                 terms = set()
                 for c in v["codelists"]:
                     terms |= phrases.get(c, {}).get(g, set())
                 if terms:
-                    out.append((i, i + n, v, g, sorted(terms)))
-                    taken |= span
-                    break
+                    matched.append((v, sorted(terms)))
+            for v, terms in matched:
+                others = [w["variable"] for w, _ in matched if w is not v]
+                out.append((i, i + n, v, g, terms, others))
+            if matched:
+                taken |= span
     return sorted(out, key=lambda x: x[0])
 
 
@@ -377,9 +397,11 @@ def read_text(text: str, where: str, variables: list, lk: TestIdentityLookups, e
     rest_tokens = [t if k not in used else "\x00" for k, t in enumerate(tokens)]
     scan_vars = [v for v in variables if v["generic"] != "--FAST"]
     hits = [h for h in scan_phrases(rest_tokens, scan_vars, lk.phrases) if "\x00" not in h[3]]
-    for i, j, v, g, terms in hits:
+    for i, j, v, g, terms, others in hits:
         f = _facet(v, g, terms, where, "codelist phrase", **extra)
         f["term"] = _term_codelist(v, terms, lk.phrases)
+        if others:
+            f["ambiguous_with"] = others
         facets.append(f)
         used |= set(range(i, j))
     unread = [t for k, t in enumerate(tokens) if k not in used]
@@ -436,7 +458,7 @@ def specialization(domain: str | None, codes: list, facets: list, lk: TestIdenti
         return {"level": "one specialization"} | out
     stated = {}
     for f in facets:
-        if f["position"] in IDENTITY_POSITIONS and f["term"]:
+        if f["position"] in IDENTITY_POSITIONS and f["term"] and not f.get("ambiguous_with"):
             stated.setdefault(f["position"], set()).add(f["term"]["concept_id"])
     conflicts = sorted(p for p, ids in stated.items() if len(ids) > 1)
     remaining = specs
@@ -521,7 +543,7 @@ def _dedupe(facets: list) -> list:
 def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLookups) -> dict:
     unit = "activity" if row.get("activity_level") else "member" if "member_id" in row else "standalone"
     domain = _domain(row)
-    variables = lk.variables_for(domain)
+    variables = lk.text_variables(domain)
     ti = row.get("test_identity") or {}
     codes = [c for c in ti.get("codes", []) if not domain or domain in c["domains"]]
     phrase = ti.get("phrase")

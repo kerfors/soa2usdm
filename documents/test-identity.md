@@ -3,7 +3,7 @@
 `python -m soa2usdm.test_identity --collection <name> [--protocol <NCTID>]` writes
 `SoA2USDM/test_identity/<id>_test_identity.json` per study, one record per row of the study's routing file.
 It runs after the routing and records only: nothing here routes, opens or changes a routing row. Rules
-1.0.0, schema 1.0, word lists 2026-11-08. A review page follows in 6a-2; matching fixes that move the
+1.1.0, schema 1.1, word lists 2026-11-08. A review page follows in 6a-2; matching fixes that move the
 routing (a restated component counting as corroboration, peeling, abbreviation expansion) follow in 6b.
 
 ## The frame
@@ -41,7 +41,14 @@ LB facets, EG-A5 puts the QT correction method into the ECG test name.
 Facet variables of a domain are the `Domain_Variables` rows whose generic variable is a facet in
 `Variable_Meaning` somewhere (Kind not record, Position not component), plus --ANMETH (a calculation method
 is a facet). Kind and Position come from the domain's own `Variable_Meaning` row; where the domain has
-none (CP, MB, PC, CV …), Kind is "not set" and the variable is never in a key.
+none, Kind is "not set" and the variable is never in a key. Since cdisc-for-ai a02ebe5 the rows cover the
+LB-A8 variables and --SPEC, --METHOD, --LOC, --LAT, --DIR in CP, MB, MI, PC, CV (observable, Position open);
+LBPOS and LBLOC have no row (not in the SDTMIG v3.4 LB table).
+
+Rules 1.1.0: free text (label, member qualifiers) is read only for variables whose Kind is set and not
+open; where the domain is not settled, for generics with such a Kind in some domain. So --ORRESU (Kind
+open; UNIT codelist) is not read from labels ("TAb", "TBL" are not tablets). Typed context fields are read
+for their own variable whatever its Kind.
 
 Sources, in this order: the label outside the part that hit; member qualifiers; the specimen stated on the
 context panel; the `lab_and_purpose` entry of the activity (for a member, of its panel: inheritance only
@@ -49,7 +56,9 @@ from what is stated); for ECG activity rows the measurements entry (`position_or
 `method` → --METHOD, --LEAD, --EVAL).
 
 A value is matched to a CDISC term only through a `Codelist_Phrases` phrase of the variable's IG codelist,
-longest match first, never overlapping ("MUGA scan" is MUGA, not also "scan"). A typed context field keeps
+longest match first, never overlapping ("MUGA scan" is MUGA, not also "scan"). A phrase that matches the
+codelists of several variables gives one facet per variable, each with `ambiguous_with` the others
+("blood": SPECTYPE and LOC); none is chosen and none narrows the specialization. A typed context field keeps
 its value as printed and takes a term only when exactly one phrase matches. A phrase of the label that is an
 SDTM_Test_Identity string of the component's own code is the component restated, not a facet: in
 "Erythrocyte count (RBC)" the parenthesis is the test, not the specimen ERYTHROCYTES.
@@ -83,15 +92,16 @@ have no CDISC form and stay open; "heart rate" hits HR in CV and VS, not EG, and
 All from the public cdisc-for-ai checkout: `SDTM_Domain_Metadata.xlsx` (Variable_Meaning),
 `SDTMIG_Statements.xlsx`, `Codelist_Phrases.xlsx` (Phrases, Test_String_Collisions), the Specimen,
 Measurement and Immunogenicity Findings files (Domain_Variables, Codelists, Measurement_Specs), and
-`domain-behaviour/interim/Domain_Behaviour.xlsx` (Folded_Facets), plus the grain lookups for test hits.
-Variable_Meaning and Folded_Facets have no Provenance sheet; their sheet hashes are computed here
-(`sheet_hash_computed_here`). The domain-behaviour track is read here by decision (2026-11-08), although
-cdisc-for-ai describes it as read by nothing.
+Folded_Facets (in `Codelist_Phrases.xlsx`), plus the grain lookups for test hits. Every sheet comes with its
+published Provenance (`sheet_hash_computed_here` false): Folded_Facets moved to `Codelist_Phrases.xlsx` in
+cdisc-for-ai d688fd6 (until then `domain-behaviour/interim`), and `SDTM_Domain_Metadata.xlsx` has a Provenance
+sheet since 3cec261.
 
-## Figures (all four collections, cdisc-for-ai 844384b)
+## Figures (all four collections, cdisc-for-ai a02ebe5, rules 1.1.0)
 
-982 rows (312 standalone, 627 panel members, 43 ECG activity rows with 124 components); 608 facets, 464
-with a CDISC term; conditions on 4 rows; collisions cited on 14 rows (all `equal`).
+982 rows (312 standalone, 627 panel members, 43 ECG activity rows with 124 components); 628 facets, 477
+with a CDISC term, 16 flagged ambiguous; conditions on 4 rows; collisions cited on 14 rows (all `equal`).
+Levels unchanged from rules 1.0.0 on cdisc-for-ai 844384b.
 
 | Level | Standalone | Members |
 |---|---|---|

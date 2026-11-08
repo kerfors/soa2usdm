@@ -7,11 +7,12 @@ label outside the test ('Serum creatinine'), the component restated in a parenth
 count (RBC)'), the longest codelist phrase ('MUGA scan', not 'scan'), conditions ('WOCBP only',
 'selected sites only'), fasting words, the exact specimen term (SERUM does not select SERUM OR PLASMA),
 a shared observable key, a scale left unstated, two sources in conflict, and ECG components (a Folded_Facets
-head, a short form with no EG hit, QTc).
+head, a short form with no EG hit, QTc). Rules 1.1.0: a phrase matching several variables ('blood': SPECTYPE and
+LOC) is recorded for each, flagged, and does not narrow; free text is read only for Kind set and not open.
 
 The guard runs on the real cdisc-for-ai lookups and is skipped without them: the not-generally-used
 statements name the generics read from them (CV-A2 names --FAST only), Kind and Position come only from
-Variable_Meaning, and the two sheets without a Provenance sheet are hashed here. Published test identity
+Variable_Meaning, and every lookup sheet comes with its published Provenance (none hashed here). Published test identity
 files validate against the schema.
 """
 import json
@@ -181,6 +182,39 @@ def test_ecg_components():
     assert c["level"] == "test code" and [x["testcd"] for x in c["codes"]] == ["QTCUNS"]
 
 
+def test_ambiguous_phrase_gives_one_facet_per_variable():
+    """1.1.0: 'blood' is a SPECTYPE and a LOC term; with the domain open both are recorded, none chosen."""
+    v = [{"variable": "--LOC", "generic": "--LOC", "kind": None, "position": None, "meaning_status": None,
+          "codelists": ["LOC"]},
+         {"variable": "--SPEC", "generic": "--SPEC", "kind": None, "position": None, "meaning_status": None,
+          "codelists": ["SPECTYPE"]}]
+    LK.phrases["LOC"]["blood"].add(("BLOOD", "C12434"))
+    try:
+        facets, *_ = ti.read_text("Blood culture", "label", v, LK, exclude="culture")
+    finally:
+        del LK.phrases["LOC"]["blood"]
+    assert [(f["variable"], f["ambiguous_with"]) for f in facets] == [("--LOC", ["--SPEC"]), ("--SPEC", ["--LOC"])]
+
+
+def test_ambiguous_facet_does_not_narrow():
+    f = _f("LBSPEC", "C13283") | {"ambiguous_with": ["LBLOC"]}
+    assert ti.specialization("LB", CREAT, [f], LK)["level"] == "facet not stated"
+
+
+def test_free_text_reads_kind_set_and_not_open():
+    """1.1.0: --ORRESU (Kind open) and variables without a Kind are not read from labels."""
+    lk = Stub()
+    unit = {"variable": "LBORRESU", "generic": "--ORRESU", "kind": "open", "position": "open",
+            "meaning_status": "proposed", "codelists": ["UNIT"]}
+    lk.facet_variables = {"LB": LB_VARS + [unit]}
+    lk.facet_generics = ["--FAST", "--METHOD", "--ORRESU", "--SPEC"]
+    lk.codelist_by_generic["--ORRESU"] = {"UNIT"}
+    lk.generic_kinds = defaultdict(set, {"--SPEC": {"observable"}, "--METHOD": {"observable"},
+                                         "--FAST": {"practice"}, "--ORRESU": {"open"}})
+    assert [v["variable"] for v in lk.text_variables("LB")] == ["LBSPEC", "LBMETHOD", "LBFAST"]
+    assert [v["variable"] for v in lk.text_variables(None)] == ["--FAST", "--METHOD", "--SPEC"]
+
+
 # ---------------------------------------------------------------------------
 # Guard on the real cdisc-for-ai lookups
 # ---------------------------------------------------------------------------
@@ -204,9 +238,13 @@ def test_kind_only_from_variable_meaning(real):
             assert (v["kind"] is None) == ((dom, v["variable"]) not in meaning), (dom, v["variable"])
 
 
-def test_sheets_without_provenance_hashed_here(real):
-    computed = {f["file"] for f in real.provenance["files"] if f["sheet_hash_computed_here"]}
-    assert computed == {"Variable_Meaning", "Folded_Facets"}
+def test_open_kind_not_read_from_free_text(real):
+    assert "LBORRESU" not in [v["variable"] for v in real.text_variables("LB")]
+    assert {"LBSPEC", "LBMETHOD", "LBFAST"} <= {v["variable"] for v in real.text_variables("LB")}
+
+
+def test_every_lookup_sheet_has_published_provenance(real):
+    assert not [f["file"] for f in real.provenance["files"] if f["sheet_hash_computed_here"]]
 
 
 def _published():
