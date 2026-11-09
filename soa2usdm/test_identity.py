@@ -50,6 +50,18 @@ specialization  the level over identity facets only (Position system, method, sc
                 narrows the specializations by its exact CDISC term (SERUM does not select SERUM OR PLASMA);
                 an identity facet not stated stays open and is never filled.
 
+component_parts rules 1.3.0 (2026-11-09): in IS the analyte is split across ISTEST and ISBDAGNT (and ISMSCBCE):
+                "the combination of ISTEST and ISBDAGNT [ISMSCBCE] should describe the entity or the analyte being
+                measured" (ISBDAGNT-Notes, ISMSCBCE-Notes). Variable_Meaning gives both Position component, which
+                the facet filter drops; a component carried in a variable other than --TESTCD is not the component
+                restated. So for rows whose domain is IS these two variables are read as component parts, from the
+                same free text as the facets (label, member qualifiers), by the same rule: a Codelist_Phrases phrase
+                of the variable's codelists (ISBDAGNT: MICROORG, ISBDAGT; IS-A7), otherwise not read. ISMSCBCE has
+                no codelist, so nothing is read for it until a typed context field exists. A part whose term is
+                reached only through NCIt synonyms is weak ("NCIt synonym only", as grain rule L1q). Component
+                parts are records only: they never narrow the specialization. Only ISBDAGNT and ISMSCBCE
+                (COMPONENT_PART_VARIABLES); the other component variables (LBBDAGNT, --TSTDTL) are not read.
+
 Levels: no component; component open (several codes); domain open; no specialization (COSMoS has none);
 one specialization; selected by stated facets; facet not stated; stated facet matches no specialization;
 stated facets conflict (two sources state different terms for one identity position: neither narrows);
@@ -76,9 +88,9 @@ from .activity_routing import load_current_routing, routing_path
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-test-identity"
-SCHEMA_VERSION = "1.2"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2")
-RULES_VERSION = "1.2.0"
+SCHEMA_VERSION = "1.3"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
+RULES_VERSION = "1.3.0"
 WORD_LISTS_DATE = "2026-11-08"
 
 FG = "sdtm-findings-graph/machine_actionable/"
@@ -108,6 +120,8 @@ LAB_AND_PURPOSE_FIELDS = {"specimen": "--SPEC", "method": "--METHOD"}
 # Rules 1.2.0: a group head is read as a facet only as a whole phrase of these generics' codelists.
 GROUP_HEAD_GENERICS = ("--METHOD", "--SPEC")
 MIN_PHRASE_CHARS = 3
+# Rules 1.3.0: component variables other than --TESTCD read as component parts, each with its CDISC basis.
+COMPONENT_PART_VARIABLES = {"ISBDAGNT": "ISBDAGNT-Notes", "ISMSCBCE": "ISMSCBCE-Notes"}
 
 # ---------------------------------------------------------------------------
 # Dated word lists (WORD_LISTS_DATE): our pattern code, not CDISC sources.
@@ -164,6 +178,7 @@ class TestIdentityLookups:
         self._load_folded()
         self._load_collisions()
         self._load_not_generally_used()
+        self._load_component_part_basis()
 
     def _read(self, key):
         import pandas as pd
@@ -206,13 +221,15 @@ class TestIdentityLookups:
         self.facet_variables = defaultdict(list)
         self.codelist_by_generic = defaultdict(set)
         self.generic_kinds = defaultdict(set)
+        self.component_part_variables = defaultdict(list)
         seen = set()
         for f in FINDINGS_FILES:
             cl = {r["codelist_concept_id"]: r["codelist_submission_value"]
                   for r in self.sheets[f"{f}.Codelists"].to_dict("records")}
             for r in self.sheets[f"{f}.Domain_Variables"].to_dict("records"):
                 var, dom = r["Variable Name"], r["Dataset Name"]
-                if r["Generic_Variable"] not in generics or (dom, var) in seen:
+                part = var in COMPONENT_PART_VARIABLES
+                if (r["Generic_Variable"] not in generics and not part) or (dom, var) in seen:
                     continue
                 seen.add((dom, var))
                 codes = [c.strip() for c in r["CDISC CT Codelist Code(s)"].split(";") if c.strip()]
@@ -221,6 +238,11 @@ class TestIdentityLookups:
                          "kind": m["Kind"] if m else None, "position": m["Position"] if m else None,
                          "meaning_status": m["Status"] if m else None,
                          "codelists": sorted(cl.get(c, c) for c in codes)}
+                if part:
+                    if entry["position"] != "component":
+                        raise ValueError(f"{var}: Variable_Meaning Position {entry['position']!r}, expected component")
+                    self.component_part_variables[dom].append(entry)
+                    continue
                 self.facet_variables[dom].append(entry)
                 self.codelist_by_generic[entry["generic"]].update(entry["codelists"])
                 self.generic_kinds[entry["generic"]].add(entry["kind"])
@@ -228,9 +250,11 @@ class TestIdentityLookups:
     def _load_phrases(self):
         """codelist -> phrase -> [(submission_value, concept_id)]"""
         self.phrases = defaultdict(lambda: defaultdict(set))
+        self.phrase_fields = defaultdict(set)
         for r in self.sheets["Codelist_Phrases"].to_dict("records"):
             self.phrases[r["codelist_submission_value"]][r["phrase"]].add(
                 (r["term_submission_value"], r["term_concept_id"]))
+            self.phrase_fields[(r["codelist_submission_value"], r["phrase"], r["term_concept_id"])].add(r["field"])
 
     def _load_specializations(self):
         """(domain, TESTCD, NCIt) -> [specialization]"""
@@ -269,6 +293,15 @@ class TestIdentityLookups:
                 raise ValueError(f"{sid} names none of {list(NOT_GENERALLY_USED_GENERICS)}")
             self.not_generally_used[dom] = {"statement_id": sid, "generics": gens,
                                             "text_sha256": _sha256_bytes(st[sid]["Text"].encode("utf-8"))}
+
+    def _load_component_part_basis(self):
+        st = {r["Statement_ID"]: r for r in self.sheets["SDTMIG_Statements"].to_dict("records")}
+        self.component_part_basis = {}
+        for var, sid in COMPONENT_PART_VARIABLES.items():
+            if sid not in st:
+                raise ValueError(f"{sid} not in SDTMIG_Statements")
+            self.component_part_basis[var] = {"statement_id": sid,
+                                              "text_sha256": _sha256_bytes(st[sid]["Text"].encode("utf-8"))}
 
     def variables_for(self, domain: str | None, generics: tuple | None = None) -> list:
         """Facet variables of a domain (or generic ones where the domain is not settled)."""
@@ -342,6 +375,18 @@ def match_fasting(text: str) -> dict | None:
         if m:
             return {"phrase": m.group(0), "reading": reading}
     return None
+
+
+def component_part(f: dict, lk: TestIdentityLookups) -> dict:
+    """A facet read for a component-part variable, as a component part: its basis statement, and weak where
+    every phrase that reached the term is an NCIt synonym (rules 1.3.0)."""
+    weak = []
+    if f["term"]:
+        fields = lk.phrase_fields[(f["term"]["codelist"], f["value"], f["term"]["concept_id"])]
+        if fields == {"NCIt synonym"}:
+            weak.append("NCIt synonym only")
+    return f | {"basis": lk.component_part_basis[f["variable"]]["statement_id"],
+                "hit_strength": "weak" if weak else "strong", "weak_reasons": weak}
 
 
 def _facet(v: dict, value: str, terms: list, where: str, via: str, **extra) -> dict:
@@ -572,7 +617,8 @@ def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLoo
                  group_members: dict | None = None) -> dict:
     unit = "activity" if row.get("activity_level") else "member" if "member_id" in row else "standalone"
     domain = _domain(row)
-    variables = lk.text_variables(domain)
+    parts_vars = lk.component_part_variables.get(domain, []) if domain else []
+    variables = lk.text_variables(domain) + parts_vars
     ti = row.get("test_identity") or {}
     codes = [c for c in ti.get("codes", []) if not domain or domain in c["domains"]]
     phrase = ti.get("phrase")
@@ -631,6 +677,9 @@ def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLoo
                 keep.append(f)
         facets = keep
     facets = _dedupe(facets)
+    part_names = {v["variable"] for v in parts_vars}
+    parts = [component_part(f, lk) for f in facets if f["variable"] in part_names]
+    facets = [f for f in facets if f["variable"] not in part_names]
     rec = {"xact_id": row["xact_id"]}
     if unit == "member":
         rec |= {"member_id": row["member_id"], "panel_name": row["panel_name"]}
@@ -643,6 +692,8 @@ def study_record(row: dict, ctx: dict | None, members: dict, lk: TestIdentityLoo
                            "collisions": collisions_for(part, all_codes, lk)} if ti else None)}
     if components is not None:
         rec["components"] = components
+    if parts_vars:
+        rec["component_parts"] = parts
     rec |= {"facets": facets, "practice_text": practice_text, "conditions": conditions, "unread": unread,
             "specialization": (specialization(domain, codes, facets, lk) if unit != "activity"
                                else {"level": "per component"})}
@@ -695,6 +746,8 @@ def generate_study_test_identity(collection: str, protocol_id: str, lk: TestIden
                    "levels": {u: dict(sorted(c.items())) for u, c in sorted(by_unit.items())},
                    "facets": dict(sorted(Counter(f["variable"] for x in rows for f in x["facets"]).items())),
                    "facets_with_term": sum(1 for x in rows for f in x["facets"] if f["term"]),
+                   "component_parts": dict(sorted(Counter(f"{p['variable']} {p['hit_strength']}" for x in rows
+                                                          for p in x.get("component_parts", [])).items())),
                    "practice_text": sum(len(x["practice_text"]) for x in rows),
                    "rows_with_conditions": sum(1 for x in rows if x["conditions"]),
                    "rows_with_unread": sum(1 for x in rows if x["unread"]),

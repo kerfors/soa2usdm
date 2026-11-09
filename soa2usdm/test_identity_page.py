@@ -122,6 +122,12 @@ def _facet(f: dict) -> str:
             f'{kind} <span class="wh">{where}</span>{amb}</div>')
 
 
+def _part(p: dict) -> str:
+    weak = (f' <span class="tag tag-amb">weak: {esc(", ".join(p["weak_reasons"]))}</span>' if p["weak_reasons"] else "")
+    return (f'<div class="ctx">component part ({esc(p["basis"])}):</div>'
+            + _facet(p).replace('</div>', weak + '</div>', 1))
+
+
 def _spec(s: dict) -> str:
     lv = s["level"]
     out = [f'<span class="lv {level_class(lv)}">{esc(lv)}</span>']
@@ -191,7 +197,7 @@ def _row(r: dict, routing_html: str) -> str:
             f'<td class="rt"><a href="{routing_html}#{esc(rid)}" title="Show on the routing page">'
             f'<span class="s s-{esc(r["routing_status"].replace(" ", "-"))}">{esc(r["routing_status"])}</span></a>'
             f'<div class="dm">{dom}</div></td>'
-            f'<td class="cp">{_component(r["component"])}</td>'
+            f'<td class="cp">{_component(r["component"])}{"".join(_part(p) for p in r.get("component_parts", []))}</td>'
             f'<td class="fcs">{"".join(_facet(f) for f in r["facets"]) or "<span class=ns>none stated</span>"}{_extras(r)}</td>'
             f'<td class="sp">{_spec(r["specialization"])}</td></tr>')
 

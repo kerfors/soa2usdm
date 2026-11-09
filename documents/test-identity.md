@@ -3,7 +3,7 @@
 `python -m soa2usdm.test_identity --collection <name> [--protocol <NCTID>]` writes
 `SoA2USDM/test_identity/<id>_test_identity.json` per study, one record per row of the study's routing file.
 It runs after the routing and records only: nothing here routes, opens or changes a routing row. Rules
-1.2.0, schema 1.2, word lists 2026-11-08. The matching fixes of 6b (a restated component as corroboration, study
+1.3.0, schema 1.3, word lists 2026-11-08. The matching fixes of 6b (a restated component as corroboration, study
 abbreviations) are grain rules 1.4.0 (documents/activity-grain.md).
 
 **Review page (6a-2).** `SoA2USDM/test_identity/<id>_test_identity.html` per study (soa2usdm.test_identity_page),
@@ -84,6 +84,30 @@ head is kept as text, not read. On the four collections no head is read (88 memb
 "microscopic examination" are no CDISC METHOD term (CT has DIPSTICK MEASUREMENT METHOD and MICROSCOPY); "Fasting
 serum Lipid Profile" is no single term. The grain file is read for the label members (input `activity_grain`).
 
+### Component parts (rules 1.3.0, 2026-11-09)
+
+In IS the analyte is split across ISTEST and ISBDAGNT, and for cell-based tests ISMSCBCE: "the combination of
+ISTEST and ISBDAGNT should describe the entity or the analyte being measured" (ISBDAGNT-Notes; ISMSCBCE-Notes the
+same for the molecule secreted). cdisc-for-ai Variable_Meaning gives both Position component (accepted / proposed),
+so the facet filter drops them. A component carried in a variable other than --TESTCD is not the component
+restated, so for rows whose domain is IS the two variables are read as `component_parts`:
+
+- from the same free text as the facets (label, member qualifiers), by the same rule: a Codelist_Phrases phrase of
+  the variable's codelists (ISBDAGNT: MICROORG and ISBDAGT, IS-A7), longest first; otherwise not read. ISMSCBCE has
+  no codelist, so nothing is read for it until a typed context field exists;
+- each part carries its basis statement (`ISBDAGNT-Notes`, `ISMSCBCE-Notes`) and a strength: weak, "NCIt synonym
+  only", where every phrase that reached the term is an NCIt synonym (as grain rule L1q). Example: "HLA" reaches only
+  HLA CLASS II ANTIGENS, through an NCIt synonym;
+- records only: a component part never narrows the specialization level and never routes;
+- only ISBDAGNT and ISMSCBCE (`COMPONENT_PART_VARIABLES`). The other component variables in Variable_Meaning (LBBDAGNT,
+  GFTSTDTL, MBTSTDTL, MITSTDTL) are not read; that is a separate question.
+
+Not done (2026-11-09): the target from the protocol context `immunogenicity` entries (the link from entries to rows
+is not decided), and IS test candidates by a stated property through cdisc-for-ai Test_Ancestors (a whole-phrase
+trial on the 25 IS rows matched only "test", "assay" and "cells"; deferred). Choosing an IS test is not done here.
+
+The review page shows the parts under the component, with their basis and a weak tag.
+
 ### Specialization level
 
 | Level | Meaning |
@@ -116,6 +140,11 @@ cdisc-for-ai d688fd6 (until then `domain-behaviour/interim`), and `SDTM_Domain_M
 sheet since 3cec261.
 
 ## Figures (all four collections, cdisc-for-ai a02ebe5, rules 1.2.0, grain rules 1.4.0)
+
+Rules 1.3.0 on cdisc-for-ai d385a36 (2026-11-09): 25 rows with domain IS (cell_gene_therapy 16, usdm_data 6, cpmp 3);
+7 component parts, all ISBDAGNT from the label: COAGULATION FACTOR IX ×4 (one through the CDISC synonym "FIX"),
+SARS-CoV-2 ×1, HLA CLASS II ANTIGENS ×2 (weak, NCIt synonym only). No facet, level or other count changed; 7 rows
+have fewer unread words. The figures below are otherwise unchanged.
 
 998 rows (312 standalone, 643 panel members, 43 ECG activity rows with 124 components); 636 facets, 485
 with a CDISC term, 16 flagged ambiguous; conditions on 4 rows; collisions cited on 14 rows (all `equal`).

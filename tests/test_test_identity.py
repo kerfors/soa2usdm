@@ -9,6 +9,8 @@ count (RBC)'), the longest codelist phrase ('MUGA scan', not 'scan'), conditions
 a shared observable key, a scale left unstated, two sources in conflict, and ECG components (a Folded_Facets
 head, a short form with no EG hit, QTc). Rules 1.1.0: a phrase matching several variables ('blood': SPECTYPE and
 LOC) is recorded for each, flagged, and does not narrow; free text is read only for Kind set and not open.
+Rules 1.3.0: in an IS row the binding agent ('Anti-factor IX antibodies') is read as a component part, never as a
+facet and never narrowing; an NCIt-synonym-only hit ('HLA') is weak; rows outside IS get no component parts.
 
 The guard runs on the real cdisc-for-ai lookups and is skipped without them: the not-generally-used
 statements name the generics read from them (CV-A2 names --FAST only), Kind and Position come only from
@@ -86,6 +88,17 @@ class Stub(ti.TestIdentityLookups):
         self.folded_by_head = {"pr interval": [head("PRAG", "Aggregate"), head("PRSB", "Single Beat")]}
         self.collisions = {}
         self.not_generally_used = {}
+        # rules 1.3.0: IS binding agent as a component part
+        self.phrases["ISBDAGT"]["factor ix"].add(("COAGULATION FACTOR IX", "C28482"))
+        self.phrases["ISBDAGT"]["hla"].add(("HLA CLASS II ANTIGENS", "C20705"))
+        self.phrase_fields = defaultdict(set, {("ISBDAGT", "factor ix", "C28482"): {"CDISC preferred term"},
+                                               ("ISBDAGT", "hla", "C20705"): {"NCIt synonym"}})
+        self.facet_variables["IS"] = [{"variable": "ISSPEC", "generic": "--SPEC", "kind": "observable",
+                                       "position": "system", "meaning_status": "accepted", "codelists": ["SPECTYPE"]}]
+        self.component_part_variables = {"IS": [
+            {"variable": "ISBDAGNT", "generic": "--BDAGNT", "kind": "observable", "position": "component",
+             "meaning_status": "accepted", "codelists": ["ISBDAGT", "MICROORG"]}]}
+        self.component_part_basis = {"ISBDAGNT": {"statement_id": "ISBDAGNT-Notes", "text_sha256": "x"}}
 
 
 LK = Stub()
@@ -282,3 +295,36 @@ def test_hit_part_of_a_restated_member_is_the_head():
     lk = Stub()
     lk.grain = RestatedGrain(LK.grain.test)
     assert ti.hit_part("Erythrocytes (RBC)", {"phrase": "erythrocytes rbc", "weak_reasons": []}, lk) == "erythrocytes"
+
+
+def _is_row(name, domain="IS"):
+    return {"xact_id": "xact-001", "activity_name": name, "status": "routed", "domain": domain, "candidates": None,
+            "test_identity": None}
+
+
+def test_binding_agent_is_a_component_part_not_a_facet():
+    r = ti.study_record(_is_row("Anti-factor IX antibodies"), None, {}, LK)
+    assert [(p["variable"], p["term"]["submission_value"], p["hit_strength"], p["basis"]) for p in r["component_parts"]] \
+        == [("ISBDAGNT", "COAGULATION FACTOR IX", "strong", "ISBDAGNT-Notes")]
+    assert r["facets"] == [] and r["specialization"]["level"] == "no component"
+
+
+def test_ncit_synonym_only_binding_agent_is_weak():
+    r = ti.study_record(_is_row("Donor-specific anti-HLA antibodies (serum)"), None, {}, LK)
+    assert [(p["value"], p["hit_strength"], p["weak_reasons"]) for p in r["component_parts"]] \
+        == [("hla", "weak", ["NCIt synonym only"])]
+    assert [f["variable"] for f in r["facets"]] == ["ISSPEC"]
+
+
+def test_no_component_parts_outside_is():
+    r = ti.study_record(_is_row("Serum factor IX", domain="LB"), None, {}, LK)
+    assert "component_parts" not in r
+
+
+def test_component_parts_only_isbdagnt_and_ismscbce(real):
+    assert {v["variable"] for v in real.component_part_variables["IS"]} == {"ISBDAGNT", "ISMSCBCE"}
+    assert all(v["position"] == "component" for vs in real.component_part_variables.values() for v in vs)
+    assert set(real.component_part_variables) == {"IS"}
+    assert {k: b["statement_id"] for k, b in real.component_part_basis.items()} \
+        == {"ISBDAGNT": "ISBDAGNT-Notes", "ISMSCBCE": "ISMSCBCE-Notes"}
+    assert "ISBDAGNT" not in [v["variable"] for v in real.text_variables("IS")]
