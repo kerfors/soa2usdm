@@ -3,7 +3,7 @@
 `python -m soa2usdm.test_identity --collection <name> [--protocol <NCTID>]` writes
 `SoA2USDM/test_identity/<id>_test_identity.json` per study, one record per row of the study's routing file.
 It runs after the routing and records only: nothing here routes, opens or changes a routing row. Rules
-1.3.0, schema 1.3, word lists 2026-11-08. The matching fixes of 6b (a restated component as corroboration, study
+1.4.0, schema 1.4, word lists 2026-11-09. The matching fixes of 6b (a restated component as corroboration, study
 abbreviations) are grain rules 1.4.0 (documents/activity-grain.md).
 
 **Review page (6a-2).** `SoA2USDM/test_identity/<id>_test_identity.html` per study (soa2usdm.test_identity_page),
@@ -70,9 +70,21 @@ A value is matched to a CDISC term only through a `Codelist_Phrases` phrase of t
 longest match first, never overlapping ("MUGA scan" is MUGA, not also "scan"). A phrase that matches the
 codelists of several variables gives one facet per variable, each with `ambiguous_with` the others
 ("blood": SPECTYPE and LOC); none is chosen and none narrows the specialization. A typed context field keeps
-its value as printed and takes a term only when exactly one phrase matches. A phrase of the label that is an
+its value as printed and takes a term as set out under rules 1.4.0 below. A phrase of the label that is an
 SDTM_Test_Identity string of the component's own code is the component restated, not a facet: in
 "Erythrocyte count (RBC)" the parenthesis is the test, not the specimen ERYTHROCYTES.
+
+Typed context fields (rules 1.4.0, 2026-11-09). A typed context field takes a term only when exactly one phrase
+matches and the value names nothing more next to it. Where "and" or "or" stands in the clause of a matched
+phrase, the value names more than one thing ("plasma and PBMCs", "ECHO or MUGA scan", "PPD TST or IGRA for
+..."): no term, the terms its phrases reach in `terms`, flag `list_value`; none is chosen and none narrows the
+specialization. The clause runs from the phrase to a boundary word ("for", "in", "of", "at", "with", ...; our
+dated word list CLAUSE_BOUNDARIES), a ";" or the end of the value, inside the phrase's own parenthesis; other
+parentheses are skipped. Commas and slashes are not read as coordinators ("Formalin fixed, paraffin-embedded";
+"LC-MS/MS"). So "blood samples for glucose, insulin, and C-peptide" stays BLOOD and "serum (screening and within
+24 hours ...)" stays SERUM. A plural is not a phrase ("PBMCs"; Codelist_Phrases has no plural forms), so the
+PBMCs in "plasma and PBMCs" reach no term; the value as printed carries them. Free text (labels, member
+qualifiers) is not checked: "ECHO or MUGA" as a label still gives MUGA, with "echo or" in `unread`.
 
 Fasting is read from the words "fasting", "non-fasting" and "fasting not required" (our word list); the
 reading is Y, N or none.
@@ -145,6 +157,12 @@ Rules 1.3.0 on cdisc-for-ai d385a36 (2026-11-09): 25 rows with domain IS (cell_g
 7 component parts, all ISBDAGNT from the label: COAGULATION FACTOR IX ×4 (one through the CDISC synonym "FIX"),
 SARS-CoV-2 ×1, HLA CLASS II ANTIGENS ×2 (weak, NCIt synonym only). No facet, level or other count changed; 7 rows
 have fewer unread words. The figures below are otherwise unchanged.
+
+Rules 1.4.0 on cdisc-for-ai d385a36 (2026-11-09): 24 typed context facets are `list_value` (cell_gene_therapy 12,
+usdm_data 12). 9 of them lost their term (cell_gene_therapy: PLASMA ×3, MUGA ×1, POLYMERASE CHAIN REACTION ×4;
+usdm_data: INTERFERON GAMMA RELEASE ASSAY ×1); the other 15 had none (two or more phrases). Facets with a CDISC
+term 485 → 476; typed context facets with a term 329 → 320. No specialization level changed; 24 rows in 12
+studies changed. The figures below are otherwise unchanged.
 
 998 rows (312 standalone, 643 panel members, 43 ECG activity rows with 124 components); 636 facets, 485
 with a CDISC term, 16 flagged ambiguous; conditions on 4 rows; collisions cited on 14 rows (all `equal`).

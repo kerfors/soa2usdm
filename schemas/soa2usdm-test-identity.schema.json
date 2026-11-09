@@ -26,7 +26,8 @@
     "1.0",
     "1.1",
     "1.2",
-    "1.3"
+    "1.3",
+    "1.4"
    ]
   },
   "collection": {
@@ -522,6 +523,10 @@
           "type": "string"
          },
          "description": "1.1: the other variables whose codelists the same phrase matches; none chosen, none narrows"
+        },
+        "list_value": {
+         "const": true,
+         "description": "1.4: a typed context field that names more than one thing next to the phrase (and / or in the phrase's clause); no term, the terms its phrases reach in terms; none chosen, none narrows"
         }
        }
       }

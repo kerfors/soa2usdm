@@ -99,6 +99,13 @@ class Stub(ti.TestIdentityLookups):
             {"variable": "ISBDAGNT", "generic": "--BDAGNT", "kind": "observable", "position": "component",
              "meaning_status": "accepted", "codelists": ["ISBDAGT", "MICROORG"]}]}
         self.component_part_basis = {"ISBDAGNT": {"statement_id": "ISBDAGNT-Notes", "text_sha256": "x"}}
+        # rules 1.4.0: typed context fields that name more than one thing
+        for cl, phrase, sv, cid in [("METHOD", "igra", "INTERFERON GAMMA RELEASE ASSAY", "C128363"),
+                                    ("METHOD", "pcr", "POLYMERASE CHAIN REACTION", "C17003"),
+                                    ("METHOD", "liquid chromatography tandem mass spectrometry", "LC/MS/MS", "C122168"),
+                                    ("METHOD", "lc ms ms", "LC/MS/MS", "C122168"),
+                                    ("SPECTYPE", "tumor sample", "TUMOR TISSUE", "C18009")]:
+            self.phrases[cl][phrase].add((sv, cid))
 
 
 LK = Stub()
@@ -328,3 +335,45 @@ def test_component_parts_only_isbdagnt_and_ismscbce(real):
     assert {k: b["statement_id"] for k, b in real.component_part_basis.items()} \
         == {"ISBDAGNT": "ISBDAGNT-Notes", "ISMSCBCE": "ISMSCBCE-Notes"}
     assert "ISBDAGNT" not in [v["variable"] for v in real.text_variables("IS")]
+
+
+# ---------------------------------------------------------------------------
+# Rules 1.4.0 (2026-11-09): a typed context field that names more than one thing
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value, gen, reached", [
+    ("plasma and PBMCs", "--SPEC", ["PLASMA"]),
+    ("ECHO or MUGA scan", "--METHOD", ["MUGA"]),
+    ("PPD TST or IGRA for Mycobacterium tuberculosis", "--METHOD", ["INTERFERON GAMMA RELEASE ASSAY"]),
+    ("IgG and IgM serology tests, and reflex PCR in case of IgM seropositive result", "--METHOD",
+     ["POLYMERASE CHAIN REACTION"]),
+    ("urine or serum", "--SPEC", ["SERUM", "URINE"]),
+])
+def test_list_value_takes_no_term(value, gen, reached):
+    f = ti.read_field(value, gen, "lab_and_purpose", "LB", LK)
+    assert f["term"] is None and f["list_value"] is True and f["value"] == value
+    assert [t["submission_value"] for t in f["terms"]] == reached
+
+
+@pytest.mark.parametrize("value, gen, term", [
+    ("blood samples, collected in the absence of residual infused FIX", "--SPEC", "BLOOD"),
+    ("serum (screening and within 24 hours prior to treatment exposure)", "--SPEC", "SERUM"),
+    ("blood samples for glucose, insulin, and C-peptide", "--SPEC", "BLOOD"),
+    ("Formalin fixed, paraffin-embedded tumor sample (primary or metastatic site) consisting of 100 micron "
+     "thickness of sections or unsectioned paraffin block", "--SPEC", "TUMOR TISSUE"),
+    ("validated liquid chromatography tandem mass spectrometry (LC-MS/MS) method", "--METHOD", "LC/MS/MS"),
+])
+def test_qualifier_is_not_a_second_thing(value, gen, term):
+    f = ti.read_field(value, gen, "lab_and_purpose", "LB", LK)
+    assert f["term"]["submission_value"] == term and "list_value" not in f and f["terms"] == []
+
+
+def test_list_value_does_not_narrow():
+    f = ti.read_field("plasma and PBMCs", "--SPEC", "lab_and_purpose", "LB", LK)
+    s = ti.specialization("LB", GLUC, [f], LK)
+    assert s["level"] == "facet not stated" and s["stated"] == []
+
+
+def test_no_phrase_no_list_value():
+    f = ti.read_field("Bethesda assay or Nijmegen modified Bethesda assay", "--METHOD", "lab_and_purpose", "LB", LK)
+    assert f["term"] is None and "list_value" not in f

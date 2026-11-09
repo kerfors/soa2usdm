@@ -30,7 +30,10 @@ facets          values beyond the test code, of every kind, read from: the label
                 (where the domain is not settled: the generic's Kind in some domain); typed context fields are
                 read for their own variable whatever its Kind. A phrase that matches the codelists of several
                 variables gives one facet per variable, each with ambiguous_with the others; none is chosen and
-                none narrows the specialization. Fasting is read from the words
+                none narrows the specialization. Rules 1.4.0 (2026-11-09): a typed context field whose value
+                names more than one thing next to the phrase ("plasma and PBMCs", "ECHO or MUGA scan": "and" /
+                "or" in the phrase's clause, CLAUSE_BOUNDARIES) takes no term; the terms its phrases reach are
+                kept in terms and the facet is list_value. Fasting is read from the words
                 "fasting" / "non-fasting" (our word list, FASTING_WORDS). Each facet carries the variable, Kind
                 and Position from Variable_Meaning, or Kind "not set" where the domain has no row
                 (Domain_Variables only).
@@ -88,10 +91,10 @@ from .activity_routing import load_current_routing, routing_path
 from .panel_context_members import load_current_panel_members, panels_path
 
 SCHEMA_NAME = "soa2usdm-test-identity"
-SCHEMA_VERSION = "1.3"
-SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3")
-RULES_VERSION = "1.3.0"
-WORD_LISTS_DATE = "2026-11-08"
+SCHEMA_VERSION = "1.4"
+SCHEMA_VERSIONS = ("1.0", "1.1", "1.2", "1.3", "1.4")
+RULES_VERSION = "1.4.0"
+WORD_LISTS_DATE = "2026-11-09"
 
 FG = "sdtm-findings-graph/machine_actionable/"
 FINDINGS_FILES = ("Specimen_Findings", "Measurement_Findings", "Immunogenicity_Findings")
@@ -142,6 +145,13 @@ CONDITION_PATTERNS = (  # whether the observation happens: reflex, population, s
     ("population", r"\bwocbp(?: only)?\b"),
     ("visit", r"\bonly (?:at|on|in|during) [^,;)]+"),
 )
+# Rules 1.4.0: a typed context field names more than one thing when a coordinator stands in the clause of a
+# matched phrase. The clause runs from the phrase to a boundary word, a ';' or the end of the value, inside the
+# phrase's own parenthesis; other parentheses are skipped. Commas and slashes are not coordinators ("Formalin
+# fixed, paraffin-embedded"; "LC-MS/MS").
+COORDINATORS = ("and", "or")
+CLAUSE_BOUNDARIES = ("after", "at", "before", "by", "during", "except", "for", "from", "if", "in", "instead", "of",
+                     "on", "prior", "to", "unless", "when", "whenever", "with", "within")
 
 
 def _sha256_bytes(b: bytes) -> str:
@@ -461,9 +471,51 @@ def read_text(text: str, where: str, variables: list, lk: TestIdentityLookups, e
     return facets, conditions, again, unread
 
 
+def token_groups(value: str) -> list:
+    """The normalised tokens of a value, each with its segment (';' starts one) and its parenthesis group
+    (0 outside; each parenthesis or bracket its own group)."""
+    out, seg, stack, n = [], 0, [0], 0
+    for m in re.finditer(r"[A-Za-z0-9]+|[()\[\];]", value):
+        t = m.group(0)
+        if t == ";":
+            seg, stack = seg + 1, [0]
+        elif t in "([":
+            n += 1
+            stack.append(n)
+        elif t in ")]":
+            if len(stack) > 1:
+                stack.pop()
+        else:
+            out.append((t.lower(), seg, stack[-1]))
+    return out
+
+
+def names_more(value: str, hits: list) -> bool:
+    """Rules 1.4.0: True where a coordinator stands in the clause of a matched phrase (COORDINATORS,
+    CLAUSE_BOUNDARIES)."""
+    tg = token_groups(value)
+    if [t for t, _, _ in tg] != normalise(value).split():
+        raise ValueError(f"token groups do not follow the normalisation rule: {value!r}")
+    for i, j, *_ in hits:
+        seg, grp = tg[i][1], tg[i][2]
+        for side in (range(i - 1, -1, -1), range(j, len(tg))):
+            for k in side:
+                t, s, g = tg[k]
+                if s != seg or (grp and g != grp):
+                    break
+                if g != grp:
+                    continue
+                if t in CLAUSE_BOUNDARIES:
+                    break
+                if t in COORDINATORS:
+                    return True
+    return False
+
+
 def read_field(value: str, gen: str, where: str, domain: str | None, lk: TestIdentityLookups, **extra) -> dict:
     """A context field typed for one facet (lab_and_purpose specimen / method): the value as printed,
-    its CDISC term where exactly one phrase of the variable's codelists matches."""
+    its CDISC term where exactly one phrase of the variable's codelists matches and the value names
+    nothing more next to it (rules 1.4.0: otherwise list_value, no term, the reached terms in terms)."""
     v = next(iter(lk.variables_for(domain, (gen,))), None) or \
         {"variable": gen, "generic": gen, "kind": None, "position": None, "meaning_status": None,
          "codelists": sorted(lk.codelist_by_generic[gen])}
@@ -471,6 +523,10 @@ def read_field(value: str, gen: str, where: str, domain: str | None, lk: TestIde
     terms = sorted({t for h in hits for t in h[4]})
     f = _facet(v, value, terms, where, "context field", **extra)
     f["term"] = _term_codelist(v, terms, lk.phrases)
+    if names_more(value, hits):
+        f["term"] = None
+        f["terms"] = [{"submission_value": s, "concept_id": c} for s, c in terms]
+        f["list_value"] = True
     return f
 
 
